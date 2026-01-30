@@ -1,0 +1,5 @@
+module resources.styles
+Theme 1.0 Theme.qml
+DarkTheme 1.0 DarkTheme.qml
+LightTheme 1.0 LightTheme.qml
+

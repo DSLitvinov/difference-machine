@@ -1,0 +1,42 @@
+# Build directories
+build/
+out/
+
+# Go build artifacts
+*.out
+__debug_bin
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing
+*.gcda
+*.gcno
+*.gcov
+coverage/
+test-results/
+
+# Dependencies
+third_party/
+
+# Temporary files
+*.tmp
+*.log
+*.cache
+
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
