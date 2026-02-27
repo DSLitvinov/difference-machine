@@ -7,7 +7,7 @@ QtObject {
     readonly property color backgroundTertiary: "#e8e8e8"
     readonly property color backgroundHover: "#e5e5e5"
     readonly property color backgroundSelected: "#cce5ff"
-    readonly property color textSelected: "#ffffff"
+    readonly property color textSelected: "#000000"
     
     // Menu bar
     readonly property color menuBarBackground: "#f0f0f0"

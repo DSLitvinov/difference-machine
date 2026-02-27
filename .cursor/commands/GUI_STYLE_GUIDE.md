@@ -58,7 +58,7 @@ property var theme: Theme {}
 - **Фон при наведении**: `theme.backgroundHover`
 - **Фон выбранного элемента**: `theme.backgroundSelected`
 - **Основной текст**: `theme.textPrimary`
-- **Текст выделенного элемента**: `theme.textSelected` (белый `#ffffff`)
+- **Текст выделенного элемента**: `theme.textSelected` (в светлой теме — тёмный, в тёмной — белый; контраст с `backgroundSelected`)
 - **Вторичный текст**: `theme.textSecondary`
 - **Текст placeholder**: `theme.textPlaceholder`
 - **Цвет акцента (выделение)**: `theme.accent` (синий `#007acc`)
@@ -138,8 +138,8 @@ source: structProjectPanel.theme.getIconPath("folder.svg")
 ### Hover эффекты
 
 - Использовать `theme.backgroundHover` для эффекта наведения
-- Использовать `theme.accent` для фона выбранных элементов (синий цвет как в VS Code)
-- Использовать `theme.textSelected` для текста выбранных элементов (белый цвет)
+- Использовать `theme.backgroundSelected` для фона выбранных элементов
+- Использовать `theme.textSelected` для текста выбранных элементов (контрастный к фону: тёмный в светлой теме, белый в тёмной)
 
 ## ScrollView
 

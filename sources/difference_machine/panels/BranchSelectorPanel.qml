@@ -471,10 +471,18 @@ Rectangle {
                     id: nameField
                     Layout.fillWidth: true
                     placeholderText: qsTr("Введите имя")
+                    placeholderTextColor: theme.textPlaceholder
                     text: createBranchName
                     onTextChanged: {
                         createBranchName = text
                         createBranchError = ""
+                    }
+                    color: theme.textPrimary
+                    background: Rectangle {
+                        color: theme.backgroundSecondary
+                        border.color: theme.divider
+                        border.width: 1
+                        radius: theme.radiusMedium
                     }
                 }
                 Text {

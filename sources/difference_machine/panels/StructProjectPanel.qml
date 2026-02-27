@@ -13,6 +13,9 @@ Rectangle {
     readonly property int headerRowSpacing: 12
     readonly property int headerRowVerticalMargin: 12
     readonly property int headerSegmentControlWidth: 180
+    readonly property int segmentControlHeight: 32
+    readonly property int searchFieldHeight: 36
+    readonly property int segmentSearchPanelHeight: headerRowVerticalMargin + segmentControlHeight + headerRowSpacing + searchFieldHeight + headerRowVerticalMargin
     SplitView.minimumWidth: 0
     SplitView.preferredWidth: 300
     
@@ -565,11 +568,12 @@ Rectangle {
         anchors.margins: 0
         spacing: 0
         
-        // Переключение Все/Изменены, затем поиск
+        // Переключение Все/Изменены, затем поиск (высота по контенту)
         Item {
             id: segmentControlRow
             Layout.fillWidth: true
-            Layout.preferredHeight: 76
+            Layout.preferredHeight: structProjectPanel.segmentSearchPanelHeight
+            Layout.minimumHeight: structProjectPanel.segmentSearchPanelHeight
             
             property int currentIndex: 0
             onCurrentIndexChanged: {
@@ -590,7 +594,7 @@ Rectangle {
                 Rectangle {
                     id: segmentControl
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 32
+                    Layout.preferredHeight: structProjectPanel.segmentControlHeight
                     radius: theme.radiusLarge
                     color: theme.tabBarBackground
                     clip: true
@@ -653,7 +657,8 @@ Rectangle {
                 // Search field — ниже переключения
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 28
+                    Layout.preferredHeight: structProjectPanel.searchFieldHeight
+                    Layout.minimumHeight: structProjectPanel.searchFieldHeight
                     Layout.minimumWidth: 0
                     color: theme.tabBarBackground
                     radius: theme.radiusMedium
@@ -664,20 +669,22 @@ Rectangle {
                         anchors.fill: parent
                         anchors.leftMargin: 8
                         anchors.rightMargin: 6
-                        anchors.topMargin: 4
-                        anchors.bottomMargin: 4
+                        anchors.topMargin: 6
+                        anchors.bottomMargin: 6
                         spacing: 6
                         
                         TextField {
                             id: projectSearchField
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             Layout.minimumWidth: 0
                             leftPadding: 0
                             rightPadding: 4
-                            topPadding: 0
-                            bottomPadding: 0
+                            topPadding: 2
+                            bottomPadding: 2
                             verticalAlignment: TextInput.AlignVCenter
                             placeholderText: qsTr("Search files...")
+                            placeholderTextColor: theme.textPlaceholder
                             onTextChanged: structProjectPanel.searchFilter = text.toLowerCase()
                             background: Item {}
                             color: theme.textPrimary
@@ -778,15 +785,17 @@ Rectangle {
         }
 
         // Commit form - can be collapsed by clicking the header (hidden on "Все" tab, shown on "Изменены")
+        // Height depends on content, no scroll
         Rectangle {
             id: commitPanel
             visible: tabBar.currentIndex === 1
             Layout.fillWidth: true
+            readonly property int commitFormMargins: 20
             Layout.preferredHeight: (tabBar.currentIndex === 1 && structProjectPanel.commitPanelExpanded)
-                    ? (commitHeader.height + commitPanelContent.implicitHeight + 20)
+                    ? (commitHeader.height + commitPanelContent.implicitHeight + commitFormMargins)
                     : (tabBar.currentIndex === 1 ? commitHeader.height : 0)
-            Layout.maximumHeight: (tabBar.currentIndex === 1 && structProjectPanel.commitPanelExpanded)
-                    ? Math.min(400, commitHeader.height + commitPanelContent.implicitHeight + 20)
+            Layout.minimumHeight: (tabBar.currentIndex === 1 && structProjectPanel.commitPanelExpanded)
+                    ? (commitHeader.height + commitPanelContent.implicitHeight + commitFormMargins)
                     : (tabBar.currentIndex === 1 ? commitHeader.height : 0)
             color: theme.background
 
@@ -842,42 +851,50 @@ Rectangle {
             ColumnLayout {
                 id: commitPanelContent
                 visible: structProjectPanel.commitPanelExpanded
-                anchors.fill: parent
-                anchors.topMargin: commitHeader.height + 12
+                anchors.top: commitHeader.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.topMargin: 8
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
                 anchors.bottomMargin: 12
-                spacing: 10
+                spacing: 8
 
                 ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 5
-
-                    Text {
-                        text: qsTr("Message *")
-                        color: theme.textPrimary
-                        font.pixelSize: theme.fontPixelSizeSmall
-                        font.bold: true
-                    }
-
-                    ScrollView {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 120
-                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                        spacing: 4
+
+                        Text {
+                            text: qsTr("Message *")
+                            color: theme.textPrimary
+                            font.pixelSize: theme.fontPixelSizeSmall
+                            font.bold: true
+                        }
 
                         TextArea {
                             id: commitMessageField
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 64
+                            Layout.minimumHeight: 64
                             placeholderText: qsTr("Enter commit message...")
+                            placeholderTextColor: theme.textPlaceholder
                             wrapMode: TextArea.Wrap
                             text: commitMessage
                             onTextChanged: commitMessage = text
+                            color: theme.textPrimary
+                            inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhSensitiveData
+                            background: Rectangle {
+                                color: theme.backgroundSecondary
+                                border.color: theme.divider
+                                border.width: 1
+                                radius: theme.radiusMedium
+                            }
                         }
                     }
-                }
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 4
 
                     Text {
                         text: qsTr("Author")
@@ -890,8 +907,16 @@ Rectangle {
                         id: commitAuthorField
                         Layout.fillWidth: true
                         placeholderText: qsTr("Optional author name")
+                        placeholderTextColor: theme.textPlaceholder
                         text: commitAuthor
                         onTextChanged: commitAuthor = text
+                        color: theme.textPrimary
+                        background: Rectangle {
+                            color: theme.backgroundSecondary
+                            border.color: theme.divider
+                            border.width: 1
+                            radius: theme.radiusMedium
+                        }
                         
                         Component.onCompleted: {
                             Qt.callLater(function() {
@@ -928,7 +953,7 @@ Rectangle {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 4
 
                     Text {
                         text: qsTr("Email")
@@ -941,8 +966,16 @@ Rectangle {
                         id: commitEmailField
                         Layout.fillWidth: true
                         placeholderText: qsTr("Optional email")
+                        placeholderTextColor: theme.textPlaceholder
                         text: commitEmail
                         onTextChanged: commitEmail = text
+                        color: theme.textPrimary
+                        background: Rectangle {
+                            color: theme.backgroundSecondary
+                            border.color: theme.divider
+                            border.width: 1
+                            radius: theme.radiusMedium
+                        }
                         
                         Component.onCompleted: {
                             Qt.callLater(function() {
@@ -971,7 +1004,7 @@ Rectangle {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 5
+                    spacing: 4
 
                     Text {
                         text: qsTr("Tag")
@@ -984,13 +1017,17 @@ Rectangle {
                         id: commitTagField
                         Layout.fillWidth: true
                         placeholderText: qsTr("Optional tag name")
+                        placeholderTextColor: theme.textPlaceholder
                         text: commitTag
                         onTextChanged: commitTag = text
+                        color: theme.textPrimary
+                        background: Rectangle {
+                            color: theme.backgroundSecondary
+                            border.color: theme.divider
+                            border.width: 1
+                            radius: theme.radiusMedium
+                        }
                     }
-                }
-
-                Item {
-                    Layout.fillHeight: true
                 }
 
                 Text {

@@ -284,10 +284,18 @@ Rectangle {
                     id: createBranchFromCommitNameField
                     Layout.fillWidth: true
                     placeholderText: qsTr("Введите имя ветки")
+                    placeholderTextColor: theme.textPlaceholder
                     text: createBranchFromCommitName
                     onTextChanged: {
                         createBranchFromCommitName = text
                         createBranchFromCommitError = ""
+                    }
+                    color: theme.textPrimary
+                    background: Rectangle {
+                        color: theme.backgroundSecondary
+                        border.color: theme.divider
+                        border.width: 1
+                        radius: theme.radiusMedium
                     }
                 }
                 Text {

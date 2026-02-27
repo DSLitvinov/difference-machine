@@ -461,8 +461,81 @@ Rectangle {
         updateSelectAllFilesState()
     }
     
+    // Get list of changed file paths from repository status (normalized to absolute for matching tree model)
+    function getChangedFilePaths() {
+        var paths = []
+        var status = repositoryManager ? repositoryManager.lastStatus : null
+        if (!status) return paths
+
+        function addPaths(arr) {
+            if (arr) {
+                for (var i = 0; i < arr.length; i++) {
+                    var p = String(arr[i]).trim().replace(/\\/g, "/")
+                    if (!p) continue
+                    var normalized = pathUtils.normalizeStatusPath(p)
+                    var absPath = normalized || pathUtils.toAbsolutePath(p)
+                    if (absPath) {
+                        absPath = String(absPath).replace(/\\/g, "/")
+                        if (paths.indexOf(absPath) === -1) paths.push(absPath)
+                    }
+                }
+            }
+        }
+        addPaths(status.staged_new_files)
+        addPaths(status.staged_modified_files)
+        addPaths(status.staged_deleted_files)
+        addPaths(status.unstaged_modified_files)
+        addPaths(status.unstaged_deleted_files)
+        addPaths(status.untracked_files)
+        return paths
+    }
+
+    // Select/deselect all changed files (used when showOnlyChangedFiles)
+    function selectAllChangedFiles(checked) {
+        var changedPaths = getChangedFilePaths()
+        if (changedPaths.length === 0) return
+
+        var newCheckboxes = {}
+        for (var key in fileCheckboxes) {
+            newCheckboxes[key] = fileCheckboxes[key]
+        }
+        for (var j = 0; j < changedPaths.length; j++) {
+            if (!isDeletedPath(changedPaths[j])) {
+                newCheckboxes[changedPaths[j]] = checked
+            }
+        }
+        internalCheckboxesUpdate = true
+        fileCheckboxes = newCheckboxes
+        internalCheckboxesUpdate = false
+        Qt.callLater(updateSelectAllFilesState)
+    }
+
+    // Get select-all checkbox state for changed files
+    function getSelectAllChangedFilesState() {
+        var changedPaths = getChangedFilePaths()
+        var selectablePaths = []
+        for (var i = 0; i < changedPaths.length; i++) {
+            if (!isDeletedPath(changedPaths[i])) selectablePaths.push(changedPaths[i])
+        }
+        if (selectablePaths.length === 0) return Qt.Unchecked
+        var checkedCount = 0
+        for (var j = 0; j < selectablePaths.length; j++) {
+            if (fileCheckboxes[selectablePaths[j]]) checkedCount++
+        }
+        if (checkedCount === 0) return Qt.Unchecked
+        if (checkedCount === selectablePaths.length) return Qt.Checked
+        return Qt.PartiallyChecked
+    }
+
     function updateSelectAllFilesState() {
-        // No header checkbox — state not shown
+        if (typeof selectAllCheckBox !== 'undefined' && selectAllCheckBox) {
+            var newState = showOnlyChangedFiles ? getSelectAllChangedFilesState() : Qt.Unchecked
+            if (            selectAllCheckBox.checkState !== newState && !selectAllCheckBox.internalUpdate) {
+                selectAllCheckBox.internalUpdate = true
+                selectAllCheckBox.checkState = newState
+                selectAllCheckBox.internalUpdate = false
+            }
+        }
     }
     
     function updateModel() {
@@ -535,14 +608,14 @@ Rectangle {
                 anchors.topMargin: 12
                 anchors.bottomMargin: 12
                 spacing: 12
-                
+
                 Text {
                     text: qsTr("Files")
                     color: theme.textPrimary
                     font.pixelSize: theme.fontPixelSizeSubhead
                     font.bold: true
                 }
-                
+
                 Item { Layout.fillWidth: true }
             }
             
@@ -554,7 +627,77 @@ Rectangle {
                 color: theme.divider
             }
         }
-        
+
+        // Select all row — in file list panel, above the tree
+        Rectangle {
+            visible: fileTreeViewRoot.showCheckboxes
+            Layout.fillWidth: true
+            Layout.preferredHeight: 28
+            color: theme.background
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                spacing: 6
+
+                CheckBox {
+                    id: selectAllCheckBox
+                    tristate: true
+                    property bool internalUpdate: false
+
+                    Component.onCompleted: {
+                        if (fileTreeViewRoot.showOnlyChangedFiles) {
+                            internalUpdate = true
+                            checkState = fileTreeViewRoot.getSelectAllChangedFilesState()
+                            internalUpdate = false
+                        }
+                    }
+
+                    Connections {
+                        target: fileTreeViewRoot
+                        function onFileCheckboxesChanged() {
+                            if (fileTreeViewRoot.showCheckboxes && !selectAllCheckBox.internalUpdate) {
+                                Qt.callLater(fileTreeViewRoot.updateSelectAllFilesState)
+                            }
+                        }
+                    }
+
+                    Connections {
+                        target: fileTreeViewRoot.repositoryManager
+                        enabled: fileTreeViewRoot.repositoryManager !== null && fileTreeViewRoot.showOnlyChangedFiles
+                        function onStatusChanged() {
+                            Qt.callLater(fileTreeViewRoot.updateSelectAllFilesState)
+                        }
+                    }
+
+                    onClicked: {
+                        if (!internalUpdate && fileTreeViewRoot.showOnlyChangedFiles) {
+                            var shouldCheck = (checkState !== Qt.Unchecked)
+                            fileTreeViewRoot.selectAllChangedFiles(shouldCheck)
+                        }
+                    }
+                }
+
+                Text {
+                    text: qsTr("All")
+                    color: theme.textPrimary
+                    font.pixelSize: theme.fontPixelSizeBody
+                }
+
+                Item { Layout.fillWidth: true }
+            }
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 1
+                color: theme.divider
+                opacity: 0.5
+            }
+        }
+
         // Tree view for file system
         ScrollView {
             Layout.fillWidth: true

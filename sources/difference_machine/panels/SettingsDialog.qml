@@ -264,6 +264,14 @@ Dialog {
                                 onTextChanged: {
                                     if (configManager) configManager.userName = text
                                 }
+                                color: theme.textPrimary
+                                placeholderTextColor: theme.textPlaceholder
+                                background: Rectangle {
+                                    color: theme.backgroundSecondary
+                                    border.color: theme.divider
+                                    border.width: 1
+                                    radius: theme.radiusMedium
+                                }
                             }
                         }
 
@@ -280,6 +288,14 @@ Dialog {
                                 text: configManager ? configManager.userEmail : ""
                                 onTextChanged: {
                                     if (configManager) configManager.userEmail = text
+                                }
+                                color: theme.textPrimary
+                                placeholderTextColor: theme.textPlaceholder
+                                background: Rectangle {
+                                    color: theme.backgroundSecondary
+                                    border.color: theme.divider
+                                    border.width: 1
+                                    radius: theme.radiusMedium
                                 }
                             }
                         }
@@ -322,6 +338,14 @@ Dialog {
                                     text: configManager ? configManager.foresterPath : ""
                                     onTextChanged: {
                                         if (configManager) configManager.foresterPath = text
+                                    }
+                                    color: theme.textPrimary
+                                    placeholderTextColor: theme.textPlaceholder
+                                    background: Rectangle {
+                                        color: theme.backgroundSecondary
+                                        border.color: theme.divider
+                                        border.width: 1
+                                        radius: theme.radiusMedium
                                     }
                                 }
                                 Button {
@@ -376,6 +400,14 @@ Dialog {
                                     onTextChanged: {
                                         if (configManager) configManager.blenderPath = text
                                     }
+                                    color: theme.textPrimary
+                                    placeholderTextColor: theme.textPlaceholder
+                                    background: Rectangle {
+                                        color: theme.backgroundSecondary
+                                        border.color: theme.divider
+                                        border.width: 1
+                                        radius: theme.radiusMedium
+                                    }
                                 }
                                 Button {
                                     text: qsTr("Обзор...")
@@ -427,6 +459,14 @@ Dialog {
                                     text: configManager ? configManager.addonPath : ""
                                     onTextChanged: {
                                         if (configManager) configManager.addonPath = text
+                                    }
+                                    color: theme.textPrimary
+                                    placeholderTextColor: theme.textPlaceholder
+                                    background: Rectangle {
+                                        color: theme.backgroundSecondary
+                                        border.color: theme.divider
+                                        border.width: 1
+                                        radius: theme.radiusMedium
                                     }
                                 }
                                 Button {
