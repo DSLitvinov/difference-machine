@@ -158,6 +158,17 @@ Syntax:
 Rules:
 - `--staged` and `--source` are mutually exclusive.
 
+restore-version
+~~~~~~~~~~~~~~
+Restore the working directory to exactly match a commit (full overwrite). Removes files not in the commit, writes all commit files. Does not use temporary directories; does not touch `.DFM`.
+
+Syntax:
+- `forester restore-version <commit>`
+
+Notes:
+- `<commit>` can be full or short hash, or HEAD.
+- After running, working tree matches the commit; then use `forester add .` and `forester commit "..."` to record that state as a new commit if desired.
+
 reset
 ~~~~~
 Move HEAD to a commit.
@@ -450,6 +461,15 @@ Examples:
 Errors:
 - `--staged` with `--source`
 - Unknown flag
+
+restore-version
+~~~~~~~~~~~~~~
+Examples:
+- `forester restore-version abc1234567890...`
+- `forester restore-version HEAD~1`
+Errors:
+- Missing commit argument
+- Commit not found
 
 reset
 ~~~~~

@@ -1,6 +1,6 @@
 # План добавления новых функций в Forester и Addon
 
-**Версии компонентов:** Forester 0.7.5, diffmachine_gui 0.7.5, Blender Addon 0.7.5.
+**Версии компонентов:** Forester 0.7.5, difference_machine 0.7.5, Blender Addon 0.7.5.
 
 ## Обзор
 
@@ -8,15 +8,15 @@
 
 **Связь с roadmap:** см. `.cursor/commands/roadmap.md`. Этапы roadmap: 9 (Replace/Retrieve), 10 (Ghost), 11 (History), 12 (screenshots), 13 (Save Asset), 14 (Mark To), 16 (Review) — соответствуют разделам 1.x и 2.x ниже.
 
-### diffmachine_gui: текущее состояние (по анализу кода)
+### difference_machine: текущее состояние (по анализу кода)
 
-Структура и возможности GUI (см. подробнее в roadmap, раздел «diffmachine_gui: текущее состояние»):
+Структура и возможности GUI (см. подробнее в roadmap, раздел «difference_machine: текущее состояние»):
 
-- **Пути в коде:** используется `diffmachine_gui/repository/`, а не `models/` и `services/`. В roadmap этапы 1–8 ссылаются на `models/` и `services/` — при реализации ориентироваться на фактический `repository/` или ввести новые папки по желанию.
+- **Пути в коде:** используется `difference_machine/repository/`, а не `models/` и `services/`. В roadmap этапы 1–8 ссылаются на `models/` и `services/` — при реализации ориентироваться на фактический `repository/` или ввести новые папки по желанию.
 - **Есть:** `CommitModel` (одиночный коммит), `BranchModel`, `StatusModel`; `ForesterAPIWrapper` и `RepositoryManager` с getLog, getBranches, getStatus, createCommit, getCommitFiles, getDiffHtml, getCommitInfo, getImageFromCommit, getImageFromWorkingDir, generateDiffImage, compareCommitFile, startAutoRefresh/stopAutoRefresh. В UI: StructProjectPanel (вкладка Commits — список коммитов через `getLog()` и QML ListModel), ChangedPanel/ChangesPanel, DiffPanel, BranchSelectorPanel.
 - **Нет по сравнению с roadmap 1–8:** QAbstractListModel для списка коммитов; ролей tag, screenshot_hash, is_head в данных; отдельного ForesterService; TagModel и фильтрации по тегам/поиску; PreviewService и превью по screenshot_path; CommitItemDelegate с миниатюрой/тегом/HEAD; EmptyState; MergePanel/MergeService/EditorLauncher. Утилиты: нет `file_utils.py` (есть только `getFileSize` в RepositoryManager).
 
-Для этапов 1–8, 12.2, 15–18 в roadmap — смотреть раздел «diffmachine_gui: текущее состояние» в roadmap.
+Для этапов 1–8, 12.2, 15–18 в roadmap — смотреть раздел «difference_machine: текущее состояние» в roadmap.
 
 ---
 
@@ -114,9 +114,9 @@
 
 #### 2.1 Расширение Replace Object с функциональностью Retrieve ✅
 **Файлы:**
-- `addons/blender/diffmachine/operators/history_operators.py` (обновить `DF_OT_replace_mesh`) ✅
-- `addons/blender/diffmachine/utils/asset_path.py` (новый) ✅
-- `addons/blender/diffmachine/ui/ui_panels.py` (обновить) ✅
+- `addons/blender/difference_machine/operators/history_operators.py` (обновить `DF_OT_replace_mesh`) ✅
+- `addons/blender/difference_machine/utils/asset_path.py` (новый) ✅
+- `addons/blender/difference_machine/ui/ui_panels.py` (обновить) ✅
 
 **Задачи:**
 
@@ -152,8 +152,8 @@
 
 #### 2.2 Расширение Compare Object (Ghost Objects) ✅
 **Файлы:**
-- `addons/blender/diffmachine/operators/history_operators.py` (обновить `DF_OT_compare_object`) ✅
-- `addons/blender/diffmachine/ui/ui_panels.py` (обновить) ✅
+- `addons/blender/difference_machine/operators/history_operators.py` (обновить `DF_OT_compare_object`) ✅
+- `addons/blender/difference_machine/ui/ui_panels.py` (обновить) ✅
 
 **Задачи:**
 
@@ -181,10 +181,10 @@
 
 #### 2.3 История объектов ✅
 **Файлы:**
-- `addons/blender/diffmachine/utils/object_data.py` (новый) ✅
-- `addons/blender/diffmachine/utils/object_history.py` (новый) ✅
-- `addons/blender/diffmachine/ui/ui_panels.py` (обновить) ✅
-- `addons/blender/diffmachine/ui/ui_lists.py` (обновить)
+- `addons/blender/difference_machine/utils/object_data.py` (новый) ✅
+- `addons/blender/difference_machine/utils/object_history.py` (новый) ✅
+- `addons/blender/difference_machine/ui/ui_panels.py` (обновить) ✅
+- `addons/blender/difference_machine/ui/ui_lists.py` (обновить)
 
 **Задачи:**
 
@@ -220,8 +220,8 @@
 
 #### 2.4 Улучшенная работа со скриншотами ✅
 **Файлы:**
-- `addons/blender/diffmachine/operators/commit_operators.py` (обновить) ✅
-- `addons/blender/diffmachine/utils/forester_api.py` (обновить) ✅
+- `addons/blender/difference_machine/operators/commit_operators.py` (обновить) ✅
+- `addons/blender/difference_machine/utils/forester_api.py` (обновить) ✅
 
 **Задачи:**
 - [x] При создании коммита: сохранять screenshot_hash в forester как screenshot_path ✅
@@ -238,9 +238,9 @@
 
 #### 2.5 Улучшение Save Asset ✅
 **Файлы:**
-- `addons/blender/diffmachine/operators/commit_operators.py` (обновить `DF_OT_save_asset`) ✅
-- `addons/blender/diffmachine/utils/asset_registry.py` (новый) ✅
-- `addons/blender/diffmachine/ui/ui_panels.py` (обновить)
+- `addons/blender/difference_machine/operators/commit_operators.py` (обновить `DF_OT_save_asset`) ✅
+- `addons/blender/difference_machine/utils/asset_registry.py` (новый) ✅
+- `addons/blender/difference_machine/ui/ui_panels.py` (обновить)
 
 **Задачи:**
 
@@ -295,12 +295,12 @@
 
 #### 2.6 Реестр редакторов и Mark To панель ✅
 **Файлы:**
-- `addons/blender/diffmachine/utils/object_data.py` (новый, если еще не создан) ✅
-- `addons/blender/diffmachine/properties/object_mark.py` (новый) ✅
-- `addons/blender/diffmachine/operators/mark_operators.py` (новый) ✅
-- `addons/blender/diffmachine/ui/ui_panels.py` (обновить) ✅
-- `addons/blender/diffmachine/ui/ui_lists.py` (обновить)
-- `addons/blender/diffmachine/utils/forester_api.py` (обновить)
+- `addons/blender/difference_machine/utils/object_data.py` (новый, если еще не создан) ✅
+- `addons/blender/difference_machine/properties/object_mark.py` (новый) ✅
+- `addons/blender/difference_machine/operators/mark_operators.py` (новый) ✅
+- `addons/blender/difference_machine/ui/ui_panels.py` (обновить) ✅
+- `addons/blender/difference_machine/ui/ui_lists.py` (обновить)
+- `addons/blender/difference_machine/utils/forester_api.py` (обновить)
 
 **Задачи:**
 
@@ -358,7 +358,7 @@
 
 #### 2.7 Background скрипты для merge операций
 **Файлы:**
-- `addons/blender/diffmachine/scripts/merge_apply_background.py` (новый)
+- `addons/blender/difference_machine/scripts/merge_apply_background.py` (новый)
 
 **Задачи:**
 - [ ] Создать скрипт для выполнения merge операций в background Blender
@@ -387,9 +387,9 @@
 
 #### 2.8 Review UI в Addon
 **Файлы:**
-- `addons/blender/diffmachine/ui/ui_panels.py` (обновить)
-- `addons/blender/diffmachine/operators/review_operators.py` (новый)
-- `addons/blender/diffmachine/utils/forester_api.py` (обновить)
+- `addons/blender/difference_machine/ui/ui_panels.py` (обновить)
+- `addons/blender/difference_machine/operators/review_operators.py` (новый)
+- `addons/blender/difference_machine/utils/forester_api.py` (обновить)
 
 **Задачи:**
 - [ ] Добавить секцию Review в панель Compare
@@ -409,7 +409,7 @@
 
 #### 2.9 Скрипт для открытия редактора с фокусом на объекте
 **Файлы:**
-- `addons/blender/diffmachine/scripts/focus_object.py` (новый)
+- `addons/blender/difference_machine/scripts/focus_object.py` (новый)
 
 **Задачи:**
 - [ ] Создать скрипт для Blender:

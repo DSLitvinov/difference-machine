@@ -22,6 +22,7 @@ Core commands
 - `forester show <commit> | <commit>:<file> [--stat]`
 - `forester diff [<commit1> [commit2]] [options] | <commit>:<file> | --cached|--staged`
 - `forester restore <file>... | --staged <file>... | --source=<commit> <file>...`
+- `forester restore-version <commit>`
 - `forester reset [--soft|--mixed|--hard] <commit>`
 - `forester revert <commit>`
 - `forester cherry-pick <commit>`

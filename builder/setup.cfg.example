@@ -1,0 +1,33 @@
+[gc]
+interval.day = 90
+reflog.expire.days = 90
+
+[python_bindings]
+installed = true
+path = /opt/DiffMachine/lib/python
+
+[plugins]
+blender_enabled = true
+
+[blender]
+path = /Applications/Blender.app
+# Optional: path to merge_apply_background.py for auto-resolve of .blend merge conflicts.
+# If unset, GUI uses addons/blender/difference_machine/scripts/merge_apply_background.py when available.
+# merge_apply_script = /path/to/difference_machine/addons/blender/difference_machine/scripts/merge_apply_background.py
+
+[user]
+email = user@example.com
+name = "User Name"
+
+[forester]
+installed = true
+path = /opt/DiffMachine/bin/forester
+
+[api]
+installed = true
+path = /opt/DiffMachine/lib/libforester.so
+
+[difference machine gui]
+path = 
+installed = false
+enabled = false

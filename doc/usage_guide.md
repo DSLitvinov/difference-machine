@@ -78,6 +78,7 @@ forester log
 forester diff
 forester show <commit>
 forester restore <file>
+forester restore-version <commit>   # full overwrite of working dir to match commit
 forester reset --mixed <commit>
 ```
 
@@ -120,11 +121,16 @@ If .blend has object tags in DB, GUI runs:
 -------------------------
 
 1. Open Blender → Preferences → Add-ons → Install.
-2. Select addon folder: `addons/blender/diffmachine`.
+2. Select addon folder: `addons/blender/difference_machine`.
 3. Enable the addon.
 
 After enabling:
 - Panel appears in the **3D View > Sidebar > Difference Machine**.
+
+### 4.1 Compare panel (Version History)
+- **Load Commits** — load commit list for the current branch.
+- **Project** tab: for the selected commit — **Compare** (extract to tmp and open in another Blender), **Restore This Version** (full overwrite of working folder to that commit, create a new commit with message like "Restore version DD.MM.YYYY HH:MM from commit <hash>", then reload the current file).
+- **Selected Object** tab: compare or replace the selected object with the version from the chosen commit.
 
 ---
 

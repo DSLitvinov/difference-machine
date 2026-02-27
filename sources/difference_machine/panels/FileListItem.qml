@@ -1,0 +1,131 @@
+import QtQuick 6.6
+import QtQuick.Controls 6.6
+import QtQuick.Layouts 6.6
+import resources.styles 1.0
+
+Rectangle {
+    id: fileListItem
+    
+    // Constants
+    readonly property int checkboxAreaWidth: 40  // Width of checkbox area in pixels
+    
+    // Properties
+    property string filePath: ""
+    property string displayPath: ""  // Formatted path for display
+    property string status: ""
+    property string statusText: ""
+    property bool checked: false
+    property string selectedFilePath: ""
+    property var theme: null
+    property var listModel: null  // Reference to the ListModel for updating checked state
+    property int modelIndex: -1
+    property var onSelectAllStateUpdate: null  // Callback for updating select all state
+    
+    // Signals
+    signal fileSelected(string filePath)
+    signal fileCheckedChanged(string filePath, bool checked)
+    
+    // Computed properties
+    readonly property bool isSelected: filePath && selectedFilePath === filePath
+    readonly property bool isDeleted: status === "staged_deleted" || status === "unstaged_deleted"
+    
+    width: parent ? parent.width : 0
+    height: 28
+    color: mouseArea.containsMouse ? (theme ? theme.backgroundHover : "transparent") :
+           (isSelected ? (theme ? theme.backgroundSelected : "transparent") : "transparent")
+    
+    RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        spacing: 8
+        
+        CheckBox {
+            id: fileCheckbox
+            enabled: fileListItem.filePath && fileListItem.filePath.length > 0
+            checked: fileListItem.checked
+            z: 2  // Above MouseArea
+            
+            onClicked: {
+                if (fileListItem.filePath && fileListItem.filePath.length > 0) {
+                    if (fileListItem.listModel && fileListItem.modelIndex >= 0) {
+                        var newChecked = !fileListItem.checked
+                        fileListItem.listModel.setProperty(fileListItem.modelIndex, "checked", newChecked)
+                        fileListItem.fileCheckedChanged(fileListItem.filePath, newChecked)
+                        if (fileListItem.onSelectAllStateUpdate) {
+                            Qt.callLater(fileListItem.onSelectAllStateUpdate)
+                        }
+                    }
+                }
+            }
+        }
+        
+        Rectangle {
+            Layout.preferredWidth: 16
+            Layout.preferredHeight: 16
+            radius: theme ? theme.radiusBadge : 8
+            color: {
+                if (fileListItem.status === "staged_modified" || fileListItem.status === "unstaged_modified") {
+                    return theme ? theme.diffModified : "#0366d6"
+                } else if (fileListItem.status === "staged_deleted" || fileListItem.status === "unstaged_deleted") {
+                    return theme ? theme.diffDeleted : "#6a737d"
+                } else if (fileListItem.status === "staged_new" || fileListItem.status === "untracked") {
+                    return theme ? theme.diffAdded : "#28a745"
+                }
+                return theme ? theme.textSecondary : "#cccccc"
+            }
+            
+            Text {
+                anchors.centerIn: parent
+                text: fileListItem.statusText || ""
+                color: Qt.darker(parent.color, 1.6)
+                font.pixelSize: theme ? theme.fontPixelSizeCaption : 9
+                font.bold: true
+            }
+        }
+        
+        Text {
+            Layout.fillWidth: true
+            text: fileListItem.displayPath || fileListItem.filePath || ""
+            color: theme ? theme.textPrimary : "#000000"
+            font.pixelSize: theme ? theme.fontPixelSizeSubhead : 13
+            elide: Text.ElideMiddle
+        }
+    }
+    
+    // MouseArea for file selection - works like TreeViewDelegate onClicked
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton
+        onPressed: function(mouse) {
+            // Let the checkbox receive clicks in its area
+            if (mouse.x < fileListItem.checkboxAreaWidth) {
+                mouse.accepted = false
+            }
+        }
+        
+        onClicked: function(mouse) {
+            // Don't select if clicking in checkbox area
+            if (mouse.x < fileListItem.checkboxAreaWidth) {
+                mouse.accepted = false
+                return
+            }
+            
+            // Select the file - same as Explorer tab
+            if (fileListItem.filePath) {
+                fileListItem.fileSelected(fileListItem.filePath)
+            }
+        }
+    }
+    
+    Rectangle {
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: 1
+        color: theme ? theme.divider : "#cccccc"
+        opacity: 0.3
+    }
+}
