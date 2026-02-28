@@ -13,6 +13,7 @@ Rectangle {
     // Theme instance
     property var theme: Theme {}
     property var repositoryManager: null
+    property var overlayItem: null  // Parent for context menu popup
     property string selectedFilePath: ""
     
     // Path utilities
@@ -261,9 +262,15 @@ Rectangle {
                     checked: model.checked || false
                     selectedFilePath: changedPanel.selectedFilePath
                     theme: changedPanel.theme
-                    model: changedFilesModel
+                    listModel: changedFilesModel
+                    modelIndex: index
+                    repositoryManager: changedPanel.repositoryManager
+                    pathUtils: pathUtils
+                    overlayItem: changedPanel.overlayItem
                     onSelectAllStateUpdate: updateSelectAllChangedFilesState
-                    
+                    onFileCheckedChanged: function(path, checked) {
+                        changedFilesModel.setProperty(index, "checked", checked)
+                    }
                     onFileSelected: function(path) {
                         changedPanel.selectedFilePath = path
                         changedPanel.fileSelected(path)

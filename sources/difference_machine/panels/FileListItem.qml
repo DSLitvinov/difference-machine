@@ -20,6 +20,9 @@ Rectangle {
     property var listModel: null  // Reference to the ListModel for updating checked state
     property int modelIndex: -1
     property var onSelectAllStateUpdate: null  // Callback for updating select all state
+    property var repositoryManager: null  // For context menu: copy path, reveal in folder
+    property var pathUtils: null  // For relative path in context menu
+    property var overlayItem: null  // Parent for context menu popup
     
     // Signals
     signal fileSelected(string filePath)
@@ -90,6 +93,9 @@ Rectangle {
             color: theme ? theme.textPrimary : "#000000"
             font.pixelSize: theme ? theme.fontPixelSizeSubhead : 13
             elide: Text.ElideMiddle
+            ToolTip.visible: mouseArea.containsMouse && (fileListItem.filePath || "").length > 0
+            ToolTip.text: fileListItem.filePath || ""
+            ToolTip.delay: 500
         }
     }
     
@@ -99,7 +105,7 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        acceptedButtons: Qt.LeftButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         onPressed: function(mouse) {
             // Let the checkbox receive clicks in its area
             if (mouse.x < fileListItem.checkboxAreaWidth) {
@@ -114,9 +120,60 @@ Rectangle {
                 return
             }
             
+            if (mouse.button === Qt.RightButton) {
+                var overlay = fileListItem.overlayItem || fileListItem
+                var pos = mouseArea.mapToItem(overlay, mouse.x, mouse.y)
+                fileContextMenu.filePath = fileListItem.filePath
+                fileContextMenu.pathUtils = fileListItem.pathUtils
+                fileContextMenu.repositoryManager = fileListItem.repositoryManager
+                fileContextMenu.parent = overlay
+                fileContextMenu.popup(pos.x, pos.y)
+                return
+            }
+            
             // Select the file - same as Explorer tab
             if (fileListItem.filePath) {
                 fileListItem.fileSelected(fileListItem.filePath)
+            }
+        }
+    }
+    
+    Menu {
+        id: fileContextMenu
+        property string filePath: ""
+        property var pathUtils: null
+        property var repositoryManager: null
+        
+        MenuItem {
+            text: qsTr("Copy path")
+            visible: fileContextMenu.filePath && fileContextMenu.repositoryManager
+            onTriggered: {
+                if (fileContextMenu.repositoryManager && fileContextMenu.filePath) {
+                    fileContextMenu.repositoryManager.copyToClipboard(fileContextMenu.filePath)
+                }
+            }
+        }
+        MenuItem {
+            text: qsTr("Copy relative path")
+            visible: fileContextMenu.filePath && fileContextMenu.repositoryManager && fileContextMenu.pathUtils
+            onTriggered: {
+                if (fileContextMenu.repositoryManager && fileContextMenu.pathUtils && fileContextMenu.filePath) {
+                    var rel = fileContextMenu.pathUtils.toRepoRelativePath(fileContextMenu.filePath)
+                    var toCopy = (rel && rel.length > 0) ? rel : fileContextMenu.filePath
+                    fileContextMenu.repositoryManager.copyToClipboard(toCopy)
+                }
+            }
+        }
+        MenuSeparator {
+            visible: fileContextMenu.filePath && fileContextMenu.repositoryManager
+        }
+        MenuItem {
+            text: qsTr("Reveal in folder")
+            visible: fileContextMenu.filePath && fileContextMenu.repositoryManager
+            onTriggered: {
+                if (fileContextMenu.repositoryManager && fileContextMenu.filePath && fileContextMenu.repositoryManager.revealInFolder) {
+                    fileContextMenu.repositoryManager.revealInFolder(fileContextMenu.filePath)
+                }
             }
         }
     }

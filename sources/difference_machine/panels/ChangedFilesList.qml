@@ -11,6 +11,7 @@ Rectangle {
     // Theme instance
     property var theme: Theme {}
     property var repositoryManager: null
+    property var overlayItem: null  // Parent for context menu popup
     // Persist checkbox states across status refreshes
     property var fileCheckboxes: ({})
     
@@ -384,6 +385,9 @@ Rectangle {
                             listModel: changedFilesModelInternal
                             modelIndex: index
                             onSelectAllStateUpdate: updateSelectAllState
+                            repositoryManager: changedFilesList.repositoryManager
+                            pathUtils: pathUtils
+                            overlayItem: changedFilesList.overlayItem
                             onFileCheckedChanged: function(path, checked) {
                                 changedFilesList.setFileChecked(path, checked)
                             }

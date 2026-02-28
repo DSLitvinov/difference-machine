@@ -1114,6 +1114,21 @@ class RepositoryManager(QObject):
         except Exception as e:
             log.warning("Error copying to clipboard: %s", e)
 
+    @pyqtSlot(str, result=bool)
+    def revealInFolder(self, path: str) -> bool:
+        """Open the folder containing the path in the system file manager.
+        If path is a directory, opens it directly. If path is a file, opens its parent directory."""
+        if not path:
+            return False
+        try:
+            p = Path(path)
+            if p.exists():
+                target = p if p.is_dir() else p.parent
+                return QDesktopServices.openUrl(QUrl.fromLocalFile(str(target)))
+        except Exception as e:
+            log.warning("Error revealing in folder: %s", e)
+        return False
+
     @pyqtSlot(str, result='QVariant')
     def getWorkingFileMetadata(self, file_path: str):
         """Get metadata for a working directory file."""

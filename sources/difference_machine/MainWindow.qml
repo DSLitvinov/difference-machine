@@ -142,6 +142,15 @@ ApplicationWindow {
                 text: qsTr("Открыть")
                 onTriggered: fileManager.openDirectoryDialog()
             }
+            MenuItem {
+                text: qsTr("Show in Explorer")
+                enabled: repositoryManager && repositoryManager.currentRepository
+                onTriggered: {
+                    if (repositoryManager && repositoryManager.revealInFolder) {
+                        repositoryManager.revealInFolder(repositoryManager.currentRepository)
+                    }
+                }
+            }
             MenuSeparator {}
             MenuItem {
                 text: qsTr("Инициализировать")

@@ -947,6 +947,9 @@ Rectangle {
                             font.pixelSize: theme.fontPixelSizeBody
                             font.bold: matchesFilter && fileTreeViewRoot.searchFilter !== ""
                             elide: Text.ElideRight
+                            ToolTip.visible: treeDelegate.hovered && (model.path || "").length > 0
+                            ToolTip.text: model.path || ""
+                            ToolTip.delay: 500
                         }
                         
                         // Status badge (only for files)
@@ -1021,6 +1024,29 @@ Rectangle {
                         }
                     }
                     
+                    // Right-click overlay for context menu
+                    Item {
+                        anchors.fill: parent
+                        z: 10
+                        MouseArea {
+                            id: rightClickMouseArea
+                            anchors.fill: parent
+                            acceptedButtons: Qt.RightButton
+                            onClicked: function(mouse) {
+                                if (mouse.button === Qt.RightButton && (model.path || "").length > 0) {
+                                    var overlay = (fileTreeViewRoot.parentPanel && fileTreeViewRoot.parentPanel.overlayItem)
+                                        ? fileTreeViewRoot.parentPanel.overlayItem : fileTreeViewRoot
+                                    var pos = rightClickMouseArea.mapToItem(overlay, mouse.x, mouse.y)
+                                    fileTreeContextMenu.filePath = model.path || ""
+                                    fileTreeContextMenu.pathUtils = pathUtils
+                                    fileTreeContextMenu.repositoryManager = fileTreeViewRoot.repositoryManager
+                                    fileTreeContextMenu.parent = overlay
+                                    fileTreeContextMenu.popup(pos.x, pos.y)
+                                }
+                            }
+                        }
+                    }
+                    
                     onClicked: {
                         if (!isClickable) {
                             return
@@ -1033,6 +1059,46 @@ Rectangle {
                             fileTreeViewRoot.fileSelected(model.path)
                         }
                     }
+                }
+            }
+        }
+    }
+    
+    Menu {
+        id: fileTreeContextMenu
+        property string filePath: ""
+        property var pathUtils: null
+        property var repositoryManager: null
+        
+        MenuItem {
+            text: qsTr("Copy path")
+            visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager
+            onTriggered: {
+                if (fileTreeContextMenu.repositoryManager && fileTreeContextMenu.filePath) {
+                    fileTreeContextMenu.repositoryManager.copyToClipboard(fileTreeContextMenu.filePath)
+                }
+            }
+        }
+        MenuItem {
+            text: qsTr("Copy relative path")
+            visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager && fileTreeContextMenu.pathUtils
+            onTriggered: {
+                if (fileTreeContextMenu.repositoryManager && fileTreeContextMenu.pathUtils && fileTreeContextMenu.filePath) {
+                    var rel = fileTreeContextMenu.pathUtils.toRepoRelativePath(fileTreeContextMenu.filePath)
+                    var toCopy = (rel && rel.length > 0) ? rel : fileTreeContextMenu.filePath
+                    fileTreeContextMenu.repositoryManager.copyToClipboard(toCopy)
+                }
+            }
+        }
+        MenuSeparator {
+            visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager
+        }
+        MenuItem {
+            text: qsTr("Reveal in folder")
+            visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager
+            onTriggered: {
+                if (fileTreeContextMenu.repositoryManager && fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager.revealInFolder) {
+                    fileTreeContextMenu.repositoryManager.revealInFolder(fileTreeContextMenu.filePath)
                 }
             }
         }
