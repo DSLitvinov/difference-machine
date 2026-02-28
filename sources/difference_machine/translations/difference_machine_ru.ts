@@ -267,6 +267,11 @@
         <source>Clear compare</source>
         <translation>Очистить сравнение</translation>
     </message>
+    <message>
+        <location filename="../panels/DiffMetadataPanel.qml" line="99"/>
+        <source>Copy path</source>
+        <translation>Копировать путь</translation>
+    </message>
 </context>
 <context>
     <name>DiffPanel</name>
@@ -386,6 +391,34 @@
         <source>Set Blender path in ~/.dfm/setup.cfg</source>
         <translation>Укажите путь к Blender в ~/.dfm/setup.cfg</translation>
     </message>
+    <message>
+        <location filename="../file_viewer/FileMetadataPanel.qml" line="88"/>
+        <source>Copy path</source>
+        <translation>Копировать путь</translation>
+    </message>
+</context>
+<context>
+    <name>FileListItem</name>
+    <message>
+        <location filename="../panels/FileListItem.qml" line="147"/>
+        <source>Copy path</source>
+        <translation>Копировать путь</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileListItem.qml" line="156"/>
+        <source>Copy relative path</source>
+        <translation>Копировать относительный путь</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileListItem.qml" line="171"/>
+        <source>Open in folder</source>
+        <translation>Открыть в папке</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileListItem.qml" line="138"/>
+        <source>File actions</source>
+        <translation>Действия с файлом</translation>
+    </message>
 </context>
 <context>
     <name>FileTreeView</name>
@@ -398,6 +431,26 @@
         <location filename="../panels/FileTreeView.qml" line="705"/>
         <source>Files</source>
         <translation>Файлы</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileTreeView.qml" line="1073"/>
+        <source>Copy path</source>
+        <translation>Копировать путь</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileTreeView.qml" line="1082"/>
+        <source>Copy relative path</source>
+        <translation>Копировать относительный путь</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileTreeView.qml" line="1097"/>
+        <source>Open in folder</source>
+        <translation>Открыть в папке</translation>
+    </message>
+    <message>
+        <location filename="../panels/FileTreeView.qml" line="1060"/>
+        <source>File actions</source>
+        <translation>Действия с файлом</translation>
     </message>
 </context>
 <context>
@@ -464,6 +517,11 @@
         <location filename="../MainWindow.qml" line="163"/>
         <source>Открыть</source>
         <translation>Открыть</translation>
+    </message>
+    <message>
+        <location filename="../MainWindow.qml" line="146"/>
+        <source>Show in Explorer</source>
+        <translation>Показать в проводнике</translation>
     </message>
     <message>
         <location filename="../MainWindow.qml" line="168"/>
@@ -737,6 +795,14 @@
         <location filename="../panels/MergeBranchDialog.qml" line="516"/>
         <source>Выполнить слияние</source>
         <translation>Выполнить слияние</translation>
+    </message>
+</context>
+<context>
+    <name>CommitsListPanel</name>
+    <message>
+        <location filename="../panels/CommitsListPanel.qml" line="203"/>
+        <source>Commit actions</source>
+        <translation>Действия с коммитом</translation>
     </message>
 </context>
 <context>

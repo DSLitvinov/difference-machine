@@ -710,6 +710,11 @@ Rectangle {
                 id: fileTreeView
                 anchors.fill: parent
                 
+                // Make the single column fill the full viewport width (avoids empty space on the right)
+                columnWidthProvider: function(column) {
+                    return column === 0 ? fileTreeView.width : -1
+                }
+                
                 Component.onCompleted: {
                     if (fileTreeViewRoot.fileManager) {
                         model = fileTreeViewRoot.fileManager.fileSystemModel
@@ -942,6 +947,7 @@ Rectangle {
                         // File/folder name
                         Text {
                             Layout.fillWidth: true
+                            Layout.minimumWidth: 0
                             text: model.display || ""
                             color: treeDelegate.isSelected ? theme.textSelected : theme.textPrimary
                             font.pixelSize: theme.fontPixelSizeBody
@@ -1008,6 +1014,49 @@ Rectangle {
                                 opacity: 0.7
                             }
                         }
+                        
+                        // Menu button (⋮) - inside layout so it doesn't overlap the text
+                        Rectangle {
+                            visible: (model.path || "").length > 0
+                            Layout.preferredWidth: 28
+                            Layout.preferredHeight: 24
+                            Layout.alignment: Qt.AlignVCenter
+                            radius: 4
+                            color: treeMenuBtnMouseArea.containsMouse ? theme.backgroundHover : "transparent"
+                            opacity: treeMenuBtnMouseArea.containsMouse ? 1.0 : 0.6
+                            
+                            Image {
+                                anchors.centerIn: parent
+                                width: 16
+                                height: 16
+                                source: fileTreeViewRoot.theme.getIconPath("more-vert.svg")
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                            }
+                            
+                            MouseArea {
+                                id: treeMenuBtnMouseArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: function(mouse) {
+                                    if ((model.path || "").length > 0) {
+                                        var overlay = (fileTreeViewRoot.parentPanel && fileTreeViewRoot.parentPanel.overlayItem)
+                                            ? fileTreeViewRoot.parentPanel.overlayItem : fileTreeViewRoot
+                                        var pos = mapToItem(overlay, mouse.x, mouse.y)
+                                        fileTreeContextMenu.filePath = model.path || ""
+                                        fileTreeContextMenu.pathUtils = pathUtils
+                                        fileTreeContextMenu.repositoryManager = fileTreeViewRoot.repositoryManager
+                                        fileTreeContextMenu.parent = overlay
+                                        fileTreeContextMenu.popup(pos.x, pos.y)
+                                    }
+                                }
+                            }
+                            
+                            ToolTip.visible: treeMenuBtnMouseArea.containsMouse
+                            ToolTip.text: qsTr("File actions")
+                            ToolTip.delay: 500
+                        }
                     }
                     
                     background: Rectangle {
@@ -1027,7 +1076,7 @@ Rectangle {
                     // Right-click overlay for context menu
                     Item {
                         anchors.fill: parent
-                        z: 10
+                        z: 5
                         MouseArea {
                             id: rightClickMouseArea
                             anchors.fill: parent
@@ -1094,7 +1143,7 @@ Rectangle {
             visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager
         }
         MenuItem {
-            text: qsTr("Reveal in folder")
+            text: qsTr("Open in folder")
             visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager
             onTriggered: {
                 if (fileTreeContextMenu.repositoryManager && fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager.revealInFolder) {

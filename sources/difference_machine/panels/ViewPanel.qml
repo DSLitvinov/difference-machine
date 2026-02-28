@@ -197,6 +197,7 @@ Rectangle {
             onLoaded: {
                 if (item) {
                     item.fileViewer = viewPanel.fileViewer
+                    item.repositoryManager = viewPanel.repositoryManager
                 }
             }
             
@@ -205,6 +206,11 @@ Rectangle {
                 function onFileViewerChanged() {
                     if (metadataPanelLoader.item) {
                         metadataPanelLoader.item.fileViewer = viewPanel.fileViewer
+                    }
+                }
+                function onRepositoryManagerChanged() {
+                    if (metadataPanelLoader.item) {
+                        metadataPanelLoader.item.repositoryManager = viewPanel.repositoryManager
                     }
                 }
             }

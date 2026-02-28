@@ -74,13 +74,14 @@ Rectangle {
             }
         }
 
-        Row {
+        RowLayout {
+            width: contentColumn ? contentColumn.width - 20 : 0
             spacing: 10
             Text {
                 text: qsTr("Path:")
                 color: theme.textTertiary
                 font.pixelSize: theme.fontPixelSizeSmall
-                width: 80
+                Layout.preferredWidth: 80
             }
             Text {
                 text: fileMetadata.path ? fileMetadata.path : filePath
@@ -88,6 +89,25 @@ Rectangle {
                 font.pixelSize: theme.fontPixelSizeSmall
                 font.family: theme.fontMonospace
                 elide: Text.ElideMiddle
+                Layout.fillWidth: true
+            }
+            Button {
+                flat: true
+                visible: (fileMetadata.path || filePath) && repositoryManager
+                implicitWidth: 28
+                implicitHeight: 24
+                icon.source: theme ? theme.getIconPath("edit-copy.svg") : ""
+                icon.width: 14
+                icon.height: 14
+                onClicked: {
+                    if (repositoryManager) {
+                        var p = fileMetadata.path || filePath
+                        if (p) repositoryManager.copyToClipboard(p)
+                    }
+                }
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Copy path")
+                ToolTip.delay: 500
             }
         }
 

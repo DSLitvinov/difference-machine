@@ -89,12 +89,52 @@ Rectangle {
         
         Text {
             Layout.fillWidth: true
+            Layout.minimumWidth: 0
             text: fileListItem.displayPath || fileListItem.filePath || ""
             color: theme ? theme.textPrimary : "#000000"
             font.pixelSize: theme ? theme.fontPixelSizeSubhead : 13
             elide: Text.ElideMiddle
             ToolTip.visible: mouseArea.containsMouse && (fileListItem.filePath || "").length > 0
             ToolTip.text: fileListItem.filePath || ""
+            ToolTip.delay: 500
+        }
+        
+        // Menu button (⋮) - inside layout so it doesn't overlap the text
+        Rectangle {
+            Layout.preferredWidth: 28
+            Layout.preferredHeight: 24
+            Layout.alignment: Qt.AlignVCenter
+            radius: 4
+            color: menuBtnMouseArea.containsMouse ? (theme ? theme.backgroundHover : "#e0e0e0") : "transparent"
+            opacity: menuBtnMouseArea.containsMouse ? 1.0 : 0.6
+            
+            Image {
+                anchors.centerIn: parent
+                width: 16
+                height: 16
+                source: theme ? theme.getIconPath("more-vert.svg") : ""
+                fillMode: Image.PreserveAspectFit
+                asynchronous: true
+            }
+            
+            MouseArea {
+                id: menuBtnMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: function(mouse) {
+                    var overlay = fileListItem.overlayItem || fileListItem
+                    var pos = mapToItem(overlay, mouse.x, mouse.y)
+                    fileContextMenu.filePath = fileListItem.filePath
+                    fileContextMenu.pathUtils = fileListItem.pathUtils
+                    fileContextMenu.repositoryManager = fileListItem.repositoryManager
+                    fileContextMenu.parent = overlay
+                    fileContextMenu.popup(pos.x, pos.y)
+                }
+            }
+            
+            ToolTip.visible: menuBtnMouseArea.containsMouse
+            ToolTip.text: qsTr("File actions")
             ToolTip.delay: 500
         }
     }
@@ -168,7 +208,7 @@ Rectangle {
             visible: fileContextMenu.filePath && fileContextMenu.repositoryManager
         }
         MenuItem {
-            text: qsTr("Reveal in folder")
+            text: qsTr("Open in folder")
             visible: fileContextMenu.filePath && fileContextMenu.repositoryManager
             onTriggered: {
                 if (fileContextMenu.repositoryManager && fileContextMenu.filePath && fileContextMenu.repositoryManager.revealInFolder) {

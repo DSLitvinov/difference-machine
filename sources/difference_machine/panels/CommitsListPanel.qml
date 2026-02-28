@@ -126,13 +126,53 @@ Rectangle {
                         anchors.bottomMargin: 8
                         spacing: 4
 
-                        Text {
+                        RowLayout {
                             Layout.fillWidth: true
-                            text: model.message || "(no message)"
-                            color: theme.textPrimary
-                            font.pixelSize: theme.fontPixelSizeSubhead
-                            font.bold: true
-                            elide: Text.ElideRight
+                            spacing: 4
+
+                            Text {
+                                Layout.fillWidth: true
+                                Layout.minimumWidth: 0
+                                text: model.message || "(no message)"
+                                color: theme.textPrimary
+                                font.pixelSize: theme.fontPixelSizeSubhead
+                                font.bold: true
+                                elide: Text.ElideRight
+                            }
+
+                            Rectangle {
+                                Layout.preferredWidth: 28
+                                Layout.preferredHeight: 28
+                                Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                                radius: 4
+                                color: menuButtonMouseArea.containsMouse ? theme.backgroundHover : "transparent"
+                                opacity: menuButtonMouseArea.containsMouse ? 1.0 : 0.6
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    width: 16
+                                    height: 16
+                                    source: theme ? theme.getIconPath("more-vert.svg") : ""
+                                    fillMode: Image.PreserveAspectFit
+                                    asynchronous: true
+                                }
+
+                                MouseArea {
+                                    id: menuButtonMouseArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: function(mouse) {
+                                        var overlay = commitsListPanel.overlayItem || commitsListPanel
+                                        var pos = mapToItem(overlay, mouse.x, mouse.y)
+                                        commitsListPanel.openCommitContextMenu(model.hash || "", pos.x, pos.y)
+                                    }
+                                }
+
+                                ToolTip.visible: menuButtonMouseArea.containsMouse
+                                ToolTip.text: qsTr("Commit actions")
+                                ToolTip.delay: 500
+                            }
                         }
 
                         RowLayout {
@@ -172,45 +212,6 @@ Rectangle {
                                 commitsListPanel.commitSelected(model.hash)
                             }
                         }
-                    }
-
-                    // Transparent menu button with vertical three dots (on top of MouseArea)
-                    Rectangle {
-                        z: 10
-                        anchors.top: parent.top
-                        anchors.right: parent.right
-                        anchors.topMargin: 8
-                        anchors.rightMargin: 8
-                        width: 28
-                        height: 28
-                        radius: 4
-                        color: menuButtonMouseArea.containsMouse ? theme.backgroundHover : "transparent"
-                        opacity: menuButtonMouseArea.containsMouse ? 1.0 : 0.6
-
-                        Image {
-                            anchors.centerIn: parent
-                            width: 16
-                            height: 16
-                            source: theme ? theme.getIconPath("more-vert.svg") : ""
-                            fillMode: Image.PreserveAspectFit
-                            asynchronous: true
-                        }
-
-                        MouseArea {
-                            id: menuButtonMouseArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: function(mouse) {
-                                var overlay = commitsListPanel.overlayItem || commitsListPanel
-                                var pos = mapToItem(overlay, mouse.x, mouse.y)
-                                commitsListPanel.openCommitContextMenu(model.hash || "", pos.x, pos.y)
-                            }
-                        }
-
-                        ToolTip.visible: menuButtonMouseArea.containsMouse
-                        ToolTip.text: qsTr("Commit actions")
-                        ToolTip.delay: 500
                     }
 
                     Rectangle {
