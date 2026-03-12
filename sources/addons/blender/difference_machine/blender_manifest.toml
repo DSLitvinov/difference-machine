@@ -1,8 +1,8 @@
 schema_version = "1.0.0"
 
-id = "diffmachine"
+id = "difference_machine"
 version = "0.7.5"
-name = "Diffmachine"
+name = "Difference Machine"
 tagline = "Version control for Blender projects using Forester API"
 maintainer = "Dmitry Litvinov <nopomuk@yandex.ru>"
 type = "add-on"

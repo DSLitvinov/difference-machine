@@ -116,11 +116,11 @@ echo ""
 
 # Choose installation path
 if [ "${OS}" = "linux" ]; then
-    DEFAULT_INSTALL_PATH="/opt/DiffMachine"
+    DEFAULT_INSTALL_PATH="/opt/Difference_Machine"
 elif [ "${OS}" = "macos" ]; then
-    DEFAULT_INSTALL_PATH="/Applications/DiffMachine"
+    DEFAULT_INSTALL_PATH="/Applications/Difference_Machine"
 else
-    DEFAULT_INSTALL_PATH="${HOME}/DiffMachine"
+    DEFAULT_INSTALL_PATH="${HOME}/Difference_Machine"
 fi
 
 read -p "Путь установки [${DEFAULT_INSTALL_PATH}]: " INSTALL_PATH
