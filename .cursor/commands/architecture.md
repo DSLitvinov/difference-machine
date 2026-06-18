@@ -124,7 +124,7 @@ difference-machine/
 ├── installer/                         # Установщик
 │   ├── install.sh                     # Установщик (Linux/macOS)
 │   ├── install.bat                    # Установщик (Windows)
-│   ├── build_installer_full.sh        # Полная сборка установщика (Forester + GUI + образ)
+│   ├── auto_build.sh                  # Полная сборка (Forester + GUI + образ)
 │   ├── scripts/
 │   │   ├── build_installer.sh         # Сборка образа (forester, addons, скрипты)
 │   │   └── build_iso.sh               # Создание ISO из DFM_Installer
@@ -249,7 +249,7 @@ path = /<Системная папка>/DiffMachine/bin/forester
 installed = true
 
 [difference machine gui]
-path = /<Системная папка>/DiffMachine/diffmachine_gui/main.py
+path = /<Системная папка>/DiffMachine/difference_machine/main.py
 installed = false
 enabled = false
 

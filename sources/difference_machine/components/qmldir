@@ -1,0 +1,12 @@
+module components
+DmButton 1.0 DmButton.qml
+DmTextField 1.0 DmTextField.qml
+DmTextArea 1.0 DmTextArea.qml
+DmComboBox 1.0 DmComboBox.qml
+DmCheckBox 1.0 DmCheckBox.qml
+DmSearchField 1.0 DmSearchField.qml
+DmSegmentControl 1.0 DmSegmentControl.qml
+DmSplitHandle 1.0 DmSplitHandle.qml
+DmContextMenu 1.0 DmContextMenu.qml
+DmMenuSeparator 1.0 DmMenuSeparator.qml
+DmToolTip 1.0 DmToolTip.qml

@@ -1,10 +1,10 @@
-**Version:** 0.7.5 (Forester, diffmachine_gui, Blender Addon).
+**Version:** 0.7.5 (Forester, difference_machine, Blender Addon).
 
 ## About
 
 **Difference Machine** is a local, Git-like version control system for Blender projects. It tracks file history, supports branches and merges, and adds **object-level** versioning inside `.blend` files so you can resolve conflicts by choosing which objects to keep, delete, rename, or merge from either branch.
 
-![Compare blend](resources/Compare%20blend.png)
+![Compare blend](/doc/resources/Compare%20blend.png)
 
 *Comparison of `.blend` versions in the Difference Machine: two Blender windows (parent and commit) and a diff in the GUI.*
 
@@ -14,7 +14,7 @@
 
 - **Blender Addon** — Panel in the 3D View sidebar. Marks objects with workflow tags (MERGE, DELETE, RENAME), syncs them to the Forester DB, and integrates with init/commit/branch/history. Uses only Blender’s built-in Python.
 
-- **diffmachine_gui** — Desktop app (PyQt6) to open repos, inspect changed files, view text/image diffs, switch branches, and run merges. For `.blend` files with synced object tags, it drives object-level merge via a background Blender script (delete/rename/merge chosen objects).
+- **difference_machine** — Desktop app (PyQt6) to open repos, inspect changed files, view text/image diffs, switch branches, and run merges. For `.blend` files with synced object tags, it drives object-level merge via a background Blender script (delete/rename/merge chosen objects).
 
 ### Main features
 
@@ -36,9 +36,9 @@ After installation via the unified installer, you can start the GUI:
 - **GCC/C compiler** (for CGO)
 - **genisoimage** >= 1.1.11 (or mkisofs/xorriso) — only for building installer ISO images
 - **Blender** >= 4.5.0 (for the addon)
-- **Python** >= 3.10 (for diffmachine_gui; Blender ships its own Python)
+- **Python** >= 3.10 (for difference_machine; Blender ships its own Python)
 
-### Python dependencies (diffmachine_gui)
+### Python dependencies (difference_machine)
 - PyQt6 >= 6.6.0
 - PyQt6-Qt6 >= 6.6.0
 - PyQt6-sip >= 13.6.0
@@ -55,7 +55,7 @@ pip install -r installer/requirements-build.txt
 
 This installs:
 - **PyInstaller** >= 6.0.0
-- All of `diffmachine_gui/requirements.txt` (needed for PyInstaller to analyze and bundle the app)
+- All of `difference_machine/requirements.txt` (needed for PyInstaller to analyze and bundle the app)
 
 Then run, on the target OS:
 - **Linux/macOS:** `installer/scripts/build_gui_pyinstaller.sh`

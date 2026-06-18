@@ -1,9 +1,0 @@
-# Зависимости для сборки GUI через PyInstaller.
-# Установка: pip install -r installer/requirements-build.txt
-# После установки запускать: installer/scripts/build_gui_pyinstaller.sh (Linux/macOS)
-# или installer/scripts/build_gui_pyinstaller.bat (Windows)
-
-pyinstaller>=6.0.0
-
-# Зависимости приложения (нужны PyInstaller для анализа и упаковки)
--r ../diffmachine_gui/requirements.txt

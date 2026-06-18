@@ -1,6 +1,13 @@
 # Build directories
+DFM_Installer/
 build/
 out/
+dist/
+
+# Installer build artifacts
+builder/forester/
+sources/installer/
+installer/forester/
 
 # Go build artifacts
 *.out
@@ -37,6 +44,8 @@ third_party/
 
 
 # Python
+venv/
+.venv/
 __pycache__/
 *.py[cod]
 *$py.class
