@@ -123,8 +123,8 @@ Rectangle {
                         return (html.length > 0) ? TextEdit.RichText : TextEdit.PlainText
                     }
                     color: theme.textPrimary
-                    font.pixelSize: 12
-                    font.family: "Courier New"
+                    font.pixelSize: theme.fontPixelSizeBody
+                    font.family: theme.fontMonospace
                     wrapMode: TextEdit.NoWrap
                     readOnly: true
                     selectByMouse: true

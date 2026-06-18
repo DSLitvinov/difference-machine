@@ -36,14 +36,18 @@ QtObject {
     // Colors
     readonly property color background: _t("background", "#1e1e1e")
     readonly property color backgroundSecondary: _t("backgroundSecondary", "#262626")
-    readonly property color backgroundTertiary: _t("backgroundTertiary", "#2d2d2d")
+    readonly property color backgroundTertiary: _t("backgroundTertiary", "#2a2a2a")
     readonly property color backgroundHover: _t("backgroundHover", "#2a2a2a")
     readonly property color backgroundSelected: _t("backgroundSelected", "#363636")
     readonly property color backgroundSelectedAccent: _t("backgroundSelectedAccent", "#3f3a5c")
     readonly property color textSelected: _t("textSelected", "#dcddde")
 
+    readonly property color sidebarBackground: _t("sidebarBackground", "#262626")
+    readonly property color sidebarHeaderBackground: _t("sidebarHeaderBackground", "#262626")
+    readonly property color contentBackground: _t("contentBackground", "#1e1e1e")
+
     readonly property color menuBarBackground: _t("menuBarBackground", "#262626")
-    readonly property color tabBarBackground: _t("tabBarBackground", "#262626")
+    readonly property color tabBarBackground: _t("tabBarBackground", "#2a2a2a")
     readonly property color tabBarActiveBackground: _t("tabBarActiveBackground", "#363636")
     readonly property color tabBarActiveIndicator: _t("tabBarActiveIndicator", "#7f6df2")
 
@@ -72,6 +76,30 @@ QtObject {
     readonly property color diffRemoved: _t("diffRemoved", "#f85149")
     readonly property color diffModified: _t("diffModified", "#7f6df2")
     readonly property color diffDeleted: _t("diffDeleted", "#6b6b6b")
+
+    readonly property color diffHtmlBackground: _t("diffHtmlBackground", "#1e1e1e")
+    readonly property color diffHtmlText: _t("diffHtmlText", "#dcddde")
+    readonly property color diffHtmlAddedBg: _t("diffHtmlAddedBg", "#1a2f1f")
+    readonly property color diffHtmlAddedText: _t("diffHtmlAddedText", "#3fb950")
+    readonly property color diffHtmlRemovedBg: _t("diffHtmlRemovedBg", "#2f1a1f")
+    readonly property color diffHtmlRemovedText: _t("diffHtmlRemovedText", "#f85149")
+    readonly property color diffHtmlLineNumberBg: _t("diffHtmlLineNumberBg", "#262626")
+    readonly property color diffHtmlLineNumberText: _t("diffHtmlLineNumberText", "#6b6b6b")
+    readonly property color diffHtmlSeparator: _t("diffHtmlSeparator", "#333333")
+    readonly property color diffHtmlInlineAdded: _t("diffHtmlInlineAdded", "#2d4a32")
+    readonly property color diffHtmlInlineRemoved: _t("diffHtmlInlineRemoved", "#4a2d32")
+
+    readonly property color tagPurple: _t("tagPurple", "#7f6df2")
+    readonly property color tagBlue: _t("tagBlue", "#61afef")
+    readonly property color tagGreen: _t("tagGreen", "#3fb950")
+    readonly property color tagYellow: _t("tagYellow", "#e5b567")
+    readonly property color tagOrange: _t("tagOrange", "#d19a66")
+    readonly property color tagRed: _t("tagRed", "#e06c75")
+    readonly property color tagCyan: _t("tagCyan", "#56b6c2")
+    readonly property color tagPink: _t("tagPink", "#c678dd")
+
+    readonly property color link: _t("link", "#a882ff")
+    readonly property color codeBackground: _t("codeBackground", "#262626")
 
     // Typography
     readonly property string fontFamilyUI: _t("fontFamilyUI", "Segoe UI")
@@ -170,5 +198,15 @@ QtObject {
         return iconPath + "/" + iconName
     }
 
-    readonly property string syntaxHighlightStyle: isDark ? "native" : "default"
+    function getBranchColor(branchName) {
+        if (!branchName)
+            return accent
+        var hash = 0
+        for (var i = 0; i < branchName.length; i++)
+            hash = branchName.charCodeAt(i) + ((hash << 5) - hash)
+        var palette = [tagPurple, tagBlue, tagGreen, tagYellow, tagOrange, tagRed, tagCyan, tagPink]
+        return palette[Math.abs(hash) % palette.length]
+    }
+
+    readonly property string syntaxHighlightStyle: isDark ? "native" : "friendly"
 }

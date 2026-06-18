@@ -42,7 +42,7 @@ Rectangle {
         id: commitsModel
     }
 
-    color: theme.background
+    color: theme.contentBackground
     
     function determineFileType(path) {
         if (!path) return "binary"

@@ -9,7 +9,7 @@ Rectangle {
     id: diffItemBinary
     Layout.fillWidth: true
     Layout.fillHeight: true
-    color: theme ? theme.background : "#000000"
+    color: theme.background
 
     property var theme: Theme {}
     property string commitHash: ""
@@ -68,7 +68,7 @@ Rectangle {
             StubTemplate {
                 anchors.centerIn: parent
                 theme: diffItemBinary.theme
-                iconSource: theme ? theme.getIconPath("trash.svg") : ""
+                iconSource: theme.getIconPath("trash.svg")
                 titleText: qsTr("This file deleted")
             }
         }
@@ -81,7 +81,7 @@ Rectangle {
             StubTemplate {
                 anchors.centerIn: parent
                 theme: diffItemBinary.theme
-                iconSource: (theme && isBlendFile) ? theme.getIconPath("blender.svg") : ""
+                iconSource: isBlendFile ? theme.getIconPath("blender.svg") : theme.getIconPath("file.svg")
                 titleText: {
                     if (isLoading) {
                         return qsTr("Loading diff...")

@@ -18,7 +18,7 @@ Rectangle {
     
     signal fileSelected(string filePath)
     
-    color: theme.background
+    color: theme.contentBackground
 
     function refreshCommitFiles() {
         commitFilesModel.clear()

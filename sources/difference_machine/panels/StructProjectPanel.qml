@@ -23,7 +23,7 @@ Rectangle {
     // Theme instance
     property var theme: Theme {}
     
-    color: theme.background
+    color: theme.sidebarBackground
     
     // Property to receive fileManager from parent
     property var fileManager: null
@@ -703,7 +703,7 @@ Rectangle {
             Layout.minimumHeight: (tabBar.currentIndex === 1 && structProjectPanel.commitPanelExpanded)
                     ? (commitHeader.height + commitPanelContent.implicitHeight + commitFormMargins)
                     : (tabBar.currentIndex === 1 ? commitHeader.height : 0)
-            color: theme.background
+            color: theme.sidebarBackground
 
             Rectangle {
                 id: commitHeader
@@ -711,7 +711,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 height: 44
-                color: commitHeaderMouse.pressed ? theme.backgroundHover : theme.backgroundSecondary
+                color: commitHeaderMouse.pressed ? theme.backgroundHover : theme.sidebarHeaderBackground
 
                 RowLayout {
                     anchors.fill: parent

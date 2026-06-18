@@ -22,7 +22,7 @@ Rectangle {
 
     signal commitSelected(string commitHash)
 
-    color: theme.background
+    color: theme.contentBackground
 
     ListModel {
         id: commitsModel
@@ -78,7 +78,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 44
-            color: theme.backgroundSecondary
+            color: theme.tabBarBackground
 
             Text {
                 anchors.fill: parent
@@ -305,7 +305,7 @@ Rectangle {
         width: Math.max(280, createBranchFromCommitCol.implicitWidth + 40)
         padding: 20
         background: Rectangle {
-            color: theme.backgroundSecondary
+            color: theme.tabBarBackground
             border.color: theme.divider
             radius: 6
         }
@@ -332,7 +332,7 @@ Rectangle {
                     }
                     color: theme.textPrimary
                     background: Rectangle {
-                        color: theme.backgroundSecondary
+                        color: theme.tabBarBackground
                         border.color: theme.divider
                         border.width: 1
                         radius: theme.radiusMedium

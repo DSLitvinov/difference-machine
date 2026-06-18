@@ -4,14 +4,19 @@ QtObject {
     // Obsidian-inspired dark palette
     readonly property color background: "#1e1e1e"
     readonly property color backgroundSecondary: "#262626"
-    readonly property color backgroundTertiary: "#2d2d2d"
+    readonly property color backgroundTertiary: "#2a2a2a"
     readonly property color backgroundHover: "#2a2a2a"
     readonly property color backgroundSelected: "#363636"
     readonly property color backgroundSelectedAccent: "#3f3a5c"
     readonly property color textSelected: "#dcddde"
 
+    // Sidebar (file explorer) — uniform secondary background
+    readonly property color sidebarBackground: "#262626"
+    readonly property color sidebarHeaderBackground: "#262626"
+    readonly property color contentBackground: "#1e1e1e"
+
     readonly property color menuBarBackground: "#262626"
-    readonly property color tabBarBackground: "#262626"
+    readonly property color tabBarBackground: "#2a2a2a"
     readonly property color tabBarActiveBackground: "#363636"
     readonly property color tabBarActiveIndicator: "#7f6df2"
 
@@ -40,6 +45,32 @@ QtObject {
     readonly property color diffRemoved: "#f85149"
     readonly property color diffModified: "#7f6df2"
     readonly property color diffDeleted: "#6b6b6b"
+
+    // Diff viewer (HTML) — matches diff_processor.py dark palette
+    readonly property color diffHtmlBackground: "#1e1e1e"
+    readonly property color diffHtmlText: "#dcddde"
+    readonly property color diffHtmlAddedBg: "#1a2f1f"
+    readonly property color diffHtmlAddedText: "#3fb950"
+    readonly property color diffHtmlRemovedBg: "#2f1a1f"
+    readonly property color diffHtmlRemovedText: "#f85149"
+    readonly property color diffHtmlLineNumberBg: "#262626"
+    readonly property color diffHtmlLineNumberText: "#6b6b6b"
+    readonly property color diffHtmlSeparator: "#333333"
+    readonly property color diffHtmlInlineAdded: "#2d4a32"
+    readonly property color diffHtmlInlineRemoved: "#4a2d32"
+
+    // Branch / tag palette (Obsidian graph colors)
+    readonly property color tagPurple: "#7f6df2"
+    readonly property color tagBlue: "#61afef"
+    readonly property color tagGreen: "#3fb950"
+    readonly property color tagYellow: "#e5b567"
+    readonly property color tagOrange: "#d19a66"
+    readonly property color tagRed: "#e06c75"
+    readonly property color tagCyan: "#56b6c2"
+    readonly property color tagPink: "#c678dd"
+
+    readonly property color link: "#a882ff"
+    readonly property color codeBackground: "#262626"
 
     // Typography
     readonly property string fontFamilyUI: "Segoe UI"

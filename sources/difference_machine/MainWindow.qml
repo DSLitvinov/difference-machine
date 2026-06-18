@@ -48,15 +48,15 @@ ApplicationWindow {
             implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
             contentItem: Text {
                 text: menuItem.text
-                color: menuItem.highlighted ? theme.textSelected : theme.textPrimary
-                font.pixelSize: theme.fontPixelSizeSmall
+                color: menuItem.enabled ? window.theme.textPrimary : window.theme.textDisabled
+                font.family: window.theme.fontFamilyUI
+                font.pixelSize: window.theme.contextMenuFontSize
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
-                leftPadding: 8
-                rightPadding: 8
             }
             background: Rectangle {
-                color: menuItem.highlighted ? theme.backgroundSelected : "transparent"
+                radius: window.theme.radiusSmall
+                color: menuItem.highlighted ? window.theme.contextMenuHoverBg : "transparent"
             }
         }
     }
@@ -64,37 +64,62 @@ ApplicationWindow {
     Component {
         id: comboMenuSeparator
         MenuSeparator {
+            padding: window.theme.contextMenuSeparatorHeight / 2
             contentItem: Rectangle {
-                height: 1
-                color: theme.divider
-                opacity: 0.6
+                implicitWidth: parent ? parent.width : 0
+                implicitHeight: 1
+                color: window.theme.contextMenuSeparatorColor
+                opacity: window.theme.contextMenuSeparatorOpacity
             }
         }
     }
     
     // Main background color from theme
-    color: theme.background
+    color: theme.contentBackground
     
     menuBar: MenuBar {
         id: menuBar
+        palette.window: window.theme.menuBarBackground
+        palette.windowText: window.theme.textPrimary
+        palette.button: window.theme.menuBarBackground
+        palette.buttonText: window.theme.textPrimary
+        palette.highlight: window.theme.contextMenuHoverBg
+        palette.highlightedText: window.theme.textPrimary
+        palette.base: window.theme.contextMenuBackground
+        palette.text: window.theme.textPrimary
+        palette.mid: window.theme.divider
         background: Rectangle {
-            color: theme.menuBarBackground
+            color: window.theme.menuBarBackground
+            Rectangle {
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: 1
+                color: window.theme.divider
+            }
         }
         delegate: MenuBarItem {
             id: menuBarItem
-            leftPadding: 10
-            rightPadding: 10
-            implicitHeight: 24
+            leftPadding: window.theme.contextMenuTextLeftMargin
+            rightPadding: window.theme.contextMenuTextLeftMargin
+            topPadding: 4
+            bottomPadding: 4
+            implicitHeight: window.theme.controlHeightSmall
             implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
             contentItem: Text {
                 text: menuBarItem.text
-                color: menuBarItem.highlighted ? theme.textSelected : theme.textPrimary
-                font.pixelSize: theme.fontPixelSizeSmall
+                color: menuBarItem.enabled
+                       ? (menuBarItem.highlighted || menuBarItem.opened ? window.theme.textPrimary : window.theme.textSecondary)
+                       : window.theme.textDisabled
+                font.family: window.theme.fontFamilyUI
+                font.pixelSize: window.theme.fontPixelSizeBody
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
             }
             background: Rectangle {
-                color: menuBarItem.highlighted ? theme.backgroundSelected : "transparent"
+                radius: window.theme.radiusSmall
+                color: (menuBarItem.highlighted || menuBarItem.opened)
+                       ? window.theme.backgroundHover
+                       : "transparent"
             }
         }
         
@@ -102,11 +127,20 @@ ApplicationWindow {
             title: qsTr("Файл")
             delegate: comboMenuItemDelegate
             padding: window.theme.contextMenuPadding
+            palette.window: window.theme.contextMenuBackground
+            palette.windowText: window.theme.textPrimary
+            palette.highlight: window.theme.contextMenuHoverBg
+            palette.highlightedText: window.theme.textPrimary
+            palette.text: window.theme.textPrimary
+            palette.button: window.theme.contextMenuBackground
+            palette.buttonText: window.theme.textPrimary
+            palette.base: window.theme.contextMenuBackground
+            palette.mid: window.theme.divider
             background: Rectangle {
-                color: theme.backgroundSecondary
-                border.color: theme.divider
+                color: window.theme.contextMenuBackground
+                border.color: window.theme.contextMenuBorderColor
                 border.width: 1
-                radius: theme.radiusMedium
+                radius: window.theme.contextMenuRadius
             }
             onAboutToShow: updateMenuWidth(this)
 
@@ -136,11 +170,20 @@ ApplicationWindow {
             title: qsTr("Репозиторий")
             delegate: comboMenuItemDelegate
             padding: window.theme.contextMenuPadding
+            palette.window: window.theme.contextMenuBackground
+            palette.windowText: window.theme.textPrimary
+            palette.highlight: window.theme.contextMenuHoverBg
+            palette.highlightedText: window.theme.textPrimary
+            palette.text: window.theme.textPrimary
+            palette.button: window.theme.contextMenuBackground
+            palette.buttonText: window.theme.textPrimary
+            palette.base: window.theme.contextMenuBackground
+            palette.mid: window.theme.divider
             background: Rectangle {
-                color: theme.backgroundSecondary
-                border.color: theme.divider
+                color: window.theme.contextMenuBackground
+                border.color: window.theme.contextMenuBorderColor
                 border.width: 1
-                radius: theme.radiusMedium
+                radius: window.theme.contextMenuRadius
             }
             onAboutToShow: updateMenuWidth(this)
             MenuItem {
@@ -179,11 +222,20 @@ ApplicationWindow {
             title: qsTr("Ветка")
             delegate: comboMenuItemDelegate
             padding: window.theme.contextMenuPadding
+            palette.window: window.theme.contextMenuBackground
+            palette.windowText: window.theme.textPrimary
+            palette.highlight: window.theme.contextMenuHoverBg
+            palette.highlightedText: window.theme.textPrimary
+            palette.text: window.theme.textPrimary
+            palette.button: window.theme.contextMenuBackground
+            palette.buttonText: window.theme.textPrimary
+            palette.base: window.theme.contextMenuBackground
+            palette.mid: window.theme.divider
             background: Rectangle {
-                color: theme.backgroundSecondary
-                border.color: theme.divider
+                color: window.theme.contextMenuBackground
+                border.color: window.theme.contextMenuBorderColor
                 border.width: 1
-                radius: theme.radiusMedium
+                radius: window.theme.contextMenuRadius
             }
             onAboutToShow: updateMenuWidth(this)
             MenuItem {
@@ -207,11 +259,20 @@ ApplicationWindow {
             title: qsTr("Помощь")
             delegate: comboMenuItemDelegate
             padding: window.theme.contextMenuPadding
+            palette.window: window.theme.contextMenuBackground
+            palette.windowText: window.theme.textPrimary
+            palette.highlight: window.theme.contextMenuHoverBg
+            palette.highlightedText: window.theme.textPrimary
+            palette.text: window.theme.textPrimary
+            palette.button: window.theme.contextMenuBackground
+            palette.buttonText: window.theme.textPrimary
+            palette.base: window.theme.contextMenuBackground
+            palette.mid: window.theme.divider
             background: Rectangle {
-                color: theme.backgroundSecondary
-                border.color: theme.divider
+                color: window.theme.contextMenuBackground
+                border.color: window.theme.contextMenuBorderColor
                 border.width: 1
-                radius: theme.radiusMedium
+                radius: window.theme.contextMenuRadius
             }
             onAboutToShow: updateMenuWidth(this)
             MenuItem {
@@ -245,7 +306,7 @@ ApplicationWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 56
-                    color: theme.backgroundSecondary
+                    color: theme.sidebarBackground
                     RowLayout {
                         anchors.fill: parent
                         anchors.leftMargin: theme.panelOuterMargin

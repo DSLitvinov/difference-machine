@@ -10,7 +10,7 @@ Rectangle {
     id: diffItemText
     Layout.fillWidth: true
     Layout.fillHeight: true
-    color: theme ? theme.background : "#000000"
+    color: theme.background
 
     property var theme: Theme {}
     property string commitHash: ""
@@ -74,7 +74,7 @@ Rectangle {
 
         Rectangle {
             anchors.fill: parent
-            color: theme ? theme.background : "#000000"
+            color: theme.background
             visible: !diffHtml || diffHtml.length === 0
 
             Loader {

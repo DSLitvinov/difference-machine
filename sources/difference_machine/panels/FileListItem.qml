@@ -17,7 +17,7 @@ Rectangle {
     property string statusText: ""
     property bool checked: false
     property string selectedFilePath: ""
-    property var theme: null
+    property var theme: Theme {}
     property var listModel: null  // Reference to the ListModel for updating checked state
     property int modelIndex: -1
     property var onSelectAllStateUpdate: null  // Callback for updating select all state
@@ -35,8 +35,8 @@ Rectangle {
     
     width: parent ? parent.width : 0
     height: 28
-    color: mouseArea.containsMouse ? (theme ? theme.backgroundHover : "transparent") :
-           (isSelected ? (theme ? theme.backgroundSelected : "transparent") : "transparent")
+    color: mouseArea.containsMouse ? theme.backgroundHover :
+           (isSelected ? theme.backgroundSelected : "transparent")
     
     RowLayout {
         anchors.fill: parent
@@ -46,7 +46,7 @@ Rectangle {
         
         DmCheckBox {
             id: fileCheckbox
-            theme: fileListItem.theme || Theme {}
+            theme: fileListItem.theme
             enabled: fileListItem.filePath && fileListItem.filePath.length > 0
             checked: fileListItem.checked
             z: 2  // Above MouseArea
@@ -68,23 +68,23 @@ Rectangle {
         Rectangle {
             Layout.preferredWidth: 16
             Layout.preferredHeight: 16
-            radius: theme ? theme.radiusBadge : 8
+            radius: theme.radiusBadge
             color: {
                 if (fileListItem.status === "staged_modified" || fileListItem.status === "unstaged_modified") {
-                    return theme ? theme.diffModified : "#0366d6"
+                    return theme.diffModified
                 } else if (fileListItem.status === "staged_deleted" || fileListItem.status === "unstaged_deleted") {
-                    return theme ? theme.diffDeleted : "#6a737d"
+                    return theme.diffDeleted
                 } else if (fileListItem.status === "staged_new" || fileListItem.status === "untracked") {
-                    return theme ? theme.diffAdded : "#28a745"
+                    return theme.diffAdded
                 }
-                return theme ? theme.textSecondary : "#cccccc"
+                return theme.textSecondary
             }
             
             Text {
                 anchors.centerIn: parent
                 text: fileListItem.statusText || ""
-                color: Qt.darker(parent.color, 1.6)
-                font.pixelSize: theme ? theme.fontPixelSizeCaption : 9
+                color: theme.buttonPrimaryText
+                font.pixelSize: theme.fontPixelSizeCaption
                 font.bold: true
             }
         }
@@ -93,8 +93,8 @@ Rectangle {
             Layout.fillWidth: true
             Layout.minimumWidth: 0
             text: fileListItem.displayPath || fileListItem.filePath || ""
-            color: theme ? theme.textPrimary : "#000000"
-            font.pixelSize: theme ? theme.fontPixelSizeSubhead : 13
+            color: theme.textPrimary
+            font.pixelSize: theme.fontPixelSizeSubhead
             elide: Text.ElideMiddle
             ToolTip.visible: mouseArea.containsMouse && (fileListItem.filePath || "").length > 0
             ToolTip.text: fileListItem.filePath || ""
@@ -107,14 +107,14 @@ Rectangle {
             Layout.preferredHeight: 24
             Layout.alignment: Qt.AlignVCenter
             radius: 4
-            color: menuBtnMouseArea.containsMouse ? (theme ? theme.backgroundHover : "#e0e0e0") : "transparent"
+            color: menuBtnMouseArea.containsMouse ? theme.backgroundHover : "transparent"
             opacity: menuBtnMouseArea.containsMouse ? 1.0 : 0.6
             
             Image {
                 anchors.centerIn: parent
                 width: 16
                 height: 16
-                source: theme ? theme.getIconPath("more-vert.svg") : ""
+                source: theme.getIconPath("more-vert.svg")
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
             }
@@ -224,7 +224,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         width: parent.width
         height: 1
-        color: theme ? theme.divider : "#cccccc"
+        color: theme.divider
         opacity: 0.3
     }
 }

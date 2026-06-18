@@ -29,7 +29,7 @@ CheckBox {
             anchors.centerIn: parent
             visible: control.checkState === Qt.Checked
             text: "✓"
-            color: "#ffffff"
+            color: theme.buttonPrimaryText
             font.pixelSize: 9
             font.bold: true
         }
@@ -40,7 +40,7 @@ CheckBox {
             width: 7
             height: 2
             radius: 1
-            color: "#ffffff"
+            color: theme.buttonPrimaryText
         }
     }
 

@@ -11,7 +11,7 @@ Rectangle {
     // Theme instance
     property var theme: Theme {}
     
-    color: theme.background
+    color: theme.contentBackground
     
     // Property to receive fileViewer from parent
     property var fileViewer: null
@@ -34,7 +34,7 @@ Rectangle {
         id: syntaxStyleBinding
         target: viewPanel.fileViewer
         property: "syntaxStyle"
-        value: viewPanel.theme ? viewPanel.theme.syntaxHighlightStyle : "monokai"
+        value: viewPanel.theme ? viewPanel.theme.syntaxHighlightStyle : "native"
         when: viewPanel.fileViewer !== null && viewPanel.theme !== null
     }
     
@@ -220,7 +220,7 @@ Rectangle {
     Component {
         id: emptyStateComponent
         Rectangle {
-            color: theme.background
+            color: theme.contentBackground
             StubTemplate {
                 anchors.centerIn: parent
                 theme: viewPanel.theme

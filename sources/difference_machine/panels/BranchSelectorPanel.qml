@@ -79,13 +79,7 @@ Rectangle {
     }
 
     function getBranchColor(branchName) {
-        if (!branchName) return theme.accent
-        var hash = 0
-        for (var i = 0; i < branchName.length; i++) {
-            hash = branchName.charCodeAt(i) + ((hash << 5) - hash)
-        }
-        var hue = Math.abs(hash) % 360
-        return Qt.hsla(hue / 360, 0.7, 0.5, 1.0)
+        return theme.getBranchColor(branchName)
     }
 
     function getSelectedBranchCommitHash() {

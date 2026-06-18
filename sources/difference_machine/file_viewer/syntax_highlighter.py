@@ -63,14 +63,14 @@ class SyntaxHighlighter:
         return SyntaxHighlighter.LANGUAGE_MAP.get(ext, 'text')
     
     @staticmethod
-    def highlight_code(code, language, file_path, style='monokai'):
+    def highlight_code(code, language, file_path, style='native'):
         """Apply syntax highlighting to code.
         
         Args:
             code: Source code text
             language: Language name for lexer
             file_path: File path for better lexer detection
-            style: Pygments style name (default: 'monokai')
+            style: Pygments style name (default: 'native')
             
         Returns:
             tuple: (highlighted_html, detected_language)

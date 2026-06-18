@@ -29,7 +29,7 @@ class FileViewer(QObject):
         self._file_url = ""
         self._file_language = ""
         self._highlighted_html = ""
-        self._syntax_style = "monokai"  # Default to dark theme style
+        self._syntax_style = "native"
         
         # Metadata properties
         self._file_name = ""

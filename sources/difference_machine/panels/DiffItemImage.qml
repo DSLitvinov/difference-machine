@@ -9,7 +9,7 @@ Rectangle {
     id: diffItemImage
     Layout.fillWidth: true
     Layout.fillHeight: true
-    color: theme ? theme.background : "#000000"
+    color: theme.background
 
     property var theme: Theme {}
     property string commitHash: ""
@@ -43,13 +43,13 @@ Rectangle {
     // Loading overlay
     Rectangle {
         anchors.fill: parent
-        color: theme ? theme.background : "#000000"
+        color: theme.background
         visible: isLoading
         
         Text {
             anchors.centerIn: parent
             text: qsTr("Loading image diff...")
-            color: theme ? theme.textSecondary : "#cccccc"
+            color: theme.textSecondary
             font.pixelSize: theme.fontPixelSizeBody
         }
     }
@@ -57,13 +57,13 @@ Rectangle {
     // Empty state (only show when no images at all)
     Rectangle {
         anchors.fill: parent
-        color: theme ? theme.background : "#000000"
+        color: theme.background
         visible: !isLoading && (!currentImageUrl || currentImageUrl.length === 0) && (!commitImageUrl || commitImageUrl.length === 0)
 
         StubTemplate {
             anchors.centerIn: parent
             theme: diffItemImage.theme
-            iconSource: theme ? theme.getIconPath("file.svg") : ""
+            iconSource: theme.getIconPath("file.svg")
             titleText: (!filePath || filePath.length === 0) ? "Select a file to view diff" : "No images to display"
         }
     }

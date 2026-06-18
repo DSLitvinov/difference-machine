@@ -40,29 +40,29 @@ class DiffProcessor:
         Returns:
             HTML string with highlighted diff
         """
-        # Define colors based on theme
+        # Obsidian-aligned palette (keep in sync with DarkTheme.qml / LightTheme.qml)
         if theme == "dark":
             bg_color = "#1e1e1e"
-            text_color = "#d4d4d4"
-            added_bg = "#0d4f0d"
-            added_text = "#81c784"
-            removed_bg = "#4f0d0d"
-            removed_text = "#e57373"
+            text_color = "#dcddde"
+            added_bg = "#1a2f1f"
+            added_text = "#3fb950"
+            removed_bg = "#2f1a1f"
+            removed_text = "#f85149"
             unchanged_bg = bg_color
             unchanged_text = text_color
-            line_num_bg = "#252526"
-            line_num_text = "#858585"
-        else:  # light theme
+            line_num_bg = "#262626"
+            line_num_text = "#6b6b6b"
+        else:
             bg_color = "#ffffff"
-            text_color = "#24292e"
-            added_bg = "#e6ffed"
+            text_color = "#1e1e1e"
+            added_bg = "#e8f5ec"
             added_text = "#22863a"
-            removed_bg = "#ffeef0"
+            removed_bg = "#fdeef0"
             removed_text = "#cb2431"
             unchanged_bg = bg_color
             unchanged_text = text_color
-            line_num_bg = "#f6f8fa"
-            line_num_text = "#6a737d"
+            line_num_bg = "#f2f3f5"
+            line_num_text = "#888888"
         
         # Split into lines for line-by-line diff
         lines1 = text1.splitlines(keepends=True)
@@ -70,13 +70,13 @@ class DiffProcessor:
         line_opcodes = self.compute_line_opcodes(lines1, lines2)
         
         html_parts = [
-            f'<div style="font-family: \'Courier New\', monospace; font-size: 12px; '
+            f'<div style="font-family: \'Consolas\', monospace; font-size: 13px; '
             f'background-color: {bg_color}; color: {text_color}; padding: 0;">'
         ]
         
         if line_numbers:
             # Define separator color (slightly darker than line_num_bg for visibility)
-            separator_color = "#d1d5da" if theme == "light" else "#3e3e42"
+            separator_color = "#d4d4d8" if theme == "light" else "#333333"
             html_parts.append(
                 f'<style>'
                 f'.diff-row {{ display: grid; grid-template-columns: 44px 44px 20px 1fr; line-height: 20px; border: none; border-top: none; border-bottom: none; }}'
@@ -201,11 +201,11 @@ class DiffProcessor:
     def _format_inline_diffs(self, old_line: str, new_line: str, theme: str = "dark") -> Tuple[str, str]:
         """Format a line pair with character-level diff highlighting."""
         if theme == "dark":
-            added_color = "#81c784"
-            removed_color = "#e57373"
+            added_color = "#2d4a32"
+            removed_color = "#4a2d32"
         else:
-            added_color = "#22863a"
-            removed_color = "#cb2431"
+            added_color = "#c8e6c9"
+            removed_color = "#ffcdd2"
         
         old_parts = []
         new_parts = []

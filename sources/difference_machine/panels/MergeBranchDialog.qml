@@ -163,7 +163,7 @@ Popup {
 
             Text {
                 text: qsTr("Ветка для слияния:")
-                color: theme ? theme.textPrimary : "#000"
+                color: theme.textPrimary
                 font.pixelSize: theme ? theme.fontPixelSizeBody : 12
                 font.bold: true
                 Layout.fillWidth: true
@@ -204,7 +204,7 @@ Popup {
                     visible: lastCommitHash.length > 0
                     text: qsTr("Хеш: ") + lastCommitHash.substring(0, 8)
                     wrapMode: Text.WordWrap
-                    color: theme ? theme.textSecondary : "#666"
+                    color: theme.textSecondary
                     font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                     Layout.fillWidth: true
                 }
@@ -212,7 +212,7 @@ Popup {
                     visible: lastCommitAuthor.length > 0
                     text: qsTr("Автор: ") + lastCommitAuthor
                     wrapMode: Text.WordWrap
-                    color: theme ? theme.textSecondary : "#666"
+                    color: theme.textSecondary
                     font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                     Layout.fillWidth: true
                 }
@@ -220,7 +220,7 @@ Popup {
                     visible: lastCommitTimestamp > 0 && formatTimestamp(lastCommitTimestamp).length > 0
                     text: qsTr("Время: ") + formatTimestamp(lastCommitTimestamp)
                     wrapMode: Text.WordWrap
-                    color: theme ? theme.textSecondary : "#666"
+                    color: theme.textSecondary
                     font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                     Layout.fillWidth: true
                 }
@@ -231,7 +231,7 @@ Popup {
                 wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
-                color: theme ? theme.textSecondary : "#666"
+                color: theme.textSecondary
                 font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                 Layout.fillWidth: true
             }
@@ -246,7 +246,7 @@ Popup {
             handle: Rectangle {
                 implicitWidth: 1
                 implicitHeight: 1
-                color: theme ? theme.divider : "#ddd"
+                color: theme.divider
                 opacity: SplitHandle.hovered || SplitHandle.pressed ? 0.9 : 0.6
             }
 
@@ -257,7 +257,7 @@ Popup {
 
                 Text {
                     text: qsTr("Файлы для слияния:")
-                    color: theme ? theme.textPrimary : "#000"
+                    color: theme.textPrimary
                     font.pixelSize: theme ? theme.fontPixelSizeBody : 12
                     font.bold: true
                     Layout.fillWidth: true
@@ -277,7 +277,7 @@ Popup {
                         delegate: Rectangle {
                             width: filesListView.width
                             height: 28
-                            color: fileMouse.containsMouse ? (theme ? theme.backgroundHover : "#eee") : (selectedMergeFilePath === (model.filePath || "") ? (theme ? theme.backgroundSelected : "#ddd") : "transparent")
+                            color: fileMouse.containsMouse ? (theme.backgroundHover) : (selectedMergeFilePath === (model.filePath || "") ? (theme.backgroundSelected) : "transparent")
 
                             RowLayout {
                                 anchors.fill: parent
@@ -287,7 +287,7 @@ Popup {
 
                                 Text {
                                     text: (model.filePath || "").toString()
-                                    color: model.hasToMerge ? (theme ? theme.accent : "#007acc") : (theme ? theme.textPrimary : "#000")
+                                    color: model.hasToMerge ? (theme.accent) : (theme.textPrimary)
                                     font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                                     font.bold: !!model.hasToMerge
                                     Layout.fillWidth: true
@@ -298,7 +298,7 @@ Popup {
                                     Layout.preferredWidth: 8
                                     Layout.preferredHeight: 8
                                     radius: 4
-                                    color: theme ? theme.accent : "#007acc"
+                                    color: theme.accent
                                 }
                             }
 
@@ -316,7 +316,7 @@ Popup {
                                 anchors.bottom: parent.bottom
                                 width: parent.width
                                 height: 1
-                                color: theme ? theme.divider : "#ddd"
+                                color: theme.divider
                                 opacity: 0.3
                             }
                         }
@@ -331,7 +331,7 @@ Popup {
 
                 Text {
                     text: qsTr("Объекты для слияния:")
-                    color: theme ? theme.textPrimary : "#000"
+                    color: theme.textPrimary
                     font.pixelSize: theme ? theme.fontPixelSizeBody : 12
                     font.bold: true
                     Layout.fillWidth: true
@@ -347,7 +347,7 @@ Popup {
                         anchors.centerIn: parent
                         visible: selectedMergeFilePath.length === 0
                         text: qsTr("Выберите файл в списке слева")
-                        color: theme ? theme.textSecondary : "#666"
+                        color: theme.textSecondary
                         font.pixelSize: theme ? theme.fontPixelSizeBody : 12
                     }
 
@@ -355,7 +355,7 @@ Popup {
                         anchors.centerIn: parent
                         visible: selectedMergeFilePath.length > 0 && filteredObjectsModel.count === 0 && selectedMergeFilePath.toLowerCase().indexOf(".blend") >= 0
                         text: qsTr("Объекты для этого .blend не найдены в реестре.\nОткройте файл в Blender, выберите коммит (или HEAD) в панели Compare и нажмите «Sync Objects to DB».")
-                        color: theme ? theme.textSecondary : "#666"
+                        color: theme.textSecondary
                         font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                         wrapMode: Text.WordWrap
                         horizontalAlignment: Text.AlignHCenter
@@ -376,7 +376,7 @@ Popup {
                             delegate: Rectangle {
                                 width: objectsListView.width
                                 height: 40
-                                color: objMouse.containsMouse ? (theme ? theme.backgroundHover : "#eee") : "transparent"
+                                color: objMouse.containsMouse ? (theme.backgroundHover) : "transparent"
 
                                 ColumnLayout {
                                     anchors.left: parent.left
@@ -391,7 +391,7 @@ Popup {
                                         spacing: 6
                                         Text {
                                             text: (model.object_name || "").toString() + " (" + (model.object_type || "").toString() + ")"
-                                            color: theme ? theme.textPrimary : "#000"
+                                            color: theme.textPrimary
                                             font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                                             font.bold: true
                                             Layout.fillWidth: true
@@ -399,14 +399,14 @@ Popup {
                                         }
                                         Text {
                                             text: (model.source || "").toString() === "theirs" ? qsTr("theirs") : qsTr("ours")
-                                            color: (model.source || "").toString() === "theirs" ? (theme ? theme.accent : "#007acc") : (theme ? theme.textSecondary : "#666")
+                                            color: (model.source || "").toString() === "theirs" ? (theme.accent) : (theme.textSecondary)
                                             font.pixelSize: (theme ? theme.fontPixelSizeSmall : 11) - 1
                                             Layout.alignment: Qt.AlignRight
                                         }
                                     }
                                     Text {
                                         text: (model.file_path || "").toString()
-                                        color: theme ? theme.textSecondary : "#666"
+                                        color: theme.textSecondary
                                         font.pixelSize: (theme ? theme.fontPixelSizeSmall : 11) - 1
                                         Layout.fillWidth: true
                                         elide: Text.ElideMiddle
@@ -424,7 +424,7 @@ Popup {
                                     anchors.bottom: parent.bottom
                                     width: parent.width
                                     height: 1
-                                    color: theme ? theme.divider : "#ddd"
+                                    color: theme.divider
                                     opacity: 0.3
                                 }
                             }
@@ -438,7 +438,7 @@ Popup {
             visible: !!(repositoryManager && repositoryManager.lastError && repositoryManager.lastError.length > 0)
             Layout.fillWidth: true
             text: repositoryManager ? (repositoryManager.lastError || "") : ""
-            color: theme ? theme.error : "#c00"
+            color: theme.error
             font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
             wrapMode: Text.WordWrap
         }
@@ -449,7 +449,7 @@ Popup {
             spacing: 8
             Text {
                 text: qsTr("Conflicts: ") + mergeConflictPaths.join(", ")
-                color: theme ? theme.textSecondary : "#666"
+                color: theme.textSecondary
                 font.pixelSize: theme ? theme.fontPixelSizeSmall : 11
                 Layout.fillWidth: true
                 elide: Text.ElideMiddle
