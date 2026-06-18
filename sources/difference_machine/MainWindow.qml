@@ -5,6 +5,7 @@ import FileManager 1.0
 import RepositoryManager 1.0
 import "panels"
 import resources.styles 1.0
+import components 1.0
 
 ApplicationWindow {
     id: window
@@ -15,6 +16,8 @@ ApplicationWindow {
     
     // Theme instance
     property var theme: Theme {}
+
+    font.family: theme.fontFamilyUI
 
     function updateMenuWidth(menu) {
         if (!menu) return
@@ -37,9 +40,11 @@ ApplicationWindow {
         id: comboMenuItemDelegate
         MenuItem {
             id: menuItem
-            implicitHeight: 28
-            leftPadding: 10
-            rightPadding: 10
+            implicitHeight: window.theme.contextMenuItemHeight
+            leftPadding: window.theme.contextMenuTextLeftMargin
+            rightPadding: window.theme.contextMenuTextLeftMargin
+            topPadding: window.theme.comboItemPaddingV
+            bottomPadding: window.theme.comboItemPaddingV
             implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
             contentItem: Text {
                 text: menuItem.text
@@ -96,7 +101,7 @@ ApplicationWindow {
         Menu {
             title: qsTr("Файл")
             delegate: comboMenuItemDelegate
-            padding: 4
+            padding: window.theme.contextMenuPadding
             background: Rectangle {
                 color: theme.backgroundSecondary
                 border.color: theme.divider
@@ -130,7 +135,7 @@ ApplicationWindow {
         Menu {
             title: qsTr("Репозиторий")
             delegate: comboMenuItemDelegate
-            padding: 4
+            padding: window.theme.contextMenuPadding
             background: Rectangle {
                 color: theme.backgroundSecondary
                 border.color: theme.divider
@@ -173,7 +178,7 @@ ApplicationWindow {
         Menu {
             title: qsTr("Ветка")
             delegate: comboMenuItemDelegate
-            padding: 4
+            padding: window.theme.contextMenuPadding
             background: Rectangle {
                 color: theme.backgroundSecondary
                 border.color: theme.divider
@@ -201,7 +206,7 @@ ApplicationWindow {
         Menu {
             title: qsTr("Помощь")
             delegate: comboMenuItemDelegate
-            padding: 4
+            padding: window.theme.contextMenuPadding
             background: Rectangle {
                 color: theme.backgroundSecondary
                 border.color: theme.divider
@@ -243,13 +248,14 @@ ApplicationWindow {
                     color: theme.backgroundSecondary
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-                        anchors.topMargin: 12
-                        anchors.bottomMargin: 12
+                        anchors.leftMargin: theme.panelOuterMargin
+                        anchors.rightMargin: theme.panelOuterMargin
+                        anchors.topMargin: theme.panelOuterMargin
+                        anchors.bottomMargin: theme.panelOuterMargin
                         spacing: 6
-                        ComboBox {
+                        DmComboBox {
                             id: repoCombo
+                            theme: window.theme
                             Layout.fillWidth: true
                             Layout.preferredHeight: 32
                             editable: false
@@ -275,39 +281,38 @@ ApplicationWindow {
                                     repositoryManager.setRepository(list[index - 1])
                             }
                             delegate: ItemDelegate {
-                                width: repoCombo.width - 20
+                                width: repoCombo.width
+                                height: window.theme.comboItemHeight
                                 text: modelData ? String(modelData).replace(/^.*[/\\]/, "") : qsTr("No repository")
                                 contentItem: Text {
                                     text: parent.text
                                     elide: Text.ElideMiddle
-                                    color: theme.textPrimary
-                                    font.pixelSize: theme.fontPixelSizeSmall
+                                    color: window.theme.textPrimary
+                                    font.family: window.theme.fontFamilyUI
+                                    font.pixelSize: window.theme.fontPixelSizeBody
                                     verticalAlignment: Text.AlignVCenter
+                                    leftPadding: window.theme.comboItemPaddingH
+                                    rightPadding: window.theme.comboItemPaddingH
+                                    topPadding: window.theme.comboItemPaddingV
+                                    bottomPadding: window.theme.comboItemPaddingV
+                                }
+                                background: Rectangle {
+                                    radius: window.theme.radiusSmall
+                                    color: parent.highlighted ? window.theme.backgroundSelected : (parent.hovered ? window.theme.backgroundHover : "transparent")
                                 }
                             }
-                            contentItem: Text {
-                                leftPadding: 8
-                                text: {
-                                    if (repoCombo.currentIndex <= 0 || !repoCombo.model || repoCombo.model.length === 0)
-                                        return qsTr("No repository")
-                                    var path = repoCombo.model[repoCombo.currentIndex]
-                                    return path && path.length > 0 ? String(path).replace(/^.*[/\\]/, "") : qsTr("No repository")
-                                }
-                                color: theme.textPrimary
-                                font.pixelSize: theme.fontPixelSizeSmall
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideMiddle
-                            }
-                            background: Rectangle {
-                                color: theme.background
-                                border.color: theme.divider
-                                radius: 4
+                            displayText: {
+                                if (repoCombo.currentIndex <= 0 || !repoCombo.model || repoCombo.model.length === 0)
+                                    return qsTr("No repository")
+                                var path = repoCombo.model[repoCombo.currentIndex]
+                                return path && path.length > 0 ? String(path).replace(/^.*[/\\]/, "") : qsTr("No repository")
                             }
                         }
-                        Button {
+                        DmButton {
+                            theme: window.theme
+                            buttonStyle: "icon"
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
-                            flat: true
                             text: "+"
                             font.pixelSize: 18
                             onClicked: {
@@ -521,12 +526,15 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: 8
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "ghost"
                         text: qsTr("Отмена")
-                        flat: true
                         onClicked: deleteBranchDialog.close()
                     }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "primary"
                         text: qsTr("Удалить")
                         onClicked: {
                             if (!repositoryManager) {
@@ -583,7 +591,9 @@ ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "primary"
                         text: qsTr("ОК")
                         onClicked: deleteBranchErrorDialog.close()
                     }
@@ -629,12 +639,15 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     spacing: 8
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "ghost"
                         text: qsTr("Отмена")
-                        flat: true
                         onClicked: initRepoDialog.close()
                     }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "primary"
                         text: qsTr("ОК")
                         onClicked: {
                             if (!repositoryManager) {
@@ -698,7 +711,9 @@ ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "primary"
                         text: qsTr("ОК")
                         onClicked: initRepoErrorDialog.close()
                     }
@@ -753,7 +768,9 @@ ApplicationWindow {
                 RowLayout {
                     Layout.fillWidth: true
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: window.theme
+                        buttonStyle: "primary"
                         text: qsTr("ОК")
                         onClicked: aboutDialog.close()
                     }

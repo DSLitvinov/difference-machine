@@ -3,6 +3,7 @@ import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
@@ -348,8 +349,9 @@ Rectangle {
                     elide: Text.ElideMiddle
                 }
 
-                CheckBox {
+                DmCheckBox {
                     id: extendedDiffCheckbox
+                    theme: diffPanel.theme
                     text: qsTr("Extended diff")
                     checked: diffPanel.extendedDiff
                     onCheckedChanged: {
@@ -370,8 +372,9 @@ Rectangle {
                     font.pixelSize: theme.fontPixelSizeSmall
                 }
 
-                ComboBox {
+                DmComboBox {
                     id: source1TypeCombo
+                    theme: diffPanel.theme
                     Layout.preferredWidth: 120
                     model: ["Working Directory", "Commit", "Branch"]
                     currentIndex: source1Type === "working" ? 0 : (source1Type === "commit" ? 1 : 2)
@@ -387,8 +390,9 @@ Rectangle {
                     }
                 }
 
-                ComboBox {
+                DmComboBox {
                     id: source1ValueCombo
+                    theme: diffPanel.theme
                     Layout.preferredWidth: 200
                     enabled: source1Type !== "working"
                     visible: source1Type !== "working"
@@ -421,8 +425,9 @@ Rectangle {
                     font.pixelSize: theme.fontPixelSizeSmall
                 }
 
-                ComboBox {
+                DmComboBox {
                     id: source2TypeCombo
+                    theme: diffPanel.theme
                     Layout.preferredWidth: 120
                     model: ["Working Directory", "Commit", "Branch"]
                     currentIndex: source2Type === "working" ? 0 : (source2Type === "commit" ? 1 : 2)
@@ -438,8 +443,9 @@ Rectangle {
                     }
                 }
 
-                ComboBox {
+                DmComboBox {
                     id: source2ValueCombo
+                    theme: diffPanel.theme
                     Layout.preferredWidth: 200
                     enabled: source2Type !== "working"
                     visible: source2Type !== "working"

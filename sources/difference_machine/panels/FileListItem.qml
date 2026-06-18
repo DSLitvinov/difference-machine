@@ -2,6 +2,7 @@ import QtQuick 6.6
 import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import resources.styles 1.0
+import components 1.0
 
 Rectangle {
     id: fileListItem
@@ -43,8 +44,9 @@ Rectangle {
         anchors.rightMargin: 12
         spacing: 8
         
-        CheckBox {
+        DmCheckBox {
             id: fileCheckbox
+            theme: fileListItem.theme || Theme {}
             enabled: fileListItem.filePath && fileListItem.filePath.length > 0
             checked: fileListItem.checked
             z: 2  // Above MouseArea

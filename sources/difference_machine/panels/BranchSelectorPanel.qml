@@ -3,6 +3,7 @@ import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
@@ -330,10 +331,11 @@ Rectangle {
                     font.family: theme.fontMonospace
                 }
 
-                Button {
+                DmButton {
+                    theme: branchSelectorPanel.theme
+                    buttonStyle: "icon"
                     Layout.preferredHeight: 24
                     Layout.preferredWidth: 24
-                    flat: true
                     icon.source: theme.getIconPath("edit-copy.svg")
                     icon.width: 14
                     icon.height: 14
@@ -355,7 +357,8 @@ Rectangle {
         x: 10
         y: 160
         width: 250
-        height: Math.min(branchModel.count * 32 + 20, 300)
+        height: Math.min(branchModel.count * branchSelectorPanel.theme.comboItemHeight + 2 * branchSelectorPanel.theme.comboPopupPadding + 8, 300)
+        padding: theme.comboPopupPadding
         modal: true
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -378,15 +381,16 @@ Rectangle {
 
                 delegate: Rectangle {
                     width: branchMenuList.width
-                    height: 32
+                    height: theme.comboItemHeight
+                    radius: theme.radiusSmall
                     color: branchItemMouseArea.containsMouse ? theme.backgroundHover :
                            (model.name === selectedBranch ? theme.backgroundSelected : "transparent")
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-                        spacing: 8
+                        anchors.leftMargin: theme.comboItemPaddingH
+                        anchors.rightMargin: theme.comboItemPaddingH
+                        spacing: theme.searchIconGap
 
                         Rectangle {
                             Layout.preferredWidth: 12
@@ -467,22 +471,15 @@ Rectangle {
                 id: createBranchCol
                 spacing: 12
                 Layout.fillWidth: true
-                TextField {
+                DmTextField {
                     id: nameField
+                    theme: branchSelectorPanel.theme
                     Layout.fillWidth: true
                     placeholderText: qsTr("Введите имя")
-                    placeholderTextColor: theme.textPlaceholder
                     text: createBranchName
                     onTextChanged: {
                         createBranchName = text
                         createBranchError = ""
-                    }
-                    color: theme.textPrimary
-                    background: Rectangle {
-                        color: theme.backgroundSecondary
-                        border.color: theme.divider
-                        border.width: 1
-                        radius: theme.radiusMedium
                     }
                 }
                 Text {
@@ -499,12 +496,15 @@ Rectangle {
                     Layout.preferredHeight: 32
                     spacing: 8
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: branchSelectorPanel.theme
+                        buttonStyle: "ghost"
                         text: qsTr("Отмена")
-                        flat: true
                         onClicked: createBranchPopup.close()
                     }
-                    Button {
+                    DmButton {
+                        theme: branchSelectorPanel.theme
+                        buttonStyle: "primary"
                         text: qsTr("Create")
                         enabled: createBranchName.trim().length > 0
                         onClicked: {

@@ -2,6 +2,7 @@ import QtQuick 6.6
 import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import resources.styles 1.0
+import components 1.0
 import "image_diff"
 import "."
 
@@ -67,34 +68,34 @@ Rectangle {
             
             RowLayout {
                 anchors.fill: parent
-                anchors.margins: 8
-                spacing: 4
+                anchors.margins: theme.panelOuterMargin
+                spacing: theme.panelSectionSpacing
                 
-                Button {
+                DmButton {
+                    theme: imageDiffViewer.theme
+                    buttonStyle: "toggle"
                     text: qsTr("2-up")
-                    flat: true
-                    checkable: true
                     checked: imageDiffViewer.currentMode === 0
                     onClicked: imageDiffViewer.currentMode = 0
                 }
-                Button {
+                DmButton {
+                    theme: imageDiffViewer.theme
+                    buttonStyle: "toggle"
                     text: qsTr("Swipe")
-                    flat: true
-                    checkable: true
                     checked: imageDiffViewer.currentMode === 1
                     onClicked: imageDiffViewer.currentMode = 1
                 }
-                Button {
+                DmButton {
+                    theme: imageDiffViewer.theme
+                    buttonStyle: "toggle"
                     text: qsTr("Onion Skin")
-                    flat: true
-                    checkable: true
                     checked: imageDiffViewer.currentMode === 2
                     onClicked: imageDiffViewer.currentMode = 2
                 }
-                Button {
+                DmButton {
+                    theme: imageDiffViewer.theme
+                    buttonStyle: "toggle"
                     text: qsTr("Difference")
-                    flat: true
-                    checkable: true
                     checked: imageDiffViewer.currentMode === 3
                     onClicked: imageDiffViewer.currentMode = 3
                 }

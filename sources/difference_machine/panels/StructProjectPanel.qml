@@ -4,17 +4,18 @@ import QtQuick.Layouts 6.6
 import FileManager 1.0
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
     id: structProjectPanel
-    // Header row layout constants
-    readonly property int headerRowMargin: 12
-    readonly property int headerRowSpacing: 12
-    readonly property int headerRowVerticalMargin: 12
+    // Header row layout constants (Obsidian sidebar density)
+    readonly property int headerRowMargin: theme.panelOuterMargin
+    readonly property int headerRowSpacing: theme.panelSectionSpacing
+    readonly property int headerRowVerticalMargin: theme.panelOuterMargin
     readonly property int headerSegmentControlWidth: 180
-    readonly property int segmentControlHeight: 32
-    readonly property int searchFieldHeight: 36
+    readonly property int segmentControlHeight: theme.controlHeight
+    readonly property int searchFieldHeight: theme.controlHeight
     readonly property int segmentSearchPanelHeight: headerRowVerticalMargin + segmentControlHeight + headerRowSpacing + searchFieldHeight + headerRowVerticalMargin
     SplitView.minimumWidth: 0
     SplitView.preferredWidth: 300
@@ -590,125 +591,30 @@ Rectangle {
                 anchors.bottomMargin: structProjectPanel.headerRowVerticalMargin
                 spacing: structProjectPanel.headerRowSpacing
                 
-                // Segment control (Все / Изменены)
-                Rectangle {
+                DmSegmentControl {
                     id: segmentControl
                     Layout.fillWidth: true
                     Layout.preferredHeight: structProjectPanel.segmentControlHeight
-                    radius: theme.radiusLarge
-                    color: theme.tabBarBackground
-                    clip: true
-                    
-                    Row {
-                        anchors.fill: parent
-                        spacing: 0
-                        
-                        Item {
-                            width: segmentControl.width / 2
-                            height: segmentControl.height
-                            Rectangle {
-                                anchors.fill: parent
-                                color: segmentControlRow.currentIndex === 0 ? theme.backgroundSelected : "transparent"
-                                radius: segmentControlRow.currentIndex === 0 ? theme.radiusLarge : 0
-                            }
-                            Text {
-                                anchors.centerIn: parent
-                                text: qsTr("All")
-                                color: segmentControlRow.currentIndex === 0 ? theme.textSelected : theme.textPrimary
-                                font.pixelSize: theme.fontPixelSizeSubhead
-                                font.bold: segmentControlRow.currentIndex === 0
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    segmentControlRow.currentIndex = 0
-                                    tabBar.currentIndex = 0
-                                }
-                            }
-                        }
-                        Item {
-                            width: segmentControl.width / 2
-                            height: segmentControl.height
-                            Rectangle {
-                                anchors.fill: parent
-                                color: segmentControlRow.currentIndex === 1 ? theme.backgroundSelected : "transparent"
-                                radius: segmentControlRow.currentIndex === 1 ? theme.radiusLarge : 0
-                            }
-                            Text {
-                                anchors.centerIn: parent
-                                text: qsTr("Changed")
-                                color: segmentControlRow.currentIndex === 1 ? theme.textSelected : theme.textPrimary
-                                font.pixelSize: theme.fontPixelSizeSubhead
-                                font.bold: segmentControlRow.currentIndex === 1
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    segmentControlRow.currentIndex = 1
-                                    tabBar.currentIndex = 1
-                                }
-                            }
-                        }
+                    theme: structProjectPanel.theme
+                    segments: [{ label: qsTr("All") }, { label: qsTr("Changed") }]
+                    currentIndex: segmentControlRow.currentIndex
+                    onIndexChanged: function(idx) {
+                        segmentControlRow.currentIndex = idx
+                        tabBar.currentIndex = idx
                     }
                 }
-                
-                // Search field — ниже переключения
-                Rectangle {
+
+                DmSearchField {
+                    id: projectSearchField
                     Layout.fillWidth: true
                     Layout.preferredHeight: structProjectPanel.searchFieldHeight
                     Layout.minimumHeight: structProjectPanel.searchFieldHeight
-                    Layout.minimumWidth: 0
-                    color: theme.tabBarBackground
-                    radius: theme.radiusMedium
-                    border.width: 1
-                    border.color: theme.divider
-                    
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 8
-                        anchors.rightMargin: 6
-                        anchors.topMargin: 6
-                        anchors.bottomMargin: 6
-                        spacing: 6
-                        
-                        TextField {
-                            id: projectSearchField
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            Layout.minimumWidth: 0
-                            leftPadding: 0
-                            rightPadding: 4
-                            topPadding: 2
-                            bottomPadding: 2
-                            verticalAlignment: TextInput.AlignVCenter
-                            placeholderText: qsTr("Search files...")
-                            placeholderTextColor: theme.textPlaceholder
-                            onTextChanged: structProjectPanel.searchFilter = text.toLowerCase()
-                            background: Item {}
-                            color: theme.textPrimary
-                            font.pixelSize: theme.fontPixelSizeBody
-                        }
-                        Text {
-                            visible: projectSearchField.text.length > 0
-                            Layout.preferredWidth: 20
-                            Layout.alignment: Qt.AlignVCenter
-                            text: "✕"
-                            color: theme.textPlaceholder
-                            font.pixelSize: theme.fontPixelSizeSmall
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            MouseArea {
-                                anchors.fill: parent
-                                anchors.margins: -4
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    projectSearchField.text = ""
-                                    projectSearchField.focus = false
-                                    structProjectPanel.searchFilter = ""
-                                }
-                            }
+                    theme: structProjectPanel.theme
+                    placeholderText: qsTr("Search files...")
+                    Connections {
+                        target: projectSearchField.field
+                        function onTextChanged() {
+                            structProjectPanel.searchFilter = projectSearchField.field.text.toLowerCase()
                         }
                     }
                 }
@@ -871,24 +777,17 @@ Rectangle {
                             font.bold: true
                         }
 
-                        TextArea {
+                        DmTextArea {
                             id: commitMessageField
                             Layout.fillWidth: true
                             Layout.preferredHeight: 64
                             Layout.minimumHeight: 64
+                            theme: structProjectPanel.theme
                             placeholderText: qsTr("Enter commit message...")
-                            placeholderTextColor: theme.textPlaceholder
                             wrapMode: TextArea.Wrap
                             text: commitMessage
                             onTextChanged: commitMessage = text
-                            color: theme.textPrimary
                             inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhSensitiveData
-                            background: Rectangle {
-                                color: theme.backgroundSecondary
-                                border.color: theme.divider
-                                border.width: 1
-                                radius: theme.radiusMedium
-                            }
                         }
                     }
 
@@ -903,20 +802,13 @@ Rectangle {
                         font.bold: true
                     }
 
-                    TextField {
+                    DmTextField {
                         id: commitAuthorField
                         Layout.fillWidth: true
+                        theme: structProjectPanel.theme
                         placeholderText: qsTr("Optional author name")
-                        placeholderTextColor: theme.textPlaceholder
                         text: commitAuthor
                         onTextChanged: commitAuthor = text
-                        color: theme.textPrimary
-                        background: Rectangle {
-                            color: theme.backgroundSecondary
-                            border.color: theme.divider
-                            border.width: 1
-                            radius: theme.radiusMedium
-                        }
                         
                         Component.onCompleted: {
                             Qt.callLater(function() {
@@ -962,20 +854,13 @@ Rectangle {
                         font.bold: true
                     }
 
-                    TextField {
+                    DmTextField {
                         id: commitEmailField
                         Layout.fillWidth: true
+                        theme: structProjectPanel.theme
                         placeholderText: qsTr("Optional email")
-                        placeholderTextColor: theme.textPlaceholder
                         text: commitEmail
                         onTextChanged: commitEmail = text
-                        color: theme.textPrimary
-                        background: Rectangle {
-                            color: theme.backgroundSecondary
-                            border.color: theme.divider
-                            border.width: 1
-                            radius: theme.radiusMedium
-                        }
                         
                         Component.onCompleted: {
                             Qt.callLater(function() {
@@ -1013,20 +898,13 @@ Rectangle {
                         font.bold: true
                     }
 
-                    TextField {
+                    DmTextField {
                         id: commitTagField
                         Layout.fillWidth: true
+                        theme: structProjectPanel.theme
                         placeholderText: qsTr("Optional tag name")
-                        placeholderTextColor: theme.textPlaceholder
                         text: commitTag
                         onTextChanged: commitTag = text
-                        color: theme.textPrimary
-                        background: Rectangle {
-                            color: theme.backgroundSecondary
-                            border.color: theme.divider
-                            border.width: 1
-                            radius: theme.radiusMedium
-                        }
                     }
                 }
 
@@ -1038,8 +916,11 @@ Rectangle {
                     wrapMode: Text.Wrap
                 }
 
-                Button {
+                DmButton {
                     Layout.fillWidth: true
+                    theme: structProjectPanel.theme
+                    buttonStyle: "primary"
+                    fillWidth: true
                     enabled: !commitInProgress && commitMessage.trim().length > 0
                     text: qsTr("Создать коммит")
                     onClicked: submitCommit()

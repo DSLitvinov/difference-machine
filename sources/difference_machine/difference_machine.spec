@@ -14,7 +14,7 @@ datas = [
     (str(app_root / 'MainWindow.qml'), '.'),
 ]
 # Папки целиком (QML и ресурсы; file_viewer нужен для FileMetadataPanel, image_viewer и т.д.)
-for folder in ('panels', 'resources', 'translations', 'file_viewer'):
+for folder in ('panels', 'components', 'resources', 'translations', 'file_viewer'):
     src = app_root / folder
     if src.exists():
         datas.append((str(src), folder))

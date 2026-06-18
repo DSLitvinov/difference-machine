@@ -3,6 +3,7 @@ import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Popup {
@@ -168,10 +169,10 @@ Popup {
                 Layout.fillWidth: true
             }
 
-            ComboBox {
+            DmComboBox {
                 id: branchComboBox
+                theme: mergeBranchDialog.theme
                 Layout.fillWidth: true
-                Layout.preferredHeight: 24
                 model: branchesModel
                 textRole: "displayText"
                 currentIndex: {
@@ -453,9 +454,10 @@ Popup {
                 Layout.fillWidth: true
                 elide: Text.ElideMiddle
             }
-            Button {
+            DmButton {
+                theme: mergeBranchDialog.theme
+                buttonStyle: "secondary"
                 text: qsTr("Resolve automatically")
-                Layout.preferredHeight: 28
                 visible: hasBlendConflicts()
                 onClicked: {
                     if (!repositoryManager) return
@@ -466,10 +468,10 @@ Popup {
                     }
                 }
             }
-            Button {
+            DmButton {
+                theme: mergeBranchDialog.theme
+                buttonStyle: "ghost"
                 text: qsTr("Resolve in Blender")
-                flat: true
-                Layout.preferredHeight: 28
                 onClicked: {
                     for (var i = 0; i < mergeConflictPaths.length; i++) {
                         var p = (mergeConflictPaths[i] || "").toString()
@@ -478,10 +480,10 @@ Popup {
                     }
                 }
             }
-            Button {
+            DmButton {
+                theme: mergeBranchDialog.theme
+                buttonStyle: "ghost"
                 text: qsTr("Continue merge")
-                flat: true
-                Layout.preferredHeight: 28
                 onClicked: {
                     if (!repositoryManager) return
                     if (repositoryManager.mergeContinue()) {
@@ -498,20 +500,19 @@ Popup {
             Layout.topMargin: 4
             spacing: 10
             Item { Layout.fillWidth: true }
-            Button {
+            DmButton {
+                theme: mergeBranchDialog.theme
+                buttonStyle: "ghost"
                 text: qsTr("Отмена")
-                flat: true
-                Layout.minimumWidth: 80
-                Layout.preferredHeight: 28
                 onClicked: {
                     mergeConflictPaths = []
                     mergeBranchDialog.close()
                 }
             }
-            Button {
+            DmButton {
+                theme: mergeBranchDialog.theme
+                buttonStyle: "primary"
                 text: qsTr("Выполнить слияние")
-                Layout.minimumWidth: 120
-                Layout.preferredHeight: 28
                 enabled: selectedBranch.length > 0
                 onClicked: {
                     if (!repositoryManager || selectedBranch.length === 0) return

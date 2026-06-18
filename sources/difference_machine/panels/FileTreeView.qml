@@ -4,6 +4,7 @@ import QtQuick.Layouts 6.6
 import FileManager 1.0
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
@@ -641,8 +642,9 @@ Rectangle {
                 anchors.rightMargin: 12
                 spacing: 6
 
-                CheckBox {
+                DmCheckBox {
                     id: selectAllCheckBox
+                    theme: fileTreeViewRoot.theme
                     tristate: true
                     property bool internalUpdate: false
 
@@ -776,8 +778,9 @@ Rectangle {
                         opacity: matchesFilter ? 1.0 : 0.4
                         
                         // Checkbox for directories (with tristate support)
-                        CheckBox {
+                        DmCheckBox {
                             id: dirCheckbox
+                            theme: fileTreeViewRoot.theme
                             visible: fileTreeViewRoot.showCheckboxes && model.isDir
                             tristate: true
                             property string dirPath: model.path || ""
@@ -869,8 +872,9 @@ Rectangle {
                         }
                         
                         // Checkbox for files (disabled for deleted)
-                        CheckBox {
+                        DmCheckBox {
                             id: fileCheckbox
+                            theme: fileTreeViewRoot.theme
                             visible: fileTreeViewRoot.showCheckboxes && !model.isDir
                             enabled: !isDeleted
                             property string filePath: model.path || ""
