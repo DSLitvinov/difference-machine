@@ -663,7 +663,6 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: 120
-            Layout.topMargin: 4
             theme: structProjectPanel.theme
             fileManager: structProjectPanel.fileManager
             repositoryManager: structProjectPanel.repositoryManager

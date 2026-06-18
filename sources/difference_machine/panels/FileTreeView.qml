@@ -16,7 +16,7 @@ Rectangle {
     // Theme instance
     property var theme: Theme {}
     
-    color: theme.sidebarBackground
+    color: theme.contentBackground
     
     // Properties to receive from parent
     property var fileManager: null
@@ -600,7 +600,7 @@ Rectangle {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 44
-            color: theme.sidebarHeaderBackground
+            color: theme.tabBarBackground
             
             RowLayout {
                 anchors.fill: parent
@@ -634,7 +634,7 @@ Rectangle {
             visible: fileTreeViewRoot.showCheckboxes
             Layout.fillWidth: true
             Layout.preferredHeight: 28
-            color: theme.sidebarBackground
+            color: theme.contentBackground
 
             RowLayout {
                 anchors.fill: parent
