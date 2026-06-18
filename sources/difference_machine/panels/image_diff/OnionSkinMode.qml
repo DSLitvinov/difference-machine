@@ -2,6 +2,7 @@ import QtQuick 6.6
 import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import resources.styles 1.0
+import components 1.0
 import ".."
 
 Rectangle {
@@ -201,9 +202,10 @@ Rectangle {
                 Layout.fillWidth: true
             }
             
-            Button {
+            DmButton {
+                theme: onionSkinMode.theme
+                buttonStyle: "ghost"
                 text: image1OnTop ? qsTr("Image 1 on Top") : qsTr("Image 2 on Top")
-                flat: true
                 onClicked: image1OnTop = !image1OnTop
             }
             

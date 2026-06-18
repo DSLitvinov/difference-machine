@@ -3,6 +3,7 @@ import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
@@ -140,38 +141,24 @@ Rectangle {
                                 elide: Text.ElideRight
                             }
 
-                            Rectangle {
-                                Layout.preferredWidth: 28
-                                Layout.preferredHeight: 28
+                            DmButton {
+                                id: commitMenuBtn
                                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                                radius: 4
-                                color: menuButtonMouseArea.containsMouse ? theme.backgroundHover : "transparent"
-                                opacity: menuButtonMouseArea.containsMouse ? 1.0 : 0.6
-
-                                Image {
-                                    anchors.centerIn: parent
-                                    width: 16
-                                    height: 16
-                                    source: theme ? theme.getIconPath("more-vert.svg") : ""
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
+                                theme: commitsListPanel.theme
+                                buttonStyle: "icon"
+                                iconSource: theme ? theme.getIconPath("more-vert.svg") : ""
+                                iconSize: 16
+                                opacity: commitMenuBtn.hovered ? 1.0 : 0.6
+                                onClicked: {
+                                    var overlay = commitsListPanel.overlayItem || commitsListPanel
+                                    var pos = commitMenuBtn.mapToItem(overlay, commitMenuBtn.width, commitMenuBtn.height)
+                                    commitsListPanel.openCommitContextMenu(model.hash || "", pos.x, pos.y)
                                 }
-
-                                MouseArea {
-                                    id: menuButtonMouseArea
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: function(mouse) {
-                                        var overlay = commitsListPanel.overlayItem || commitsListPanel
-                                        var pos = mapToItem(overlay, mouse.x, mouse.y)
-                                        commitsListPanel.openCommitContextMenu(model.hash || "", pos.x, pos.y)
-                                    }
+                                DmToolTip {
+                                    visible: commitMenuBtn.hovered
+                                    text: qsTr("Commit actions")
+                                    theme: commitsListPanel.theme
                                 }
-
-                                ToolTip.visible: menuButtonMouseArea.containsMouse
-                                ToolTip.text: qsTr("Commit actions")
-                                ToolTip.delay: 500
                             }
                         }
 
@@ -226,8 +213,9 @@ Rectangle {
         }
     }
 
-    Menu {
+    DmContextMenu {
         id: commitContextMenu
+        theme: commitsListPanel.theme
         function triggerAction(action) {
             var hash = contextMenuCommitHash || ""
             if (action === "copy") {
@@ -281,7 +269,7 @@ Rectangle {
             text: qsTr("Создать ветку от коммита")
             onTriggered: commitContextMenu.triggerAction("branch")
         }
-        MenuSeparator {}
+        DmMenuSeparator { theme: commitContextMenu.theme }
         MenuItem {
             text: qsTr("Скопировать хеш")
             onTriggered: commitContextMenu.triggerAction("copy")
@@ -341,15 +329,17 @@ Rectangle {
                 Item { Layout.fillHeight: true }
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 32
                     spacing: 8
                     Item { Layout.fillWidth: true }
-                    Button {
+                    DmButton {
+                        theme: commitsListPanel.theme
+                        buttonStyle: "ghost"
                         text: qsTr("Отмена")
-                        flat: true
                         onClicked: createBranchFromCommitDialog.close()
                     }
-                    Button {
+                    DmButton {
+                        theme: commitsListPanel.theme
+                        buttonStyle: "primary"
                         text: qsTr("Создать")
                         enabled: createBranchFromCommitName.trim().length > 0
                         onClicked: {

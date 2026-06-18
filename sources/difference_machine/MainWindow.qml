@@ -303,7 +303,7 @@ ApplicationWindow {
                 spacing: 0
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 56
+                    Layout.preferredHeight: theme.panelOuterMargin * 2 + theme.controlHeight
                     color: theme.sidebarBackground
                     RowLayout {
                         anchors.fill: parent
@@ -316,7 +316,7 @@ ApplicationWindow {
                             id: repoCombo
                             theme: window.theme
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 32
+                            Layout.alignment: Qt.AlignVCenter
                             editable: false
                             property var recentList: repositoryManager && repositoryManager.recentRepositories ? repositoryManager.recentRepositories : []
                             model: recentList.length > 0 ? [""].concat(recentList) : [""]
@@ -370,10 +370,8 @@ ApplicationWindow {
                         DmButton {
                             theme: window.theme
                             buttonStyle: "icon"
-                            Layout.preferredWidth: 32
-                            Layout.preferredHeight: 32
+                            Layout.alignment: Qt.AlignVCenter
                             text: "+"
-                            font.pixelSize: 18
                             onClicked: {
                                 if (typeof fileManager !== "undefined" && fileManager.openDirectoryDialog)
                                     fileManager.openDirectoryDialog()

@@ -2,6 +2,7 @@ import QtQuick 6.6
 import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import resources.styles 1.0
+import components 1.0
 import "../panels"
 
 Rectangle {
@@ -73,14 +74,12 @@ Rectangle {
                     elide: Text.ElideMiddle
                     Layout.fillWidth: true
                 }
-                Button {
-                    flat: true
+                DmButton {
+                    buttonStyle: "icon"
+                    theme: metadataPanel.theme
                     visible: fileViewer && fileViewer.filePath && repositoryManager
-                    implicitWidth: 28
-                    implicitHeight: 24
-                    icon.source: theme ? theme.getIconPath("edit-copy.svg") : ""
-                    icon.width: 14
-                    icon.height: 14
+                    iconSource: theme ? theme.getIconPath("edit-copy.svg") : ""
+                    iconSize: 14
                     onClicked: {
                         if (repositoryManager && fileViewer && fileViewer.filePath) {
                             repositoryManager.copyToClipboard(fileViewer.filePath)
@@ -222,8 +221,10 @@ Rectangle {
                     width: 80
                 }
 
-            Button {
+            DmButton {
                     id: openBlenderButton
+                    theme: metadataPanel.theme
+                    buttonStyle: "secondary"
                     text: qsTr("Open in Blender")
                     enabled: hasBlenderPath
                     onClicked: {

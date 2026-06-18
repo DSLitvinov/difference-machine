@@ -773,8 +773,8 @@ Rectangle {
                     opacity: shouldShow ? 1.0 : 0.0
                     
                     contentItem: RowLayout {
+                        anchors.fill: parent
                         spacing: 6
-                        width: treeDelegate.width
                         opacity: matchesFilter ? 1.0 : 0.4
                         
                         // Checkbox for directories (with tristate support)
@@ -1019,47 +1019,32 @@ Rectangle {
                             }
                         }
                         
-                        // Menu button (⋮) - inside layout so it doesn't overlap the text
-                        Rectangle {
+                        DmButton {
+                            id: treeMenuBtn
                             visible: (model.path || "").length > 0
-                            Layout.preferredWidth: 28
-                            Layout.preferredHeight: 24
                             Layout.alignment: Qt.AlignVCenter
-                            radius: 4
-                            color: treeMenuBtnMouseArea.containsMouse ? theme.backgroundHover : "transparent"
-                            opacity: treeMenuBtnMouseArea.containsMouse ? 1.0 : 0.6
-                            
-                            Image {
-                                anchors.centerIn: parent
-                                width: 16
-                                height: 16
-                                source: fileTreeViewRoot.theme.getIconPath("more-vert.svg")
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                            }
-                            
-                            MouseArea {
-                                id: treeMenuBtnMouseArea
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: function(mouse) {
-                                    if ((model.path || "").length > 0) {
-                                        var overlay = (fileTreeViewRoot.parentPanel && fileTreeViewRoot.parentPanel.overlayItem)
-                                            ? fileTreeViewRoot.parentPanel.overlayItem : fileTreeViewRoot
-                                        var pos = mapToItem(overlay, mouse.x, mouse.y)
-                                        fileTreeContextMenu.filePath = model.path || ""
-                                        fileTreeContextMenu.pathUtils = pathUtils
-                                        fileTreeContextMenu.repositoryManager = fileTreeViewRoot.repositoryManager
-                                        fileTreeContextMenu.parent = overlay
-                                        fileTreeContextMenu.popup(pos.x, pos.y)
-                                    }
+                            theme: fileTreeViewRoot.theme
+                            buttonStyle: "icon"
+                            iconSource: fileTreeViewRoot.theme.getIconPath("more-vert.svg")
+                            iconSize: 16
+                            opacity: treeMenuBtn.hovered ? 1.0 : 0.6
+                            onClicked: {
+                                if ((model.path || "").length > 0) {
+                                    var overlay = (fileTreeViewRoot.parentPanel && fileTreeViewRoot.parentPanel.overlayItem)
+                                        ? fileTreeViewRoot.parentPanel.overlayItem : fileTreeViewRoot
+                                    var pos = treeMenuBtn.mapToItem(overlay, treeMenuBtn.width, treeMenuBtn.height)
+                                    fileTreeContextMenu.filePath = model.path || ""
+                                    fileTreeContextMenu.pathUtils = pathUtils
+                                    fileTreeContextMenu.repositoryManager = fileTreeViewRoot.repositoryManager
+                                    fileTreeContextMenu.parent = overlay
+                                    fileTreeContextMenu.popup(pos.x, pos.y)
                                 }
                             }
-                            
-                            ToolTip.visible: treeMenuBtnMouseArea.containsMouse
-                            ToolTip.text: qsTr("File actions")
-                            ToolTip.delay: 500
+                            DmToolTip {
+                                visible: treeMenuBtn.hovered
+                                text: qsTr("File actions")
+                                theme: fileTreeViewRoot.theme
+                            }
                         }
                     }
                     
@@ -1117,8 +1102,9 @@ Rectangle {
         }
     }
     
-    Menu {
+    DmContextMenu {
         id: fileTreeContextMenu
+        theme: fileTreeViewRoot.theme
         property string filePath: ""
         property var pathUtils: null
         property var repositoryManager: null
@@ -1143,7 +1129,8 @@ Rectangle {
                 }
             }
         }
-        MenuSeparator {
+        DmMenuSeparator {
+            theme: fileTreeContextMenu.theme
             visible: fileTreeContextMenu.filePath && fileTreeContextMenu.repositoryManager
         }
         MenuItem {

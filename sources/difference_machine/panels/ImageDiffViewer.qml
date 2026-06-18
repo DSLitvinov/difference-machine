@@ -62,7 +62,7 @@ Rectangle {
         // Mode selector buttons
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 40
+            Layout.preferredHeight: theme.controlHeight + theme.panelOuterMargin * 2
             color: theme.tabBarBackground
             visible: !imageDiffViewer.isDeletedImage
             

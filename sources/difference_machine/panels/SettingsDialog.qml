@@ -43,7 +43,7 @@ Dialog {
     }
 
     header: RowLayout {
-        implicitHeight: 56
+        implicitHeight: theme.controlHeightSmall + 24
         spacing: 12
         Text {
             text: settingsDialog.title
@@ -55,28 +55,14 @@ Dialog {
             Layout.topMargin: 12
             Layout.bottomMargin: 12
         }
-        Rectangle {
-            Layout.preferredWidth: 24
-            Layout.preferredHeight: 24
+        DmButton {
+            theme: settingsDialog.theme
+            buttonStyle: "icon"
+            text: "×"
             Layout.rightMargin: 12
             Layout.topMargin: 12
             Layout.bottomMargin: 12
-            radius: 12
-            color: closeBtnMouseArea.containsMouse ? theme.backgroundHover : "transparent"
-            Text {
-                anchors.centerIn: parent
-                text: "×"
-                font.pixelSize: 18
-                font.family: "Arial"
-                color: theme.textSecondary
-            }
-            MouseArea {
-                id: closeBtnMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: settingsDialog.close()
-            }
+            onClicked: settingsDialog.close()
         }
     }
 

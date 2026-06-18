@@ -2,6 +2,7 @@ import QtQuick 6.6
 import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
@@ -91,14 +92,12 @@ Rectangle {
                 elide: Text.ElideMiddle
                 Layout.fillWidth: true
             }
-            Button {
-                flat: true
+            DmButton {
+                buttonStyle: "icon"
+                theme: metadataPanel.theme
                 visible: (fileMetadata.path || filePath) && repositoryManager
-                implicitWidth: 28
-                implicitHeight: 24
-                icon.source: theme ? theme.getIconPath("edit-copy.svg") : ""
-                icon.width: 14
-                icon.height: 14
+                iconSource: theme ? theme.getIconPath("edit-copy.svg") : ""
+                iconSize: 14
                 onClicked: {
                     if (repositoryManager) {
                         var p = fileMetadata.path || filePath
@@ -160,7 +159,9 @@ Rectangle {
                 width: 80
             }
 
-            Button {
+            DmButton {
+                theme: metadataPanel.theme
+                buttonStyle: "secondary"
                 text: qsTr("Compare")
                 enabled: repositoryManager && commitHash && commitHash.length > 0 && isBlendFile
                 onClicked: {
@@ -170,9 +171,10 @@ Rectangle {
                 }
             }
 
-            Button {
+            DmButton {
+                theme: metadataPanel.theme
+                buttonStyle: "ghost"
                 text: qsTr("Clear compare")
-                flat: true
                 visible: repositoryManager && repositoryManager.compareActive && isBlendFile
                 onClicked: {
                     if (repositoryManager && repositoryManager.clearCompare) {

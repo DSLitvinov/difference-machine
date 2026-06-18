@@ -174,7 +174,7 @@ Rectangle {
 
             Rectangle {
                 id: branchSelectorButton
-                Layout.preferredHeight: 24
+                Layout.preferredHeight: theme.controlHeight
                 Layout.preferredWidth: 180
                 color: branchSelectorMouseArea.containsMouse ? theme.backgroundHover : theme.background
                 border.color: theme.divider
@@ -221,41 +221,24 @@ Rectangle {
                 }
             }
 
-            Rectangle {
+            DmButton {
                 id: createBranchButton
-                Layout.preferredHeight: 24
-                Layout.preferredWidth: 24
-                color: createBranchMouseArea.containsMouse ? theme.backgroundHover : theme.background
-                border.color: theme.divider
-                border.width: 1
-                radius: theme.radiusMedium
+                theme: branchSelectorPanel.theme
+                buttonStyle: "icon"
+                Layout.alignment: Qt.AlignVCenter
+                text: "+"
                 visible: repositoryManager && repositoryManager.isRepository
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "+"
-                    color: theme.textPrimary
-                    font.pixelSize: theme.fontPixelSizeTitle
-                    font.bold: true
-                }
-
-                MouseArea {
-                    id: createBranchMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        createBranchName = ""
-                        createBranchError = ""
-                        var p = createBranchButton.mapToItem(branchSelectorPanel, 0, 0)
-                        createBranchPopup.x = p.x + (createBranchButton.width - createBranchPopup.width) / 2
-                        createBranchPopup.y = p.y + createBranchButton.height + 6
-                        createBranchPopup.x = Math.max(8, Math.min(createBranchPopup.x, branchSelectorPanel.width - createBranchPopup.width - 8))
-                        createBranchPopup.y = Math.min(createBranchPopup.y, branchSelectorPanel.height - createBranchPopup.height - 8)
-                        if (createBranchPopup.y < p.y + createBranchButton.height + 6)
-                            createBranchPopup.y = Math.max(8, p.y - createBranchPopup.height - 4)
-                        createBranchPopup.open()
-                    }
+                onClicked: {
+                    createBranchName = ""
+                    createBranchError = ""
+                    var p = createBranchButton.mapToItem(branchSelectorPanel, 0, 0)
+                    createBranchPopup.x = p.x + (createBranchButton.width - createBranchPopup.width) / 2
+                    createBranchPopup.y = p.y + createBranchButton.height + 6
+                    createBranchPopup.x = Math.max(8, Math.min(createBranchPopup.x, branchSelectorPanel.width - createBranchPopup.width - 8))
+                    createBranchPopup.y = Math.min(createBranchPopup.y, branchSelectorPanel.height - createBranchPopup.height - 8)
+                    if (createBranchPopup.y < p.y + createBranchButton.height + 6)
+                        createBranchPopup.y = Math.max(8, p.y - createBranchPopup.height - 4)
+                    createBranchPopup.open()
                 }
             }
 
@@ -327,11 +310,9 @@ Rectangle {
                 DmButton {
                     theme: branchSelectorPanel.theme
                     buttonStyle: "icon"
-                    Layout.preferredHeight: 24
-                    Layout.preferredWidth: 24
-                    icon.source: theme.getIconPath("edit-copy.svg")
-                    icon.width: 14
-                    icon.height: 14
+                    Layout.alignment: Qt.AlignVCenter
+                    iconSource: theme.getIconPath("edit-copy.svg")
+                    iconSize: 14
                     visible: repositoryManager && repositoryManager.isRepository && getSelectedBranchCommitHash().length > 0
                     onClicked: {
                         var hash = getSelectedBranchCommitHash()
@@ -485,7 +466,6 @@ Rectangle {
                 Item { Layout.fillHeight: true }
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 32
                     spacing: 8
                     Item { Layout.fillWidth: true }
                     DmButton {

@@ -7,3 +7,6 @@ DmCheckBox 1.0 DmCheckBox.qml
 DmSearchField 1.0 DmSearchField.qml
 DmSegmentControl 1.0 DmSegmentControl.qml
 DmSplitHandle 1.0 DmSplitHandle.qml
+DmContextMenu 1.0 DmContextMenu.qml
+DmMenuSeparator 1.0 DmMenuSeparator.qml
+DmToolTip 1.0 DmToolTip.qml

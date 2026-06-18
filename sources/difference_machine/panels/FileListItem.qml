@@ -101,43 +101,28 @@ Rectangle {
             ToolTip.delay: 500
         }
         
-        // Menu button (⋮) - inside layout so it doesn't overlap the text
-        Rectangle {
-            Layout.preferredWidth: 28
-            Layout.preferredHeight: 24
+        DmButton {
+            id: menuBtn
             Layout.alignment: Qt.AlignVCenter
-            radius: 4
-            color: menuBtnMouseArea.containsMouse ? theme.backgroundHover : "transparent"
-            opacity: menuBtnMouseArea.containsMouse ? 1.0 : 0.6
-            
-            Image {
-                anchors.centerIn: parent
-                width: 16
-                height: 16
-                source: theme.getIconPath("more-vert.svg")
-                fillMode: Image.PreserveAspectFit
-                asynchronous: true
+            theme: fileListItem.theme
+            buttonStyle: "icon"
+            iconSource: theme.getIconPath("more-vert.svg")
+            iconSize: 16
+            opacity: menuBtn.hovered ? 1.0 : 0.6
+            onClicked: {
+                var overlay = fileListItem.overlayItem || fileListItem
+                var pos = menuBtn.mapToItem(overlay, menuBtn.width, menuBtn.height)
+                fileContextMenu.filePath = fileListItem.filePath
+                fileContextMenu.pathUtils = fileListItem.pathUtils
+                fileContextMenu.repositoryManager = fileListItem.repositoryManager
+                fileContextMenu.parent = overlay
+                fileContextMenu.popup(pos.x, pos.y)
             }
-            
-            MouseArea {
-                id: menuBtnMouseArea
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: function(mouse) {
-                    var overlay = fileListItem.overlayItem || fileListItem
-                    var pos = mapToItem(overlay, mouse.x, mouse.y)
-                    fileContextMenu.filePath = fileListItem.filePath
-                    fileContextMenu.pathUtils = fileListItem.pathUtils
-                    fileContextMenu.repositoryManager = fileListItem.repositoryManager
-                    fileContextMenu.parent = overlay
-                    fileContextMenu.popup(pos.x, pos.y)
-                }
+            DmToolTip {
+                visible: menuBtn.hovered
+                text: qsTr("File actions")
+                theme: fileListItem.theme
             }
-            
-            ToolTip.visible: menuBtnMouseArea.containsMouse
-            ToolTip.text: qsTr("File actions")
-            ToolTip.delay: 500
         }
     }
     
@@ -180,8 +165,9 @@ Rectangle {
         }
     }
     
-    Menu {
+    DmContextMenu {
         id: fileContextMenu
+        theme: fileListItem.theme
         property string filePath: ""
         property var pathUtils: null
         property var repositoryManager: null
@@ -206,7 +192,8 @@ Rectangle {
                 }
             }
         }
-        MenuSeparator {
+        DmMenuSeparator {
+            theme: fileContextMenu.theme
             visible: fileContextMenu.filePath && fileContextMenu.repositoryManager
         }
         MenuItem {

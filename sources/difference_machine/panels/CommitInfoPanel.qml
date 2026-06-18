@@ -3,6 +3,7 @@ import QtQuick.Controls 6.6
 import QtQuick.Layouts 6.6
 import RepositoryManager 1.0
 import resources.styles 1.0
+import components 1.0
 import "."
 
 Rectangle {
@@ -99,13 +100,11 @@ Rectangle {
                 font.family: theme.fontMonospace
             }
 
-            Button {
-                Layout.preferredWidth: 24
-                Layout.preferredHeight: 24
-                flat: true
-                icon.source: theme.getIconPath("edit-copy.svg")
-                icon.width: 14
-                icon.height: 14
+            DmButton {
+                theme: commitInfoPanel.theme
+                buttonStyle: "icon"
+                iconSource: theme.getIconPath("edit-copy.svg")
+                iconSize: 14
                 visible: commitHash && commitHash.length > 0
                 onClicked: copyHashToClipboard()
             }
