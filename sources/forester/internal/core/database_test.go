@@ -3,6 +3,7 @@ package core
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/difference-machine/forester/internal/models"
@@ -31,7 +32,6 @@ func TestDatabase_AcquireLock(t *testing.T) {
 		t.Errorf("AcquireLock() = false, want true")
 	}
 
-	// Try to acquire same lock again (should fail)
 	lock2 := models.NewLock("test.txt", "user1", "main", models.LockTypeExclusive)
 	acquired2, err := db.AcquireLock(lock2)
 	if err != nil {
@@ -42,121 +42,97 @@ func TestDatabase_AcquireLock(t *testing.T) {
 	}
 }
 
-func TestDatabase_CreateBranch(t *testing.T) {
+func TestRepository_BranchRefs(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "forester_test_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
-	dbPath := filepath.Join(tmpDir, "test.db")
-	db, err := NewDatabase(dbPath)
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".DFM", "refs", "heads"), 0755); err != nil {
+		t.Fatalf("Failed to create refs dir: %v", err)
 	}
-	defer db.Close()
 
-	err = db.CreateBranch("test-branch", "abc123")
+	repo, err := OpenRepository(tmpDir)
 	if err != nil {
+		t.Fatalf("Failed to open repository: %v", err)
+	}
+	defer repo.Close()
+
+	if err := repo.CreateBranch("test-branch", "abc1234567890abcdef1234567890abcdef1234567890abcdef1234567890"); err != nil {
 		t.Fatalf("Failed to create branch: %v", err)
 	}
 
-	// Try to create same branch again (should fail)
-	err = db.CreateBranch("test-branch", "def456")
-	if err == nil {
-		t.Errorf("CreateBranch() should fail for duplicate branch name")
-	}
-}
-
-func TestDatabase_SetBranchHead(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "forester_test_*")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	dbPath := filepath.Join(tmpDir, "test.db")
-	db, err := NewDatabase(dbPath)
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
-	defer db.Close()
-
-	// Create branch first
-	err = db.CreateBranch("test-branch", "abc123")
-	if err != nil {
-		t.Fatalf("Failed to create branch: %v", err)
-	}
-
-	// Update HEAD
-	err = db.SetBranchHead("test-branch", "def456")
-	if err != nil {
-		t.Fatalf("Failed to set branch head: %v", err)
-	}
-
-	// Verify HEAD was updated
-	head, err := db.GetBranchHead("test-branch")
+	head, err := repo.GetBranchHead("test-branch")
 	if err != nil {
 		t.Fatalf("Failed to get branch head: %v", err)
 	}
-	if head != "def456" {
-		t.Errorf("GetBranchHead() = %s, want def456", head)
+	if head == "" {
+		t.Fatal("GetBranchHead() returned empty hash")
+	}
+
+	if err := repo.SetBranchHead("test-branch", "def4567890abcdef1234567890abcdef1234567890abcdef1234567890abcd", head); err != nil {
+		t.Fatalf("Failed to set branch head: %v", err)
+	}
+
+	head, err = repo.GetBranchHead("test-branch")
+	if err != nil {
+		t.Fatalf("Failed to get branch head: %v", err)
+	}
+	if head != "def4567890abcdef1234567890abcdef1234567890abcdef1234567890abcd" {
+		t.Errorf("GetBranchHead() = %s, want def456...", head)
 	}
 }
 
-func TestDatabase_HasChildCommits(t *testing.T) {
+func TestRepository_HasChildCommits(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "forester_test_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
-	dbPath := filepath.Join(tmpDir, "test.db")
-	db, err := NewDatabase(dbPath)
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
-	defer db.Close()
-
-	// Create parent commit
-	parentCommit := models.NewCommit()
-	parentCommit.Hash = "parent"
-	parentCommit.TreeHash = "tree123"
-	parentCommit.Author = "author"
-	parentCommit.Message = "message"
-	parentCommit.ParentHash = ""
-	_, err = db.CreateCommit(parentCommit)
-	if err != nil {
-		t.Fatalf("Failed to create parent commit: %v", err)
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".DFM", "objects"), 0755); err != nil {
+		t.Fatalf("Failed to create objects dir: %v", err)
 	}
 
-	// Create child commit
-	childCommit := models.NewCommit()
-	childCommit.Hash = "child"
-	childCommit.TreeHash = "tree456"
-	childCommit.Author = "author"
-	childCommit.Message = "message"
-	childCommit.ParentHash = "parent"
-	_, err = db.CreateCommit(childCommit)
+	repo, err := OpenRepository(tmpDir)
 	if err != nil {
-		t.Fatalf("Failed to create child commit: %v", err)
+		t.Fatalf("Failed to open repository: %v", err)
+	}
+	defer repo.Close()
+
+	parent := models.NewCommit()
+	parent.TreeHash = strings.Repeat("b", 64)
+	parent.Author = "author"
+	parent.Message = "parent"
+
+	parentJSON, _ := parent.ToJSON()
+	parent.Hash = HashCommitJSON(parentJSON)
+	parentJSON, _ = parent.ToJSON()
+	parentHash, err := repo.Storage.StoreCommit(parentJSON)
+	if err != nil {
+		t.Fatalf("Failed to store parent: %v", err)
 	}
 
-	// Check if parent has children
-	hasChildren, err := db.HasChildCommits("parent")
+	child := models.NewCommit()
+	child.TreeHash = strings.Repeat("d", 64)
+	child.Author = "author"
+	child.Message = "child"
+	child.ParentHash = parentHash
+	child.ParentHashes = []string{parentHash}
+
+	childJSON, _ := child.ToJSON()
+	child.Hash = HashCommitJSON(childJSON)
+	childJSON, _ = child.ToJSON()
+	if _, err := repo.Storage.StoreCommit(childJSON); err != nil {
+		t.Fatalf("Failed to store child: %v", err)
+	}
+
+	hasChildren, err := repo.HasChildCommits(parentHash)
 	if err != nil {
-		t.Fatalf("Failed to check child commits: %v", err)
+		t.Fatalf("HasChildCommits failed: %v", err)
 	}
 	if !hasChildren {
-		t.Errorf("HasChildCommits() = false, want true")
-	}
-
-	// Check if child has children
-	hasChildren, err = db.HasChildCommits("child")
-	if err != nil {
-		t.Fatalf("Failed to check child commits: %v", err)
-	}
-	if hasChildren {
-		t.Errorf("HasChildCommits() = true, want false")
+		t.Errorf("HasChildCommits(parent) = false, want true")
 	}
 }

@@ -42,12 +42,12 @@ func Init(args []string) error {
 		return err
 	}
 
-	// Initialize database
+	// Initialize empty product database (locks, reviews, objects, stashes)
 	if err := initializeDatabase(repoPath); err != nil {
 		return fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	// Create HEAD file and ref for main branch
+	// Create HEAD file and ref for main branch (refs are source of truth for VCS)
 	refs := core.NewRefs(repoPath)
 	if err := refs.SetCurrentBranch("main"); err != nil {
 		return fmt.Errorf("failed to set current branch: %w", err)
@@ -75,13 +75,10 @@ func createDirectoryStructure(repoPath string) error {
 	dirs := []string{
 		".DFM",
 		".DFM/objects",
-		".DFM/objects/blobs/sha256",
-		".DFM/objects/commits/sha256",
-		".DFM/objects/trees/sha256",
+		".DFM/logs/refs/heads",
 		".DFM/refs/heads",
 		".DFM/refs/tags",
 		".DFM/hooks",
-		".DFM/logs",
 	}
 
 	for _, dir := range dirs {
@@ -100,14 +97,7 @@ func initializeDatabase(repoPath string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
-
-	// Create initial main branch without commit
-	if err := db.CreateBranch("main", ""); err != nil {
-		return err
-	}
-
-	return nil
+	return db.Close()
 }
 
 func createDefaultIgnoreFile(repoPath string) error {
@@ -230,5 +220,3 @@ func createConfigFile(repoPath string) error {
 
 	return utils.WriteFileString(configPath, configContent)
 }
-
-

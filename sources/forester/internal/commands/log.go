@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,19 +20,14 @@ func Log(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPath)
-
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
+	refs := repo.Refs
+	storage := repo.Storage
 
 	// Parse flags
 	oneline := false
@@ -183,19 +177,19 @@ func Log(args []string) error {
 
 	if showAll {
 		// Get commits from all branches
-		branches, err := db.ListBranches()
+		branches, err := repo.ListBranches()
 		if err != nil {
 			return fmt.Errorf("failed to list branches: %w", err)
 		}
 
 		branchHeads = make(map[string]string)
-		commitMap := make(map[string]*models.Commit) // hash -> commit
+		commitMap := make(map[string]*models.Commit)
 
-		// Collect all commits from all branches
-		for _, b := range branches {
-			if b.CommitHash != "" {
-				branchHeads[b.Name] = b.CommitHash
-				history, err := db.GetCommitHistory(b.Name, 100)
+		for _, branchName := range branches {
+			head, _ := repo.GetBranchHead(branchName)
+			if head != "" {
+				branchHeads[branchName] = head
+				history, err := repo.GetCommitHistory(branchName, 100)
 				if err == nil {
 					for _, commit := range history {
 						if _, exists := commitMap[commit.Hash]; !exists {
@@ -216,15 +210,14 @@ func Log(args []string) error {
 		})
 	} else {
 		// Get commit history for single branch
-		commits, err = db.GetCommitHistory(branch, 100)
+		commits, err = repo.GetCommitHistory(branch, 100)
 		if err != nil {
 			return fmt.Errorf("failed to get commit history: %w", err)
 		}
 
-		// Get HEAD commit for this branch
-		headCommit, err := db.GetBranchHead(branch)
+		headCommit, err := repo.GetBranchHead(branch)
 		if err != nil {
-			headCommit, _ = refs.GetHead(branch)
+			headCommit = ""
 		}
 		branchHeads = map[string]string{branch: headCommit}
 	}
@@ -289,7 +282,7 @@ func Log(args []string) error {
 		var added, modified, deleted []string
 		if showStat || nameOnly || nameStatus {
 			if commit.ParentHash != "" {
-				added, modified, deleted = getCommitFileChanges(storage, db, commit)
+				added, modified, deleted = getCommitFileChanges(storage, repo, commit)
 			} else {
 				// Initial commit: all files are added
 				if commit.TreeHash != "" {
@@ -361,7 +354,7 @@ func Log(args []string) error {
 			fmt.Printf("Date:   %s\n", dateStr)
 
 			// Get tag for this commit
-			tag, err := db.GetTagByCommitHash(commit.Hash)
+			tag, err := repo.GetTagByCommitHash(commit.Hash)
 			if err == nil && tag != "" {
 				fmt.Printf("Tag:    %s\n", tag)
 			} else {
@@ -516,13 +509,12 @@ func formatCommitPretty(commit *models.Commit, format, hashShort string) string 
 }
 
 // getCommitFileChanges returns the list of added, modified, and deleted files in a commit
-func getCommitFileChanges(storage *core.Storage, db *core.Database, commit *models.Commit) (added, modified, deleted []string) {
+func getCommitFileChanges(storage *core.Storage, repo *core.Repository, commit *models.Commit) (added, modified, deleted []string) {
 	if commit.ParentHash == "" {
 		return
 	}
 
-	// Get parent commit
-	parentCommit, err := db.GetCommit(commit.ParentHash)
+	parentCommit, err := repo.GetCommit(commit.ParentHash)
 	if err != nil {
 		return
 	}

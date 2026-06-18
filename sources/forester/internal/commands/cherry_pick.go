@@ -27,19 +27,14 @@ func CherryPick(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	hooks := core.NewHooks(repoPath)
 
 	// Get current branch
@@ -49,14 +44,14 @@ func CherryPick(args []string) error {
 	}
 
 	// Resolve commit hash (support HEAD, short hashes)
-	resolvedHash, err := resolveCommitHash(db, refs, currentBranch, commitHash)
+	resolvedHash, err := resolveCommitHash(repo, currentBranch, commitHash)
 	if err != nil {
 		return err
 	}
 	commitHash = resolvedHash
 
 	// Get commit to cherry-pick
-	commitToPick, err := db.GetCommit(commitHash)
+	commitToPick, err := repo.GetCommit(commitHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %s", commitHash)
 	}
@@ -66,15 +61,12 @@ func CherryPick(args []string) error {
 		return fmt.Errorf("cannot cherry-pick initial commit")
 	}
 
-	parentCommit, err := db.GetCommit(commitToPick.ParentHash)
+	parentCommit, err := repo.GetCommit(commitToPick.ParentHash)
 	if err != nil {
 		return fmt.Errorf("parent commit not found: %s", commitToPick.ParentHash)
 	}
 
-	currentHead, err := db.GetBranchHead(currentBranch)
-	if err != nil || currentHead == "" {
-		currentHead, _ = refs.GetHead(currentBranch)
-	}
+	currentHead, err := repo.GetBranchHead(currentBranch)
 
 	// Get trees
 	commitTreeContent, err := storage.GetTreeContent(commitToPick.TreeHash)
@@ -98,7 +90,7 @@ func CherryPick(args []string) error {
 	// Get current HEAD tree
 	var currentTree models.Tree
 	if currentHead != "" {
-		currentCommit, err := db.GetCommit(currentHead)
+		currentCommit, err := repo.GetCommit(currentHead)
 		if err == nil {
 			currentTreeContent, err := storage.GetTreeContent(currentCommit.TreeHash)
 			if err == nil {
@@ -326,28 +318,14 @@ func CherryPick(args []string) error {
 
 	newCommitHash := core.HashString(string(commitJSONForHash))
 	commit.Hash = newCommitHash
-	commitJSON, err := commit.ToJSON()
-	if err != nil {
-		return fmt.Errorf("failed to serialize final commit: %w", err)
-	}
 
-	// Store commit
-	if _, err := storage.StoreCommit(commitJSON); err != nil {
+	if _, err := repo.StoreCommit(commit); err != nil {
 		return fmt.Errorf("failed to store commit: %w", err)
 	}
 
-	if _, err := db.CreateCommit(commit); err != nil {
-		return fmt.Errorf("failed to create commit: %w", err)
-	}
-
-	// Update branch HEAD
 	oldHead := currentHead
-	if err := db.UpdateBranchHeadAtomic(currentBranch, newCommitHash, oldHead); err != nil {
+	if err := repo.SetBranchHead(currentBranch, newCommitHash, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, newCommitHash); err != nil {
-		_ = db.SetBranchHead(currentBranch, oldHead)
-		return fmt.Errorf("failed to set ref head: %w", err)
 	}
 
 	// Execute post-commit hook

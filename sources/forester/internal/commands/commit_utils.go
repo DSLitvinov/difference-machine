@@ -13,15 +13,12 @@ import (
 // - Short hash (8+ characters)
 // - HEAD (current branch HEAD)
 // - HEAD~n (n commits before HEAD)
-func resolveCommitHash(db *core.Database, refs *core.Refs, currentBranch, hash string) (string, error) {
+func resolveCommitHash(repo *core.Repository, currentBranch, hash string) (string, error) {
 	// Handle HEAD references
 	if hash == "HEAD" {
-		head, err := db.GetBranchHead(currentBranch)
+		head, err := repo.GetBranchHead(currentBranch)
 		if err != nil || head == "" {
-			head, err = refs.GetHead(currentBranch)
-			if err != nil || head == "" {
-				return "", fmt.Errorf("no commits yet")
-			}
+			return "", fmt.Errorf("no commits yet")
 		}
 		return head, nil
 	}
@@ -37,26 +34,25 @@ func resolveCommitHash(db *core.Database, refs *core.Refs, currentBranch, hash s
 			return "", fmt.Errorf("invalid HEAD~n format: %s", hash)
 		}
 
-		// Get HEAD
-		head, err := db.GetBranchHead(currentBranch)
+		head, err := repo.GetBranchHead(currentBranch)
 		if err != nil || head == "" {
-			head, err = refs.GetHead(currentBranch)
-			if err != nil || head == "" {
-				return "", fmt.Errorf("no commits yet")
-			}
+			return "", fmt.Errorf("no commits yet")
 		}
 
-		// Walk back n commits
 		current := head
 		for i := 0; i < n; i++ {
-			commit, err := db.GetCommit(current)
+			commit, err := repo.GetCommit(current)
 			if err != nil {
 				return "", fmt.Errorf("commit not found: %s", current)
 			}
-			if commit.ParentHash == "" {
+			parent := commit.ParentHash
+			if parent == "" && len(commit.ParentHashes) > 0 {
+				parent = commit.ParentHashes[0]
+			}
+			if parent == "" {
 				return "", fmt.Errorf("cannot go back %d commits: reached initial commit", n)
 			}
-			current = commit.ParentHash
+			current = parent
 		}
 		return current, nil
 	}
@@ -66,9 +62,13 @@ func resolveCommitHash(db *core.Database, refs *core.Refs, currentBranch, hash s
 		return hash, nil
 	}
 
-	// Try to find by short hash prefix
-	// Search in commit history
-	commits, err := db.GetCommitHistory(currentBranch, 1000)
+	// Try to find by short hash prefix via repository
+	if commit, err := repo.FindCommitByPrefix(hash); err == nil {
+		return commit.Hash, nil
+	}
+
+	// Search in commit history on current branch
+	commits, err := repo.GetCommitHistory(currentBranch, 1000)
 	if err == nil {
 		for _, commit := range commits {
 			if strings.HasPrefix(commit.Hash, hash) {
@@ -78,10 +78,10 @@ func resolveCommitHash(db *core.Database, refs *core.Refs, currentBranch, hash s
 	}
 
 	// Also check all branches if not found
-	branches, err := db.ListBranches()
+	branches, err := repo.ListBranches()
 	if err == nil {
 		for _, branch := range branches {
-			history, err := db.GetCommitHistory(branch.Name, 1000)
+			history, err := repo.GetCommitHistory(branch, 1000)
 			if err == nil {
 				for _, commit := range history {
 					if strings.HasPrefix(commit.Hash, hash) {

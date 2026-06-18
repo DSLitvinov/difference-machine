@@ -202,8 +202,8 @@ func getCurrentBranch(repoPath string) string {
 	return branch
 }
 
-func checkAllChildrenDeletedAPI(db *core.Database, commitHash string, expiredDeletedCommits, referencedCommits map[string]bool) (bool, error) {
-	children, err := db.GetChildCommits(commitHash)
+func checkAllChildrenDeletedAPI(repo *core.Repository, commitHash string, expiredDeletedCommits, referencedCommits map[string]bool) (bool, error) {
+	children, err := repo.GetChildCommits(commitHash)
 	if err != nil {
 		return false, err
 	}
@@ -219,44 +219,13 @@ func checkAllChildrenDeletedAPI(db *core.Database, commitHash string, expiredDel
 		if !expiredDeletedCommits[childHash] {
 			return false, nil
 		}
-		allChildrenDeleted, err := checkAllChildrenDeletedAPI(db, childHash, expiredDeletedCommits, referencedCommits)
+		allChildrenDeleted, err := checkAllChildrenDeletedAPI(repo, childHash, expiredDeletedCommits, referencedCommits)
 		if err != nil || !allChildrenDeleted {
 			return false, err
 		}
 	}
 
 	return true, nil
-}
-
-func findUsedObjectsAPI(db *core.Database, storage *core.Storage, commitHash string, used map[string]bool) error {
-	if used[commitHash] {
-		return nil
-	}
-	used[commitHash] = true
-
-	commit, err := db.GetCommit(commitHash)
-	if err != nil {
-		return err
-	}
-
-	if commit.TreeHash != "" {
-		used[commit.TreeHash] = true
-		treeContent, err := storage.GetTreeContent(commit.TreeHash)
-		if err == nil {
-			var tree models.Tree
-			if err := json.Unmarshal([]byte(treeContent), &tree); err == nil {
-				for _, entry := range tree.Entries {
-					used[entry.Hash] = true
-				}
-			}
-		}
-	}
-
-	if commit.ParentHash != "" {
-		return findUsedObjectsAPI(db, storage, commit.ParentHash, used)
-	}
-
-	return nil
 }
 
 //export ForesterGetStatus
@@ -280,38 +249,30 @@ func ForesterGetStatus(repoPath *C.char) *C.ForesterStatus {
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
-	refs := core.NewRefs(repoPathGo)
-	storage, err := core.NewStorage(repoPathGo)
-	if err != nil {
-		return nil
-	}
-	
+	defer repo.Close()
+
+	storage := repo.Storage
+
 	// Get current branch
-	currentBranch, err := refs.GetCurrentBranch()
+	currentBranch, err := repo.Refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
-	
+
 	// Get HEAD commit
-	headCommit, err := db.GetBranchHead(currentBranch)
+	headCommit, err := repo.GetBranchHead(currentBranch)
 	if err != nil {
-		headCommit, _ = refs.GetHead(currentBranch)
+		headCommit = ""
 	}
-	if headCommit == "" {
-		headCommit, _ = refs.GetHead(currentBranch)
-	}
-	
+
 	// Get tree of last commit
 	var lastTree models.Tree
 	if headCommit != "" {
-		commit, err := db.GetCommit(headCommit)
+		commit, err := repo.GetCommit(headCommit)
 		if err == nil {
 			treeContent, err := storage.GetTreeContent(commit.TreeHash)
 			if err == nil {
@@ -496,29 +457,26 @@ func ForesterGetLog(repoPath *C.char, maxCount C.int, branch *C.char) *C.Foreste
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
-	refs := core.NewRefs(repoPathGo)
-	
+	defer repo.Close()
+
 	branchName := C.GoString(branch)
 	if branchName == "" {
-		branchName, _ = refs.GetCurrentBranch()
+		branchName, _ = repo.Refs.GetCurrentBranch()
 		if branchName == "" {
 			branchName = "main"
 		}
 	}
-	
+
 	limit := int(maxCount)
 	if limit <= 0 {
 		limit = 100
 	}
-	
-	commits, err := db.GetCommitHistory(branchName, limit)
+
+	commits, err := repo.GetCommitHistory(branchName, limit)
 	if err != nil {
 		return nil
 	}
@@ -630,37 +588,35 @@ func ForesterGetBranches(repoPath *C.char) *C.ForesterBranchList {
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
-	refs := core.NewRefs(repoPathGo)
-	
-	branches, err := db.ListBranches()
+	defer repo.Close()
+
+	branchNames, err := repo.ListBranches()
 	if err != nil {
 		return nil
 	}
-	
-	currentBranch, _ := refs.GetCurrentBranch()
-	
+
+	currentBranch, _ := repo.Refs.GetCurrentBranch()
+
 	// Allocate branch list
 	list := (*C.ForesterBranchList)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterBranchList{}))))
-	list.count = C.int(len(branches))
-	
-	if len(branches) > 0 {
+	list.count = C.int(len(branchNames))
+
+	if len(branchNames) > 0 {
 		// Allocate array of branches
-		cBranches := (*C.ForesterBranch)(C.malloc(C.size_t(len(branches)) * C.size_t(unsafe.Sizeof(C.ForesterBranch{}))))
-		
-		for i, branch := range branches {
+		cBranches := (*C.ForesterBranch)(C.malloc(C.size_t(len(branchNames)) * C.size_t(unsafe.Sizeof(C.ForesterBranch{}))))
+
+		for i, branchName := range branchNames {
 			cBranch := (*C.ForesterBranch)(unsafe.Pointer(uintptr(unsafe.Pointer(cBranches)) + uintptr(i)*unsafe.Sizeof(C.ForesterBranch{})))
-			
-			cBranch.name = C.CString(branch.Name)
-			cBranch.commit_hash = C.CString(branch.CommitHash)
-			cBranch.created_at = C.longlong(branch.CreatedAt)
-			if branch.Name == currentBranch {
+
+			commitHash, _ := repo.GetBranchHead(branchName)
+			cBranch.name = C.CString(branchName)
+			cBranch.commit_hash = C.CString(commitHash)
+			cBranch.created_at = 0
+			if branchName == currentBranch {
 				cBranch.is_current = 1
 			} else {
 				cBranch.is_current = 0
@@ -721,14 +677,13 @@ func ForesterGetCommit(repoPath *C.char, hash *C.char) *C.ForesterCommit {
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
-	commit, err := db.GetCommit(hashStr)
+	defer repo.Close()
+
+	commit, err := repo.GetCommit(hashStr)
 	if err != nil {
 		return nil
 	}
@@ -965,19 +920,16 @@ func ForesterCreateBranch(repoPath *C.char, branchName *C.char, commitHash *C.ch
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPathGo)
-
-	branches, err := db.ListBranches()
+	branches, err := repo.ListBranches()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
@@ -985,7 +937,7 @@ func ForesterCreateBranch(repoPath *C.char, branchName *C.char, commitHash *C.ch
 		return result
 	}
 	for _, branch := range branches {
-		if branch.Name == name {
+		if branch == name {
 			result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 			result.success = 0
 			result.error = C.CString(fmt.Sprintf("branch '%s' already exists", name))
@@ -994,47 +946,31 @@ func ForesterCreateBranch(repoPath *C.char, branchName *C.char, commitHash *C.ch
 	}
 
 	if commitHashStr != "" {
-		if _, err := db.GetCommit(commitHashStr); err != nil {
+		if _, err := repo.GetCommit(commitHashStr); err != nil {
 			result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 			result.success = 0
 			result.error = C.CString(fmt.Sprintf("commit not found: %s", commitHashStr))
 			return result
 		}
 	} else {
-		currentBranch, err := refs.GetCurrentBranch()
+		currentBranch, err := repo.Refs.GetCurrentBranch()
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
 
-		commitHashStr, err = refs.GetHead(currentBranch)
+		commitHashStr, err = repo.GetBranchHead(currentBranch)
 		if err != nil {
 			result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 			result.success = 0
 			result.error = C.CString(fmt.Sprintf("failed to get HEAD: %s", err.Error()))
 			return result
 		}
-
-		if commitHashStr == "" {
-			commitHashStr, err = db.GetBranchHead(currentBranch)
-			if err != nil {
-				result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-				result.success = 0
-				result.error = C.CString(fmt.Sprintf("failed to get branch head: %s", err.Error()))
-				return result
-			}
-		}
 	}
 
-	if err := db.CreateBranch(name, commitHashStr); err != nil {
+	if err := repo.CreateBranch(name, commitHashStr); err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to create branch: %s", err.Error()))
-		return result
-	}
-	if err := refs.CreateBranch(name, commitHashStr); err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to create branch ref: %s", err.Error()))
 		return result
 	}
 
@@ -1082,18 +1018,16 @@ func ForesterDeleteBranch(repoPath *C.char, branchName *C.char) *C.ForesterResul
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPathGo)
-	currentBranch, err := refs.GetCurrentBranch()
+	currentBranch, err := repo.Refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
@@ -1104,16 +1038,10 @@ func ForesterDeleteBranch(repoPath *C.char, branchName *C.char) *C.ForesterResul
 		return result
 	}
 
-	if err := db.DeleteBranch(name); err != nil {
+	if err := repo.DeleteBranch(name); err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to delete branch: %s", err.Error()))
-		return result
-	}
-	if err := refs.DeleteBranch(name); err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to delete branch ref: %s", err.Error()))
 		return result
 	}
 
@@ -1162,18 +1090,16 @@ func ForesterRenameBranch(repoPath *C.char, oldName *C.char, newName *C.char) *C
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPathGo)
-	branches, err := db.ListBranches()
+	branches, err := repo.ListBranches()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
@@ -1181,63 +1107,48 @@ func ForesterRenameBranch(repoPath *C.char, oldName *C.char, newName *C.char) *C
 		return result
 	}
 
-	var oldBranchEntry *models.Branch
+	oldExists := false
 	for _, branch := range branches {
-		if branch.Name == oldBranch {
-			oldBranchEntry = branch
+		if branch == oldBranch {
+			oldExists = true
 		}
-		if branch.Name == newBranch {
+		if branch == newBranch {
 			result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 			result.success = 0
 			result.error = C.CString(fmt.Sprintf("branch '%s' already exists", newBranch))
 			return result
 		}
 	}
-	if oldBranchEntry == nil {
+	if !oldExists {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("branch '%s' not found", oldBranch))
 		return result
 	}
 
-	currentBranch, err := refs.GetCurrentBranch()
+	currentBranch, err := repo.Refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
 
-	commitHash := oldBranchEntry.CommitHash
-	if commitHash == "" {
-		commitHash, _ = refs.GetHead(oldBranch)
-	}
+	commitHash, _ := repo.GetBranchHead(oldBranch)
 
-	if err := db.DeleteBranch(oldBranch); err != nil {
+	if err := repo.DeleteBranch(oldBranch); err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to delete old branch: %s", err.Error()))
 		return result
 	}
-	if err := refs.DeleteBranch(oldBranch); err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to delete old branch ref: %s", err.Error()))
-		return result
-	}
 
-	if err := db.CreateBranch(newBranch, commitHash); err != nil {
+	if err := repo.CreateBranch(newBranch, commitHash); err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to create new branch: %s", err.Error()))
 		return result
 	}
-	if err := refs.CreateBranch(newBranch, commitHash); err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to create new branch ref: %s", err.Error()))
-		return result
-	}
 
 	if oldBranch == currentBranch {
-		if err := refs.SetCurrentBranch(newBranch); err != nil {
+		if err := repo.Refs.SetCurrentBranch(newBranch); err != nil {
 			result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 			result.success = 0
 			result.error = C.CString(fmt.Sprintf("failed to update current branch: %s", err.Error()))
@@ -1486,15 +1397,14 @@ func ForesterGC(repoPath *C.char, dryRun C.int, reflogExpireDays C.int) *C.Fores
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
 		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
+	defer repo.Close()
 
 	expireDays := int(reflogExpireDays)
 	if expireDays <= 0 {
@@ -1503,19 +1413,13 @@ func ForesterGC(repoPath *C.char, dryRun C.int, reflogExpireDays C.int) *C.Fores
 	now := time.Now().Unix()
 	expireBefore := now - int64(expireDays*24*60*60)
 
-	storage, err := core.NewStorage(repoPathGo)
-	if err != nil {
-		result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to create storage: %s", err.Error()))
-		return result
-	}
+	storage := repo.Storage
 
 	commitsDeleted := 0
 	treesDeleted := 0
 	blobsDeleted := 0
 
-	deletedEntries, err := db.GetReflog("", 10000)
+	deletedEntries, err := repo.Reflog.GetEntries("", 10000)
 	if err != nil {
 		result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
 		result.success = 0
@@ -1532,20 +1436,12 @@ func ForesterGC(repoPath *C.char, dryRun C.int, reflogExpireDays C.int) *C.Fores
 		}
 	}
 
-	referencedCommits := make(map[string]bool)
-	branches, err := db.ListBranches()
-	if err == nil {
-		for _, branch := range branches {
-			if branch.CommitHash != "" {
-				referencedCommits[branch.CommitHash] = true
-			}
-		}
-	}
-	tags, err := db.ListTags()
-	if err == nil {
-		for _, tag := range tags {
-			referencedCommits[tag.CommitHash] = true
-		}
+	referencedCommits, err := repo.CollectReferencedCommits()
+	if err != nil {
+		result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to collect referenced commits: %s", err.Error()))
+		return result
 	}
 
 	commitsToDelete := make(map[string]bool)
@@ -1553,12 +1449,12 @@ func ForesterGC(repoPath *C.char, dryRun C.int, reflogExpireDays C.int) *C.Fores
 		if referencedCommits[commitHash] {
 			continue
 		}
-		hasChildren, err := db.HasChildCommits(commitHash)
+		hasChildren, err := repo.HasChildCommits(commitHash)
 		if err != nil {
 			continue
 		}
 		if hasChildren {
-			allChildrenDeleted, err := checkAllChildrenDeletedAPI(db, commitHash, expiredDeletedCommits, referencedCommits)
+			allChildrenDeleted, err := checkAllChildrenDeletedAPI(repo, commitHash, expiredDeletedCommits, referencedCommits)
 			if err != nil {
 				continue
 			}
@@ -1572,10 +1468,10 @@ func ForesterGC(repoPath *C.char, dryRun C.int, reflogExpireDays C.int) *C.Fores
 
 	for commitHash := range commitsToDelete {
 		if dryRun == 0 {
-			if _, err := db.GetCommit(commitHash); err != nil {
+			if _, err := repo.GetCommit(commitHash); err != nil {
 				continue
 			}
-			if err := db.ForceDeleteCommit(commitHash); err != nil {
+			if err := repo.ForceDeleteCommit(commitHash); err != nil {
 				continue
 			}
 			commitsDeleted++
@@ -1584,20 +1480,44 @@ func ForesterGC(repoPath *C.char, dryRun C.int, reflogExpireDays C.int) *C.Fores
 		}
 	}
 
-	usedObjects := make(map[string]bool)
-	for _, branch := range branches {
-		if branch.CommitHash != "" {
-			_ = findUsedObjectsAPI(db, storage, branch.CommitHash, usedObjects)
-		}
+	usedObjects, err := repo.CollectUsedObjects()
+	if err != nil {
+		result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to collect used objects: %s", err.Error()))
+		return result
 	}
-	for _, tag := range tags {
-		if tag.CommitHash != "" {
-			_ = findUsedObjectsAPI(db, storage, tag.CommitHash, usedObjects)
+
+	err = storage.ListObjects(func(hash, objectType string) error {
+		if objectType == core.ObjectTypeCommit {
+			return nil
 		}
+		if usedObjects[hash] {
+			return nil
+		}
+		switch objectType {
+		case core.ObjectTypeTree:
+			treesDeleted++
+		case core.ObjectTypeBlob:
+			blobsDeleted++
+		default:
+			return nil
+		}
+		if dryRun != 0 {
+			return nil
+		}
+		_ = storage.DeleteObject(hash)
+		return nil
+	})
+	if err != nil {
+		result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to delete unused objects: %s", err.Error()))
+		return result
 	}
 
 	if dryRun == 0 {
-		if err := db.ExpireReflog(expireBefore); err != nil {
+		if err := repo.Reflog.Expire(expireBefore); err != nil {
 			result := (*C.ForesterGcResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterGcResult{}))))
 			result.success = 0
 			result.error = C.CString(fmt.Sprintf("failed to expire reflog: %s", err.Error()))
@@ -1641,90 +1561,52 @@ func ForesterRebuild(repoPath *C.char) *C.ForesterRebuildResult {
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
 		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to create database: %s", err.Error()))
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPathGo)
-	if err != nil {
-		result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to create storage: %s", err.Error()))
-		return result
-	}
+	storage := repo.Storage
 
-	commitsPath := storage.GetCommitsPath()
 	commitsFound := 0
-	commitsRebuilt := 0
-	if utils.Exists(commitsPath) {
-		files, err := utils.ListFiles(commitsPath, true)
-		if err == nil {
-			for _, filePath := range files {
-				if utils.IsFile(filePath) {
-					commitsFound++
-					commitContent, err := utils.ReadFileString(filePath)
-					if err == nil {
-						var commit models.Commit
-						if err := json.Unmarshal([]byte(commitContent), &commit); err == nil {
-							if _, err := db.GetCommit(commit.Hash); err != nil {
-								if _, err := db.CreateCommit(&commit); err == nil {
-									commitsRebuilt++
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	treesPath := storage.GetTreesPath()
 	treesFound := 0
-	if utils.Exists(treesPath) {
-		files, err := utils.ListFiles(treesPath, true)
-		if err == nil {
-			for _, filePath := range files {
-				if utils.IsFile(filePath) {
-					treesFound++
-				}
-			}
+	blobsFound := 0
+
+	err = storage.ListObjects(func(_ string, objectType string) error {
+		switch objectType {
+		case core.ObjectTypeCommit:
+			commitsFound++
+		case core.ObjectTypeTree:
+			treesFound++
+		case core.ObjectTypeBlob:
+			blobsFound++
 		}
+		return nil
+	})
+	if err != nil {
+		result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to scan objects: %s", err.Error()))
+		return result
 	}
 
-	blobsPath := storage.GetBlobsPath()
-	blobsFound := 0
-	if utils.Exists(blobsPath) {
-		files, err := utils.ListFiles(blobsPath, true)
-		if err == nil {
-			for _, filePath := range files {
-				if utils.IsFile(filePath) {
-					blobsFound++
-					relPath, err := utils.GetRelativePath(blobsPath, filePath)
-					if err == nil {
-						parts := strings.Split(relPath, string(filepath.Separator))
-						if len(parts) >= 2 {
-							hash := parts[0] + parts[1]
-							if len(hash) == 64 {
-								_ = db.StoreBlob(hash, filePath)
-							}
-						}
-					}
-				}
-			}
-		}
+	// Ensure product database schema exists
+	if _, err := repo.DB(); err != nil {
+		result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open product database: %s", err.Error()))
+		return result
 	}
 
 	result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
 	result.success = 1
 	result.error = nil
 	result.commits_found = C.int(commitsFound)
-	result.commits_rebuilt = C.int(commitsRebuilt)
+	result.commits_rebuilt = 0
 	result.trees_found = C.int(treesFound)
 	result.blobs_found = C.int(blobsFound)
 	return result
@@ -2067,16 +1949,23 @@ func ForesterAddObject(repoPath *C.char, editorType *C.char, filePath *C.char, o
 		return result
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
+	if err != nil {
+		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
+		return result
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
-	
+
 	// Parse JSON fields
 	var objectData map[string]interface{}
 	if objectDataJSON != nil {
@@ -2137,13 +2026,17 @@ func ForesterGetObject(repoPath *C.char, commitHash *C.char, filePath *C.char, o
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
+	defer repo.Close()
+
+	db, err := repo.DB()
+	if err != nil {
+		return nil
+	}
+
 	obj, err := db.GetObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName))
 	if err != nil {
 		return nil
@@ -2178,15 +2071,22 @@ func ForesterDeleteObject(repoPath *C.char, commitHash *C.char, filePath *C.char
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
+	if err != nil {
+		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
+		return result
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
 
 	err = db.DeleteObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
@@ -2226,15 +2126,22 @@ func ForesterDeleteObjectsByFile(repoPath *C.char, commitHash *C.char, filePath 
 		return result
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
+	if err != nil {
+		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
+		return result
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
 
 	err = db.DeleteObjectsByFile(C.GoString(commitHash), C.GoString(filePath))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
@@ -2273,13 +2180,17 @@ func ForesterGetObjectsByCommit(repoPath *C.char, commitHash *C.char) *C.Foreste
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
+	defer repo.Close()
+
+	db, err := repo.DB()
+	if err != nil {
+		return nil
+	}
+
 	objects, err := db.GetObjectsByCommit(C.GoString(commitHash))
 	if err != nil {
 		return nil
@@ -2336,13 +2247,17 @@ func ForesterGetObjectsByFile(repoPath *C.char, filePath *C.char, commitHash *C.
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
+	defer repo.Close()
+
+	db, err := repo.DB()
+	if err != nil {
+		return nil
+	}
+
 	objects, err := db.GetObjectsByFile(C.GoString(filePath), C.GoString(commitHash))
 	if err != nil {
 		return nil
@@ -2420,16 +2335,23 @@ func ForesterAddTagToObject(repoPath *C.char, commitHash *C.char, filePath *C.ch
 		return result
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
+	if err != nil {
+		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
+		return result
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
-	
+
 	err = db.AddTagToObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(tag))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
@@ -2469,16 +2391,23 @@ func ForesterRemoveTagFromObject(repoPath *C.char, commitHash *C.char, filePath 
 		return result
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
+	if err != nil {
+		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
+		return result
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
-	
+
 	err = db.RemoveTagFromObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(tag))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
@@ -2518,16 +2447,23 @@ func ForesterSetObjectMetadata(repoPath *C.char, commitHash *C.char, filePath *C
 		return result
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
+	if err != nil {
+		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
+		result.success = 0
+		result.error = C.CString(fmt.Sprintf("failed to open repository: %s", err.Error()))
+		return result
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 		result.success = 0
 		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
 		return result
 	}
-	defer db.Close()
-	
+
 	err = db.SetObjectMetadata(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(key), C.GoString(value))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
@@ -2564,19 +2500,15 @@ func ForesterGetCommitFileContent(repoPath *C.char, commitHash *C.char, filePath
 		return contentError("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
-		return contentError(fmt.Sprintf("failed to open database: %s", err.Error()))
+		return contentError(fmt.Sprintf("failed to open repository: %s", err.Error()))
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPathGo)
-	if err != nil {
-		return contentError(fmt.Sprintf("failed to create storage: %s", err.Error()))
-	}
+	storage := repo.Storage
 
-	commit, err := db.GetCommit(hashStr)
+	commit, err := repo.GetCommit(hashStr)
 	if err != nil {
 		return contentError(fmt.Sprintf("commit not found: %s", err.Error()))
 	}
@@ -2646,20 +2578,16 @@ func ForesterGetCommitFiles(repoPath *C.char, commitHash *C.char) *C.ForesterFil
 		return nil
 	}
 	
-	dbPath := filepath.Join(repoPathGo, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
 		return nil
 	}
-	defer db.Close()
-	
-	storage, err := core.NewStorage(repoPathGo)
-	if err != nil {
-		return nil
-	}
-	
+	defer repo.Close()
+
+	storage := repo.Storage
+
 	// Get commit
-	commit, err := db.GetCommit(hashStr)
+	commit, err := repo.GetCommit(hashStr)
 	if err != nil {
 		return nil
 	}

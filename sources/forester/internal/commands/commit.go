@@ -84,19 +84,14 @@ func Commit(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	hooks := core.NewHooks(repoPath)
 
 	// Get current branch and HEAD
@@ -108,13 +103,9 @@ func Commit(args []string) error {
 	// Handle --amend: get current HEAD commit to use its parent
 	var currentHeadCommit *models.Commit
 	var currentHeadHash string
-	currentHeadHash, err = db.GetBranchHead(currentBranch)
-	if err != nil || currentHeadHash == "" {
-		currentHeadHash, err = refs.GetHead(currentBranch)
-		if err != nil {
-			// If both fail, continue with empty currentHeadHash (first commit)
-			currentHeadHash = ""
-		}
+	currentHeadHash, err = repo.GetBranchHead(currentBranch)
+	if err != nil {
+		currentHeadHash = ""
 	}
 
 	parentHash := currentHeadHash
@@ -123,7 +114,7 @@ func Commit(args []string) error {
 			return fmt.Errorf("cannot amend: no commits yet")
 		}
 		// Get current HEAD commit for amend
-		currentHeadCommit, err = db.GetCommit(currentHeadHash)
+		currentHeadCommit, err = repo.GetCommit(currentHeadHash)
 		if err != nil {
 			return fmt.Errorf("failed to get current HEAD commit for amend: %w", err)
 		}
@@ -167,7 +158,7 @@ func Commit(args []string) error {
 		// Get HEAD tree to find tracked files
 		var headTree models.Tree
 		if parentHash != "" {
-			headCommit, err := db.GetCommit(parentHash)
+			headCommit, err := repo.GetCommit(parentHash)
 			if err == nil {
 				treeContent, err := storage.GetTreeContent(headCommit.TreeHash)
 				if err == nil {
@@ -281,7 +272,7 @@ func Commit(args []string) error {
 	// Build base tree map from HEAD (tracked files)
 	baseMap := make(map[string]string)
 	if parentHash != "" {
-			headCommit, err := db.GetCommit(parentHash)
+			headCommit, err := repo.GetCommit(parentHash)
 			if err == nil {
 				treeContent, err := storage.GetTreeContent(headCommit.TreeHash)
 				if err == nil {
@@ -380,23 +371,12 @@ func Commit(args []string) error {
 
 	// Set hash and create final JSON
 	commit.Hash = commitHash
-	commitJSON, err := commit.ToJSON()
-	if err != nil {
-		return fmt.Errorf("failed to serialize final commit: %w", err)
-	}
 
-	// Store commit in storage
-	if _, err := storage.StoreCommit(commitJSON); err != nil {
+	if _, err := repo.StoreCommit(commit); err != nil {
 		return fmt.Errorf("failed to store commit: %w", err)
 	}
 
-	// Store commit in database
-	if _, err := db.CreateCommit(commit); err != nil {
-		return fmt.Errorf("failed to create commit: %w", err)
-	}
-
-	// Update branch HEAD atomically
-	// For amend, oldHead is the current HEAD (which we're replacing)
+	// Update branch HEAD
 	var oldHead string
 	if amend && currentHeadCommit != nil {
 		oldHead = currentHeadCommit.Hash
@@ -404,40 +384,21 @@ func Commit(args []string) error {
 		oldHead = parentHash
 	}
 
-	if err := db.UpdateBranchHeadAtomic(currentBranch, commitHash, oldHead); err != nil {
+	if err := repo.SetBranchHead(currentBranch, commitHash, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, commitHash); err != nil {
-		// Rollback database changes if file system update fails
-		_ = db.SetBranchHead(currentBranch, oldHead) // Rollback (best effort)
-		return fmt.Errorf("failed to set ref head: %w", err)
 	}
 
 	// Create tag if specified
 	if tagName != "" {
-		// Check if tag exists
-		_, err := db.GetTag(tagName)
-		if err == nil {
-			// Tag exists, delete it
-			if err := db.DeleteTag(tagName); err != nil {
+		if repo.TagExists(tagName) {
+			if err := repo.DeleteTag(tagName); err != nil {
 				return fmt.Errorf("failed to delete existing tag: %w", err)
-			}
-			if err := refs.DeleteTag(tagName); err != nil {
-				return fmt.Errorf("failed to delete tag ref: %w", err)
 			}
 		}
 
 		tag := models.NewTag(tagName, commitHash, author, "")
-		if err := db.CreateTag(tag); err != nil {
+		if err := repo.CreateTag(tag, false); err != nil {
 			return fmt.Errorf("failed to create tag: %w", err)
-		}
-		if err := refs.CreateTag(tagName, commitHash); err != nil {
-			return fmt.Errorf("failed to create tag ref: %w", err)
-		}
-
-		// Add reflog entry for tag
-		if err := db.AddReflogEntry(commitHash, tagName, "tag", "", commitHash, "create"); err != nil {
-			return fmt.Errorf("failed to add tag reflog entry: %w", err)
 		}
 	}
 

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,12 +17,11 @@ func Reflog(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
 	// Determine ref_name (if specified)
 	refName := ""
@@ -50,8 +48,7 @@ func Reflog(args []string) error {
 		}
 	}
 
-	// Get reflog
-	entries, err := db.GetReflog(refName, limit)
+	entries, err := repo.Reflog.GetEntries(refName, limit)
 	if err != nil {
 		return fmt.Errorf("failed to get reflog: %w", err)
 	}
@@ -61,9 +58,7 @@ func Reflog(args []string) error {
 		return nil
 	}
 
-	// Print reflog
 	for _, entry := range entries {
-		// Format date
 		t := time.Unix(entry.Timestamp, 0)
 		dateStr := t.Format("2006-01-02 15:04:05")
 

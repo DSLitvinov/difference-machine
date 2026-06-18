@@ -2,11 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/difference-machine/forester/internal/core"
-	"github.com/difference-machine/forester/internal/models"
 	"github.com/difference-machine/forester/internal/utils"
 )
 
@@ -24,20 +22,18 @@ func Branch(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPath)
+	refs := repo.Refs
 
 	if len(args) == 0 || (len(args) == 1 && (args[0] == "-v" || args[0] == "--verbose")) {
-		// List branches
 		verbose := len(args) == 1 && (args[0] == "-v" || args[0] == "--verbose")
 
-		branches, err := db.ListBranches()
+		branches, err := repo.ListBranches()
 		if err != nil {
 			return fmt.Errorf("failed to list branches: %w", err)
 		}
@@ -47,35 +43,31 @@ func Branch(args []string) error {
 			currentBranch = "main"
 		}
 
-		for _, branch := range branches {
+		for _, branchName := range branches {
 			prefix := "  "
-			if branch.Name == currentBranch {
+			if branchName == currentBranch {
 				prefix = "* "
 			}
 
 			if verbose {
-				// Show last commit for each branch
-				commitHash := branch.CommitHash
-				if commitHash == "" {
-					commitHash, _ = refs.GetHead(branch.Name)
-				}
+				commitHash, _ := repo.GetBranchHead(branchName)
 
 				if commitHash != "" {
-					commit, err := db.GetCommit(commitHash)
+					commit, err := repo.GetCommit(commitHash)
 					if err == nil {
 						hashShort := commitHash
 						if len(hashShort) > 8 {
 							hashShort = hashShort[:8]
 						}
-						fmt.Printf("%s%s %s %s\n", prefix, branch.Name, hashShort, commit.Message)
+						fmt.Printf("%s%s %s %s\n", prefix, branchName, hashShort, commit.Message)
 					} else {
-						fmt.Printf("%s%s %s\n", prefix, branch.Name, commitHash[:8])
+						fmt.Printf("%s%s %s\n", prefix, branchName, commitHash[:8])
 					}
 				} else {
-					fmt.Printf("%s%s (no commits yet)\n", prefix, branch.Name)
+					fmt.Printf("%s%s (no commits yet)\n", prefix, branchName)
 				}
 			} else {
-				fmt.Printf("%s%s\n", prefix, branch.Name)
+				fmt.Printf("%s%s\n", prefix, branchName)
 			}
 		}
 		return nil
@@ -84,7 +76,6 @@ func Branch(args []string) error {
 	command := args[0]
 
 	if command == "-m" || command == "--move" || command == "--rename" {
-		// Rename branch
 		if len(args) < 3 {
 			return fmt.Errorf("usage: branch -m <old-name> <new-name>")
 		}
@@ -102,60 +93,42 @@ func Branch(args []string) error {
 			return fmt.Errorf("invalid new branch name")
 		}
 
-		// Check if old branch exists
-		branches, err := db.ListBranches()
+		branches, err := repo.ListBranches()
 		if err != nil {
 			return fmt.Errorf("failed to list branches: %w", err)
 		}
 
-		var oldBranch *models.Branch
-		for _, branch := range branches {
-			if branch.Name == oldName {
-				oldBranch = branch
+		oldExists := false
+		for _, name := range branches {
+			if name == oldName {
+				oldExists = true
 				break
 			}
 		}
-
-		if oldBranch == nil {
+		if !oldExists {
 			return fmt.Errorf("branch '%s' not found", oldName)
 		}
 
-		// Check if new branch already exists
-		for _, branch := range branches {
-			if branch.Name == newName {
+		for _, name := range branches {
+			if name == newName {
 				return fmt.Errorf("branch '%s' already exists", newName)
 			}
 		}
 
-		// Get current branch
 		currentBranch, err := refs.GetCurrentBranch()
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
 
-		// Rename in database
-		commitHash := oldBranch.CommitHash
-		if commitHash == "" {
-			commitHash, _ = refs.GetHead(oldName)
-		}
+		commitHash, _ := repo.GetBranchHead(oldName)
 
-		// Delete old branch
-		if err := db.DeleteBranch(oldName); err != nil {
+		if err := repo.DeleteBranch(oldName); err != nil {
 			return fmt.Errorf("failed to delete old branch: %w", err)
 		}
-		if err := refs.DeleteBranch(oldName); err != nil {
-			return fmt.Errorf("failed to delete old branch ref: %w", err)
-		}
-
-		// Create new branch
-		if err := db.CreateBranch(newName, commitHash); err != nil {
+		if err := repo.CreateBranch(newName, commitHash); err != nil {
 			return fmt.Errorf("failed to create new branch: %w", err)
 		}
-		if err := refs.CreateBranch(newName, commitHash); err != nil {
-			return fmt.Errorf("failed to create new branch ref: %w", err)
-		}
 
-		// If it was the current branch, update current branch
 		if oldName == currentBranch {
 			if err := refs.SetCurrentBranch(newName); err != nil {
 				return fmt.Errorf("failed to update current branch: %w", err)
@@ -167,7 +140,6 @@ func Branch(args []string) error {
 	}
 
 	if command == "-d" || command == "--delete" {
-		// Delete branch
 		if len(args) < 2 {
 			return fmt.Errorf("branch name required")
 		}
@@ -180,7 +152,6 @@ func Branch(args []string) error {
 			return fmt.Errorf("invalid branch name")
 		}
 
-		// Check if it's the current branch
 		currentBranch, err := refs.GetCurrentBranch()
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
@@ -189,18 +160,14 @@ func Branch(args []string) error {
 			return fmt.Errorf("cannot delete current branch '%s'. Switch to another branch first", branchName)
 		}
 
-		if err := db.DeleteBranch(branchName); err != nil {
+		if err := repo.DeleteBranch(branchName); err != nil {
 			return fmt.Errorf("failed to delete branch: %w", err)
-		}
-		if err := refs.DeleteBranch(branchName); err != nil {
-			return fmt.Errorf("failed to delete branch ref: %w", err)
 		}
 
 		fmt.Printf("Deleted branch %s\n", branchName)
 		return nil
 	}
 
-	// Create new branch
 	if strings.HasPrefix(command, "-") {
 		return fmt.Errorf("unknown flag: %s", command)
 	}
@@ -212,31 +179,18 @@ func Branch(args []string) error {
 		return fmt.Errorf("invalid branch name")
 	}
 
-	// Get current HEAD
 	currentBranch, err := refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
 
-	commitHash, err := refs.GetHead(currentBranch)
+	commitHash, err := repo.GetBranchHead(currentBranch)
 	if err != nil {
 		return fmt.Errorf("failed to get HEAD: %w", err)
 	}
 
-	// If current branch is empty, check database
-	if commitHash == "" {
-		commitHash, err = db.GetBranchHead(currentBranch)
-		if err != nil {
-			return fmt.Errorf("failed to get branch head: %w", err)
-		}
-	}
-
-	// Create branch (can be empty if repository has no commits yet)
-	if err := db.CreateBranch(branchName, commitHash); err != nil {
+	if err := repo.CreateBranch(branchName, commitHash); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
-	}
-	if err := refs.CreateBranch(branchName, commitHash); err != nil {
-		return fmt.Errorf("failed to create branch ref: %w", err)
 	}
 
 	fmt.Printf("Created branch %s\n", branchName)

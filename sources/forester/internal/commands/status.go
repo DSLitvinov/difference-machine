@@ -49,18 +49,14 @@ func Status(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPath)
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
+	refs := repo.Refs
+	storage := repo.Storage
 
 	// Load .dfmignore
 	patterns := utils.NewPatterns()
@@ -77,25 +73,12 @@ func Status(args []string) error {
 		currentBranch = "main"
 	}
 
-	// Get HEAD from database (primary source), with fallback to refs
-	headCommit, err := db.GetBranchHead(currentBranch)
-	if err != nil {
-		// Try refs as fallback
-		headCommit, err = refs.GetHead(currentBranch)
-		if err != nil {
-			// If both fail, continue with empty headCommit (no commits yet)
-			headCommit = ""
-		}
-	}
-	if headCommit == "" {
-		// Try refs one more time
-		headCommit, _ = refs.GetHead(currentBranch)
-	}
+	headCommit, err := repo.GetBranchHead(currentBranch)
 
 	// Get tree of last commit
 	var lastTree models.Tree
 	if headCommit != "" {
-		commit, err := db.GetCommit(headCommit)
+		commit, err := repo.GetCommit(headCommit)
 		if err != nil {
 			// Failed to get commit, continue with empty tree
 		} else if commit != nil && commit.TreeHash != "" {

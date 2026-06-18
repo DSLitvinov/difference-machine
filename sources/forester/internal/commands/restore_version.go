@@ -28,31 +28,26 @@ func RestoreVersion(args []string) error {
 	}
 
 	commitHash := args[0]
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	currentBranch, err := refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
 
-	resolvedHash, err := resolveCommitHash(db, refs, currentBranch, commitHash)
+	resolvedHash, err := resolveCommitHash(repo, currentBranch, commitHash)
 	if err != nil {
 		return fmt.Errorf("invalid commit: %w", err)
 	}
 	commitHash = resolvedHash
 
-	commit, err := db.GetCommit(commitHash)
+	commit, err := repo.GetCommit(commitHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %s", commitHash[:8])
 	}

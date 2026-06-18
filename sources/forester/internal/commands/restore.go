@@ -26,19 +26,14 @@ func Restore(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 
 	// Parse arguments
 	staged := false
@@ -85,14 +80,14 @@ func Restore(args []string) error {
 
 	// If restoring from commit, resolve commit hash
 	if sourceCommit != "" {
-		resolvedHash, err := resolveCommitHash(db, refs, currentBranch, sourceCommit)
+		resolvedHash, err := resolveCommitHash(repo, currentBranch, sourceCommit)
 		if err != nil {
 			return fmt.Errorf("invalid commit: %w", err)
 		}
 		sourceCommit = resolvedHash
 
 		// Get commit
-		commit, err := db.GetCommit(sourceCommit)
+		commit, err := repo.GetCommit(sourceCommit)
 		if err != nil {
 			return fmt.Errorf("commit not found: %s", sourceCommit)
 		}

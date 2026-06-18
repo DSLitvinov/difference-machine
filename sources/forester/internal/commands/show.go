@@ -23,19 +23,14 @@ func Show(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	currentBranch, err := refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
@@ -76,7 +71,7 @@ func Show(args []string) error {
 	commitHash := commitArg
 
 	// Resolve commit hash (support HEAD, short hashes)
-	resolvedHash, err := resolveCommitHash(db, refs, currentBranch, commitHash)
+	resolvedHash, err := resolveCommitHash(repo, currentBranch, commitHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %w", err)
 	}
@@ -84,11 +79,11 @@ func Show(args []string) error {
 
 	// If file path is specified, show file content
 	if filePath != "" {
-		return showFileFromCommit(repoPath, db, storage, commitHash, filePath)
+		return showFileFromCommit(repo, commitHash, filePath)
 	}
 
 	// Get commit by full hash
-	commit, err := db.GetCommit(commitHash)
+	commit, err := repo.GetCommit(commitHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %w", err)
 	}
@@ -121,7 +116,7 @@ func Show(args []string) error {
 			if err := json.Unmarshal([]byte(treeContent), &tree); err == nil {
 				if showStat {
 					// Show statistics
-					added, modified, deleted := getCommitFileChanges(storage, db, commit)
+					added, modified, deleted := getCommitFileChanges(storage, repo, commit)
 					totalFiles := len(added) + len(modified) + len(deleted)
 					if totalFiles > 0 {
 						fmt.Println()
@@ -156,9 +151,9 @@ func Show(args []string) error {
 }
 
 // showFileFromCommit shows the content of a file from a specific commit
-func showFileFromCommit(repoPath string, db *core.Database, storage *core.Storage, commitHash, filePath string) error {
-	// Get commit
-	commit, err := db.GetCommit(commitHash)
+func showFileFromCommit(repo *core.Repository, commitHash, filePath string) error {
+	storage := repo.Storage
+	commit, err := repo.GetCommit(commitHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %w", err)
 	}

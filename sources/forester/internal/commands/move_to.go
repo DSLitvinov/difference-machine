@@ -34,19 +34,14 @@ func MoveTo(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	hooks := core.NewHooks(repoPath)
 
 	// Get current branch
@@ -60,37 +55,37 @@ func MoveTo(args []string) error {
 	}
 
 	// Check if branches exist
-	branches, err := db.ListBranches()
+	branches, err := repo.ListBranches()
 	if err != nil {
 		return fmt.Errorf("failed to list branches: %w", err)
 	}
 
-	var currentBranchObj, baseBranchObj *models.Branch
-	for _, branch := range branches {
-		if branch.Name == currentBranch {
-			currentBranchObj = branch
+	currentFound := false
+	baseFound := false
+	for _, name := range branches {
+		if name == currentBranch {
+			currentFound = true
 		}
-		if branch.Name == baseBranchName {
-			baseBranchObj = branch
+		if name == baseBranchName {
+			baseFound = true
 		}
 	}
 
-	if currentBranchObj == nil {
+	if !currentFound {
 		return fmt.Errorf("current branch '%s' not found", currentBranch)
 	}
-	if baseBranchObj == nil {
+	if !baseFound {
 		return fmt.Errorf("base branch '%s' not found", baseBranchName)
 	}
 
-	// Get HEAD commits
-	currentHead := currentBranchObj.CommitHash
-	if currentHead == "" {
-		currentHead, _ = refs.GetHead(currentBranch)
+	currentHead, err := repo.GetBranchHead(currentBranch)
+	if err != nil {
+		currentHead = ""
 	}
 
-	baseHead := baseBranchObj.CommitHash
-	if baseHead == "" {
-		baseHead, _ = refs.GetHead(baseBranchName)
+	baseHead, err := repo.GetBranchHead(baseBranchName)
+	if err != nil {
+		baseHead = ""
 	}
 
 	if currentHead == "" {
@@ -101,7 +96,7 @@ func MoveTo(args []string) error {
 	}
 
 	// Find merge base (common ancestor)
-	mergeBase, err := findMergeBase(db, currentHead, baseHead)
+	mergeBase, err := findMergeBase(repo, currentHead, baseHead)
 	if err != nil {
 		return fmt.Errorf("failed to find merge base: %w", err)
 	}
@@ -113,7 +108,7 @@ func MoveTo(args []string) error {
 	}
 
 	// Get all commits from merge base to current HEAD (in chronological order)
-	commitsToMove, err := getCommitsBetween(db, mergeBase, currentHead)
+	commitsToMove, err := getCommitsBetween(repo, mergeBase, currentHead)
 	if err != nil {
 		return fmt.Errorf("failed to get commits: %w", err)
 	}
@@ -135,7 +130,7 @@ func MoveTo(args []string) error {
 			return fmt.Errorf("cannot move initial commit")
 		}
 
-		parentCommit, err := db.GetCommit(commitToMove.ParentHash)
+		parentCommit, err := repo.GetCommit(commitToMove.ParentHash)
 		if err != nil {
 			return fmt.Errorf("parent commit not found: %w", err)
 		}
@@ -162,7 +157,7 @@ func MoveTo(args []string) error {
 		// Get current state tree (from newHead)
 		var currentTree models.Tree
 		if newHead != "" {
-			currentCommit, err := db.GetCommit(newHead)
+			currentCommit, err := repo.GetCommit(newHead)
 			if err == nil {
 				currentTreeContent, err := storage.GetTreeContent(currentCommit.TreeHash)
 				if err == nil {
@@ -385,18 +380,9 @@ func MoveTo(args []string) error {
 
 		newCommitHash := core.HashString(string(commitJSONForHash))
 		commit.Hash = newCommitHash
-		commitJSON, err := commit.ToJSON()
-		if err != nil {
-			return fmt.Errorf("failed to serialize final commit: %w", err)
-		}
 
-		// Store commit
-		if _, err := storage.StoreCommit(commitJSON); err != nil {
+		if _, err := repo.StoreCommit(commit); err != nil {
 			return fmt.Errorf("failed to store commit: %w", err)
-		}
-
-		if _, err := db.CreateCommit(commit); err != nil {
-			return fmt.Errorf("failed to create commit: %w", err)
 		}
 
 		// Update newHead for next iteration
@@ -424,17 +410,13 @@ func MoveTo(args []string) error {
 
 	// Update current branch HEAD
 	oldHead := currentHead
-	if err := db.UpdateBranchHeadAtomic(currentBranch, newHead, oldHead); err != nil {
+	if err := repo.SetBranchHead(currentBranch, newHead, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, newHead); err != nil {
-		_ = db.SetBranchHead(currentBranch, oldHead)
-		return fmt.Errorf("failed to set ref head: %w", err)
 	}
 
 	// Restore files from new HEAD
 	if newHead != "" {
-		newCommit, err := db.GetCommit(newHead)
+		newCommit, err := repo.GetCommit(newHead)
 		if err == nil {
 			if err := restoreTreeFromCommit(storage, repoPath, newCommit.TreeHash); err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: failed to restore files: %v\n", err)
@@ -456,14 +438,14 @@ func MoveTo(args []string) error {
 }
 
 // getCommitsBetween gets all commits between mergeBase and head (in chronological order, oldest first)
-func getCommitsBetween(db *core.Database, mergeBase, head string) ([]*models.Commit, error) {
+func getCommitsBetween(repo *core.Repository, mergeBase, head string) ([]*models.Commit, error) {
 	var commits []*models.Commit
 
 	// If merge base is empty, get all commits from head
 	if mergeBase == "" {
 		current := head
 		for current != "" {
-			commit, err := db.GetCommit(current)
+			commit, err := repo.GetCommit(current)
 			if err != nil {
 				break
 			}
@@ -477,7 +459,7 @@ func getCommitsBetween(db *core.Database, mergeBase, head string) ([]*models.Com
 	commitSet := make(map[string]*models.Commit)
 	current := head
 	for current != "" && current != mergeBase {
-		commit, err := db.GetCommit(current)
+		commit, err := repo.GetCommit(current)
 		if err != nil {
 			break
 		}

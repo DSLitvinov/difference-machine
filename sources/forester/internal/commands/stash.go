@@ -19,17 +19,18 @@ func Stash(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+	defer repo.Close()
+
+	db, err := repo.DB()
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
-	defer db.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
+	storage := repo.Storage
 
 	if len(args) == 0 || args[0] == "list" {
 		if len(args) > 1 {
@@ -291,16 +292,13 @@ func Stash(args []string) error {
 		fmt.Printf("stash{%s}: %s\n", hashShort, stash.Message)
 
 		// Get current HEAD to compare
-		refs := core.NewRefs(repoPath)
+		refs := repo.Refs
 		currentBranch, err := refs.GetCurrentBranch()
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
 
-		currentHead, err := db.GetBranchHead(currentBranch)
-		if err != nil || currentHead == "" {
-			currentHead, _ = refs.GetHead(currentBranch)
-		}
+		currentHead, err := repo.GetBranchHead(currentBranch)
 
 		// Get stash tree
 		treeContent, err := storage.GetTreeContent(stash.TreeHash)
@@ -316,7 +314,7 @@ func Stash(args []string) error {
 		// Get current HEAD tree
 		var currentTree models.Tree
 		if currentHead != "" {
-			commit, err := db.GetCommit(currentHead)
+			commit, err := repo.GetCommit(currentHead)
 			if err == nil {
 				currentTreeContent, err := storage.GetTreeContent(commit.TreeHash)
 				if err == nil {
@@ -426,10 +424,10 @@ func Stash(args []string) error {
 		}
 
 		// Check if branch already exists
-		branches, err := db.ListBranches()
+		branches, err := repo.ListBranches()
 		if err == nil {
-			for _, branch := range branches {
-				if branch.Name == branchName {
+			for _, name := range branches {
+				if name == branchName {
 					return fmt.Errorf("branch '%s' already exists", branchName)
 				}
 			}
@@ -466,28 +464,13 @@ func Stash(args []string) error {
 
 		commitHash := core.HashString(string(commitJSONForHash))
 		commit.Hash = commitHash
-		commitJSON, err := commit.ToJSON()
-		if err != nil {
-			return fmt.Errorf("failed to serialize final commit: %w", err)
-		}
 
-		// Store commit
-		if _, err := storage.StoreCommit(commitJSON); err != nil {
+		if _, err := repo.StoreCommit(commit); err != nil {
 			return fmt.Errorf("failed to store commit: %w", err)
 		}
 
-		if _, err := db.CreateCommit(commit); err != nil {
-			return fmt.Errorf("failed to create commit: %w", err)
-		}
-
-		// Create branch
-		if err := db.CreateBranch(branchName, commitHash); err != nil {
+		if err := repo.CreateBranch(branchName, commitHash); err != nil {
 			return fmt.Errorf("failed to create branch: %w", err)
-		}
-
-		refs := core.NewRefs(repoPath)
-		if err := refs.CreateBranch(branchName, commitHash); err != nil {
-			return fmt.Errorf("failed to create branch ref: %w", err)
 		}
 
 		hashShort := stashHash

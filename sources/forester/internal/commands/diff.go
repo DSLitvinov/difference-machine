@@ -18,18 +18,14 @@ func Diff(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 
 	// Parse arguments
 	showUnifiedDiff := false
@@ -106,7 +102,7 @@ func Diff(args []string) error {
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
-		resolvedHash, err := resolveCommitHash(db, refs, currentBranch, commit1Hash)
+		resolvedHash, err := resolveCommitHash(repo, currentBranch, commit1Hash)
 		if err != nil {
 			return fmt.Errorf("invalid commit: %w", err)
 		}
@@ -117,10 +113,7 @@ func Diff(args []string) error {
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
-		commit1Hash, err = db.GetBranchHead(currentBranch)
-		if err != nil || commit1Hash == "" {
-			commit1Hash, _ = refs.GetHead(currentBranch)
-		}
+		commit1Hash, err = repo.GetBranchHead(currentBranch)
 		// commit2Hash will be empty, meaning we compare with index
 	} else if len(commitArgs) >= 2 {
 		// Resolve commit hashes
@@ -128,8 +121,8 @@ func Diff(args []string) error {
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
-		resolved1, err1 := resolveCommitHash(db, refs, currentBranch, commitArgs[0])
-		resolved2, err2 := resolveCommitHash(db, refs, currentBranch, commitArgs[1])
+		resolved1, err1 := resolveCommitHash(repo, currentBranch, commitArgs[0])
+		resolved2, err2 := resolveCommitHash(repo, currentBranch, commitArgs[1])
 		if err1 != nil {
 			return fmt.Errorf("invalid commit1: %w", err1)
 		}
@@ -144,25 +137,19 @@ func Diff(args []string) error {
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
-		resolved, err := resolveCommitHash(db, refs, currentBranch, commitArgs[0])
+		resolved, err := resolveCommitHash(repo, currentBranch, commitArgs[0])
 		if err != nil {
 			return fmt.Errorf("invalid commit: %w", err)
 		}
 		commit1Hash = resolved
-		commit2Hash, err = db.GetBranchHead(currentBranch)
-		if err != nil || commit2Hash == "" {
-			commit2Hash, _ = refs.GetHead(currentBranch)
-		}
+		commit2Hash, err = repo.GetBranchHead(currentBranch)
 	} else {
 		// Compare HEAD with working directory
 		currentBranch, err := refs.GetCurrentBranch()
 		if err != nil || currentBranch == "" {
 			currentBranch = "main"
 		}
-		commit1Hash, err = db.GetBranchHead(currentBranch)
-		if err != nil || commit1Hash == "" {
-			commit1Hash, _ = refs.GetHead(currentBranch)
-		}
+		commit1Hash, err = repo.GetBranchHead(currentBranch)
 	}
 
 	// Get commits
@@ -171,14 +158,14 @@ func Diff(args []string) error {
 	hasCommit2 := false
 
 	if commit1Hash != "" {
-		c, err := db.GetCommit(commit1Hash)
+		c, err := repo.GetCommit(commit1Hash)
 		if err == nil {
 			commit1 = c
 			hasCommit1 = true
 		}
 	}
 	if commit2Hash != "" {
-		c, err := db.GetCommit(commit2Hash)
+		c, err := repo.GetCommit(commit2Hash)
 		if err == nil {
 			commit2 = c
 			hasCommit2 = true
@@ -244,7 +231,7 @@ func Diff(args []string) error {
 
 	// Handle diff <commit>:<file> format
 	if filePath != "" {
-		commit, err := db.GetCommit(commit1Hash)
+		commit, err := repo.GetCommit(commit1Hash)
 		if err != nil {
 			return fmt.Errorf("commit not found: %s", commit1Hash)
 		}

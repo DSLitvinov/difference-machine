@@ -26,19 +26,14 @@ func Reset(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 
 	// Get current branch
 	currentBranch, err := refs.GetCurrentBranch()
@@ -85,39 +80,25 @@ func Reset(args []string) error {
 	}
 
 	// Resolve commit hash (support HEAD, short hashes)
-	resolvedHash, err := resolveCommitHash(db, refs, currentBranch, targetHash)
+	resolvedHash, err := resolveCommitHash(repo, currentBranch, targetHash)
 	if err != nil {
 		return err
 	}
 	targetHash = resolvedHash
 
 	// Verify commit exists
-	targetCommit, err := db.GetCommit(targetHash)
+	targetCommit, err := repo.GetCommit(targetHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %s", targetHash)
 	}
 
 	// Get current HEAD
-	currentHead, err := db.GetBranchHead(currentBranch)
-	if err != nil || currentHead == "" {
-		currentHead, _ = refs.GetHead(currentBranch)
-	}
+	currentHead, err := repo.GetBranchHead(currentBranch)
 
-	// Update HEAD and refs
+	// Update HEAD via repository (refs + reflog)
 	oldHead := currentHead
-	if err := db.SetBranchHead(currentBranch, targetHash); err != nil {
+	if err := repo.SetBranchHead(currentBranch, targetHash, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, targetHash); err != nil {
-		// Rollback database change
-		_ = db.SetBranchHead(currentBranch, oldHead)
-		return fmt.Errorf("failed to set ref head: %w", err)
-	}
-
-	// Add reflog entry
-	if err := db.AddReflogEntry(targetHash, currentBranch, "branch", oldHead, targetHash, "update"); err != nil {
-		// Log warning but continue
-		fmt.Fprintf(os.Stderr, "Warning: failed to add reflog entry: %v\n", err)
 	}
 
 	// Handle different modes

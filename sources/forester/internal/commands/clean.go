@@ -56,24 +56,20 @@ func Clean(args []string) error {
 	}
 
 	// Get HEAD commit to know what's tracked
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	refs := core.NewRefs(repoPath)
+	refs := repo.Refs
 	currentBranch, err := refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
 
 	// Get HEAD commit
-	headCommit, err := db.GetBranchHead(currentBranch)
-	if err != nil || headCommit == "" {
-		headCommit, _ = refs.GetHead(currentBranch)
-	}
+	headCommit, err := repo.GetBranchHead(currentBranch)
 
 	// Build set of tracked files
 	trackedFiles := make(map[string]bool)
@@ -82,18 +78,13 @@ func Clean(args []string) error {
 		trackedFiles[relPath] = true
 	}
 
-	// If HEAD exists, add files from HEAD tree
 	if headCommit != "" {
-		storage, err := core.NewStorage(repoPath)
+		storage := repo.Storage
+		commit, err := repo.GetCommit(headCommit)
 		if err == nil {
-			commit, err := db.GetCommit(headCommit)
+			treeContent, err := storage.GetTreeContent(commit.TreeHash)
 			if err == nil {
-				treeContent, err := storage.GetTreeContent(commit.TreeHash)
-				if err == nil {
-					// Parse tree to get all tracked files
-					// For simplicity, we'll use a recursive approach
-					buildTrackedFilesFromTree(storage, treeContent, "", trackedFiles)
-				}
+				buildTrackedFilesFromTree(storage, treeContent, "", trackedFiles)
 			}
 		}
 	}

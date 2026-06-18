@@ -3,6 +3,7 @@ package core
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -81,6 +82,20 @@ func HashCombined(parts []string) string {
 	}
 
 	return HashString(combined.String())
+}
+
+// HashCommitJSON computes the commit object hash from JSON (excludes the hash field).
+func HashCommitJSON(commitJSON string) string {
+	var commitMap map[string]interface{}
+	if err := json.Unmarshal([]byte(commitJSON), &commitMap); err != nil {
+		return HashString(commitJSON)
+	}
+	delete(commitMap, "hash")
+	canonical, err := json.Marshal(commitMap)
+	if err != nil {
+		return HashString(commitJSON)
+	}
+	return HashString(string(canonical))
 }
 
 // HashTree computes hash of a tree JSON representation.

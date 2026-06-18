@@ -47,10 +47,13 @@ func Add(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	storage, err := core.NewStorage(repoPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
+	defer repo.Close()
+
+	storage := repo.Storage
 
 	index, err := core.NewIndex(repoPath)
 	if err != nil {
@@ -68,35 +71,26 @@ func Add(args []string) error {
 
 	// Get tracked files (path -> hash) from HEAD to filter -u and skip unchanged files
 	trackedFiles := make(map[string]string)
-	refs := core.NewRefs(repoPath)
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
-	if err == nil {
-		defer db.Close()
-		currentBranch, err := refs.GetCurrentBranch()
-		if err != nil || currentBranch == "" {
-			currentBranch = "main"
-		}
-		headCommit, err := db.GetBranchHead(currentBranch)
-		if err != nil || headCommit == "" {
-			headCommit, _ = refs.GetHead(currentBranch)
-		}
-		if headCommit != "" {
-			commit, err := db.GetCommit(headCommit)
+	refs := repo.Refs
+	currentBranch, err := refs.GetCurrentBranch()
+	if err != nil || currentBranch == "" {
+		currentBranch = "main"
+	}
+	headCommit, err := repo.GetBranchHead(currentBranch)
+	if err == nil && headCommit != "" {
+		commit, err := repo.GetCommit(headCommit)
+		if err == nil {
+			treeContent, err := storage.GetTreeContent(commit.TreeHash)
 			if err == nil {
-				treeContent, err := storage.GetTreeContent(commit.TreeHash)
-				if err == nil {
-					var tree models.Tree
-					if json.Unmarshal([]byte(treeContent), &tree) == nil {
-						// Use BuildTreeMapRecursive to handle nested trees
-						treeMap := make(map[string]*models.TreeEntry)
-						if err := core.BuildTreeMapRecursive(storage, &tree, "", treeMap); err != nil {
-							return fmt.Errorf("build tree map: %w", err)
-						}
-						for path, entry := range treeMap {
-							if entry.Type == "blob" {
-								trackedFiles[path] = entry.Hash
-							}
+				var tree models.Tree
+				if json.Unmarshal([]byte(treeContent), &tree) == nil {
+					treeMap := make(map[string]*models.TreeEntry)
+					if err := core.BuildTreeMapRecursive(storage, &tree, "", treeMap); err != nil {
+						return fmt.Errorf("build tree map: %w", err)
+					}
+					for path, entry := range treeMap {
+						if entry.Type == "blob" {
+							trackedFiles[path] = entry.Hash
 						}
 					}
 				}

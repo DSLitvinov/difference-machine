@@ -25,19 +25,14 @@ func Switch(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	hooks := core.NewHooks(repoPath)
 
 	// Parse arguments
@@ -68,19 +63,19 @@ func Switch(args []string) error {
 	}
 
 	// Determine if it's a branch or commit
-	branches, err := db.ListBranches()
+	branches, err := repo.ListBranches()
 	if err != nil {
 		return fmt.Errorf("failed to list branches: %w", err)
 	}
 
-	var targetBranch *models.Branch
+	var targetBranchName string
 	var commitHash string
 	isBranch := false
 
-	for _, branch := range branches {
-		if branch.Name == target {
-			targetBranch = branch
-			commitHash = branch.CommitHash
+	for _, branchName := range branches {
+		if branchName == target {
+			targetBranchName = branchName
+			commitHash, _ = repo.GetBranchHead(branchName)
 			isBranch = true
 			break
 		}
@@ -88,13 +83,13 @@ func Switch(args []string) error {
 
 	if !isBranch {
 		// Try as commit - resolve hash (support HEAD, short hashes)
-		resolvedHash, err := resolveCommitHash(db, refs, currentBranch, target)
+		resolvedHash, err := resolveCommitHash(repo, currentBranch, target)
 		if err != nil {
 			return fmt.Errorf("branch or commit '%s' not found", target)
 		}
 		commitHash = resolvedHash
 		// Verify commit exists
-		_, err = db.GetCommit(commitHash)
+		_, err = repo.GetCommit(commitHash)
 		if err != nil {
 			return fmt.Errorf("commit not found: %s", target)
 		}
@@ -102,32 +97,14 @@ func Switch(args []string) error {
 
 	// If it's a branch, check if switching to the same branch
 	// But allow switching if we're in detached HEAD state (after checkout commit)
-	if isBranch && targetBranch.Name == currentBranch {
-		// Check if we're actually on the branch HEAD (not in detached HEAD)
-		branchHead, err := db.GetBranchHead(currentBranch)
-		if err != nil || branchHead == "" {
-			branchHead, _ = refs.GetHead(currentBranch)
-		}
-
-		// Try to determine current commit by checking working directory
-		// If branch HEAD exists and matches what we expect, we're on the branch
-		if branchHead != "" {
-			// Check if current working directory matches branch HEAD
-			// This is a simple heuristic - if branch has commits, assume we're on it
-			// In practice, we should check the actual state, but for now allow switching
-			// if we might be in detached HEAD (after checkout commit)
-			// For simplicity, always allow switching to the same branch if it has commits
-			// The user might be returning from a detached HEAD state
-		} else {
-			// Branch has no commits, allow switching
-		}
-		// Note: We allow switching to the same branch to support returning from detached HEAD
-		// The actual check happens later when we try to restore files
+	if isBranch && targetBranchName == currentBranch {
+		branchHead, _ := repo.GetBranchHead(currentBranch)
+		_ = branchHead
 	}
 
 	// Check for uncommitted changes
 	var stashHash string
-	hasChanges, err := hasUncommittedChanges(repoPath, db, storage, refs, currentBranch)
+	hasChanges, err := hasUncommittedChanges(repoPath, repo, currentBranch)
 	if err != nil {
 		return fmt.Errorf("failed to check for uncommitted changes: %w", err)
 	}
@@ -142,7 +119,7 @@ func Switch(args []string) error {
 		}
 
 		// Create automatic stash
-		stashHash, err = createAutoStash(repoPath, db, storage, currentBranch)
+		stashHash, err = createAutoStash(repoPath, repo, currentBranch)
 		if err != nil {
 			return fmt.Errorf("failed to create stash: %w", err)
 		}
@@ -151,10 +128,7 @@ func Switch(args []string) error {
 	// Get target commit hash
 	var targetCommitHash string
 	if isBranch {
-		targetCommitHash = targetBranch.CommitHash
-		if targetCommitHash == "" {
-			targetCommitHash, _ = refs.GetHead(targetBranch.Name)
-		}
+		targetCommitHash, _ = repo.GetBranchHead(targetBranchName)
 	} else {
 		targetCommitHash = commitHash
 	}
@@ -171,10 +145,10 @@ func Switch(args []string) error {
 
 	// If it's a branch with no commits, just switch
 	if isBranch && targetCommitHash == "" {
-		if err := refs.SetCurrentBranch(targetBranch.Name); err != nil {
+		if err := refs.SetCurrentBranch(targetBranchName); err != nil {
 			return fmt.Errorf("failed to set current branch: %w", err)
 		}
-		fmt.Printf("Switched to branch '%s' (no commits yet)\n", targetBranch.Name)
+		fmt.Printf("Switched to branch '%s' (no commits yet)\n", targetBranchName)
 		if stashHash != "" {
 			fmt.Printf("Stashed changes: %s\n", stashHash[:8])
 		}
@@ -187,7 +161,7 @@ func Switch(args []string) error {
 	}
 
 	// Get target commit
-	targetCommit, err := db.GetCommit(targetCommitHash)
+	targetCommit, err := repo.GetCommit(targetCommitHash)
 	if err != nil {
 		return fmt.Errorf("failed to get target commit: %w", err)
 	}
@@ -264,22 +238,8 @@ func Switch(args []string) error {
 	// Update HEAD and current branch (only for branches)
 	// For commit checkout, we don't update branch HEAD (detached HEAD state)
 	if isBranch {
-		// Only update if we're actually switching to a different branch or restoring
-		// Check if we're already on this branch with the same HEAD
-		currentBranchHead, _ := db.GetBranchHead(targetBranch.Name)
-		if currentBranchHead == "" {
-			currentBranchHead, _ = refs.GetHead(targetBranch.Name)
-		}
-
-		// Update branch HEAD and current branch
-		if err := refs.SetHead(targetBranch.Name, targetCommitHash); err != nil {
-			return fmt.Errorf("failed to set branch head: %w", err)
-		}
-		if err := refs.SetCurrentBranch(targetBranch.Name); err != nil {
+		if err := refs.SetCurrentBranch(targetBranchName); err != nil {
 			return fmt.Errorf("failed to set current branch: %w", err)
-		}
-		if err := db.SetBranchHead(targetBranch.Name, targetCommitHash); err != nil {
-			return fmt.Errorf("failed to update branch head in database: %w", err)
 		}
 	} else {
 		// For commit checkout, we're in detached HEAD state
@@ -297,7 +257,7 @@ func Switch(args []string) error {
 	_, _ = hooks.ExecuteHook(core.HookTypePostCheckout, envVars)
 
 	if isBranch {
-		fmt.Printf("Switched to branch '%s'\n", targetBranch.Name)
+		fmt.Printf("Switched to branch '%s'\n", targetBranchName)
 		if stashHash != "" {
 			fmt.Printf("Stashed changes: %s\n", stashHash[:8])
 			// Store stash hash for later restoration
@@ -306,7 +266,7 @@ func Switch(args []string) error {
 			}
 		}
 		// Check if we're returning to a branch with auto-stash (always check, not just with -a flag)
-		restoreAutoStashIfNeeded(repoPath, db, storage, targetBranch.Name)
+		restoreAutoStashIfNeeded(repoPath, repo, targetBranchName)
 	} else {
 		hashShort := targetCommitHash
 		if len(hashShort) > 8 {
@@ -327,17 +287,14 @@ func Switch(args []string) error {
 }
 
 // hasUncommittedChanges checks if there are uncommitted changes in working directory or index
-func hasUncommittedChanges(repoPath string, db *core.Database, storage *core.Storage, refs *core.Refs, branch string) (bool, error) {
-	// Get HEAD commit
-	headCommit, err := db.GetBranchHead(branch)
-	if err != nil || headCommit == "" {
-		headCommit, _ = refs.GetHead(branch)
-	}
+func hasUncommittedChanges(repoPath string, repo *core.Repository, branch string) (bool, error) {
+	storage := repo.Storage
+	headCommit, err := repo.GetBranchHead(branch)
 
 	// Get HEAD tree
 	var headTree models.Tree
 	if headCommit != "" {
-		commit, err := db.GetCommit(headCommit)
+		commit, err := repo.GetCommit(headCommit)
 		if err == nil {
 			treeContent, err := storage.GetTreeContent(commit.TreeHash)
 			if err == nil {
@@ -427,7 +384,12 @@ func hasUncommittedChanges(repoPath string, db *core.Database, storage *core.Sto
 }
 
 // createAutoStash creates an automatic stash for the current branch
-func createAutoStash(repoPath string, db *core.Database, storage *core.Storage, branch string) (string, error) {
+func createAutoStash(repoPath string, repo *core.Repository, branch string) (string, error) {
+	storage := repo.Storage
+	db, err := repo.DB()
+	if err != nil {
+		return "", err
+	}
 	// Build tree from current state
 	tree := models.NewTree()
 
@@ -523,7 +485,12 @@ func storeAutoStashInfo(repoPath, branch, stashHash string) error {
 }
 
 // restoreAutoStashIfNeeded checks if there's an auto-stash stack for the current branch and restores stashes in LIFO order
-func restoreAutoStashIfNeeded(repoPath string, db *core.Database, storage *core.Storage, branch string) {
+func restoreAutoStashIfNeeded(repoPath string, repo *core.Repository, branch string) {
+	db, err := repo.DB()
+	if err != nil {
+		return
+	}
+	storage := repo.Storage
 	stashInfoPath := filepath.Join(repoPath, ".DFM", "auto-stash", branch)
 	if !utils.Exists(stashInfoPath) {
 		return

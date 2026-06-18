@@ -23,17 +23,13 @@ func Compare(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
+	storage := repo.Storage
 
 	// Parse arguments
 	var commitHashes []string
@@ -66,7 +62,7 @@ func Compare(args []string) error {
 
 	// Single commit: extract to tmp_review
 	if len(commitHashes) == 1 {
-		return extractCommitToTmpReview(storage, db, repoPath, commitHashes[0], cleanup, editorPath)
+		return extractCommitToTmpReview(storage, repo, repoPath, commitHashes[0], cleanup, editorPath)
 	}
 
 	// Two commits: compare them
@@ -85,12 +81,12 @@ func Compare(args []string) error {
 		return fmt.Errorf("invalid commit hash format: %s (must be 64 hex characters)", commit2Hash)
 	}
 
-	commit1, err := db.GetCommit(commit1Hash)
+	commit1, err := repo.GetCommit(commit1Hash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %s", commit1Hash)
 	}
 
-	commit2, err := db.GetCommit(commit2Hash)
+	commit2, err := repo.GetCommit(commit2Hash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %s", commit2Hash)
 	}
@@ -181,13 +177,12 @@ func extractCommitToDir(storage *core.Storage, commit *models.Commit, destDir st
 	return utils.WriteFileString(markerFile, commit.Hash)
 }
 
-func extractCommitToTmpReview(storage *core.Storage, db *core.Database, repoPath, commitHash string, cleanup bool, editorPath string) error {
-	// Validate and get commit by full hash
+func extractCommitToTmpReview(storage *core.Storage, repo *core.Repository, repoPath, commitHash string, cleanup bool, editorPath string) error {
 	if !utils.IsValidCommitHash(commitHash) {
 		return fmt.Errorf("invalid commit hash format: %s (must be 64 hex characters)", commitHash)
 	}
 
-	commit, err := db.GetCommit(commitHash)
+	commit, err := repo.GetCommit(commitHash)
 	if err != nil {
 		return fmt.Errorf("commit not found: %s", commitHash)
 	}

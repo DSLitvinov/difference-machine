@@ -4,13 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/difference-machine/forester/internal/models"
-	"github.com/difference-machine/forester/internal/utils"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -23,11 +20,10 @@ func (e *DatabaseException) Error() string {
 	return fmt.Sprintf("Database error: %s", e.Message)
 }
 
-// Database manages SQLite database operations for Forester repository.
-// It handles storage of commits, branches, tags, locks, comments, and other metadata.
+// Database manages SQLite database operations for Forester product metadata only:
+// locks, reviews, objects, stashes, comments, and approvals.
 type Database struct {
-	db     *sql.DB
-	dbPath string
+	db *sql.DB
 }
 
 // NewDatabase creates a new database connection and initializes the schema.
@@ -54,7 +50,7 @@ func NewDatabase(dbPath string) (*Database, error) {
 		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
-	database := &Database{db: db, dbPath: dbPath}
+	database := &Database{db: db}
 	if err := database.initialize(); err != nil {
 		db.Close()
 		return nil, err
@@ -73,83 +69,8 @@ func (d *Database) initialize() error {
 	if err := d.createTables(); err != nil {
 		return err
 	}
-	if err := d.createIndexes(); err != nil {
-		return err
-	}
-	// Run migrations
-	if err := d.migrateScreenshotPath(); err != nil {
-		log.Printf("forester: migration migrateScreenshotPath failed (non-fatal): %v", err)
-	}
-	return nil
+	return d.createIndexes()
 }
-
-// migrateScreenshotPath migrates old commits that have screenshot_hash but no screenshot_path
-// It checks if screenshot file exists and sets screenshot_path accordingly
-func (d *Database) migrateScreenshotPath() error {
-	// Get repo path from db path
-	// dbPath is like /path/to/repo/.DFM/database.db
-	// We need to extract /path/to/repo
-	if d.dbPath == "" {
-		return nil // Can't determine repo path, skip migration
-	}
-
-	repoPath := filepath.Dir(filepath.Dir(d.dbPath)) // Go up from .DFM/database.db to repo root
-	if !utils.Exists(repoPath) {
-		return nil // Repo doesn't exist, skip migration
-	}
-
-	// Find commits without screenshot_path
-	rows, err := d.db.Query("SELECT hash FROM commits WHERE screenshot_path IS NULL OR screenshot_path = ''")
-	if err != nil {
-		return err // Return error but don't fail initialization
-	}
-	defer rows.Close()
-
-	screenshotsDir := filepath.Join(repoPath, ".DFM", "screenshots")
-	updated := 0
-
-	for rows.Next() {
-		var commitHash string
-		if err := rows.Scan(&commitHash); err != nil {
-			continue
-		}
-
-		// Check if screenshot file exists
-		screenshotPath := filepath.Join(screenshotsDir, commitHash+".png")
-		if utils.Exists(screenshotPath) {
-			// Set screenshot_path in format .DFM/screenshots/{commit_hash}.png
-			screenshotPathRel := fmt.Sprintf(".DFM/screenshots/%s.png", commitHash)
-			_, err := d.db.Exec("UPDATE commits SET screenshot_path = ? WHERE hash = ?", screenshotPathRel, commitHash)
-			if err == nil {
-				updated++
-			}
-		} else {
-			// Try to load commit from storage to check for screenshot_hash in JSON
-			storage, err := NewStorage(repoPath)
-			if err == nil {
-				commitContent, err := storage.GetCommitContent(commitHash)
-				if err == nil {
-					// Parse JSON to check for screenshot_hash
-					var commitJSON map[string]interface{}
-					if json.Unmarshal([]byte(commitContent), &commitJSON) == nil {
-						if screenshotHash, ok := commitJSON["screenshot_hash"].(string); ok && screenshotHash != "" {
-							// If screenshot_hash exists, set screenshot_path (file might exist with different name)
-							// But we'll use standard format
-							screenshotPathRel := fmt.Sprintf(".DFM/screenshots/%s.png", commitHash)
-							_, err := d.db.Exec("UPDATE commits SET screenshot_path = ? WHERE hash = ?", screenshotPathRel, commitHash)
-							if err == nil {
-								updated++
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
 
 // executeSQL executes a SQL statement
 func (d *Database) executeSQL(sql string) error {
@@ -163,30 +84,6 @@ func (d *Database) executeSQL(sql string) error {
 // createTables creates all necessary tables
 func (d *Database) createTables() error {
 	tables := []string{
-		`CREATE TABLE IF NOT EXISTS commits (
-			hash TEXT PRIMARY KEY,
-			parent_hash TEXT,
-			tree_hash TEXT NOT NULL,
-			author TEXT NOT NULL,
-			message TEXT NOT NULL,
-			timestamp INTEGER NOT NULL,
-			type INTEGER NOT NULL,
-			screenshot_path TEXT,
-			FOREIGN KEY (parent_hash) REFERENCES commits(hash)
-		)`,
-		`CREATE TABLE IF NOT EXISTS branches (
-			name TEXT PRIMARY KEY,
-			commit_hash TEXT,
-			created_at INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS tags (
-			name TEXT PRIMARY KEY,
-			commit_hash TEXT NOT NULL,
-			author TEXT NOT NULL,
-			message TEXT,
-			created_at INTEGER NOT NULL,
-			FOREIGN KEY (commit_hash) REFERENCES commits(hash)
-		)`,
 		`CREATE TABLE IF NOT EXISTS stashes (
 			hash TEXT PRIMARY KEY,
 			message TEXT NOT NULL,
@@ -222,29 +119,6 @@ func (d *Database) createTables() error {
 			comment TEXT,
 			created_at INTEGER NOT NULL,
 			UNIQUE(asset_type, asset_id, author)
-		)`,
-		`CREATE TABLE IF NOT EXISTS blobs (
-			hash TEXT PRIMARY KEY,
-			path TEXT NOT NULL,
-			stored_at INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS reflog (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			commit_hash TEXT NOT NULL,
-			ref_name TEXT NOT NULL,
-			ref_type TEXT NOT NULL,
-			old_value TEXT,
-			new_value TEXT,
-			operation TEXT NOT NULL,
-			timestamp INTEGER NOT NULL
-		)`,
-		`CREATE TABLE IF NOT EXISTS commit_parents (
-			commit_hash TEXT NOT NULL,
-			parent_hash TEXT NOT NULL,
-			parent_order INTEGER NOT NULL,
-			PRIMARY KEY (commit_hash, parent_order),
-			FOREIGN KEY (commit_hash) REFERENCES commits(hash),
-			FOREIGN KEY (parent_hash) REFERENCES commits(hash)
 		)`,
 		`CREATE TABLE IF NOT EXISTS objects (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -283,19 +157,10 @@ func (d *Database) createTables() error {
 // createIndexes creates indexes for better performance
 func (d *Database) createIndexes() error {
 	indexes := []string{
-		"CREATE INDEX IF NOT EXISTS idx_commits_parent ON commits(parent_hash)",
-		"CREATE INDEX IF NOT EXISTS idx_commits_tree ON commits(tree_hash)",
-		"CREATE INDEX IF NOT EXISTS idx_branches_commit ON branches(commit_hash)",
-		"CREATE INDEX IF NOT EXISTS idx_tags_commit ON tags(commit_hash)",
 		"CREATE INDEX IF NOT EXISTS idx_locks_file ON locks(file_path)",
 		"CREATE INDEX IF NOT EXISTS idx_locks_branch ON locks(branch)",
 		"CREATE INDEX IF NOT EXISTS idx_comments_asset ON comments(asset_type, asset_id)",
 		"CREATE INDEX IF NOT EXISTS idx_approvals_asset ON approvals(asset_type, asset_id)",
-		"CREATE INDEX IF NOT EXISTS idx_reflog_commit ON reflog(commit_hash)",
-		"CREATE INDEX IF NOT EXISTS idx_reflog_ref ON reflog(ref_name, ref_type)",
-		"CREATE INDEX IF NOT EXISTS idx_reflog_timestamp ON reflog(timestamp)",
-		"CREATE INDEX IF NOT EXISTS idx_commit_parents_commit ON commit_parents(commit_hash)",
-		"CREATE INDEX IF NOT EXISTS idx_commit_parents_parent ON commit_parents(parent_hash)",
 		"CREATE INDEX IF NOT EXISTS idx_objects_commit_hash ON objects(commit_hash)",
 		"CREATE INDEX IF NOT EXISTS idx_objects_file_path ON objects(file_path)",
 		"CREATE INDEX IF NOT EXISTS idx_objects_tags ON objects(tags)",
@@ -311,443 +176,6 @@ func (d *Database) createIndexes() error {
 	}
 
 	return nil
-}
-
-// CreateCommit creates a new commit
-func (d *Database) CreateCommit(commit *models.Commit) (string, error) {
-	query := `INSERT INTO commits (hash, parent_hash, tree_hash, author, message, timestamp, type, screenshot_path) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-
-	var parentHash sql.NullString
-	if commit.ParentHash != "" {
-		parentHash = sql.NullString{String: commit.ParentHash, Valid: true}
-	}
-
-	var screenshotPath sql.NullString
-	if commit.ScreenshotPath != "" {
-		screenshotPath = sql.NullString{String: commit.ScreenshotPath, Valid: true}
-	}
-
-	_, err := d.db.Exec(query,
-		commit.Hash,
-		parentHash,
-		commit.TreeHash,
-		commit.Author,
-		commit.Message,
-		commit.Timestamp,
-		int(commit.Type),
-		screenshotPath,
-	)
-	if err != nil {
-		return "", &DatabaseException{Message: fmt.Sprintf("Failed to create commit: %v", err)}
-	}
-
-	// Store multiple parents if provided
-	if len(commit.ParentHashes) > 0 {
-		for i, parentHash := range commit.ParentHashes {
-			if parentHash != "" {
-				_, err := d.db.Exec("INSERT INTO commit_parents (commit_hash, parent_hash, parent_order) VALUES (?, ?, ?)",
-					commit.Hash, parentHash, i)
-				if err != nil {
-					return "", &DatabaseException{Message: fmt.Sprintf("Failed to store parent: %v", err)}
-				}
-			}
-		}
-		// Set first parent as ParentHash for backward compatibility
-		if commit.ParentHash == "" && len(commit.ParentHashes) > 0 {
-			commit.ParentHash = commit.ParentHashes[0]
-			_, _ = d.db.Exec("UPDATE commits SET parent_hash = ? WHERE hash = ?", commit.ParentHashes[0], commit.Hash)
-		}
-	}
-
-	return commit.Hash, nil
-}
-
-// GetCommit retrieves a commit by hash
-func (d *Database) GetCommit(hash string) (*models.Commit, error) {
-	query := `SELECT hash, parent_hash, tree_hash, author, message, timestamp, type, screenshot_path 
-		FROM commits WHERE hash = ?`
-
-	var commit models.Commit
-	var parentHash sql.NullString
-	var screenshotPath sql.NullString
-
-	err := d.db.QueryRow(query, hash).Scan(
-		&commit.Hash,
-		&parentHash,
-		&commit.TreeHash,
-		&commit.Author,
-		&commit.Message,
-		&commit.Timestamp,
-		&commit.Type,
-		&screenshotPath,
-	)
-	if err == sql.ErrNoRows {
-		return nil, &DatabaseException{Message: fmt.Sprintf("Commit not found: %s", hash)}
-	}
-	if err != nil {
-		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get commit: %v", err)}
-	}
-
-	if parentHash.Valid {
-		commit.ParentHash = parentHash.String
-	}
-	if screenshotPath.Valid {
-		commit.ScreenshotPath = screenshotPath.String
-	}
-
-	// Load all parents from commit_parents table
-	rows, err := d.db.Query("SELECT parent_hash FROM commit_parents WHERE commit_hash = ? ORDER BY parent_order", hash)
-	if err == nil {
-		defer rows.Close()
-		var parentHashes []string
-		for rows.Next() {
-			var ph string
-			if err := rows.Scan(&ph); err == nil {
-				parentHashes = append(parentHashes, ph)
-			}
-		}
-		if len(parentHashes) > 0 {
-			commit.ParentHashes = parentHashes
-			// Ensure ParentHash is set for backward compatibility
-			if commit.ParentHash == "" && len(parentHashes) > 0 {
-				commit.ParentHash = parentHashes[0]
-			}
-		} else if commit.ParentHash != "" {
-			// If no parents in commit_parents but ParentHash is set, use it
-			commit.ParentHashes = []string{commit.ParentHash}
-		}
-	}
-
-	return &commit, nil
-}
-
-// FindCommitByPrefix is deprecated - use GetCommit with full hash instead
-// This function now simply calls GetCommit to maintain backward compatibility
-// but requires full 64-character hash
-func (d *Database) FindCommitByPrefix(prefix string) (*models.Commit, error) {
-	if len(prefix) != 64 {
-		return nil, &DatabaseException{Message: fmt.Sprintf("Full commit hash required (64 characters), got %d: %s", len(prefix), prefix)}
-	}
-	return d.GetCommit(prefix)
-}
-
-// GetCommitHistory retrieves commit history for a branch
-func (d *Database) GetCommitHistory(branch string, limit int) ([]*models.Commit, error) {
-	branchHead, err := d.GetBranchHead(branch)
-	if err != nil || branchHead == "" {
-		return []*models.Commit{}, nil
-	}
-
-	// Get deleted commits from reflog
-	deletedCommits := make(map[string]bool)
-	rows, err := d.db.Query("SELECT DISTINCT commit_hash FROM reflog WHERE operation = 'delete'")
-	if err == nil {
-		defer rows.Close()
-		for rows.Next() {
-			var hash string
-			if err := rows.Scan(&hash); err == nil {
-				deletedCommits[hash] = true
-			}
-		}
-	}
-
-	// Recursively get commits from HEAD to root
-	var commits []*models.Commit
-	currentHash := branchHead
-	count := 0
-
-	for currentHash != "" && count < limit {
-		// Skip deleted commits
-		if deletedCommits[currentHash] {
-			commit, err := d.GetCommit(currentHash)
-			if err != nil {
-				break
-			}
-			currentHash = commit.ParentHash
-			continue
-		}
-
-		commit, err := d.GetCommit(currentHash)
-		if err != nil {
-			break
-		}
-		commits = append(commits, commit)
-		currentHash = commit.ParentHash
-		count++
-	}
-
-	return commits, nil
-}
-
-// DeleteCommit marks a commit for deletion (adds to reflog)
-func (d *Database) DeleteCommit(hash string) error {
-	return d.AddReflogEntry(hash, "HEAD", "commit", hash, "", "delete")
-}
-
-// ForceDeleteCommit forcefully deletes a commit (used by GC)
-func (d *Database) ForceDeleteCommit(hash string) error {
-	tx, err := d.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if _, err := tx.Exec("DELETE FROM commits WHERE hash = ?", hash); err != nil {
-		return err
-	}
-	if _, err := tx.Exec("DELETE FROM reflog WHERE commit_hash = ?", hash); err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
-// HasChildCommits checks if a commit has child commits.
-// It considers both the legacy parent_hash column and the commit_parents table (merge commits).
-func (d *Database) HasChildCommits(hash string) (bool, error) {
-	var count int
-	err := d.db.QueryRow(`
-		SELECT COUNT(*) FROM (
-			SELECT hash FROM commits WHERE parent_hash = ?
-			UNION
-			SELECT commit_hash FROM commit_parents WHERE parent_hash = ?
-		)`, hash, hash).Scan(&count)
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
-}
-
-// GetChildCommits returns all child commit hashes for a given commit.
-// It considers both the legacy parent_hash column and the commit_parents table (merge commits).
-func (d *Database) GetChildCommits(hash string) ([]string, error) {
-	rows, err := d.db.Query(`
-		SELECT hash FROM commits WHERE parent_hash = ?
-		UNION
-		SELECT commit_hash FROM commit_parents WHERE parent_hash = ?`, hash, hash)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var children []string
-	for rows.Next() {
-		var childHash string
-		if err := rows.Scan(&childHash); err != nil {
-			continue
-		}
-		children = append(children, childHash)
-	}
-
-	return children, nil
-}
-
-// CreateBranch creates a new branch
-func (d *Database) CreateBranch(name, commitHash string) error {
-	query := `INSERT INTO branches (name, commit_hash, created_at) VALUES (?, ?, ?)`
-	var commitHashNull sql.NullString
-	if commitHash != "" {
-		commitHashNull = sql.NullString{String: commitHash, Valid: true}
-	}
-
-	_, err := d.db.Exec(query, name, commitHashNull, time.Now().Unix())
-	if err != nil {
-		return &DatabaseException{Message: fmt.Sprintf("Failed to create branch: %v", err)}
-	}
-	return nil
-}
-
-// DeleteBranch deletes a branch
-func (d *Database) DeleteBranch(name string) error {
-	_, err := d.db.Exec("DELETE FROM branches WHERE name = ?", name)
-	return err
-}
-
-// SetBranchHead sets the HEAD commit of a branch
-func (d *Database) SetBranchHead(name, commitHash string) error {
-	var exists bool
-	err := d.db.QueryRow("SELECT COUNT(*) > 0 FROM branches WHERE name = ?", name).Scan(&exists)
-	if err != nil {
-		return err
-	}
-
-	// Handle empty commitHash as NULL (for orphan branches)
-	var commitHashNull sql.NullString
-	if commitHash != "" {
-		commitHashNull = sql.NullString{String: commitHash, Valid: true}
-	}
-
-	if exists {
-		result, err := d.db.Exec("UPDATE branches SET commit_hash = ? WHERE name = ?", commitHashNull, name)
-		if err != nil {
-			return err
-		}
-		rowsAffected, _ := result.RowsAffected()
-		if rowsAffected == 0 {
-			return d.CreateBranch(name, commitHash)
-		}
-		return nil
-	}
-
-	return d.CreateBranch(name, commitHash)
-}
-
-// UpdateBranchHeadAtomic atomically updates branch HEAD and adds reflog entry
-func (d *Database) UpdateBranchHeadAtomic(branchName, newCommitHash, oldCommitHash string) error {
-	tx, err := d.db.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	// Update branch HEAD
-	var commitHashNull sql.NullString
-	if newCommitHash != "" {
-		commitHashNull = sql.NullString{String: newCommitHash, Valid: true}
-	}
-
-	// Check if branch exists
-	var exists bool
-	err = tx.QueryRow("SELECT COUNT(*) > 0 FROM branches WHERE name = ?", branchName).Scan(&exists)
-	if err != nil {
-		return fmt.Errorf("failed to check branch existence: %w", err)
-	}
-
-	if exists {
-		if _, err := tx.Exec("UPDATE branches SET commit_hash = ? WHERE name = ?", commitHashNull, branchName); err != nil {
-			return fmt.Errorf("failed to update branch head: %w", err)
-		}
-	} else {
-		// Create branch if it doesn't exist
-		if _, err := tx.Exec("INSERT INTO branches (name, commit_hash, created_at) VALUES (?, ?, ?)",
-			branchName, commitHashNull, time.Now().Unix()); err != nil {
-			return fmt.Errorf("failed to create branch: %w", err)
-		}
-	}
-
-	// Add reflog entry
-	var oldValueNull, newValueNull sql.NullString
-	if oldCommitHash != "" {
-		oldValueNull = sql.NullString{String: oldCommitHash, Valid: true}
-	}
-	if newCommitHash != "" {
-		newValueNull = sql.NullString{String: newCommitHash, Valid: true}
-	}
-
-	if _, err := tx.Exec(`INSERT INTO reflog (commit_hash, ref_name, ref_type, old_value, new_value, operation, timestamp) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		newValueNull, branchName, "branch", oldValueNull, newValueNull, "update", time.Now().Unix()); err != nil {
-		return fmt.Errorf("failed to add reflog entry: %w", err)
-	}
-
-	return tx.Commit()
-}
-
-// GetBranchHead gets the HEAD commit of a branch
-func (d *Database) GetBranchHead(name string) (string, error) {
-	var commitHash sql.NullString
-	err := d.db.QueryRow("SELECT commit_hash FROM branches WHERE name = ?", name).Scan(&commitHash)
-	if err == sql.ErrNoRows {
-		return "", nil
-	}
-	if err != nil {
-		return "", err
-	}
-	if commitHash.Valid {
-		return commitHash.String, nil
-	}
-	return "", nil
-}
-
-// ListBranches lists all branches
-func (d *Database) ListBranches() ([]*models.Branch, error) {
-	rows, err := d.db.Query("SELECT name, commit_hash, created_at FROM branches ORDER BY name")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var branches []*models.Branch
-	for rows.Next() {
-		var branch models.Branch
-		var commitHash sql.NullString
-		if err := rows.Scan(&branch.Name, &commitHash, &branch.CreatedAt); err != nil {
-			continue
-		}
-		if commitHash.Valid {
-			branch.CommitHash = commitHash.String
-		}
-		branches = append(branches, &branch)
-	}
-
-	return branches, nil
-}
-
-// CreateTag creates a new tag
-func (d *Database) CreateTag(tag *models.Tag) error {
-	query := `INSERT INTO tags (name, commit_hash, author, message, created_at) 
-		VALUES (?, ?, ?, ?, ?)`
-	_, err := d.db.Exec(query, tag.Name, tag.CommitHash, tag.Author, tag.Message, tag.CreatedAt)
-	if err != nil {
-		return &DatabaseException{Message: fmt.Sprintf("Failed to create tag: %v", err)}
-	}
-	return nil
-}
-
-// DeleteTag deletes a tag
-func (d *Database) DeleteTag(name string) error {
-	_, err := d.db.Exec("DELETE FROM tags WHERE name = ?", name)
-	return err
-}
-
-// GetTag retrieves a tag by name
-func (d *Database) GetTag(name string) (*models.Tag, error) {
-	var tag models.Tag
-	err := d.db.QueryRow(
-		"SELECT name, commit_hash, author, message, created_at FROM tags WHERE name = ?",
-		name,
-	).Scan(&tag.Name, &tag.CommitHash, &tag.Author, &tag.Message, &tag.CreatedAt)
-	if err == sql.ErrNoRows {
-		return nil, &DatabaseException{Message: fmt.Sprintf("Tag not found: %s", name)}
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &tag, nil
-}
-
-// ListTags lists all tags
-func (d *Database) ListTags() ([]*models.Tag, error) {
-	rows, err := d.db.Query("SELECT name, commit_hash, author, message, created_at FROM tags ORDER BY name")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var tags []*models.Tag
-	for rows.Next() {
-		var tag models.Tag
-		if err := rows.Scan(&tag.Name, &tag.CommitHash, &tag.Author, &tag.Message, &tag.CreatedAt); err != nil {
-			continue
-		}
-		tags = append(tags, &tag)
-	}
-
-	return tags, nil
-}
-
-// GetTagByCommitHash gets a tag by commit hash
-func (d *Database) GetTagByCommitHash(commitHash string) (string, error) {
-	var name string
-	err := d.db.QueryRow("SELECT name FROM tags WHERE commit_hash = ? LIMIT 1", commitHash).Scan(&name)
-	if err == sql.ErrNoRows {
-		return "", nil
-	}
-	if err != nil {
-		return "", err
-	}
-	return name, nil
 }
 
 // CreateStash creates a new stash
@@ -982,132 +410,6 @@ func (d *Database) GetApprovals(assetType, assetID string) ([]*models.Approval, 
 
 	return approvals, nil
 }
-
-// StoreBlob stores blob metadata
-func (d *Database) StoreBlob(hash, path string) error {
-	query := `INSERT INTO blobs (hash, path, stored_at) VALUES (?, ?, ?)`
-	_, err := d.db.Exec(query, hash, path, time.Now().Unix())
-	return err
-}
-
-// GetBlobPath gets the path for a blob
-func (d *Database) GetBlobPath(hash string) (string, error) {
-	var path string
-	err := d.db.QueryRow("SELECT path FROM blobs WHERE hash = ?", hash).Scan(&path)
-	if err == sql.ErrNoRows {
-		return "", nil
-	}
-	return path, err
-}
-
-// AddReflogEntry adds an entry to the reflog
-func (d *Database) AddReflogEntry(commitHash, refName, refType, oldValue, newValue, operation string) error {
-	query := `INSERT INTO reflog (commit_hash, ref_name, ref_type, old_value, new_value, operation, timestamp) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
-
-	var oldValueNull sql.NullString
-	if oldValue != "" {
-		oldValueNull = sql.NullString{String: oldValue, Valid: true}
-	}
-
-	var newValueNull sql.NullString
-	if newValue != "" {
-		newValueNull = sql.NullString{String: newValue, Valid: true}
-	}
-
-	_, err := d.db.Exec(query, commitHash, refName, refType, oldValueNull, newValueNull, operation, time.Now().Unix())
-	return err
-}
-
-// GetReflog gets reflog entries
-func (d *Database) GetReflog(refName string, limit int) ([]*models.ReflogEntry, error) {
-	var rows *sql.Rows
-	var err error
-
-	if refName == "" {
-		rows, err = d.db.Query(
-			"SELECT id, commit_hash, ref_name, ref_type, old_value, new_value, operation, timestamp FROM reflog ORDER BY timestamp DESC LIMIT ?",
-			limit,
-		)
-	} else {
-		rows, err = d.db.Query(
-			"SELECT id, commit_hash, ref_name, ref_type, old_value, new_value, operation, timestamp FROM reflog WHERE ref_name = ? ORDER BY timestamp DESC LIMIT ?",
-			refName, limit,
-		)
-	}
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var entries []*models.ReflogEntry
-	for rows.Next() {
-		var entry models.ReflogEntry
-		var oldValue sql.NullString
-		var newValue sql.NullString
-		if err := rows.Scan(&entry.ID, &entry.CommitHash, &entry.RefName, &entry.RefType, &oldValue, &newValue, &entry.Operation, &entry.Timestamp); err != nil {
-			continue
-		}
-		if oldValue.Valid {
-			entry.OldValue = oldValue.String
-		}
-		if newValue.Valid {
-			entry.NewValue = newValue.String
-		}
-		entries = append(entries, &entry)
-	}
-
-	return entries, nil
-}
-
-// ExpireReflog removes old reflog entries
-func (d *Database) ExpireReflog(expireBefore int64) error {
-	_, err := d.db.Exec("DELETE FROM reflog WHERE timestamp < ?", expireBefore)
-	return err
-}
-
-// IsCommitInReflog checks if a commit is in reflog
-func (d *Database) IsCommitInReflog(commitHash string) (bool, error) {
-	var count int
-	err := d.db.QueryRow("SELECT COUNT(*) FROM reflog WHERE commit_hash = ?", commitHash).Scan(&count)
-	if err != nil {
-		return false, err
-	}
-	return count > 0, nil
-}
-
-// GetCommitsInReflog gets all commit hashes in reflog
-func (d *Database) GetCommitsInReflog() ([]string, error) {
-	rows, err := d.db.Query("SELECT DISTINCT commit_hash FROM reflog")
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var commits []string
-	for rows.Next() {
-		var hash string
-		if err := rows.Scan(&hash); err != nil {
-			continue
-		}
-		commits = append(commits, hash)
-	}
-
-	return commits, nil
-}
-
-// RestoreCommitFromReflog restores a commit from reflog (marks as not deleted)
-func (d *Database) RestoreCommitFromReflog(commitHash string) (bool, error) {
-	// Remove delete entries from reflog
-	result, err := d.db.Exec("DELETE FROM reflog WHERE commit_hash = ? AND operation = 'delete'", commitHash)
-	if err != nil {
-		return false, err
-	}
-	rowsAffected, _ := result.RowsAffected()
-	return rowsAffected > 0, nil
-}
-
-// ========== Object Methods ==========
 
 // AddObject adds a new object to the database
 func (d *Database) AddObject(obj *models.Object) error {
@@ -1699,8 +1001,6 @@ func (d *Database) GetObjectMetadata(commitHash, filePath, objectName string) (m
 
 	return obj.Metadata, nil
 }
-
-// ========== Review Methods ==========
 
 // AddReview adds a new review
 func (d *Database) AddReview(review *models.Review) (int64, error) {

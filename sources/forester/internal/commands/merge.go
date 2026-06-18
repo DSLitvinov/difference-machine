@@ -41,19 +41,14 @@ func Merge(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
 
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
-
-	refs := core.NewRefs(repoPath)
+	storage := repo.Storage
+	refs := repo.Refs
 	hooks := core.NewHooks(repoPath)
 
 	// Parse arguments
@@ -79,12 +74,12 @@ func Merge(args []string) error {
 
 	// Handle abort
 	if opts.Abort {
-		return abortMerge(repoPath, db, refs)
+		return abortMerge(repoPath, repo)
 	}
 
 	// Handle continue
 	if opts.Continue {
-		return continueMerge(repoPath, db, storage, refs, hooks)
+		return continueMerge(repoPath, repo, hooks)
 	}
 
 	if opts.BranchToMerge == "" {
@@ -102,33 +97,28 @@ func Merge(args []string) error {
 	}
 
 	// Check if branch exists
-	branches, err := db.ListBranches()
+	branches, err := repo.ListBranches()
 	if err != nil {
 		return fmt.Errorf("failed to list branches: %w", err)
 	}
 
-	var targetBranch *models.Branch
-	for _, branch := range branches {
-		if branch.Name == opts.BranchToMerge {
-			targetBranch = branch
+	targetFound := false
+	for _, branchName := range branches {
+		if branchName == opts.BranchToMerge {
+			targetFound = true
 			break
 		}
 	}
 
-	if targetBranch == nil {
+	if !targetFound {
 		return fmt.Errorf("branch '%s' not found", opts.BranchToMerge)
 	}
 
-	// Get current HEAD
-	currentHead, err := db.GetBranchHead(currentBranch)
-	if err != nil || currentHead == "" {
-		currentHead, _ = refs.GetHead(currentBranch)
-	}
+	currentHead, err := repo.GetBranchHead(currentBranch)
 
-	// Get target branch HEAD
-	targetHead := targetBranch.CommitHash
-	if targetHead == "" {
-		targetHead, _ = refs.GetHead(opts.BranchToMerge)
+	targetHead, err := repo.GetBranchHead(opts.BranchToMerge)
+	if err != nil {
+		targetHead = ""
 	}
 
 	if targetHead == "" {
@@ -143,18 +133,14 @@ func Merge(args []string) error {
 
 	// Check if current HEAD is ancestor of target (fast-forward possible)
 	if currentHead != "" {
-		if isAncestor(db, currentHead, targetHead) {
-			// Fast-forward merge
+		if isAncestor(repo, currentHead, targetHead) {
 			if opts.FFOnly {
-				// Fast-forward only: proceed with fast-forward
-				return performFastForward(repoPath, db, refs, currentBranch, targetHead)
+				return performFastForward(repoPath, repo, currentBranch, targetHead)
 			}
 			if opts.NoFF {
-				// Force merge commit even for fast-forward
-				return performMergeCommit(repoPath, db, storage, refs, hooks, currentBranch, currentHead, targetHead, opts.BranchToMerge, opts)
+				return performMergeCommit(repoPath, repo, storage, refs, hooks, currentBranch, currentHead, targetHead, opts.BranchToMerge, opts)
 			}
-			// Normal fast-forward
-			return performFastForward(repoPath, db, refs, currentBranch, targetHead)
+			return performFastForward(repoPath, repo, currentBranch, targetHead)
 		}
 	}
 
@@ -164,7 +150,7 @@ func Merge(args []string) error {
 	}
 
 	// Perform merge commit
-	return performMergeCommit(repoPath, db, storage, refs, hooks, currentBranch, currentHead, targetHead, opts.BranchToMerge, opts)
+	return performMergeCommit(repoPath, repo, storage, refs, hooks, currentBranch, currentHead, targetHead, opts.BranchToMerge, opts)
 }
 
 // parseMergeArgs parses merge command arguments
@@ -213,22 +199,15 @@ func parseMergeArgs(args []string) (MergeOptions, error) {
 }
 
 // performFastForward performs a fast-forward merge
-func performFastForward(repoPath string, db *core.Database, refs *core.Refs, currentBranch, targetHead string) error {
-	// Update HEAD
-	if err := db.SetBranchHead(currentBranch, targetHead); err != nil {
+func performFastForward(repoPath string, repo *core.Repository, currentBranch, targetHead string) error {
+	oldHead, _ := repo.GetBranchHead(currentBranch)
+	if err := repo.SetBranchHead(currentBranch, targetHead, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
 	}
-	if err := refs.SetHead(currentBranch, targetHead); err != nil {
-		return fmt.Errorf("failed to set ref head: %w", err)
-	}
 
-	// Restore files from target commit
-	storage, err := core.NewStorage(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to create storage: %w", err)
-	}
+	storage := repo.Storage
 
-	targetCommit, err := db.GetCommit(targetHead)
+	targetCommit, err := repo.GetCommit(targetHead)
 	if err != nil {
 		return fmt.Errorf("failed to get target commit: %w", err)
 	}
@@ -259,22 +238,22 @@ type ConflictInfo struct {
 }
 
 // performMergeCommit performs a merge by creating a merge commit
-func performMergeCommit(repoPath string, db *core.Database, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
+func performMergeCommit(repoPath string, repo *core.Repository, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
 	currentBranch, currentHead, targetHead, branchToMerge string, opts MergeOptions) error {
 
 	// Find merge base (common ancestor)
-	mergeBase, err := findMergeBase(db, currentHead, targetHead)
+	mergeBase, err := findMergeBase(repo, currentHead, targetHead)
 	if err != nil {
 		return fmt.Errorf("failed to find merge base: %w", err)
 	}
 
 	// Get commits
-	currentCommit, err := db.GetCommit(currentHead)
+	currentCommit, err := repo.GetCommit(currentHead)
 	if err != nil {
 		return fmt.Errorf("failed to get current commit: %w", err)
 	}
 
-	targetCommit, err := db.GetCommit(targetHead)
+	targetCommit, err := repo.GetCommit(targetHead)
 	if err != nil {
 		return fmt.Errorf("failed to get target commit: %w", err)
 	}
@@ -292,7 +271,7 @@ func performMergeCommit(repoPath string, db *core.Database, storage *core.Storag
 
 	var mergeBaseTree models.Tree
 	if mergeBase != "" {
-		mergeBaseCommit, err := db.GetCommit(mergeBase)
+		mergeBaseCommit, err := repo.GetCommit(mergeBase)
 		if err == nil {
 			mergeBaseTreeContent, err := storage.GetTreeContent(mergeBaseCommit.TreeHash)
 			if err == nil {
@@ -500,7 +479,7 @@ func performMergeCommit(repoPath string, db *core.Database, storage *core.Storag
 
 	// If --squash, create a single commit with all changes
 	if opts.Squash {
-		return performSquashMerge(repoPath, db, storage, refs, hooks, currentBranch, currentHead, targetHead, branchToMerge, index)
+		return performSquashMerge(repoPath, repo, storage, refs, hooks, currentBranch, currentHead, targetHead, branchToMerge, index)
 	}
 
 	// Get author
@@ -570,28 +549,14 @@ func performMergeCommit(repoPath string, db *core.Database, storage *core.Storag
 
 	newCommitHash := core.HashString(string(commitJSONForHash))
 	commit.Hash = newCommitHash
-	commitJSON, err := commit.ToJSON()
-	if err != nil {
-		return fmt.Errorf("failed to serialize final commit: %w", err)
-	}
 
-	// Store commit
-	if _, err := storage.StoreCommit(commitJSON); err != nil {
+	if _, err := repo.StoreCommit(commit); err != nil {
 		return fmt.Errorf("failed to store commit: %w", err)
 	}
 
-	if _, err := db.CreateCommit(commit); err != nil {
-		return fmt.Errorf("failed to create commit: %w", err)
-	}
-
-	// Update branch HEAD
 	oldHead := currentHead
-	if err := db.UpdateBranchHeadAtomic(currentBranch, newCommitHash, oldHead); err != nil {
+	if err := repo.SetBranchHead(currentBranch, newCommitHash, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, newCommitHash); err != nil {
-		_ = db.SetBranchHead(currentBranch, oldHead)
-		return fmt.Errorf("failed to set ref head: %w", err)
 	}
 
 	// Execute post-commit hook
@@ -618,7 +583,7 @@ func performMergeCommit(repoPath string, db *core.Database, storage *core.Storag
 }
 
 // performSquashMerge creates a single commit with all changes from the branch
-func performSquashMerge(repoPath string, db *core.Database, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
+func performSquashMerge(repoPath string, repo *core.Repository, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
 	currentBranch, currentHead, targetHead, branchToMerge string, index *core.Index) error {
 
 	// Get author
@@ -688,28 +653,14 @@ func performSquashMerge(repoPath string, db *core.Database, storage *core.Storag
 
 	newCommitHash := core.HashString(string(commitJSONForHash))
 	commit.Hash = newCommitHash
-	commitJSON, err := commit.ToJSON()
-	if err != nil {
-		return fmt.Errorf("failed to serialize final commit: %w", err)
-	}
 
-	// Store commit
-	if _, err := storage.StoreCommit(commitJSON); err != nil {
+	if _, err := repo.StoreCommit(commit); err != nil {
 		return fmt.Errorf("failed to store commit: %w", err)
 	}
 
-	if _, err := db.CreateCommit(commit); err != nil {
-		return fmt.Errorf("failed to create commit: %w", err)
-	}
-
-	// Update branch HEAD
 	oldHead := currentHead
-	if err := db.UpdateBranchHeadAtomic(currentBranch, newCommitHash, oldHead); err != nil {
+	if err := repo.SetBranchHead(currentBranch, newCommitHash, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, newCommitHash); err != nil {
-		_ = db.SetBranchHead(currentBranch, oldHead)
-		return fmt.Errorf("failed to set ref head: %w", err)
 	}
 
 	// Execute post-commit hook
@@ -801,7 +752,9 @@ func loadMergeState(repoPath string) (map[string]interface{}, error) {
 }
 
 // continueMerge continues a merge after resolving conflicts
-func continueMerge(repoPath string, db *core.Database, storage *core.Storage, refs *core.Refs, hooks *core.Hooks) error {
+func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) error {
+	storage := repo.Storage
+	refs := repo.Refs
 	state, err := loadMergeState(repoPath)
 	if err != nil {
 		return err
@@ -880,11 +833,11 @@ func continueMerge(repoPath string, db *core.Database, storage *core.Storage, re
 
 	// Create merge commit
 	opts := MergeOptions{}
-	return performMergeCommitAfterContinue(repoPath, db, storage, refs, hooks, currentBranch, currentHead, targetHead, branchToMerge, opts, index)
+	return performMergeCommitAfterContinue(repoPath, repo, storage, refs, hooks, currentBranch, currentHead, targetHead, branchToMerge, opts, index)
 }
 
 // performMergeCommitAfterContinue performs merge commit after continue (with pre-built index)
-func performMergeCommitAfterContinue(repoPath string, db *core.Database, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
+func performMergeCommitAfterContinue(repoPath string, repo *core.Repository, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
 	currentBranch, currentHead, targetHead, branchToMerge string, opts MergeOptions, index *core.Index) error {
 
 	// Get author
@@ -954,28 +907,14 @@ func performMergeCommitAfterContinue(repoPath string, db *core.Database, storage
 
 	newCommitHash := core.HashString(string(commitJSONForHash))
 	commit.Hash = newCommitHash
-	commitJSON, err := commit.ToJSON()
-	if err != nil {
-		return fmt.Errorf("failed to serialize final commit: %w", err)
-	}
 
-	// Store commit
-	if _, err := storage.StoreCommit(commitJSON); err != nil {
+	if _, err := repo.StoreCommit(commit); err != nil {
 		return fmt.Errorf("failed to store commit: %w", err)
 	}
 
-	if _, err := db.CreateCommit(commit); err != nil {
-		return fmt.Errorf("failed to create commit: %w", err)
-	}
-
-	// Update branch HEAD
 	oldHead := currentHead
-	if err := db.UpdateBranchHeadAtomic(currentBranch, newCommitHash, oldHead); err != nil {
+	if err := repo.SetBranchHead(currentBranch, newCommitHash, oldHead); err != nil {
 		return fmt.Errorf("failed to update branch head: %w", err)
-	}
-	if err := refs.SetHead(currentBranch, newCommitHash); err != nil {
-		_ = db.SetBranchHead(currentBranch, oldHead)
-		return fmt.Errorf("failed to set ref head: %w", err)
 	}
 
 	// Remove merge state and binary conflict staging
@@ -1008,7 +947,7 @@ func performMergeCommitAfterContinue(repoPath string, db *core.Database, storage
 }
 
 // findMergeBase finds the common ancestor of two commits
-func findMergeBase(db *core.Database, commit1, commit2 string) (string, error) {
+func findMergeBase(repo *core.Repository, commit1, commit2 string) (string, error) {
 	if commit1 == "" || commit2 == "" {
 		return "", nil
 	}
@@ -1023,7 +962,7 @@ func findMergeBase(db *core.Database, commit1, commit2 string) (string, error) {
 			return nil
 		}
 		visited[commit] = true
-		c, err := db.GetCommit(commit)
+		c, err := repo.GetCommit(commit)
 		if err != nil {
 			return err
 		}
@@ -1053,7 +992,7 @@ func findMergeBase(db *core.Database, commit1, commit2 string) (string, error) {
 		if visited[commit] {
 			return commit, nil
 		}
-		c, err := db.GetCommit(commit)
+		c, err := repo.GetCommit(commit)
 		if err != nil {
 			return "", err
 		}
@@ -1074,7 +1013,7 @@ func findMergeBase(db *core.Database, commit1, commit2 string) (string, error) {
 }
 
 // isAncestor checks if ancestor is an ancestor of commit
-func isAncestor(db *core.Database, ancestor, commit string) bool {
+func isAncestor(repo *core.Repository, ancestor, commit string) bool {
 	visited := make(map[string]bool)
 	var check func(string) bool
 	check = func(c string) bool {
@@ -1088,7 +1027,7 @@ func isAncestor(db *core.Database, ancestor, commit string) bool {
 			return false
 		}
 		visited[c] = true
-		commit, err := db.GetCommit(c)
+		commit, err := repo.GetCommit(c)
 		if err != nil {
 			return false
 		}
@@ -1108,7 +1047,8 @@ func isAncestor(db *core.Database, ancestor, commit string) bool {
 }
 
 // abortMerge aborts an in-progress merge
-func abortMerge(repoPath string, db *core.Database, refs *core.Refs) error {
+func abortMerge(repoPath string, repo *core.Repository) error {
+	refs := repo.Refs
 	mergeStatePath := filepath.Join(repoPath, ".DFM", "MERGE_HEAD")
 	if !utils.Exists(mergeStatePath) {
 		return fmt.Errorf("no merge in progress")
@@ -1122,8 +1062,8 @@ func abortMerge(repoPath string, db *core.Database, refs *core.Refs) error {
 			if currentBranch == "" {
 				currentBranch = "main"
 			}
-			_ = db.SetBranchHead(currentBranch, currentHead)
-			_ = refs.SetHead(currentBranch, currentHead)
+			oldHead, _ := repo.GetBranchHead(currentBranch)
+			_ = repo.SetBranchHead(currentBranch, currentHead, oldHead)
 		}
 	}
 
