@@ -517,12 +517,4 @@ Rectangle {
             filePath: diffPanel.filePath
         }
     }
-
-    // Vertical divider line on the left
-    Rectangle {
-        anchors.left: parent.left
-        width: 1
-        height: parent.height
-        color: theme.divider
-    }
 }

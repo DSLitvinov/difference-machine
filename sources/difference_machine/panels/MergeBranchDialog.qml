@@ -165,7 +165,6 @@ Popup {
                 text: qsTr("Ветка для слияния:")
                 color: theme.textPrimary
                 font.pixelSize: theme ? theme.fontPixelSizeBody : 12
-                font.bold: true
                 Layout.fillWidth: true
             }
 
@@ -243,11 +242,9 @@ Popup {
             Layout.minimumHeight: 200
             orientation: Qt.Horizontal
 
-            handle: Rectangle {
-                implicitWidth: 1
-                implicitHeight: 1
-                color: theme.divider
-                opacity: SplitHandle.hovered || SplitHandle.pressed ? 0.9 : 0.6
+            handle: DmSplitHandle {
+                theme: mergeBranchDialog.theme
+                isVerticalBar: true
             }
 
             ColumnLayout {
@@ -259,7 +256,6 @@ Popup {
                     text: qsTr("Файлы для слияния:")
                     color: theme.textPrimary
                     font.pixelSize: theme ? theme.fontPixelSizeBody : 12
-                    font.bold: true
                     Layout.fillWidth: true
                 }
 
@@ -333,7 +329,6 @@ Popup {
                     text: qsTr("Объекты для слияния:")
                     color: theme.textPrimary
                     font.pixelSize: theme ? theme.fontPixelSizeBody : 12
-                    font.bold: true
                     Layout.fillWidth: true
                     Layout.leftMargin: 12
                 }

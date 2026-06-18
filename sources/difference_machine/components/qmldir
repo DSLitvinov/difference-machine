@@ -6,3 +6,4 @@ DmComboBox 1.0 DmComboBox.qml
 DmCheckBox 1.0 DmCheckBox.qml
 DmSearchField 1.0 DmSearchField.qml
 DmSegmentControl 1.0 DmSegmentControl.qml
+DmSplitHandle 1.0 DmSplitHandle.qml

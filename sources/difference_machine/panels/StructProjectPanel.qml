@@ -774,7 +774,6 @@ Rectangle {
                             text: qsTr("Message *")
                             color: theme.textPrimary
                             font.pixelSize: theme.fontPixelSizeSmall
-                            font.bold: true
                         }
 
                         DmTextArea {
@@ -799,7 +798,6 @@ Rectangle {
                         text: qsTr("Author")
                         color: theme.textPrimary
                         font.pixelSize: theme.fontPixelSizeSmall
-                        font.bold: true
                     }
 
                     DmTextField {
@@ -851,7 +849,6 @@ Rectangle {
                         text: qsTr("Email")
                         color: theme.textPrimary
                         font.pixelSize: theme.fontPixelSizeSmall
-                        font.bold: true
                     }
 
                     DmTextField {
@@ -895,7 +892,6 @@ Rectangle {
                         text: qsTr("Tag")
                         color: theme.textPrimary
                         font.pixelSize: theme.fontPixelSizeSmall
-                        font.bold: true
                     }
 
                     DmTextField {
@@ -930,11 +926,5 @@ Rectangle {
 
     }
 
-    Rectangle {
-        anchors.right: parent.right
-        width: 1
-        height: parent.height
-        color: theme.divider
-    }
 }
 

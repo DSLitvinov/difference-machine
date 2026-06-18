@@ -292,11 +292,9 @@ ApplicationWindow {
             Layout.fillWidth: true
             Layout.fillHeight: true
             orientation: Qt.Horizontal
-            handle: Rectangle {
-                implicitWidth: 1
-                implicitHeight: 1
-                color: theme.divider
-                opacity: SplitHandle.hovered || SplitHandle.pressed ? 0.9 : 0.6
+            handle: DmSplitHandle {
+                theme: window.theme
+                isVerticalBar: true
             }
             // Левая панель: выбор репозитория (всегда сверху) + ветка (при Изменены) + StructProjectPanel
             ColumnLayout {
@@ -419,11 +417,9 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         orientation: Qt.Horizontal
-                        handle: Rectangle {
-                            implicitWidth: 1
-                            implicitHeight: 1
-                            color: theme.divider
-                            opacity: SplitHandle.hovered || SplitHandle.pressed ? 0.9 : 0.6
+                        handle: DmSplitHandle {
+                            theme: window.theme
+                            isVerticalBar: true
                         }
                         CommitsListPanel {
                             id: commitsListPanel
@@ -447,11 +443,9 @@ ApplicationWindow {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
                                 orientation: Qt.Horizontal
-                                handle: Rectangle {
-                                    implicitWidth: 1
-                                    implicitHeight: 1
-                                    color: theme.divider
-                                    opacity: SplitHandle.hovered || SplitHandle.pressed ? 0.9 : 0.6
+                                handle: DmSplitHandle {
+                                    theme: window.theme
+                                    isVerticalBar: true
                                 }
                                 ChangesPanel {
                                     id: commitFilesPanel

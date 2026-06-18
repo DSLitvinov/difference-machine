@@ -226,13 +226,6 @@ Rectangle {
         }
     }
 
-    Rectangle {
-        anchors.right: parent.right
-        width: 1
-        height: parent.height
-        color: theme.divider
-    }
-
     Menu {
         id: commitContextMenu
         function triggerAction(action) {
@@ -312,7 +305,6 @@ Rectangle {
         contentItem: ColumnLayout {
             Text {
                 text: qsTr("Создать ветку от коммита")
-                font.bold: true
                 color: theme.textPrimary
                 Layout.fillWidth: true
             }

@@ -53,6 +53,12 @@ QtObject {
 
     readonly property color divider: _t("divider", "#333333")
 
+    readonly property color splitHandleColor: _t("splitHandleColor", "#333333")
+    readonly property color splitHandleColorHover: _t("splitHandleColorHover", "#7f6df2")
+    readonly property int splitHandleWidth: _t("splitHandleWidth", 1)
+    readonly property int splitHandleWidthHover: _t("splitHandleWidthHover", 3)
+    readonly property int splitHandleHitWidth: _t("splitHandleHitWidth", 4)
+
     readonly property color textPrimary: _t("textPrimary", "#dcddde")
     readonly property color textSecondary: _t("textSecondary", "#999999")
     readonly property color textTertiary: _t("textTertiary", "#6b6b6b")

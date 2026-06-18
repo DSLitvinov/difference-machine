@@ -170,7 +170,6 @@ Rectangle {
                 text: qsTr("Branch")
                 color: theme.textPrimary
                 font.pixelSize: theme.fontPixelSizeTitle
-                font.bold: true
             }
 
             Rectangle {
@@ -457,7 +456,6 @@ Rectangle {
         contentItem: ColumnLayout {
             Text {
                 text: qsTr("Имя ветки")
-                font.bold: true
                 color: theme.textPrimary
                 Layout.fillWidth: true
             }

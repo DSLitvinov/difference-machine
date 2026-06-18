@@ -45,7 +45,7 @@ Rectangle {
                     color: root.currentIndex === index ? theme.textPrimary : theme.textSecondary
                     font.family: theme.fontFamilyUI
                     font.pixelSize: theme.fontPixelSizeBody
-                    font.weight: root.currentIndex === index ? Font.Medium : Font.Normal
+                    font.weight: Font.Normal
                 }
 
                 MouseArea {

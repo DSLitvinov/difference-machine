@@ -184,7 +184,6 @@ Dialog {
                         Text {
                             text: qsTr("Язык")
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 
@@ -247,7 +246,6 @@ Dialog {
                         Text {
                             text: qsTr("Пользователь")
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 
@@ -305,7 +303,6 @@ Dialog {
                         Text {
                             text: "Forester"
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 
@@ -360,7 +357,6 @@ Dialog {
                         Text {
                             text: qsTr("Редакторы")
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 
@@ -414,7 +410,6 @@ Dialog {
                         Text {
                             text: qsTr("Аддоны")
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 
@@ -468,7 +463,6 @@ Dialog {
                         Text {
                             text: qsTr("Сборщик мусора")
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 
@@ -528,7 +522,6 @@ Dialog {
                         Text {
                             text: qsTr("Репозитории")
                             font.pixelSize: theme.fontPixelSizeTitle
-                            font.bold: true
                             color: theme.textPrimary
                         }
 

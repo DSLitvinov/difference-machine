@@ -175,18 +175,4 @@ Rectangle {
             }
         }
     }
-
-    // Vertical divider lines on both sides
-    Rectangle {
-        anchors.left: parent.left
-        width: 1
-        height: parent.height
-        color: theme.divider
-    }
-    Rectangle {
-        anchors.right: parent.right
-        width: 1
-        height: parent.height
-        color: theme.divider
-    }
 }

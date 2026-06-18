@@ -22,6 +22,13 @@ QtObject {
 
     readonly property color divider: "#333333"
 
+    // Split pane resize handles (Obsidian --divider-* variables)
+    readonly property color splitHandleColor: "#333333"
+    readonly property color splitHandleColorHover: "#7f6df2"
+    readonly property int splitHandleWidth: 1
+    readonly property int splitHandleWidthHover: 3
+    readonly property int splitHandleHitWidth: 4
+
     readonly property color textPrimary: "#dcddde"
     readonly property color textSecondary: "#999999"
     readonly property color textTertiary: "#6b6b6b"
