@@ -694,19 +694,17 @@ func isBinaryConflictPath(path string) bool {
 
 // markConflictInFile marks conflict in a file
 func markConflictInFile(storage *core.Storage, filePath string, ourHash, theirHash, baseHash string) error {
-	// Get our version
 	ourContentBytes, err := storage.GetBlobContent(ourHash)
-	ourContent := ""
-	if err == nil {
-		ourContent = string(ourContentBytes)
+	if err != nil {
+		return fmt.Errorf("get our version for %s: %w", filePath, err)
 	}
+	ourContent := string(ourContentBytes)
 
-	// Get their version
 	theirContentBytes, err := storage.GetBlobContent(theirHash)
-	theirContent := ""
-	if err == nil {
-		theirContent = string(theirContentBytes)
+	if err != nil {
+		return fmt.Errorf("get their version for %s: %w", filePath, err)
 	}
+	theirContent := string(theirContentBytes)
 
 	// Create conflict markers
 	conflictContent := fmt.Sprintf("<<<<<<< HEAD\n%s=======\n%s>>>>>>> merged branch\n", ourContent, theirContent)

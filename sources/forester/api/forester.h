@@ -26,6 +26,8 @@ typedef struct {
     char* message;      // Commit message
     long long timestamp; // Unix timestamp
     int type;           // Commit type (0 = project)
+    char* screenshot_path;
+    char* error;        // Error message, NULL on success
 } ForesterCommit;
 
 // Status structure
@@ -44,6 +46,7 @@ typedef struct {
     char** unstaged_deleted_files; // Array of unstaged deleted file paths
     int untracked_count;       // Number of untracked files
     char** untracked_files;    // Array of untracked file paths
+    char* error;               // Error message, NULL on success
 } ForesterStatus;
 
 // Branch structure
@@ -58,12 +61,14 @@ typedef struct {
 typedef struct {
     int count;          // Number of commits
     ForesterCommit* commits; // Array of commits
+    char* error;        // Error message, NULL on success
 } ForesterCommitList;
 
 // Branch list structure
 typedef struct {
     int count;          // Number of branches
     ForesterBranch* branches; // Array of branches
+    char* error;        // Error message, NULL on success
 } ForesterBranchList;
 
 // GC stats/result structure
@@ -128,6 +133,7 @@ typedef struct {
 typedef struct {
     int count;          // Number of files
     ForesterFileEntry* files; // Array of files
+    char* error;        // Error message, NULL on success
 } ForesterFileList;
 
 // Object structure (for metadata storage)

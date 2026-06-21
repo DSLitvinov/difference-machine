@@ -65,7 +65,10 @@ func (r *Repository) GetCommit(hash string) (*models.Commit, error) {
 	}
 	content, err := r.Storage.GetCommitContent(hash)
 	if err != nil {
-		return nil, &ErrCommitNotFound{Hash: hash}
+		if strings.Contains(err.Error(), "not found") {
+			return nil, &ErrCommitNotFound{Hash: hash}
+		}
+		return nil, fmt.Errorf("get commit %s: %w", hash, err)
 	}
 	var commit models.Commit
 	if err := json.Unmarshal([]byte(content), &commit); err != nil {
@@ -227,24 +230,29 @@ func (r *Repository) FindCommitByPrefix(prefix string) (*models.Commit, error) {
 		return nil, &ErrCommitNotFound{Hash: prefix}
 	}
 
-	var found *models.Commit
-	_ = r.Storage.ListObjects(func(hash, objectType string) error {
+	var matches []*models.Commit
+	err := r.Storage.ListObjects(func(objHash, objectType string) error {
 		if objectType != ObjectTypeCommit {
 			return nil
 		}
-		if strings.HasPrefix(hash, prefix) {
-			commit, err := r.GetCommit(hash)
+		if strings.HasPrefix(objHash, prefix) {
+			commit, err := r.GetCommit(objHash)
 			if err == nil {
-				found = commit
-				return fmt.Errorf("found") // stop walk
+				matches = append(matches, commit)
 			}
 		}
 		return nil
 	})
-	if found != nil {
-		return found, nil
+	if err != nil {
+		return nil, fmt.Errorf("find commit by prefix: %w", err)
 	}
-	return nil, &ErrCommitNotFound{Hash: prefix}
+	if len(matches) == 0 {
+		return nil, &ErrCommitNotFound{Hash: prefix}
+	}
+	if len(matches) > 1 {
+		return nil, &ErrAmbiguousCommitPrefix{Prefix: prefix}
+	}
+	return matches[0], nil
 }
 
 // CreateTag creates a lightweight or annotated tag.

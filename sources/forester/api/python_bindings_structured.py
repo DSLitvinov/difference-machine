@@ -33,6 +33,7 @@ class ForesterStatus(ctypes.Structure):
         ("unstaged_deleted_files", ctypes.POINTER(ctypes.c_char_p)),
         ("untracked_count", ctypes.c_int),
         ("untracked_files", ctypes.POINTER(ctypes.c_char_p)),
+        ("error", ctypes.c_char_p),
     ]
     
     def to_dict(self):
@@ -79,6 +80,7 @@ class ForesterCommit(ctypes.Structure):
         ("timestamp", ctypes.c_longlong),
         ("type", ctypes.c_int),
         ("screenshot_path", ctypes.c_char_p),
+        ("error", ctypes.c_char_p),
     ]
     
     def to_dict(self):
@@ -123,12 +125,14 @@ class ForesterCommitList(ctypes.Structure):
     _fields_ = [
         ("count", ctypes.c_int),
         ("commits", ctypes.POINTER(ForesterCommit)),
+        ("error", ctypes.c_char_p),
     ]
 
 class ForesterBranchList(ctypes.Structure):
     _fields_ = [
         ("count", ctypes.c_int),
         ("branches", ctypes.POINTER(ForesterBranch)),
+        ("error", ctypes.c_char_p),
     ]
 
 
@@ -271,6 +275,7 @@ class ForesterFileList(ctypes.Structure):
     _fields_ = [
         ("count", ctypes.c_int),
         ("files", ctypes.POINTER(ForesterFileEntry)),
+        ("error", ctypes.c_char_p),
     ]
 
 
@@ -737,6 +742,10 @@ class ForesterAPI:
             return None
         
         status = status_ptr.contents
+        if status.error:
+            error_msg = status.error.decode('utf-8')
+            self.lib.ForesterFreeStatus(status_ptr)
+            raise RuntimeError(error_msg)
         
         # Extract strings and arrays before freeing
         def safe_decode(ptr):

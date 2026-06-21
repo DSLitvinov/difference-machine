@@ -29,6 +29,15 @@ func (e *ErrTagNotFound) Error() string {
 	return fmt.Sprintf("tag not found: %s", e.Name)
 }
 
+// ErrAmbiguousCommitPrefix represents an error when a commit prefix matches multiple commits
+type ErrAmbiguousCommitPrefix struct {
+	Prefix string
+}
+
+func (e *ErrAmbiguousCommitPrefix) Error() string {
+	return fmt.Sprintf("ambiguous commit prefix: %s", e.Prefix)
+}
+
 // ErrInvalidHash represents an error when a hash format is invalid
 type ErrInvalidHash struct {
 	Hash string

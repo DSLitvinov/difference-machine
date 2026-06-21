@@ -175,9 +175,11 @@ func (s *Storage) storeBlobFromFileStreaming(filePath, hash string) (string, err
 	}
 	if _, err := io.Copy(compressor, srcFile); err != nil {
 		compressor.Close()
+		_ = os.Remove(fullPath)
 		return "", fmt.Errorf("failed to compress file: %w", err)
 	}
 	if err := compressor.Close(); err != nil {
+		_ = os.Remove(fullPath)
 		return "", fmt.Errorf("failed to finalize compression: %w", err)
 	}
 	return hash, nil
@@ -194,10 +196,13 @@ func (s *Storage) GetBlobContent(hash string) ([]byte, error) {
 	}
 
 	decompressed, err := Decompress(payload)
-	if err == nil {
-		return decompressed, nil
+	if err != nil {
+		if IsCompressed(payload) {
+			return nil, fmt.Errorf("failed to decompress blob %s: %w", hash, err)
+		}
+		return payload, nil
 	}
-	return payload, nil
+	return decompressed, nil
 }
 
 // GetBlobContentString retrieves blob content as string.

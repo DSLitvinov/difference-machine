@@ -3,11 +3,13 @@ package core
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/difference-machine/forester/internal/models"
+	"github.com/mattn/go-sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -178,6 +180,89 @@ func (d *Database) createIndexes() error {
 	return nil
 }
 
+func populateObjectJSONFields(obj *models.Object, objectDataJSON, tagsJSON, metadataJSON string) error {
+	if objectDataJSON != "" {
+		if err := json.Unmarshal([]byte(objectDataJSON), &obj.ObjectData); err != nil {
+			return fmt.Errorf("parse object_data: %w", err)
+		}
+	} else {
+		obj.ObjectData = make(map[string]interface{})
+	}
+
+	if tagsJSON != "" {
+		if err := json.Unmarshal([]byte(tagsJSON), &obj.Tags); err != nil {
+			return fmt.Errorf("parse tags: %w", err)
+		}
+	} else {
+		obj.Tags = []string{}
+	}
+
+	if metadataJSON != "" {
+		if err := json.Unmarshal([]byte(metadataJSON), &obj.Metadata); err != nil {
+			return fmt.Errorf("parse metadata: %w", err)
+		}
+	} else {
+		obj.Metadata = make(map[string]string)
+	}
+
+	return nil
+}
+
+func scanReviewRow(rows *sql.Rows) (*models.Review, error) {
+	var review models.Review
+	var objectName sql.NullString
+
+	if err := rows.Scan(
+		&review.ID,
+		&review.CommitHash,
+		&review.FilePath,
+		&objectName,
+		&review.Comment,
+		&review.Author,
+		&review.CreatedAt,
+	); err != nil {
+		return nil, fmt.Errorf("scan review row: %w", err)
+	}
+
+	if objectName.Valid {
+		review.ObjectName = objectName.String
+	}
+
+	return &review, nil
+}
+
+func scanObjectRow(rows *sql.Rows) (*models.Object, error) {
+	var obj models.Object
+	var objectDataJSON, tagsJSON, metadataJSON string
+	var updatedAt sql.NullInt64
+
+	if err := rows.Scan(
+		&obj.ID,
+		&obj.EditorType,
+		&obj.FilePath,
+		&obj.ObjectName,
+		&obj.ObjectType,
+		&obj.CommitHash,
+		&objectDataJSON,
+		&tagsJSON,
+		&metadataJSON,
+		&obj.CreatedAt,
+		&updatedAt,
+	); err != nil {
+		return nil, fmt.Errorf("scan object row: %w", err)
+	}
+
+	if updatedAt.Valid {
+		obj.UpdatedAt = updatedAt.Int64
+	}
+
+	if err := populateObjectJSONFields(&obj, objectDataJSON, tagsJSON, metadataJSON); err != nil {
+		return nil, err
+	}
+
+	return &obj, nil
+}
+
 // CreateStash creates a new stash
 func (d *Database) CreateStash(stash *models.Stash) (string, error) {
 	query := `INSERT INTO stashes (hash, message, tree_hash, created_at) VALUES (?, ?, ?, ?)`
@@ -216,9 +301,13 @@ func (d *Database) ListStashes() ([]*models.Stash, error) {
 	for rows.Next() {
 		var stash models.Stash
 		if err := rows.Scan(&stash.Hash, &stash.Message, &stash.TreeHash, &stash.CreatedAt); err != nil {
-			continue
+			return nil, fmt.Errorf("scan stash row: %w", err)
 		}
-		stashes = append(stashes, &stash)
+		stashCopy := stash
+		stashes = append(stashes, &stashCopy)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate stashes: %w", err)
 	}
 
 	return stashes, nil
@@ -251,11 +340,8 @@ func (d *Database) AcquireLock(lock *models.Lock) (bool, error) {
 		VALUES (?, ?, ?, ?, ?, ?)`
 	_, err := d.db.Exec(query, lock.FilePath, lock.User, lock.Branch, int(lock.LockType), lock.CreatedAt, expiresAt)
 	if err != nil {
-		// Check if this is a UNIQUE constraint violation (lock conflict)
-		errStr := err.Error()
-		if strings.Contains(errStr, "UNIQUE constraint") ||
-			strings.Contains(errStr, "constraint failed") ||
-			strings.Contains(errStr, "PRIMARY KEY") {
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) && sqliteErr.Code == sqlite3.ErrConstraint {
 			return false, nil // Lock conflict
 		}
 		return false, fmt.Errorf("failed to acquire lock: %w", err)
@@ -286,12 +372,16 @@ func (d *Database) GetLocks(branch string) ([]*models.Lock, error) {
 		var lock models.Lock
 		var expiresAt sql.NullInt64
 		if err := rows.Scan(&lock.FilePath, &lock.User, &lock.Branch, &lock.LockType, &lock.CreatedAt, &expiresAt); err != nil {
-			continue
+			return nil, fmt.Errorf("scan lock row: %w", err)
 		}
 		if expiresAt.Valid {
 			lock.ExpiresAt = expiresAt.Int64
 		}
-		locks = append(locks, &lock)
+		lockCopy := lock
+		locks = append(locks, &lockCopy)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate locks: %w", err)
 	}
 
 	return locks, nil
@@ -352,10 +442,14 @@ func (d *Database) GetComments(assetType, assetID string) ([]*models.Comment, er
 		var comment models.Comment
 		var resolved int
 		if err := rows.Scan(&comment.ID, &comment.AssetType, &comment.AssetID, &comment.Author, &comment.Content, &comment.X, &comment.Y, &comment.CreatedAt, &resolved); err != nil {
-			continue
+			return nil, fmt.Errorf("scan comment row: %w", err)
 		}
 		comment.Resolved = resolved != 0
-		comments = append(comments, &comment)
+		commentCopy := comment
+		comments = append(comments, &commentCopy)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate comments: %w", err)
 	}
 
 	return comments, nil
@@ -402,10 +496,14 @@ func (d *Database) GetApprovals(assetType, assetID string) ([]*models.Approval, 
 		var approval models.Approval
 		var statusStr string
 		if err := rows.Scan(&approval.ID, &approval.AssetType, &approval.AssetID, &approval.Author, &statusStr, &approval.Comment, &approval.CreatedAt); err != nil {
-			continue
+			return nil, fmt.Errorf("scan approval row: %w", err)
 		}
 		approval.Status = models.ApprovalStatus(statusStr)
-		approvals = append(approvals, &approval)
+		approvalCopy := approval
+		approvals = append(approvals, &approvalCopy)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate approvals: %w", err)
 	}
 
 	return approvals, nil
@@ -543,29 +641,8 @@ func (d *Database) GetObject(commitHash, filePath, objectName string) (*models.O
 		obj.UpdatedAt = updatedAt.Int64
 	}
 
-	// Parse JSON fields
-	if objectDataJSON != "" {
-		if err := json.Unmarshal([]byte(objectDataJSON), &obj.ObjectData); err != nil {
-			obj.ObjectData = make(map[string]interface{})
-		}
-	} else {
-		obj.ObjectData = make(map[string]interface{})
-	}
-
-	if tagsJSON != "" {
-		if err := json.Unmarshal([]byte(tagsJSON), &obj.Tags); err != nil {
-			obj.Tags = []string{}
-		}
-	} else {
-		obj.Tags = []string{}
-	}
-
-	if metadataJSON != "" {
-		if err := json.Unmarshal([]byte(metadataJSON), &obj.Metadata); err != nil {
-			obj.Metadata = make(map[string]string)
-		}
-	} else {
-		obj.Metadata = make(map[string]string)
+	if err := populateObjectJSONFields(&obj, objectDataJSON, tagsJSON, metadataJSON); err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get object: %v", err)}
 	}
 
 	return &obj, nil
@@ -617,56 +694,14 @@ func (d *Database) GetObjectsByCommit(commitHash string) ([]*models.Object, erro
 
 	var objects []*models.Object
 	for rows.Next() {
-		var obj models.Object
-		var objectDataJSON, tagsJSON, metadataJSON string
-		var updatedAt sql.NullInt64
-
-		if err := rows.Scan(
-			&obj.ID,
-			&obj.EditorType,
-			&obj.FilePath,
-			&obj.ObjectName,
-			&obj.ObjectType,
-			&obj.CommitHash,
-			&objectDataJSON,
-			&tagsJSON,
-			&metadataJSON,
-			&obj.CreatedAt,
-			&updatedAt,
-		); err != nil {
-			continue
+		obj, err := scanObjectRow(rows)
+		if err != nil {
+			return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects: %v", err)}
 		}
-
-		if updatedAt.Valid {
-			obj.UpdatedAt = updatedAt.Int64
-		}
-
-		// Parse JSON fields
-		if objectDataJSON != "" {
-			if err := json.Unmarshal([]byte(objectDataJSON), &obj.ObjectData); err != nil {
-				obj.ObjectData = make(map[string]interface{})
-			}
-		} else {
-			obj.ObjectData = make(map[string]interface{})
-		}
-
-		if tagsJSON != "" {
-			if err := json.Unmarshal([]byte(tagsJSON), &obj.Tags); err != nil {
-				obj.Tags = []string{}
-			}
-		} else {
-			obj.Tags = []string{}
-		}
-
-		if metadataJSON != "" {
-			if err := json.Unmarshal([]byte(metadataJSON), &obj.Metadata); err != nil {
-				obj.Metadata = make(map[string]string)
-			}
-		} else {
-			obj.Metadata = make(map[string]string)
-		}
-
-		objects = append(objects, &obj)
+		objects = append(objects, obj)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects: %v", err)}
 	}
 
 	return objects, nil
@@ -686,56 +721,14 @@ func (d *Database) GetObjectsByFile(filePath, commitHash string) ([]*models.Obje
 
 	var objects []*models.Object
 	for rows.Next() {
-		var obj models.Object
-		var objectDataJSON, tagsJSON, metadataJSON string
-		var updatedAt sql.NullInt64
-
-		if err := rows.Scan(
-			&obj.ID,
-			&obj.EditorType,
-			&obj.FilePath,
-			&obj.ObjectName,
-			&obj.ObjectType,
-			&obj.CommitHash,
-			&objectDataJSON,
-			&tagsJSON,
-			&metadataJSON,
-			&obj.CreatedAt,
-			&updatedAt,
-		); err != nil {
-			continue
+		obj, err := scanObjectRow(rows)
+		if err != nil {
+			return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects: %v", err)}
 		}
-
-		if updatedAt.Valid {
-			obj.UpdatedAt = updatedAt.Int64
-		}
-
-		// Parse JSON fields
-		if objectDataJSON != "" {
-			if err := json.Unmarshal([]byte(objectDataJSON), &obj.ObjectData); err != nil {
-				obj.ObjectData = make(map[string]interface{})
-			}
-		} else {
-			obj.ObjectData = make(map[string]interface{})
-		}
-
-		if tagsJSON != "" {
-			if err := json.Unmarshal([]byte(tagsJSON), &obj.Tags); err != nil {
-				obj.Tags = []string{}
-			}
-		} else {
-			obj.Tags = []string{}
-		}
-
-		if metadataJSON != "" {
-			if err := json.Unmarshal([]byte(metadataJSON), &obj.Metadata); err != nil {
-				obj.Metadata = make(map[string]string)
-			}
-		} else {
-			obj.Metadata = make(map[string]string)
-		}
-
-		objects = append(objects, &obj)
+		objects = append(objects, obj)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects: %v", err)}
 	}
 
 	return objects, nil
@@ -757,56 +750,11 @@ func (d *Database) GetObjectsByTag(tag, commitHash string) ([]*models.Object, er
 
 	var objects []*models.Object
 	for rows.Next() {
-		var obj models.Object
-		var objectDataJSON, tagsJSON, metadataJSON string
-		var updatedAt sql.NullInt64
-
-		if err := rows.Scan(
-			&obj.ID,
-			&obj.EditorType,
-			&obj.FilePath,
-			&obj.ObjectName,
-			&obj.ObjectType,
-			&obj.CommitHash,
-			&objectDataJSON,
-			&tagsJSON,
-			&metadataJSON,
-			&obj.CreatedAt,
-			&updatedAt,
-		); err != nil {
-			continue
+		obj, err := scanObjectRow(rows)
+		if err != nil {
+			return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects by tag: %v", err)}
 		}
 
-		if updatedAt.Valid {
-			obj.UpdatedAt = updatedAt.Int64
-		}
-
-		// Parse JSON fields
-		if objectDataJSON != "" {
-			if err := json.Unmarshal([]byte(objectDataJSON), &obj.ObjectData); err != nil {
-				obj.ObjectData = make(map[string]interface{})
-			}
-		} else {
-			obj.ObjectData = make(map[string]interface{})
-		}
-
-		if tagsJSON != "" {
-			if err := json.Unmarshal([]byte(tagsJSON), &obj.Tags); err != nil {
-				obj.Tags = []string{}
-			}
-		} else {
-			obj.Tags = []string{}
-		}
-
-		if metadataJSON != "" {
-			if err := json.Unmarshal([]byte(metadataJSON), &obj.Metadata); err != nil {
-				obj.Metadata = make(map[string]string)
-			}
-		} else {
-			obj.Metadata = make(map[string]string)
-		}
-
-		// Filter to ensure tag is actually in the array
 		hasTag := false
 		for _, t := range obj.Tags {
 			if t == tag {
@@ -815,8 +763,11 @@ func (d *Database) GetObjectsByTag(tag, commitHash string) ([]*models.Object, er
 			}
 		}
 		if hasTag {
-			objects = append(objects, &obj)
+			objects = append(objects, obj)
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects by tag: %v", err)}
 	}
 
 	return objects, nil
@@ -853,63 +804,17 @@ func (d *Database) GetObjectsByTags(tags []string, commitHash string) ([]*models
 	seen := make(map[string]bool) // To avoid duplicates
 
 	for rows.Next() {
-		var obj models.Object
-		var objectDataJSON, tagsJSON, metadataJSON string
-		var updatedAt sql.NullInt64
-
-		if err := rows.Scan(
-			&obj.ID,
-			&obj.EditorType,
-			&obj.FilePath,
-			&obj.ObjectName,
-			&obj.ObjectType,
-			&obj.CommitHash,
-			&objectDataJSON,
-			&tagsJSON,
-			&metadataJSON,
-			&obj.CreatedAt,
-			&updatedAt,
-		); err != nil {
-			continue
+		obj, err := scanObjectRow(rows)
+		if err != nil {
+			return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects by tags: %v", err)}
 		}
 
-		// Check for duplicates
 		key := fmt.Sprintf("%s/%s/%s", obj.ObjectName, obj.CommitHash, obj.FilePath)
 		if seen[key] {
 			continue
 		}
 		seen[key] = true
 
-		if updatedAt.Valid {
-			obj.UpdatedAt = updatedAt.Int64
-		}
-
-		// Parse JSON fields
-		if objectDataJSON != "" {
-			if err := json.Unmarshal([]byte(objectDataJSON), &obj.ObjectData); err != nil {
-				obj.ObjectData = make(map[string]interface{})
-			}
-		} else {
-			obj.ObjectData = make(map[string]interface{})
-		}
-
-		if tagsJSON != "" {
-			if err := json.Unmarshal([]byte(tagsJSON), &obj.Tags); err != nil {
-				obj.Tags = []string{}
-			}
-		} else {
-			obj.Tags = []string{}
-		}
-
-		if metadataJSON != "" {
-			if err := json.Unmarshal([]byte(metadataJSON), &obj.Metadata); err != nil {
-				obj.Metadata = make(map[string]string)
-			}
-		} else {
-			obj.Metadata = make(map[string]string)
-		}
-
-		// Filter to ensure at least one tag is in the array
 		hasTag := false
 		for _, t := range obj.Tags {
 			for _, searchTag := range tags {
@@ -923,8 +828,11 @@ func (d *Database) GetObjectsByTags(tags []string, commitHash string) ([]*models
 			}
 		}
 		if hasTag {
-			objects = append(objects, &obj)
+			objects = append(objects, obj)
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get objects by tags: %v", err)}
 	}
 
 	return objects, nil
@@ -1002,6 +910,21 @@ func (d *Database) GetObjectMetadata(commitHash, filePath, objectName string) (m
 	return obj.Metadata, nil
 }
 
+func fetchReviews(rows *sql.Rows) ([]*models.Review, error) {
+	var reviews []*models.Review
+	for rows.Next() {
+		review, err := scanReviewRow(rows)
+		if err != nil {
+			return nil, err
+		}
+		reviews = append(reviews, review)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate reviews: %w", err)
+	}
+	return reviews, nil
+}
+
 // AddReview adds a new review
 func (d *Database) AddReview(review *models.Review) (int64, error) {
 	query := `INSERT INTO reviews (commit_hash, file_path, object_name, comment, author, created_at) 
@@ -1044,30 +967,10 @@ func (d *Database) GetReviews() ([]*models.Review, error) {
 	}
 	defer rows.Close()
 
-	var reviews []*models.Review
-	for rows.Next() {
-		var review models.Review
-		var objectName sql.NullString
-
-		if err := rows.Scan(
-			&review.ID,
-			&review.CommitHash,
-			&review.FilePath,
-			&objectName,
-			&review.Comment,
-			&review.Author,
-			&review.CreatedAt,
-		); err != nil {
-			continue
-		}
-
-		if objectName.Valid {
-			review.ObjectName = objectName.String
-		}
-
-		reviews = append(reviews, &review)
+	reviews, err := fetchReviews(rows)
+	if err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get reviews: %v", err)}
 	}
-
 	return reviews, nil
 }
 
@@ -1082,30 +985,10 @@ func (d *Database) GetReviewsByCommit(commitHash string) ([]*models.Review, erro
 	}
 	defer rows.Close()
 
-	var reviews []*models.Review
-	for rows.Next() {
-		var review models.Review
-		var objectName sql.NullString
-
-		if err := rows.Scan(
-			&review.ID,
-			&review.CommitHash,
-			&review.FilePath,
-			&objectName,
-			&review.Comment,
-			&review.Author,
-			&review.CreatedAt,
-		); err != nil {
-			continue
-		}
-
-		if objectName.Valid {
-			review.ObjectName = objectName.String
-		}
-
-		reviews = append(reviews, &review)
+	reviews, err := fetchReviews(rows)
+	if err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get reviews: %v", err)}
 	}
-
 	return reviews, nil
 }
 
@@ -1120,30 +1003,10 @@ func (d *Database) GetReviewsByObject(commitHash, filePath, objectName string) (
 	}
 	defer rows.Close()
 
-	var reviews []*models.Review
-	for rows.Next() {
-		var review models.Review
-		var objName sql.NullString
-
-		if err := rows.Scan(
-			&review.ID,
-			&review.CommitHash,
-			&review.FilePath,
-			&objName,
-			&review.Comment,
-			&review.Author,
-			&review.CreatedAt,
-		); err != nil {
-			continue
-		}
-
-		if objName.Valid {
-			review.ObjectName = objName.String
-		}
-
-		reviews = append(reviews, &review)
+	reviews, err := fetchReviews(rows)
+	if err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get reviews: %v", err)}
 	}
-
 	return reviews, nil
 }
 
@@ -1158,30 +1021,10 @@ func (d *Database) GetReviewsByFile(commitHash, filePath string) ([]*models.Revi
 	}
 	defer rows.Close()
 
-	var reviews []*models.Review
-	for rows.Next() {
-		var review models.Review
-		var objectName sql.NullString
-
-		if err := rows.Scan(
-			&review.ID,
-			&review.CommitHash,
-			&review.FilePath,
-			&objectName,
-			&review.Comment,
-			&review.Author,
-			&review.CreatedAt,
-		); err != nil {
-			continue
-		}
-
-		if objectName.Valid {
-			review.ObjectName = objectName.String
-		}
-
-		reviews = append(reviews, &review)
+	reviews, err := fetchReviews(rows)
+	if err != nil {
+		return nil, &DatabaseException{Message: fmt.Sprintf("Failed to get reviews: %v", err)}
 	}
-
 	return reviews, nil
 }
 

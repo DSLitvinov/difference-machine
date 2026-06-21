@@ -24,6 +24,7 @@ typedef struct {
     long long timestamp;
     int type;
     char* screenshot_path;
+    char* error;
 } ForesterCommit;
 
 typedef struct {
@@ -41,6 +42,7 @@ typedef struct {
     char** unstaged_deleted_files;
     int untracked_count;
     char** untracked_files;
+    char* error;
 } ForesterStatus;
 
 typedef struct {
@@ -53,11 +55,13 @@ typedef struct {
 typedef struct {
     int count;
     ForesterCommit* commits;
+    char* error;
 } ForesterCommitList;
 
 typedef struct {
     int count;
     ForesterBranch* branches;
+    char* error;
 } ForesterBranchList;
 
 typedef struct {
@@ -133,6 +137,7 @@ typedef struct {
 typedef struct {
     int count;
     ForesterFileEntry* files;
+    char* error;
 } ForesterFileList;
 */
 import "C"
@@ -193,6 +198,36 @@ func contentError(message string) *C.ForesterContentResult {
 	return result
 }
 
+func statusError(message string) *C.ForesterStatus {
+	status := (*C.ForesterStatus)(C.calloc(1, C.size_t(unsafe.Sizeof(C.ForesterStatus{}))))
+	status.error = C.CString(message)
+	return status
+}
+
+func commitListError(message string) *C.ForesterCommitList {
+	list := (*C.ForesterCommitList)(C.calloc(1, C.size_t(unsafe.Sizeof(C.ForesterCommitList{}))))
+	list.error = C.CString(message)
+	return list
+}
+
+func branchListError(message string) *C.ForesterBranchList {
+	list := (*C.ForesterBranchList)(C.calloc(1, C.size_t(unsafe.Sizeof(C.ForesterBranchList{}))))
+	list.error = C.CString(message)
+	return list
+}
+
+func commitError(message string) *C.ForesterCommit {
+	commit := (*C.ForesterCommit)(C.calloc(1, C.size_t(unsafe.Sizeof(C.ForesterCommit{}))))
+	commit.error = C.CString(message)
+	return commit
+}
+
+func fileListError(message string) *C.ForesterFileList {
+	list := (*C.ForesterFileList)(C.calloc(1, C.size_t(unsafe.Sizeof(C.ForesterFileList{}))))
+	list.error = C.CString(message)
+	return list
+}
+
 func getCurrentBranch(repoPath string) string {
 	refs := core.NewRefs(repoPath)
 	branch, err := refs.GetCurrentBranch()
@@ -239,19 +274,19 @@ func ForesterGetStatus(repoPath *C.char) *C.ForesterStatus {
 	oldDir, _ := os.Getwd()
 	if path != "." {
 		if err := os.Chdir(path); err != nil {
-			return nil
+			return statusError(fmt.Sprintf("failed to change directory: %s", err.Error()))
 		}
 		defer os.Chdir(oldDir)
 	}
 	
 	repoPathGo, err := utils.FindRepositoryRoot(".")
 	if err != nil {
-		return nil
+		return statusError("not a Forester repository")
 	}
 	
 	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
-		return nil
+		return statusError(fmt.Sprintf("failed to open repository: %s", err.Error()))
 	}
 	defer repo.Close()
 
@@ -284,13 +319,13 @@ func ForesterGetStatus(repoPath *C.char) *C.ForesterStatus {
 	// Get index
 	index, err := core.NewIndex(repoPathGo)
 	if err != nil {
-		return nil
+		return statusError(fmt.Sprintf("failed to open index: %s", err.Error()))
 	}
 	
 	// Scan working directory
 	allFiles, err := utils.ListFiles(repoPathGo, true)
 	if err != nil {
-		return nil
+		return statusError(fmt.Sprintf("failed to list files: %s", err.Error()))
 	}
 	
 	var stagedNewFiles []string
@@ -431,7 +466,12 @@ func ForesterFreeStatus(s *C.ForesterStatus) {
 	freeStringArray(s.staged_deleted_files, int(s.staged_deleted_count))
 	freeStringArray(s.unstaged_modified_files, int(s.unstaged_modified_count))
 	freeStringArray(s.unstaged_deleted_files, int(s.unstaged_deleted_count))
-	freeStringArray(s.untracked_files, int(s.untracked_count))
+	if s.untracked_files != nil {
+		freeStringArray(s.untracked_files, int(s.untracked_count))
+	}
+	if s.error != nil {
+		C.free(unsafe.Pointer(s.error))
+	}
 	
 	C.free(unsafe.Pointer(s))
 }
@@ -447,19 +487,19 @@ func ForesterGetLog(repoPath *C.char, maxCount C.int, branch *C.char) *C.Foreste
 	oldDir, _ := os.Getwd()
 	if path != "." {
 		if err := os.Chdir(path); err != nil {
-			return nil
+			return commitListError(fmt.Sprintf("failed to change directory: %s", err.Error()))
 		}
 		defer os.Chdir(oldDir)
 	}
 	
 	repoPathGo, err := utils.FindRepositoryRoot(".")
 	if err != nil {
-		return nil
+		return commitListError("not a Forester repository")
 	}
 	
 	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
-		return nil
+		return commitListError(fmt.Sprintf("failed to open repository: %s", err.Error()))
 	}
 	defer repo.Close()
 
@@ -478,7 +518,7 @@ func ForesterGetLog(repoPath *C.char, maxCount C.int, branch *C.char) *C.Foreste
 
 	commits, err := repo.GetCommitHistory(branchName, limit)
 	if err != nil {
-		return nil
+		return commitListError(fmt.Sprintf("failed to get commit history: %s", err.Error()))
 	}
 	
 	// Allocate commit list (zeroed)
@@ -563,6 +603,9 @@ func ForesterFreeCommitList(list *C.ForesterCommitList) {
 		}
 		C.free(unsafe.Pointer(list.commits))
 	}
+	if list.error != nil {
+		C.free(unsafe.Pointer(list.error))
+	}
 	
 	C.free(unsafe.Pointer(list))
 }
@@ -578,25 +621,25 @@ func ForesterGetBranches(repoPath *C.char) *C.ForesterBranchList {
 	oldDir, _ := os.Getwd()
 	if path != "." {
 		if err := os.Chdir(path); err != nil {
-			return nil
+			return branchListError(fmt.Sprintf("failed to change directory: %s", err.Error()))
 		}
 		defer os.Chdir(oldDir)
 	}
 	
 	repoPathGo, err := utils.FindRepositoryRoot(".")
 	if err != nil {
-		return nil
+		return branchListError("not a Forester repository")
 	}
 	
 	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
-		return nil
+		return branchListError(fmt.Sprintf("failed to open repository: %s", err.Error()))
 	}
 	defer repo.Close()
 
 	branchNames, err := repo.ListBranches()
 	if err != nil {
-		return nil
+		return branchListError(fmt.Sprintf("failed to list branches: %s", err.Error()))
 	}
 
 	currentBranch, _ := repo.Refs.GetCurrentBranch()
@@ -650,6 +693,9 @@ func ForesterFreeBranchList(list *C.ForesterBranchList) {
 		}
 		C.free(unsafe.Pointer(list.branches))
 	}
+	if list.error != nil {
+		C.free(unsafe.Pointer(list.error))
+	}
 	
 	C.free(unsafe.Pointer(list))
 }
@@ -667,25 +713,25 @@ func ForesterGetCommit(repoPath *C.char, hash *C.char) *C.ForesterCommit {
 	oldDir, _ := os.Getwd()
 	if path != "." {
 		if err := os.Chdir(path); err != nil {
-			return nil
+			return commitError(fmt.Sprintf("failed to change directory: %s", err.Error()))
 		}
 		defer os.Chdir(oldDir)
 	}
 	
 	repoPathGo, err := utils.FindRepositoryRoot(".")
 	if err != nil {
-		return nil
+		return commitError("not a Forester repository")
 	}
 	
 	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
-		return nil
+		return commitError(fmt.Sprintf("failed to open repository: %s", err.Error()))
 	}
 	defer repo.Close()
 
 	commit, err := repo.GetCommit(hashStr)
 	if err != nil {
-		return nil
+		return commitError(fmt.Sprintf("failed to get commit: %s", err.Error()))
 	}
 	
 	// Allocate commit (zeroed)
@@ -748,6 +794,9 @@ func ForesterFreeCommit(c *C.ForesterCommit) {
 	}
 	if c.parent_hashes != nil {
 		freeStringArray(c.parent_hashes, int(c.parent_count))
+	}
+	if c.error != nil {
+		C.free(unsafe.Pointer(c.error))
 	}
 	
 	C.free(unsafe.Pointer(c))
@@ -2568,19 +2617,19 @@ func ForesterGetCommitFiles(repoPath *C.char, commitHash *C.char) *C.ForesterFil
 	oldDir, _ := os.Getwd()
 	if path != "." {
 		if err := os.Chdir(path); err != nil {
-			return nil
+			return fileListError(fmt.Sprintf("failed to change directory: %s", err.Error()))
 		}
 		defer os.Chdir(oldDir)
 	}
 	
 	repoPathGo, err := utils.FindRepositoryRoot(".")
 	if err != nil {
-		return nil
+		return fileListError("not a Forester repository")
 	}
 	
 	repo, err := core.OpenRepository(repoPathGo)
 	if err != nil {
-		return nil
+		return fileListError(fmt.Sprintf("failed to open repository: %s", err.Error()))
 	}
 	defer repo.Close()
 
@@ -2589,24 +2638,24 @@ func ForesterGetCommitFiles(repoPath *C.char, commitHash *C.char) *C.ForesterFil
 	// Get commit
 	commit, err := repo.GetCommit(hashStr)
 	if err != nil {
-		return nil
+		return fileListError(fmt.Sprintf("failed to get commit: %s", err.Error()))
 	}
 	
 	// Get tree
 	treeContent, err := storage.GetTreeContent(commit.TreeHash)
 	if err != nil {
-		return nil
+		return fileListError(fmt.Sprintf("failed to get tree content: %s", err.Error()))
 	}
 	
 	var tree models.Tree
 	if err := json.Unmarshal([]byte(treeContent), &tree); err != nil {
-		return nil
+		return fileListError(fmt.Sprintf("failed to parse tree: %s", err.Error()))
 	}
 	
 	// Build map of files recursively
 	treeMap := make(map[string]*models.TreeEntry)
 	if err := core.BuildTreeMapRecursive(storage, &tree, "", treeMap); err != nil {
-		return nil
+		return fileListError(fmt.Sprintf("build tree map: %s", err.Error()))
 	}
 	
 	// Convert to list (only blobs, i.e., files)
@@ -2661,6 +2710,9 @@ func ForesterFreeFileList(list *C.ForesterFileList) {
 			}
 		}
 		C.free(unsafe.Pointer(list.files))
+	}
+	if list.error != nil {
+		C.free(unsafe.Pointer(list.error))
 	}
 	
 	C.free(unsafe.Pointer(list))

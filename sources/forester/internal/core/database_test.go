@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,47 @@ import (
 
 	"github.com/difference-machine/forester/internal/models"
 )
+
+func TestDatabase_ListStashesPreservesDistinctRows(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "forester_test_*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	dbPath := filepath.Join(tmpDir, "test.db")
+	db, err := NewDatabase(dbPath)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	stash1 := &models.Stash{Hash: "hash1", Message: "first", TreeHash: strings.Repeat("a", 64), CreatedAt: 1}
+	stash2 := &models.Stash{Hash: "hash2", Message: "second", TreeHash: strings.Repeat("b", 64), CreatedAt: 2}
+
+	if _, err := db.CreateStash(stash1); err != nil {
+		t.Fatalf("CreateStash(1): %v", err)
+	}
+	if _, err := db.CreateStash(stash2); err != nil {
+		t.Fatalf("CreateStash(2): %v", err)
+	}
+
+	stashes, err := db.ListStashes()
+	if err != nil {
+		t.Fatalf("ListStashes: %v", err)
+	}
+	if len(stashes) != 2 {
+		t.Fatalf("ListStashes() len = %d, want 2", len(stashes))
+	}
+
+	byHash := make(map[string]string)
+	for _, s := range stashes {
+		byHash[s.Hash] = s.Message
+	}
+	if byHash["hash1"] != "first" || byHash["hash2"] != "second" {
+		t.Fatalf("ListStashes returned corrupted rows: %#v", stashes)
+	}
+}
 
 func TestDatabase_AcquireLock(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "forester_test_*")
@@ -134,5 +176,42 @@ func TestRepository_HasChildCommits(t *testing.T) {
 	}
 	if !hasChildren {
 		t.Errorf("HasChildCommits(parent) = false, want true")
+	}
+}
+
+func TestRepository_FindCommitByPrefixAmbiguous(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "forester_test_*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	repo, err := OpenRepository(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to open repository: %v", err)
+	}
+	defer repo.Close()
+
+	hash1 := "abcdef01" + strings.Repeat("0", 56)
+	hash2 := "abcdef01" + strings.Repeat("1", 56)
+	for _, hash := range []string{hash1, hash2} {
+		commit := models.NewCommit()
+		commit.Hash = hash
+		commit.TreeHash = strings.Repeat("b", 64)
+		commit.Author = "author"
+		commit.Message = "msg-" + hash[:12]
+		commitJSON, err := commit.ToJSON()
+		if err != nil {
+			t.Fatalf("ToJSON: %v", err)
+		}
+		if _, err := repo.Storage.StoreCommit(commitJSON); err != nil {
+			t.Fatalf("StoreCommit(%s): %v", hash, err)
+		}
+	}
+
+	_, err = repo.FindCommitByPrefix("abcdef01")
+	var amb *ErrAmbiguousCommitPrefix
+	if !errors.As(err, &amb) {
+		t.Fatalf("FindCommitByPrefix() error = %v, want ErrAmbiguousCommitPrefix", err)
 	}
 }

@@ -20,6 +20,7 @@ func Lock(args []string) error {
 	}
 
 	locking := core.NewLocking(repoPath)
+	defer locking.Close()
 	refs := core.NewRefs(repoPath)
 
 	if len(args) == 0 || args[0] == "list" {

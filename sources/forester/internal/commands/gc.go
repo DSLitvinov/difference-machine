@@ -65,6 +65,7 @@ func GC(args []string) error {
 	commitsDeleted := 0
 	treesDeleted := 0
 	blobsDeleted := 0
+	var gcErrors []string
 
 	deletedEntries, err := repo.Reflog.GetEntries("", 10000)
 	if err != nil {
@@ -95,12 +96,14 @@ func GC(args []string) error {
 
 		hasChildren, err := repo.HasChildCommits(commitHash)
 		if err != nil {
+			gcErrors = append(gcErrors, fmt.Sprintf("check children of %s: %v", commitHash, err))
 			continue
 		}
 
 		if hasChildren {
 			allChildrenDeleted, err := checkAllChildrenDeleted(repo, commitHash, expiredDeletedCommits, referencedCommits)
 			if err != nil {
+				gcErrors = append(gcErrors, fmt.Sprintf("check descendants of %s: %v", commitHash, err))
 				continue
 			}
 			if allChildrenDeleted {
@@ -114,9 +117,11 @@ func GC(args []string) error {
 	for commitHash := range commitsToDelete {
 		if !dryRun {
 			if _, err := repo.GetCommit(commitHash); err != nil {
+				gcErrors = append(gcErrors, fmt.Sprintf("load commit %s: %v", commitHash, err))
 				continue
 			}
 			if err := repo.ForceDeleteCommit(commitHash); err != nil {
+				gcErrors = append(gcErrors, fmt.Sprintf("delete commit %s: %v", commitHash, err))
 				continue
 			}
 			commitsDeleted++
@@ -148,7 +153,9 @@ func GC(args []string) error {
 		if dryRun {
 			return nil
 		}
-		_ = storage.DeleteObject(hash)
+		if err := storage.DeleteObject(hash); err != nil {
+			gcErrors = append(gcErrors, fmt.Sprintf("delete %s object %s: %v", objectType, hash, err))
+		}
 		return nil
 	})
 	if err != nil {
@@ -168,6 +175,10 @@ func GC(args []string) error {
 
 	if dryRun {
 		fmt.Println("\n(Dry run - no actual deletions performed)")
+	}
+
+	if len(gcErrors) > 0 {
+		return fmt.Errorf("garbage collection completed with %d error(s): %s", len(gcErrors), strings.Join(gcErrors, "; "))
 	}
 
 	return nil

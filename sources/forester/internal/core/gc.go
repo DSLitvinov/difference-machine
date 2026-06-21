@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/difference-machine/forester/internal/models"
 )
@@ -16,7 +17,9 @@ func (r *Repository) CollectUsedObjects() (map[string]bool, error) {
 		return nil, err
 	}
 	for hash := range referencedCommits {
-		_ = r.markCommitReachable(hash, used)
+		if err := r.markCommitReachable(hash, used); err != nil {
+			return used, fmt.Errorf("mark commit %s reachable: %w", hash, err)
+		}
 	}
 
 	tagNames, err := r.Refs.ListTags()
@@ -42,7 +45,9 @@ func (r *Repository) CollectUsedObjects() (map[string]bool, error) {
 		return used, err
 	}
 	for _, stash := range stashes {
-		_ = r.markTreeReachable(stash.TreeHash, used)
+		if err := r.markTreeReachable(stash.TreeHash, used); err != nil {
+			return used, fmt.Errorf("mark stash tree %s reachable: %w", stash.TreeHash, err)
+		}
 	}
 
 	return used, nil
@@ -66,7 +71,9 @@ func (r *Repository) markCommitReachable(commitHash string, used map[string]bool
 		parents = []string{commit.ParentHash}
 	}
 	for _, parent := range parents {
-		_ = r.markCommitReachable(parent, used)
+		if err := r.markCommitReachable(parent, used); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -92,7 +99,9 @@ func (r *Repository) markTreeReachable(treeHash string, used map[string]bool) er
 		case "blob":
 			used[entry.Hash] = true
 		case "tree":
-			_ = r.markTreeReachable(entry.Hash, used)
+			if err := r.markTreeReachable(entry.Hash, used); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
