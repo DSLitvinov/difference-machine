@@ -42,11 +42,6 @@ func Init(args []string) error {
 		return err
 	}
 
-	// Initialize empty product database (locks, reviews, objects, stashes)
-	if err := initializeDatabase(repoPath); err != nil {
-		return fmt.Errorf("failed to initialize database: %w", err)
-	}
-
 	// Create HEAD file and ref for main branch (refs are source of truth for VCS)
 	refs := core.NewRefs(repoPath)
 	if err := refs.SetCurrentBranch("main"); err != nil {
@@ -79,6 +74,11 @@ func createDirectoryStructure(repoPath string) error {
 		".DFM/refs/heads",
 		".DFM/refs/tags",
 		".DFM/hooks",
+		".DFM/stash",
+		".DFM/locks",
+		".DFM/manifests",
+		".DFM/reviews/comments",
+		".DFM/reviews/approvals",
 	}
 
 	for _, dir := range dirs {
@@ -91,13 +91,37 @@ func createDirectoryStructure(repoPath string) error {
 	return nil
 }
 
-func initializeDatabase(repoPath string) error {
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
-	if err != nil {
-		return err
+func createConfigFile(repoPath string) error {
+	configPath := filepath.Join(repoPath, ".DFM", "config")
+	if utils.Exists(configPath) {
+		return nil
 	}
-	return db.Close()
+
+	configContent := `# Forester configuration
+[core]
+    repositoryformatversion = 0
+    filemode = true
+    bare = false
+
+[user]
+    name = 
+    email = 
+
+[metadata]
+    server = 
+
+[merge]
+    binary = *.blend,*.fbx,*.png,*.jpg,*.jpeg,*.gif,*.webp,*.wav,*.mp3,*.exr,*.psd,*.tif,*.tiff,*.zip,*.dll,*.so,*.dylib
+
+# Object-level .blend merge is performed by the Blender addon
+# (scripts/merge_apply_background.py), not by the Forester CLI.
+[merge "blend"]
+    pattern = *.blend
+    structured = blender-objects
+    manifest_suffix = .manifest.json
+`
+
+	return utils.WriteFileString(configPath, configContent)
 }
 
 func createDefaultIgnoreFile(repoPath string) error {
@@ -199,24 +223,4 @@ echo "Checkout completed"
 	}
 
 	return nil
-}
-
-func createConfigFile(repoPath string) error {
-	configPath := filepath.Join(repoPath, ".DFM", "config")
-	if utils.Exists(configPath) {
-		return nil
-	}
-
-	configContent := `# Forester configuration
-[core]
-    repositoryformatversion = 0
-    filemode = true
-    bare = false
-
-[user]
-    name = 
-    email = 
-`
-
-	return utils.WriteFileString(configPath, configContent)
 }

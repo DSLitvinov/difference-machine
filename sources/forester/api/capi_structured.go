@@ -1643,13 +1643,6 @@ func ForesterRebuild(repoPath *C.char) *C.ForesterRebuildResult {
 		return result
 	}
 
-	// Ensure product database schema exists
-	if _, err := repo.DB(); err != nil {
-		result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open product database: %s", err.Error()))
-		return result
-	}
 
 	result := (*C.ForesterRebuildResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterRebuildResult{}))))
 	result.success = 1
@@ -2007,14 +2000,6 @@ func ForesterAddObject(repoPath *C.char, editorType *C.char, filePath *C.char, o
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
-		return result
-	}
-
 	// Parse JSON fields
 	var objectData map[string]interface{}
 	if objectDataJSON != nil {
@@ -2042,7 +2027,7 @@ func ForesterAddObject(repoPath *C.char, editorType *C.char, filePath *C.char, o
 	obj.Tags = tags
 	obj.Metadata = metadata
 	
-	err = db.AddObject(obj)
+	err = repo.Manifests.AddObject(obj)
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
 		result.success = 0
@@ -2081,12 +2066,7 @@ func ForesterGetObject(repoPath *C.char, commitHash *C.char, filePath *C.char, o
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		return nil
-	}
-
-	obj, err := db.GetObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName))
+	obj, err := repo.Manifests.GetObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName))
 	if err != nil {
 		return nil
 	}
@@ -2129,15 +2109,7 @@ func ForesterDeleteObject(repoPath *C.char, commitHash *C.char, filePath *C.char
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
-		return result
-	}
-
-	err = db.DeleteObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName))
+	err = repo.Manifests.DeleteObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
 		result.success = 0
@@ -2184,15 +2156,7 @@ func ForesterDeleteObjectsByFile(repoPath *C.char, commitHash *C.char, filePath 
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
-		return result
-	}
-
-	err = db.DeleteObjectsByFile(C.GoString(commitHash), C.GoString(filePath))
+	err = repo.Manifests.DeleteObjectsByFile(C.GoString(commitHash), C.GoString(filePath))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
 		result.success = 0
@@ -2235,12 +2199,7 @@ func ForesterGetObjectsByCommit(repoPath *C.char, commitHash *C.char) *C.Foreste
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		return nil
-	}
-
-	objects, err := db.GetObjectsByCommit(C.GoString(commitHash))
+	objects, err := repo.Manifests.GetObjectsByCommit(C.GoString(commitHash))
 	if err != nil {
 		return nil
 	}
@@ -2302,12 +2261,7 @@ func ForesterGetObjectsByFile(repoPath *C.char, filePath *C.char, commitHash *C.
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		return nil
-	}
-
-	objects, err := db.GetObjectsByFile(C.GoString(filePath), C.GoString(commitHash))
+	objects, err := repo.Manifests.GetObjectsByFile(C.GoString(filePath), C.GoString(commitHash))
 	if err != nil {
 		return nil
 	}
@@ -2393,15 +2347,7 @@ func ForesterAddTagToObject(repoPath *C.char, commitHash *C.char, filePath *C.ch
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
-		return result
-	}
-
-	err = db.AddTagToObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(tag))
+	err = repo.Manifests.AddTagToObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(tag))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
 		result.success = 0
@@ -2449,15 +2395,7 @@ func ForesterRemoveTagFromObject(repoPath *C.char, commitHash *C.char, filePath 
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
-		return result
-	}
-
-	err = db.RemoveTagFromObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(tag))
+	err = repo.Manifests.RemoveTagFromObject(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(tag))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
 		result.success = 0
@@ -2505,15 +2443,7 @@ func ForesterSetObjectMetadata(repoPath *C.char, commitHash *C.char, filePath *C
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
-		result.success = 0
-		result.error = C.CString(fmt.Sprintf("failed to open database: %s", err.Error()))
-		return result
-	}
-
-	err = db.SetObjectMetadata(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(key), C.GoString(value))
+	err = repo.Manifests.SetObjectMetadata(C.GoString(commitHash), C.GoString(filePath), C.GoString(objectName), C.GoString(key), C.GoString(value))
 	result := (*C.ForesterResult)(C.malloc(C.size_t(unsafe.Sizeof(C.ForesterResult{}))))
 	if err != nil {
 		result.success = 0

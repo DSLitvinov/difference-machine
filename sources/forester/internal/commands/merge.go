@@ -241,6 +241,8 @@ type ConflictInfo struct {
 func performMergeCommit(repoPath string, repo *core.Repository, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
 	currentBranch, currentHead, targetHead, branchToMerge string, opts MergeOptions) error {
 
+	mergeConfig := core.NewMergeConfig(repoPath)
+
 	// Find merge base (common ancestor)
 	mergeBase, err := findMergeBase(repo, currentHead, targetHead)
 	if err != nil {
@@ -394,7 +396,7 @@ func performMergeCommit(repoPath string, repo *core.Repository, storage *core.St
 				if inBase && baseEntry != nil {
 					baseHash = baseEntry.Hash
 				}
-				if isBinaryConflictPath(path) {
+				if mergeConfig.IsBinaryMergePath(path) {
 					// .blend etc.: do not write text markers; keep ours, write theirs under .DFM/merge_theirs/
 					if err := storage.WriteBlobToFile(currentEntry.Hash, fullPath); err != nil {
 						return fmt.Errorf("failed to write ours for %s: %w", path, err)
@@ -684,12 +686,6 @@ func performSquashMerge(repoPath string, repo *core.Repository, storage *core.St
 	fmt.Printf("Squash merge completed: %s\n", hashShort)
 
 	return nil
-}
-
-// isBinaryConflictPath reports whether the path is a binary file (e.g. .blend) that must not get text conflict markers.
-func isBinaryConflictPath(path string) bool {
-	lower := strings.ToLower(path)
-	return strings.HasSuffix(lower, ".blend")
 }
 
 // markConflictInFile marks conflict in a file

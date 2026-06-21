@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -11,13 +10,15 @@ import (
 	"github.com/difference-machine/forester/internal/utils"
 )
 
-// Repository is the Git-like VCS layer: objects, refs, and filesystem reflog.
+// Repository is the Git-like VCS layer: objects, refs, and filesystem metadata stores.
 type Repository struct {
-	Path    string
-	Storage *Storage
-	Refs    *Refs
-	Reflog  *Reflog
-	db      *Database
+	Path      string
+	Storage   *Storage
+	Refs      *Refs
+	Reflog    *Reflog
+	Stash     *StashStore
+	Manifests *ManifestStore
+	Reviews   *ReviewStore
 }
 
 // OpenRepository opens a Forester repository.
@@ -27,34 +28,18 @@ func OpenRepository(repoPath string) (*Repository, error) {
 		return nil, err
 	}
 	return &Repository{
-		Path:    repoPath,
-		Storage: storage,
-		Refs:    NewRefs(repoPath),
-		Reflog:  NewReflog(repoPath),
+		Path:      repoPath,
+		Storage:   storage,
+		Refs:      NewRefs(repoPath),
+		Reflog:    NewReflog(repoPath),
+		Stash:     NewStashStore(repoPath),
+		Manifests: NewManifestStore(repoPath),
+		Reviews:   NewReviewStore(repoPath),
 	}, nil
 }
 
-// DB opens the product metadata database (locks, reviews, objects, stashes).
-func (r *Repository) DB() (*Database, error) {
-	if r.db != nil {
-		return r.db, nil
-	}
-	dbPath := filepath.Join(r.Path, ".DFM", "database.db")
-	db, err := NewDatabase(dbPath)
-	if err != nil {
-		return nil, err
-	}
-	r.db = db
-	return db, nil
-}
-
-// Close closes the product database if open.
+// Close closes repository resources.
 func (r *Repository) Close() error {
-	if r.db != nil {
-		err := r.db.Close()
-		r.db = nil
-		return err
-	}
 	return nil
 }
 
@@ -259,11 +244,11 @@ func (r *Repository) FindCommitByPrefix(prefix string) (*models.Commit, error) {
 func (r *Repository) CreateTag(tag *models.Tag, annotated bool) error {
 	if annotated || tag.Message != "" {
 		tagObj := map[string]interface{}{
-			"name":        tag.Name,
-			"target":      tag.CommitHash,
-			"author":      tag.Author,
-			"message":     tag.Message,
-			"created_at":  tag.CreatedAt,
+			"name":       tag.Name,
+			"target":     tag.CommitHash,
+			"author":     tag.Author,
+			"message":    tag.Message,
+			"created_at": tag.CreatedAt,
 		}
 		if tag.CreatedAt == 0 {
 			tagObj["created_at"] = time.Now().Unix()
@@ -311,7 +296,6 @@ func (r *Repository) GetTag(name string) (*models.Tag, error) {
 		return nil, &ErrTagNotFound{Name: name}
 	}
 
-	// Annotated tag object.
 	if r.Storage.TagExists(refHash) {
 		content, err := r.Storage.GetTagContent(refHash)
 		if err != nil {
@@ -337,7 +321,6 @@ func (r *Repository) GetTag(name string) (*models.Tag, error) {
 		return tag, nil
 	}
 
-	// Lightweight tag: ref points directly to commit.
 	return &models.Tag{Name: name, CommitHash: refHash}, nil
 }
 

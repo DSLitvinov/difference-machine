@@ -52,11 +52,6 @@ func Rebuild(args []string) error {
 	branches, _ := repo.ListBranches()
 	tagList, _ := repo.ListTags()
 
-	// Ensure product database schema exists
-	if _, err := repo.DB(); err != nil {
-		return fmt.Errorf("failed to open product database: %w", err)
-	}
-
 	fmt.Println("Rebuild complete!")
 	fmt.Printf("  Commits: %d\n", commitsFound)
 	fmt.Printf("  Trees: %d\n", treesFound)

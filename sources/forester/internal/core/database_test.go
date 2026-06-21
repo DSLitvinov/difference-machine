@@ -10,31 +10,26 @@ import (
 	"github.com/difference-machine/forester/internal/models"
 )
 
-func TestDatabase_ListStashesPreservesDistinctRows(t *testing.T) {
+func TestStashStore_ListStashesPreservesDistinctRows(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "forester_test_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
-	dbPath := filepath.Join(tmpDir, "test.db")
-	db, err := NewDatabase(dbPath)
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
-	defer db.Close()
+	stashStore := NewStashStore(tmpDir)
 
 	stash1 := &models.Stash{Hash: "hash1", Message: "first", TreeHash: strings.Repeat("a", 64), CreatedAt: 1}
 	stash2 := &models.Stash{Hash: "hash2", Message: "second", TreeHash: strings.Repeat("b", 64), CreatedAt: 2}
 
-	if _, err := db.CreateStash(stash1); err != nil {
+	if _, err := stashStore.CreateStash(stash1); err != nil {
 		t.Fatalf("CreateStash(1): %v", err)
 	}
-	if _, err := db.CreateStash(stash2); err != nil {
+	if _, err := stashStore.CreateStash(stash2); err != nil {
 		t.Fatalf("CreateStash(2): %v", err)
 	}
 
-	stashes, err := db.ListStashes()
+	stashes, err := stashStore.ListStashes()
 	if err != nil {
 		t.Fatalf("ListStashes: %v", err)
 	}
@@ -51,22 +46,17 @@ func TestDatabase_ListStashesPreservesDistinctRows(t *testing.T) {
 	}
 }
 
-func TestDatabase_AcquireLock(t *testing.T) {
+func TestLocking_AcquireLock(t *testing.T) {
 	tmpDir, err := os.MkdirTemp("", "forester_test_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tmpDir)
 
-	dbPath := filepath.Join(tmpDir, "test.db")
-	db, err := NewDatabase(dbPath)
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
-	defer db.Close()
+	locking := NewLocking(tmpDir)
 
 	lock1 := models.NewLock("test.txt", "user1", "main", models.LockTypeExclusive)
-	acquired, err := db.AcquireLock(lock1)
+	acquired, err := locking.AcquireLock(lock1)
 	if err != nil {
 		t.Fatalf("Failed to acquire lock: %v", err)
 	}
@@ -75,7 +65,7 @@ func TestDatabase_AcquireLock(t *testing.T) {
 	}
 
 	lock2 := models.NewLock("test.txt", "user1", "main", models.LockTypeExclusive)
-	acquired2, err := db.AcquireLock(lock2)
+	acquired2, err := locking.AcquireLock(lock2)
 	if err != nil {
 		t.Fatalf("Failed to check lock: %v", err)
 	}

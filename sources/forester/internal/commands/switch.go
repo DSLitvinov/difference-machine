@@ -386,10 +386,7 @@ func hasUncommittedChanges(repoPath string, repo *core.Repository, branch string
 // createAutoStash creates an automatic stash for the current branch
 func createAutoStash(repoPath string, repo *core.Repository, branch string) (string, error) {
 	storage := repo.Storage
-	db, err := repo.DB()
-	if err != nil {
-		return "", err
-	}
+	stashStore := repo.Stash
 	// Build tree from current state
 	tree := models.NewTree()
 
@@ -442,7 +439,7 @@ func createAutoStash(repoPath string, repo *core.Repository, branch string) (str
 	stashJSON := fmt.Sprintf(`{"message":"%s","tree_hash":"%s"}`, message, treeHash)
 	stash.Hash = core.HashString(stashJSON)
 
-	if _, err := db.CreateStash(stash); err != nil {
+	if _, err := stashStore.CreateStash(stash); err != nil {
 		return "", err
 	}
 
@@ -486,10 +483,7 @@ func storeAutoStashInfo(repoPath, branch, stashHash string) error {
 
 // restoreAutoStashIfNeeded checks if there's an auto-stash stack for the current branch and restores stashes in LIFO order
 func restoreAutoStashIfNeeded(repoPath string, repo *core.Repository, branch string) {
-	db, err := repo.DB()
-	if err != nil {
-		return
-	}
+	stashStore := repo.Stash
 	storage := repo.Storage
 	stashInfoPath := filepath.Join(repoPath, ".DFM", "auto-stash", branch)
 	if !utils.Exists(stashInfoPath) {
@@ -528,7 +522,7 @@ func restoreAutoStashIfNeeded(repoPath string, repo *core.Repository, branch str
 		}
 
 		// Get stash
-		stash, err := db.GetStash(stashHash)
+		stash, err := stashStore.GetStash(stashHash)
 		if err != nil {
 			// Stash doesn't exist, skip it
 			continue
@@ -557,7 +551,7 @@ func restoreAutoStashIfNeeded(repoPath string, repo *core.Repository, branch str
 		}
 
 		// Delete stash from database
-		db.DeleteStash(stashHash)
+		stashStore.DeleteStash(stashHash)
 		restoredCount++
 
 		hashShort := stashHash

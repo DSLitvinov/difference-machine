@@ -36,11 +36,7 @@ func (r *Repository) CollectUsedObjects() (map[string]bool, error) {
 		}
 	}
 
-	db, err := r.DB()
-	if err != nil {
-		return used, err
-	}
-	stashes, err := db.ListStashes()
+	stashes, err := r.Stash.ListStashes()
 	if err != nil {
 		return used, err
 	}

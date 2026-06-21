@@ -25,11 +25,7 @@ func Stash(args []string) error {
 	}
 	defer repo.Close()
 
-	db, err := repo.DB()
-	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
-	}
-
+	stashStore := repo.Stash
 	storage := repo.Storage
 
 	if len(args) == 0 || args[0] == "list" {
@@ -37,7 +33,7 @@ func Stash(args []string) error {
 			return fmt.Errorf("usage: forester stash [list]")
 		}
 		// List stashes
-		stashes, err := db.ListStashes()
+		stashes, err := stashStore.ListStashes()
 		if err != nil {
 			return fmt.Errorf("failed to list stashes: %w", err)
 		}
@@ -122,7 +118,7 @@ func Stash(args []string) error {
 		stashJSON := fmt.Sprintf(`{"message":"%s","tree_hash":"%s"}`, message, treeHash)
 		stash.Hash = core.HashString(stashJSON)
 
-		if _, err := db.CreateStash(stash); err != nil {
+		if _, err := stashStore.CreateStash(stash); err != nil {
 			return fmt.Errorf("failed to create stash: %w", err)
 		}
 
@@ -143,14 +139,14 @@ func Stash(args []string) error {
 		if len(args) > 1 {
 			stashHash = args[1]
 			// Resolve short hash if needed
-			resolved, err := resolveStashHash(db, stashHash)
+			resolved, err := resolveStashHash(stashStore, stashHash)
 			if err != nil {
 				return fmt.Errorf("stash not found: %s", stashHash)
 			}
 			stashHash = resolved
 		} else {
 			// Get latest stash
-			stashes, err := db.ListStashes()
+			stashes, err := stashStore.ListStashes()
 			if err != nil {
 				return fmt.Errorf("failed to list stashes: %w", err)
 			}
@@ -160,7 +156,7 @@ func Stash(args []string) error {
 			stashHash = stashes[0].Hash
 		}
 
-		stash, err := db.GetStash(stashHash)
+		stash, err := stashStore.GetStash(stashHash)
 		if err != nil {
 			return fmt.Errorf("failed to get stash: %w", err)
 		}
@@ -189,7 +185,7 @@ func Stash(args []string) error {
 		}
 
 		if command == "pop" {
-			if err := db.DeleteStash(stashHash); err != nil {
+			if err := stashStore.DeleteStash(stashHash); err != nil {
 				return fmt.Errorf("failed to delete stash: %w", err)
 			}
 			fmt.Printf("Popped stash %s\n", hashShort)
@@ -210,13 +206,13 @@ func Stash(args []string) error {
 
 		stashHash := args[1]
 		// Resolve short hash if needed
-		resolved, err := resolveStashHash(db, stashHash)
+		resolved, err := resolveStashHash(stashStore, stashHash)
 		if err != nil {
 			return fmt.Errorf("stash not found: %s", stashHash)
 		}
 		stashHash = resolved
 
-		if err := db.DeleteStash(stashHash); err != nil {
+		if err := stashStore.DeleteStash(stashHash); err != nil {
 			return fmt.Errorf("failed to delete stash: %w", err)
 		}
 
@@ -233,7 +229,7 @@ func Stash(args []string) error {
 			return fmt.Errorf("usage: forester stash clear")
 		}
 		// Delete all stashes
-		stashes, err := db.ListStashes()
+		stashes, err := stashStore.ListStashes()
 		if err != nil {
 			return fmt.Errorf("failed to list stashes: %w", err)
 		}
@@ -244,7 +240,7 @@ func Stash(args []string) error {
 		}
 
 		for _, stash := range stashes {
-			if err := db.DeleteStash(stash.Hash); err != nil {
+			if err := stashStore.DeleteStash(stash.Hash); err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: failed to delete stash %s: %v\n", stash.Hash[:8], err)
 			}
 		}
@@ -262,14 +258,14 @@ func Stash(args []string) error {
 		if len(args) > 1 {
 			stashHash = args[1]
 			// Resolve short hash if needed
-			resolved, err := resolveStashHash(db, stashHash)
+			resolved, err := resolveStashHash(stashStore, stashHash)
 			if err != nil {
 				return fmt.Errorf("stash not found: %s", stashHash)
 			}
 			stashHash = resolved
 		} else {
 			// Get latest stash
-			stashes, err := db.ListStashes()
+			stashes, err := stashStore.ListStashes()
 			if err != nil {
 				return fmt.Errorf("failed to list stashes: %w", err)
 			}
@@ -279,7 +275,7 @@ func Stash(args []string) error {
 			stashHash = stashes[0].Hash
 		}
 
-		stash, err := db.GetStash(stashHash)
+		stash, err := stashStore.GetStash(stashHash)
 		if err != nil {
 			return fmt.Errorf("failed to get stash: %w", err)
 		}
@@ -401,14 +397,14 @@ func Stash(args []string) error {
 		if len(args) > 2 {
 			stashHash = args[2]
 			// Resolve short hash if needed
-			resolved, err := resolveStashHash(db, stashHash)
+			resolved, err := resolveStashHash(stashStore, stashHash)
 			if err != nil {
 				return fmt.Errorf("stash not found: %s", stashHash)
 			}
 			stashHash = resolved
 		} else {
 			// Get latest stash
-			stashes, err := db.ListStashes()
+			stashes, err := stashStore.ListStashes()
 			if err != nil {
 				return fmt.Errorf("failed to list stashes: %w", err)
 			}
@@ -418,7 +414,7 @@ func Stash(args []string) error {
 			stashHash = stashes[0].Hash
 		}
 
-		stash, err := db.GetStash(stashHash)
+		stash, err := stashStore.GetStash(stashHash)
 		if err != nil {
 			return fmt.Errorf("failed to get stash: %w", err)
 		}
@@ -485,18 +481,18 @@ func Stash(args []string) error {
 }
 
 // resolveStashHash resolves a stash hash from short or full hash
-func resolveStashHash(db *core.Database, hash string) (string, error) {
+func resolveStashHash(stashStore *core.StashStore, hash string) (string, error) {
 	// If it's a full hash, validate and return
 	if utils.IsValidCommitHash(hash) {
 		// Try to get stash
-		_, err := db.GetStash(hash)
+		_, err := stashStore.GetStash(hash)
 		if err == nil {
 			return hash, nil
 		}
 	}
 
 	// Try to find by short hash prefix
-	stashes, err := db.ListStashes()
+	stashes, err := stashStore.ListStashes()
 	if err != nil {
 		return "", err
 	}

@@ -38,14 +38,10 @@ func TestCollectUsedObjects_StashTree(t *testing.T) {
 		t.Fatalf("store tree: %v", err)
 	}
 
-	db, err := repo.DB()
-	if err != nil {
-		t.Fatalf("open db: %v", err)
-	}
 	stash := models.NewStash("test stash", treeHash)
 	stashJSON := fmt.Sprintf(`{"message":"%s","tree_hash":"%s"}`, stash.Message, stash.TreeHash)
 	stash.Hash = HashString(stashJSON)
-	if _, err := db.CreateStash(stash); err != nil {
+	if _, err := repo.Stash.CreateStash(stash); err != nil {
 		t.Fatalf("create stash: %v", err)
 	}
 

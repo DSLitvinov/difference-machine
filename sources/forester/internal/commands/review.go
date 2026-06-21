@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -19,12 +18,13 @@ func Review(args []string) error {
 		return fmt.Errorf("not a Forester repository")
 	}
 
-	dbPath := filepath.Join(repoPath, ".DFM", "database.db")
-	db, err := core.NewDatabase(dbPath)
+	repo, err := core.OpenRepository(repoPath)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
-	defer db.Close()
+	defer repo.Close()
+
+	reviews := repo.Reviews
 
 	if len(args) == 0 {
 		fmt.Println("Usage: forester review <command> [options]")
@@ -62,7 +62,7 @@ func Review(args []string) error {
 		}
 
 		comment := models.NewComment(args[1], args[2], user, args[3], x, y)
-		commentID, err := db.CreateComment(comment)
+		commentID, err := reviews.CreateComment(comment)
 		if err != nil {
 			return fmt.Errorf("failed to create comment: %w", err)
 		}
@@ -79,7 +79,7 @@ func Review(args []string) error {
 			return fmt.Errorf("usage: review list <asset_type> <asset_id>")
 		}
 
-		comments, err := db.GetComments(args[1], args[2])
+		comments, err := reviews.GetComments(args[1], args[2])
 		if err != nil {
 			return fmt.Errorf("failed to get comments: %w", err)
 		}
@@ -114,7 +114,7 @@ func Review(args []string) error {
 		}
 
 		approval := models.NewApproval(args[1], args[2], user, models.ApprovalStatusApproved, "")
-		if err := db.CreateApproval(approval); err != nil {
+		if err := reviews.CreateApproval(approval); err != nil {
 			return fmt.Errorf("failed to create approval: %w", err)
 		}
 
@@ -136,7 +136,7 @@ func Review(args []string) error {
 		}
 
 		approval := models.NewApproval(args[1], args[2], user, models.ApprovalStatusRejected, reason)
-		if err := db.CreateApproval(approval); err != nil {
+		if err := reviews.CreateApproval(approval); err != nil {
 			return fmt.Errorf("failed to create approval: %w", err)
 		}
 
@@ -157,7 +157,7 @@ func Review(args []string) error {
 			return fmt.Errorf("invalid comment ID: %w", err)
 		}
 
-		if err := db.ResolveComment(commentID); err != nil {
+		if err := reviews.ResolveComment(commentID); err != nil {
 			return fmt.Errorf("failed to resolve comment: %w", err)
 		}
 

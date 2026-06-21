@@ -7,10 +7,14 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 
+def get_addon_root() -> Path:
+    """Return the Difference Machine addon root directory."""
+    return Path(__file__).resolve().parent.parent
+
+
 def _get_addon_api_dir() -> Path:
     """Single source for API location: addon api/ (library and api/python/ bindings)."""
-    addon_root = Path(__file__).resolve().parent.parent
-    return addon_root / "api"
+    return get_addon_root() / "api"
 
 
 def get_api_library_path() -> Optional[str]:
@@ -171,6 +175,24 @@ def save_user_config(name: str, email: str) -> bool:
     success = save_config("user", "name", name) and success
     success = save_config("user", "email", email) and success
     return success
+
+
+def get_blender_executable() -> Optional[str]:
+    """Path to the Blender executable from ~/.dfm/setup.cfg [blender] path."""
+    return get_config_value("blender", "path")
+
+
+def get_merge_apply_script_path() -> Optional[str]:
+    """
+    Path to merge_apply_background.py shipped with the addon.
+
+    The script must stay inside the addon: each Blender version uses its own
+    Python runtime and bpy API. Forester CLI does not invoke this script.
+    """
+    script_path = get_addon_root() / "scripts" / "merge_apply_background.py"
+    if script_path.is_file():
+        return str(script_path.absolute())
+    return None
 
 
 def save_gc_config(reflog_expire_days: int, interval_days: int) -> bool:
