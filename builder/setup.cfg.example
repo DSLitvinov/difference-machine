@@ -12,8 +12,7 @@ blender_enabled = true
 [blender]
 path = /Applications/Blender.app
 # Optional: path to merge_apply_background.py for auto-resolve of .blend merge conflicts.
-# If unset, GUI uses addons/blender/difference_machine/scripts/merge_apply_background.py when available.
-# merge_apply_script = /path/to/difference_machine/addons/blender/difference_machine/scripts/merge_apply_background.py
+# merge_apply_script = /path/to/difference_machine/scripts/merge_apply_background.py
 
 [user]
 email = user@example.com
@@ -27,7 +26,5 @@ path = /opt/DiffMachine/bin/forester
 installed = true
 path = /opt/DiffMachine/lib/libforester.so
 
-[difference machine gui]
-path = 
-installed = false
-enabled = false
+[addons]
+diffmachine_path = /opt/DiffMachine/addons/blender/difference_machine

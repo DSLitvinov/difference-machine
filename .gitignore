@@ -4,7 +4,9 @@ build/
 out/
 dist/
 
-# Installer build artifacts
+# Builder artifacts
+builder/.staging/
+builder/dist/
 builder/forester/
 sources/installer/
 installer/forester/

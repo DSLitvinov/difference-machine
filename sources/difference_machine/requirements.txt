@@ -1,8 +1,0 @@
-PyQt6>=6.6.0
-PyQt6-Qt6>=6.6.0
-PyQt6-sip>=13.6.0
-PyQt6-WebEngine
-Pygments>=2.15.0
-diff-match-patch>=20230430
-
-

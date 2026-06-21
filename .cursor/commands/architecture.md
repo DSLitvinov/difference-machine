@@ -121,17 +121,14 @@ difference-machine/
 │   │   └── models.py                  # Dataclasses моделей
 │   └── setup.py                       # Установочный скрипт
 │
-├── installer/                         # Установщик
-│   ├── install.sh                     # Установщик (Linux/macOS)
-│   ├── install.bat                    # Установщик (Windows)
-│   ├── auto_build.sh                  # Полная сборка (Forester + GUI + образ)
-│   ├── scripts/
-│   │   ├── build_installer.sh         # Сборка образа (forester, addons, скрипты)
-│   │   └── build_iso.sh               # Создание ISO из DFM_Installer
-│   └── forester/                      # Предсобранные бинарники
-│       ├── linux/bin/forester
-│       ├── macos/bin/forester
-│       └── windows/bin/forester.exe
+├── builder/                           # Сборка дистрибутива (payload)
+│   ├── build.sh                       # Полная сборка → ~/dfm_distr
+│   ├── setup.cfg.template             # Шаблон конфига для установщика
+│   └── scripts/
+│       ├── build_forester.sh          # Forester CLI + API → .staging/
+│       ├── stage_dist.sh              # Сборка dfm_distr (forester, addon, API)
+│       ├── copy_addons.sh             # Копирование addons/
+│       └── lib/detect_platform.sh     # Определение платформы
 │
 └── [документация]                     # README, GUIDE, BUILD.md и т.д.
 ```

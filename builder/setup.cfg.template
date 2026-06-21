@@ -1,0 +1,16 @@
+# Template for ~/.dfm/setup.cfg — filled by the installer with absolute paths.
+# Placeholders:
+#   {PREFIX}           — forester install root (parent of bin/ and lib/)
+#   {FORESTER_CLI_NAME} — forester | forester.exe
+#   {API_LIB_NAME}     — libforester.so | libforester.dylib | forester.dll
+
+[forester]
+installed = true
+path = {PREFIX}/bin/{FORESTER_CLI_NAME}
+
+[api]
+installed = true
+path = {PREFIX}/lib/{API_LIB_NAME}
+
+[addons]
+diffmachine_path = {PREFIX}/addons/blender/difference_machine

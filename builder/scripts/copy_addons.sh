@@ -1,9 +1,9 @@
 #!/bin/bash
-# copy_addons.sh - Копирование аддонов в целевую папку установщика
-# Использование: copy_addons.sh [TARGET_DIR]
-# По умолчанию TARGET_DIR = installer/DFM_Installer (если запуск из installer/ или installer/scripts/)
+# Copy addons into the distribution target directory.
+# Usage: copy_addons.sh [TARGET_DIR]
+# Default TARGET_DIR: ${HOME}/dfm_distr
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -13,18 +13,19 @@ ADDONS_SOURCE="${SOURCES_DIR}/addons"
 if [ ! -d "${ADDONS_SOURCE}" ]; then
     ADDONS_SOURCE="${PROJECT_ROOT}/addons"
 fi
-TARGET_DIR="${1:-${PROJECT_ROOT}/DFM_Installer}"
+TARGET_DIR="${1:-${HOME}/dfm_distr}"
 
-echo "=== Копирование аддонов ==="
-echo "Источник: ${ADDONS_SOURCE}"
-echo "Назначение: ${TARGET_DIR}/addons"
+echo "=== Copy addons ==="
+echo "Source: ${ADDONS_SOURCE}"
+echo "Target: ${TARGET_DIR}/addons"
 echo ""
 
 if [ ! -d "${ADDONS_SOURCE}" ]; then
-    echo "Папка addons не найдена: ${ADDONS_SOURCE}"
+    echo "Addons directory not found: ${ADDONS_SOURCE}"
     exit 1
 fi
 
 mkdir -p "${TARGET_DIR}"
-cp -r "${ADDONS_SOURCE}" "${TARGET_DIR}/"
-echo "Аддоны скопированы в ${TARGET_DIR}/addons"
+rm -rf "${TARGET_DIR}/addons"
+cp -R "${ADDONS_SOURCE}" "${TARGET_DIR}/"
+echo "Addons copied to ${TARGET_DIR}/addons"
