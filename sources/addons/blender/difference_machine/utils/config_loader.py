@@ -18,11 +18,17 @@ def _get_addon_api_dir() -> Path:
 
 
 def get_api_library_path() -> Optional[str]:
-    """Forester API library — только из addon api/."""
+    """Forester native API library from addon api/ directory."""
     api_dir = _get_addon_api_dir()
     if not api_dir.exists():
         return None
-    for name in ("libforester.so", "libforester.dylib", "forester.dll"):
+    for name in (
+        "libforester.so",
+        "libforester.dylib",
+        "libforester_arm64.dylib",
+        "libforester.dll",
+        "forester.dll",
+    ):
         p = api_dir / name
         if p.exists() and p.is_file():
             return str(p.absolute())
@@ -30,9 +36,9 @@ def get_api_library_path() -> Optional[str]:
 
 
 def get_python_bindings_path() -> Optional[str]:
-    """Forester Python bindings — только из addon api/python/."""
+    """Forester JSON Python bindings from addon api/python/ directory."""
     bindings = _get_addon_api_dir() / "python"
-    if bindings.exists() and bindings.is_dir() and (bindings / "python_bindings_structured.py").exists():
+    if bindings.exists() and bindings.is_dir() and (bindings / "python_bindings_json.py").exists():
         return str(bindings.absolute())
     return None
 

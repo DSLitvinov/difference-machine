@@ -167,7 +167,7 @@ class ForesterAPIWrapper:
                             "hash": getattr(commit, 'hash', ''),
                             "message": getattr(commit, 'message', ''),
                             "author": getattr(commit, 'author', ''),
-                            "tag": "",  # API doesn't provide tag in structured format yet
+                            "tag": getattr(commit, "tag", ""),
                             "is_head": False,  # Will be determined separately
                             "screenshot_path": getattr(commit, 'screenshot_path', '') or getattr(commit, 'screenshot_hash', ''),  # Support both old and new format
                         }
@@ -572,3 +572,16 @@ def get_api() -> ForesterAPIWrapper:
     if _api_wrapper_instance is None:
         _api_wrapper_instance = ForesterAPIWrapper()
     return _api_wrapper_instance
+
+
+def close_api() -> None:
+    """Close Forester API session handles and reset the global wrapper."""
+    global _api_wrapper_instance
+    if _api_wrapper_instance is not None:
+        instance = _api_wrapper_instance._api_instance
+        if instance is not None:
+            try:
+                instance.close()
+            except Exception as e:
+                logger.warning("Failed to close Forester API: %s", e)
+        _api_wrapper_instance = None

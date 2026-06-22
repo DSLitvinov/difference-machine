@@ -68,11 +68,9 @@ else
 fi
 
 if [ -d "${FORESTER_API_SRC}" ]; then
-    for binding in python_bindings.py python_bindings_structured.py python_bindings_json.py; do
-        if [ -f "${FORESTER_API_SRC}/${binding}" ]; then
-            cp "${FORESTER_API_SRC}/${binding}" "${ADDON_API_DIR}/python/"
-        fi
-    done
+    if [ -f "${FORESTER_API_SRC}/python_bindings_json.py" ]; then
+        cp "${FORESTER_API_SRC}/python_bindings_json.py" "${ADDON_API_DIR}/python/"
+    fi
     echo -e "${GREEN}✓ Python bindings → ${ADDON_REL}/api/python/${NC}"
 fi
 

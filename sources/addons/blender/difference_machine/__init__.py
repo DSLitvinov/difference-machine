@@ -74,6 +74,12 @@ def unregister():
     properties.unregister()
     preferences.unregister()
 
+    try:
+        from .utils.forester_api import close_api
+        close_api()
+    except Exception:
+        pass
+
     logger.info("Difference Machine addon unregistered")
 
 

@@ -2,9 +2,6 @@
 Auto-save version and scheduled GC timer logic for Difference Machine addon.
 """
 
-import os
-import subprocess
-import shutil
 import time
 import datetime
 from pathlib import Path
@@ -21,72 +18,24 @@ _auto_save_last_run: float = 0.0
 
 
 def run_auto_save_commit(repo_path: Path, prefs) -> None:
-    """Run add + commit. Tries API first, falls back to forester CLI subprocess."""
+    """Run add + commit via Forester JSON API."""
     author = getattr(prefs, "default_author", "Unknown") or "Unknown"
     commit_message = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    repo_str = str(repo_path)
 
     try:
         from .forester_api import get_api
         api = get_api()
         success, add_error = api.add(repo_path, ["."])
-        if success:
-            success, _, commit_error = api.commit(repo_path, commit_message, author=author)
-            if success:
-                logger.info("Auto save version: %s", commit_message)
-                return
-            logger.warning("Auto save API commit failed: %s", commit_error)
-        else:
+        if not success:
             logger.warning("Auto save API add failed: %s", add_error)
+            return
+        success, _, commit_error = api.commit(repo_path, commit_message, author=author)
+        if success:
+            logger.info("Auto save version: %s", commit_message)
+        else:
+            logger.warning("Auto save API commit failed: %s", commit_error)
     except Exception as e:
         logger.warning("Auto save API error: %s", e)
-
-    # Fallback: forester CLI
-    forester_bin = None
-    try:
-        from .config_loader import get_config_value
-        forester_bin = get_config_value("forester", "path")
-        if forester_bin:
-            fp = Path(forester_bin)
-            forester_bin = str(fp) if fp.exists() and fp.is_file() else None
-    except Exception:
-        pass
-    if not forester_bin:
-        forester_bin = os.environ.get("FORESTER_BIN")
-        if forester_bin:
-            fp = Path(forester_bin)
-            forester_bin = str(fp) if fp.exists() and fp.is_file() else None
-    if not forester_bin:
-        forester_bin = shutil.which("forester")
-    if not forester_bin:
-        logger.warning("Auto save: forester CLI not found in PATH")
-        return
-    try:
-        result = subprocess.run(
-            [forester_bin, "add", "."],
-            cwd=repo_str,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        if result.returncode != 0:
-            logger.warning("Auto save forester add failed: %s", result.stderr or result.stdout)
-            return
-        result = subprocess.run(
-            [forester_bin, "commit", commit_message, "--author", author],
-            cwd=repo_str,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        if result.returncode != 0:
-            logger.warning("Auto save forester commit failed: %s", result.stderr or result.stdout)
-            return
-        logger.info("Auto save version (CLI): %s", commit_message)
-    except subprocess.TimeoutExpired:
-        logger.warning("Auto save: forester CLI timeout")
-    except Exception as e:
-        logger.warning("Auto save forester CLI error: %s", e)
 
 
 def check_auto_save_version() -> float:
