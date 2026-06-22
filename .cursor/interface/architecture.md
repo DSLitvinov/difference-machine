@@ -1,6 +1,6 @@
 # Forester GUI — архитектура
 
-Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar и Content Preview (Project view) задокументированы; Content Info — позже.
+Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar и Content Preview (Project + History) задокументированы; Content Info — позже.
 
 **Стек:** Wails (Go backend) + React + shadcn/ui  
 **Дизайн:** [design-tokens.md](./design-tokens.md) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
@@ -21,9 +21,32 @@ Sidebar управляет выбором **папки**, **ветки/комм�
 **Content Preview (Project view):** [content-preview-project-view.md](./content-preview-project-view.md) — сетка папок/файлов, drill-down, multiselect, поиск, slider.  
 Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 
+**Content Preview (History view):** [content-preview-history-view.md](./content-preview-history-view.md) — orchestration. Atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) · [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md). **Content Info скрыта**.
+
 ---
 
-## 2. Компоновка (общая для обоих режимов)
+## 2. Компоновка
+
+### 2.0 Режимы окна
+
+| Режим | Панели | Content Preview |
+|-------|--------|-----------------|
+| **Project view** | Sidebar + Preview (+ Content Info v2) | Grid папок/файлов |
+| **History** | **Sidebar + Preview** (Content Info скрыта) | Commit diff layout |
+
+```
+Project view:
+┌──────────┬─────────────────────────────┬──────────────┐
+│ Sidebar  │  Content Preview          │ Content Info │
+└──────────┴─────────────────────────────┴──────────────┘
+
+History:
+┌──────────┬────────────────────────────────────────────┐
+│ Sidebar  │  Content Preview (full remaining width)    │
+└──────────┴────────────────────────────────────────────┘
+```
+
+### 2.1 Sidebar (общая для обоих режимов)
 
 ```
 ┌──────────┬─────────────────────────────┬──┐
@@ -39,7 +62,7 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 └──────────┴─────────────────────────────┴──┘
 ```
 
-### 2.1 Rail (левая узкая колонка)
+### 2.2 Rail (левая узкая колонка)
 
 | Элемент | Иконка (lucide) | Действие |
 |---------|-----------------|----------|
@@ -50,7 +73,7 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 
 Активный пункт rail: `bg-primary text-primary-foreground`. Неактивный — прозрачный + `hover:bg-accent`.
 
-### 2.2 Main panel
+### 2.3 Main panel
 
 Общие блоки:
 
@@ -59,10 +82,10 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
    - Project view → имя репозитория (basename root path).
    - History → текущая выбранная ветка.
 3. **Mode-specific controls** — см. дочерние документы.
-4. **Scrollable list** — папки / коммиты (белый фон Container, §2.4).
+4. **Scrollable list** — папки / коммиты (белый фон Container, §2.5).
 5. **Collapse control** — кнопка `PanelLeft` на правом краю; сворачивает всю Sidebar (состояние в `ui.sidebarCollapsed`).
 
-### 2.4 Цвета и фоны
+### 2.5 Цвета и фоны
 
 **Источник токенов:** [design-tokens.md](./design-tokens.md) (shadcn/ui Zinc light, Figma kit).
 
@@ -91,7 +114,7 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 └──────────┴─────────────────────────────┘
 ```
 
-### 2.3 shadcn/ui mapping
+### 2.6 shadcn/ui mapping
 
 | UI | shadcn component |
 |----|------------------|
@@ -197,7 +220,12 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 | `ListTags(repoPath)` | **новый** | Tag Badge fallback |
 | `ListWorkdirTree(repoPath)` | **новый** | Folder tree (folders only, recursive counts) |
 | `ListWorkdirFiles(repoPath, folder)` | **новый** | Для **Content Preview**, не Sidebar |
-| `OpenWithDefaultApp(repoPath, fileRel)` | **новый** | Double-click в Preview: открыть файл в приложении ОС по умолчанию |
+| `OpenWithDefaultApp(repoPath, fileRel)` | **новый** | Double-click в Preview (Project): открыть workdir-файл в ОС |
+| `GetCommitChangedFiles(repoPath, hash)` | **новый** `commit.files` | History Preview: список A/M/D/R |
+| `GetCommitFileDiff(repoPath, hash, filePath)` | **новый** `commit.diff` | History Preview: text diff |
+| `GetCommitFileBlob(repoPath, hash, filePath)` | **новый** `commit.blob` | History Preview: image before/after |
+| `OpenCommitFileWithDefaultApp(repoPath, hash, filePath)` | **новый** | History Preview: binary stub → temp blob + OS open |
+| `GetCommitScreenshot(repoPath, hash)` | **новый** `commit.screenshot` | History Preview: `.blend` binary stub preview |
 
 > `status.get` возвращает **плоские** списки путей, не иерархию. Для Project view (список папок) нужен отдельный метод на Go: обход FS + агрегация + учёт `.dfmignore` и скрытия `.DFM/`.
 
@@ -319,6 +347,8 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 ### 6.10 Переключение Project ↔ History
 
 - Selection **сбрасывается** (`kind: 'none'`), чтобы Preview не показывал несовместимый контекст.
+- **Layout:** History → Content Info **скрыта**, Preview на всю ширину; Project → Content Info снова доступна (v2).
+- History Preview: при выборе коммита — auto-select первый changed file (см. [content-preview-history-view.md §5.1](./content-preview-history-view.md)).
 - Альтернатива (если понадобится): запоминать last selection per mode — **не в v1**.
 
 ---
@@ -344,7 +374,6 @@ frontend/src/
       CommitList.tsx
       CommitCard.tsx
       CommitCardMenu.tsx
-      CommitCardScreenshot.tsx
       CommitCardStats.tsx
   state/
     sidebarStore.ts          # zustand или context
@@ -360,7 +389,7 @@ frontend/src/
 |------|-------|
 | **v1** | Sidebar + Content Preview Project view (grid, multiselect, search, slider) |
 | **v1.1** | Thumbnails, virtual scroll polish, changed-count badge on folders |
-| **v2** | Preview History layout, tree collapse, context menus, fs watcher |
+| **v2** | Content Preview History (diff), Content Info, tree collapse, context menus, fs watcher |
 
 ---
 
@@ -371,6 +400,11 @@ frontend/src/
 - [commit-card.md](./commit-card.md) — карточка коммита
 - [design-tokens.md](./design-tokens.md) — shadcn/ui цвета (Figma kit)
 - [content-preview-project-view.md](./content-preview-project-view.md) — Content Preview (Project view)
+- [content-preview-history-view.md](./content-preview-history-view.md) — Content Preview (History / diff)
+- [preview-commit-header.md](./preview-commit-header.md) — header коммита в Preview
+- [history-changed-file-item.md](./history-changed-file-item.md) — changed file row
+- [diff-view.md](./diff-view.md) — Diff view container
+- [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md)
 - [folder-preview-item.md](./folder-preview-item.md) — item папки
 - [file-preview-item.md](./file-preview-item.md) — item файла
 - [plan.md](./plan.md) — исходное ТЗ

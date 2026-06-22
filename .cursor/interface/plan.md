@@ -22,6 +22,17 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
   - [content-preview-project-view.md](./content-preview-project-view.md) — панель: toolbar, drill-down, multiselect, поиск, сортировка, slider
   - [folder-preview-item.md](./folder-preview-item.md) — item папки (Default/Hover/Selected)
   - [file-preview-item.md](./file-preview-item.md) — item файла (Default/Hover/Selected × Min/Max)
+- Content Preview (режим History, UX как GitHub Desktop):
+  - [content-preview-history-view.md](./content-preview-history-view.md) — панель: header, changed files list, diff routing, state, API
+  - [preview-commit-header.md](./preview-commit-header.md) — header коммита в Preview
+  - [history-changed-file-item.md](./history-changed-file-item.md) — строка changed file (A/M/D/R × Default/Hover/Selected)
+  - [diff-view.md](./diff-view.md) — toolbar + маршрутизация по типу файла
+  - [text-diff-panel.md](./text-diff-panel.md) — Unified / Split
+  - [image-diff-panel.md](./image-diff-panel.md) — Split / Overlay
+  - [binary-diff-stub.md](./binary-diff-stub.md) — заглушка + кнопка open; `.blend` → screenshot коммита ([4030:2796](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-2796))
+  - [deleted-diff-stub.md](./deleted-diff-stub.md) — заглушка удалённого файла
+  - Figma: [text diff `4028:5655`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4028-5655) · [image diff `4030:3317`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317) · [binary stub `4031:3754`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4031-3754)
+  - В History mode **нет Content Info** — только Sidebar + Content Preview
 
 
 собираем на ui framework: Wails и shadcn ui

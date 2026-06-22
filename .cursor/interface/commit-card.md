@@ -2,7 +2,7 @@
 
 Компонент списка коммитов в **Sidebar → History view**.
 
-**Figma:** [Commit card variants](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4490) (в составе History `4026:4547`)
+**Figma (shadcn kit):** [Commit card `4032:4194`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4032-4194) · legacy [4026:4490](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4490)
 
 **Стек:** React + shadcn/ui (`Card`, `Badge`, `Tooltip`, `DropdownMenu`, `Button`)
 
@@ -29,7 +29,7 @@
 ┌─────────────────────────────────────────────┐
 │ [⑂] [Head] Commit message               [⋮] │
 │ Author                                      │
-│ [32×32] Description: Thank you for the…     │
+│ Description: Thank you for the…             │
 │ 7 files changed  +12  -12                   │
 │ [1 week ago]  [Tag]                         │
 └─────────────────────────────────────────────┘
@@ -53,17 +53,14 @@ Title: `flex-1 min-w-0 truncate`.
 - `text-xs text-foreground`, full width.
 - `commit.author`.
 
-### 2.3 Description row
+### 2.3 Description
 
-`flex gap-1 items-start w-full`
+Показывается **только если** в `message` есть body после `\n\n`.
 
-| Элемент | Spec |
-|---------|------|
-| **Screenshot** | 32×32, `shrink-0`, `rounded-sm`, `object-cover` |
-| **Description** | `text-xs text-muted-foreground`, `h-8`, `line-clamp-2`, `flex-1` |
-
-- Screenshot: `commit.screenshot_path`; placeholder checkerboard / `ImageIcon` if missing.
-- Description: текст после `\n\n` в `message`; prefix `Description: ` optional; скрыть текст если пусто.
+- `text-xs text-muted-foreground`, `h-8`, `line-clamp-2`, `w-full`.
+- Текст после `\n\n` в `message`; prefix `Description: ` optional.
+- **Скриншот не используется** (убран из макета `4032:4194`).
+- Если description пустой — **строка скрыта** целиком.
 
 ### 2.4 Files Changed row
 
@@ -159,7 +156,6 @@ interface CommitCardData {
   message: string
   timestamp: number
   parent_hashes: string[]
-  screenshot_path?: string
   tags?: string[]
   files_added?: number
   files_removed?: number
@@ -188,7 +184,6 @@ function parseCommitMessage(message: string) {
 | base | `log.get` |
 | `tags` | extend `log.get` or `tag.list` |
 | `files_*` | extend `log.get` or `commit.stats` |
-| screenshot file | resolve `screenshot_path` relative to repo |
 
 ---
 
@@ -225,8 +220,7 @@ Destructive items → `AlertDialog` before execute.
 
 | Case | UI |
 |------|-----|
-| No description | Hide text; keep screenshot slot |
-| No screenshot | Placeholder 32×32 |
+| No description | Скрыть строку description |
 | No tag | Hide Tag Badge |
 | No files stats | Hide Files Changed row |
 | `timestamp` invalid | Date Badge `—`, no tooltip |
@@ -244,7 +238,6 @@ Destructive items → `AlertDialog` before execute.
 ```
 components/sidebar/history/
   CommitCard.tsx           # layout + state classes
-  CommitCardScreenshot.tsx
   CommitCardStats.tsx      # Files Changed row
   CommitCardBadges.tsx     # Date + Tag
   CommitCardMenu.tsx       # ⋮ DropdownMenu
@@ -268,6 +261,7 @@ interface CommitCardProps {
 
 | Изменение | Деталь |
 |-----------|--------|
+| Screenshot | **Удалён** — макет [4032:4194](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4032-4194) |
 | Files Changed | Вынесен в **отдельную строку** с label `N files changed` |
 | Footer | Только Date + Tag badges (без +/-) |
 | States | Явно описаны Default / Hover / Selected |

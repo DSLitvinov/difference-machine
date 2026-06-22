@@ -27,7 +27,7 @@
 │ ┌───────────────────────────────┐ ⋮   │
 │ │ ⑂ [Head] Commit message       │     │
 │ │ Author                        │     │
-│ │ [▣] Description: Thank you…   │     │
+│ │ Description: Thank you…       │     │
 │ │ 7 files changed  +12  -12     │     │
 │ │ [1w ago] [Tag]                │     │
 │ └───────────────────────────────┘     │
@@ -38,7 +38,7 @@
 ```
 
 Список коммитов — **карточки** с gap `8px`, не разделители `border-b`.  
-**Figma (shadcn kit):** [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547) · [Commit card](./commit-card.md)
+**Figma (shadcn kit):** [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547) · [Commit card `4032:4194`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4032-4194) · [commit-card.md](./commit-card.md)
 
 ### 2.1 Header
 
@@ -195,7 +195,7 @@ sequenceDiagram
   W->>F: log.get
   W-->>UI: commits[]
 
-  UI->>W: EnrichCommits(stats, tags, screenshots)
+  UI->>W: EnrichCommits(stats, tags)
   Note over W: commit.stats / tags — batch или lazy per card
 
   Note over UI: client filter by search
@@ -228,7 +228,6 @@ sequenceDiagram
       "author": "Name",
       "message": "Comment message",
       "timestamp": 1710000000,
-      "screenshot_path": ".DFM/screenshots/….png",
       "tags": ["v1.0"],
       "files_added": 12,
       "files_removed": 12
@@ -297,9 +296,9 @@ interface HistoryViewState {
 
 - Icon placeholder или pill fallback; только tip ветки.
 
-### 5.6a Screenshot missing
+### 5.6a No description
 
-- 32×32 placeholder (checkerboard / `ImageIcon` muted).
+- Строка description в карточке **не рендерится** (см. [commit-card.md §2.3](./commit-card.md)).
 
 ### 5.6b Files stats loading
 
@@ -365,7 +364,6 @@ interface HistoryViewState {
 | `CommitList` | `ScrollArea`, gap `space-2`, padding `px-2` |
 | `CommitCard` | Card layout §2.4; states Default/Hover/Selected |
 | `CommitCardMenu` | `DropdownMenu` on `MoreVertical` §2.4.6 |
-| `CommitCardScreenshot` | 32×32 thumb |
 | `CommitCardStats` | Files Changed +/− |
 
 ### Keyboard
@@ -399,4 +397,5 @@ interface HistoryViewState {
 | 2 | Commit card | [commit-card.md](./commit-card.md) |
 | 3 | Head | Icon placeholder (не text badge) |
 | 4 | API extensions | `tags`, `files_added`/`files_removed` в log |
-| 5 | Auto-select | **Нет** |
+| 5 | Auto-select commit | **Нет** (в Sidebar); Content Preview auto-select **первый файл** при выборе коммита — [content-preview-history-view.md](./content-preview-history-view.md) |
+| 6 | Content Preview | [content-preview-history-view.md](./content-preview-history-view.md); atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) + diff panels |

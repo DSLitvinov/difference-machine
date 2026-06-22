@@ -85,6 +85,11 @@
 | File Item | [4026:5023](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5023) |
 | Preview thumbnail | [4026:5020](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5020) |
 | Folder icon | [4026:5054](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5054) |
+| Commit card | [4032:4194](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4032-4194) |
+| History Preview — text diff | [4028:5655](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4028-5655) |
+| History Preview — image diff | [4030:3317](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317) |
+| History Preview — binary stub | [4031:3754](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4031-3754) |
+| History Preview — blend screenshot stub | [4030:2796](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-2796) |
 
 ### 3.1 Sidebar shell
 
@@ -147,6 +152,28 @@
 | Date Badge | `background/secondary` + `foreground/secondary` | `Badge variant="secondary"` |
 | Tag / Head Badge | `background/primary/default` + `foreground/primary/default` | `Badge variant="default"` |
 
+### 3.5 History Preview / Diff view
+
+| Элемент | Figma | Tailwind |
+|---------|-------|----------|
+| Panel background | `background/default` | `bg-background` |
+| Commit header border | `border/default` | `border-border` |
+| Files list header | `background/accent` | `bg-accent` |
+| Selected file row | `background/primary/default` | `bg-primary text-primary-foreground` |
+| File row hover | `background/accent` | `hover:bg-accent` |
+| Diff toolbar border | `border/default` | `border-border` |
+| Diff added line | — | `bg-emerald-50 text-emerald-900` (или diff theme) |
+| Diff removed line | — | `bg-red-50 text-red-900` |
+| Stub / empty text | `foreground/muted` | `text-muted-foreground` |
+| Binary stub open button | `background/primary/default` + `foreground/primary/default` | `Button variant="default"` |
+| Blend screenshot preview | `border/default` + image | `border border-border rounded-md object-contain max-w-[320px]` |
+| Status badge A | success | `bg-emerald-600 text-white` |
+| Status badge M | warning | `bg-amber-500 text-white` |
+| Status badge D | destructive | `bg-destructive text-destructive-foreground` |
+| Status badge R | info | `bg-blue-600 text-white` |
+| Image diff handle | `border/primary/default` | `border-ring bg-background` |
+| Resize divider | `border/default` | `bg-border` |
+
 ---
 
 ## 4. Состояния item — сводка (Tailwind only)
@@ -185,6 +212,14 @@ const commitCardStateClasses = {
 - [sidebar-project-view.md](./sidebar-project-view.md)
 - [sidebar-history-view.md](./sidebar-history-view.md)
 - [content-preview-project-view.md](./content-preview-project-view.md)
+- [content-preview-history-view.md](./content-preview-history-view.md)
+- [preview-commit-header.md](./preview-commit-header.md)
+- [history-changed-file-item.md](./history-changed-file-item.md)
+- [diff-view.md](./diff-view.md)
+- [text-diff-panel.md](./text-diff-panel.md)
+- [image-diff-panel.md](./image-diff-panel.md)
+- [binary-diff-stub.md](./binary-diff-stub.md)
+- [deleted-diff-stub.md](./deleted-diff-stub.md)
 - [folder-preview-item.md](./folder-preview-item.md)
 - [file-preview-item.md](./file-preview-item.md)
 - [commit-card.md](./commit-card.md)

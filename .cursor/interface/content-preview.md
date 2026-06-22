@@ -1,2 +1,3 @@
-> **Перенесено:** актуальная спека — [content-preview-project-view.md](./content-preview-project-view.md).  
-> Item-компоненты: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
+> **Перенесено:** актуальные спеки — [content-preview-project-view.md](./content-preview-project-view.md) · [content-preview-history-view.md](./content-preview-history-view.md).  
+> Project atoms: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)  
+> History atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) · [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md)
