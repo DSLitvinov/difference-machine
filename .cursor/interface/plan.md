@@ -16,8 +16,8 @@ https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/%F0%9F%8E%B1-M.OS-%D0%9F%D1%
 - архитектура side bar в двух версиях:
   - [sidebar-project-view.md](./sidebar-project-view.md) — папки рабочей директории
   - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
+  - [commit-card.md](./commit-card.md) — карточка коммита (Default/Hover/Selected)
 
 собираем на ui framework: Wails и shadcn ui
 
-**Текущий scope:** только Sidebar (Preview / Info — позже).
-
+**Текущий scope:** Sidebar (Preview / Info — позже).

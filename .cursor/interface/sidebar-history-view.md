@@ -17,19 +17,26 @@
 
 ```
 ┌─────────────────────────────────────┐
-│ History                             │  ← Header (без Switch)
+│ History                             │
 ├─────────────────────────────────────┤
-│ [⑂] Branch name              [⇕]    │  ← Branch selector
-│ [ Type to search...           ]     │  ← Search input
+│ [⑂] Branch name              [⇕]    │
+│ [ Type to search...           ]     │
 ├─────────────────────────────────────┤
-│ Author              1 week ago      │
-│ Comment message                     │
-│ Description                         │
-│─────────────────────────────────────│
-│ Author              2 weeks ago     │
-│ ...                                 │
+│ ┌───────────────────────────────┐ ⋮   │
+│ │ ⑂ [Head] Commit message       │     │
+│ │ Author                        │     │
+│ │ [▣] Description: Thank you…   │     │
+│ │ 7 files changed  +12  -12     │     │
+│ │ [1w ago] [Tag]                │     │
+│ └───────────────────────────────┘     │
+│ ┌─────────────────────────────┐ ⋮   │
+│ │ ...                         │     │
+│ └─────────────────────────────┘     │
 └─────────────────────────────────────┘
 ```
+
+Список коммитов — **карточки** с gap `8px`, не разделители `border-b`.  
+**Figma:** [History sidebar](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17611) · [Commit card](./commit-card.md)
 
 ### 2.1 Header
 
@@ -39,11 +46,11 @@
 ### 2.2 Branch selector
 
 - Icon `GitBranch`, label = имя **просматриваемой** ветки (`historyBranch`).
-- Dropdown — два типа действий (см. §2.5).
+- Dropdown — см. §2.6 (browse vs checkout).
 
 **Важно:** `historyBranch` (что смотрим в log) и `currentBranch` (на какой ветке рабочая копия) — **разные поля**. Они совпадают после checkout, но могут расходиться при «browse without checkout».
 
-### 2.5 Branch selector: browse vs checkout
+### 2.6 Branch selector: browse vs checkout
 
 В Git-клиентах два разных намерения:
 
@@ -142,24 +149,11 @@ You have uncommitted changes:
 
 Debounce: 150ms.
 
-### 2.4 Commit list item
+### 2.4 Commit card
 
-| Зона | Поле | Источник |
-|------|------|----------|
-| Top left | Author | `commit.author` |
-| Top right | Relative time | `commit.timestamp` → `formatDistanceToNow` |
-| Middle | Message | `commit.message` (medium weight) |
-| Bottom | Description | v1: нет в API → скрыть или дублировать truncated message |
+Полная спека компонента: **[commit-card.md](./commit-card.md)** (layout, состояния Default/Hover/Selected, данные, menu).
 
-**Figma** показывает отдельное поле Description — в Forester commit model есть только `message`. В v1:
-- `description` = вторая строка = first line of message after `\n\n`, или omitted.
-- v2: расширить commit model / парсить conventional commits.
-
-Клик по item → `{ kind: 'commit', hash, branch: historyBranch }`.
-
-Selected state: `bg-accent` border-l или ring.
-
----
+Кратко: карточка `269px`, gap `8px` в списке; клик → select commit; ⋮ → context menu.
 
 ## 3. Data flow
 
@@ -178,8 +172,10 @@ sequenceDiagram
 
   UI->>W: GetLog(repoPath, historyBranch, maxCount)
   W->>F: log.get
-  F-->>W: commits[]
-  W-->>UI: commits
+  W-->>UI: commits[]
+
+  UI->>W: EnrichCommits(stats, tags, screenshots)
+  Note over W: commit.stats / tags — batch или lazy per card
 
   Note over UI: client filter by search
 
@@ -211,13 +207,16 @@ sequenceDiagram
       "author": "Name",
       "message": "Comment message",
       "timestamp": 1710000000,
-      "screenshot_path": ".DFM/screenshots/….png"
+      "screenshot_path": ".DFM/screenshots/….png",
+      "tags": ["v1.0"],
+      "files_added": 12,
+      "files_removed": 12
     }
   ]
 }
 ```
 
-Default `max_count`: 100. v2: «Load more» pagination.
+Default `max_count`: 100. Поля `tags`, `files_added`, `files_removed` — **расширение API** (§2.4.3–2.4.4).
 
 ---
 
@@ -269,37 +268,46 @@ interface HistoryViewState {
 - `branch.list`: одна ветка `is_current`, но HEAD может не совпадать с branch tip (если Forester такое поддерживает).
 - Показать indicator в branch selector «detached» — если API отдаёт; иначе v2.
 
-### 5.5 Merge commit (2+ parents)
+### 5.5 Merge commit
 
-- В списке отображать как обычный коммит.
-- Optional icon `GitMerge` если `len(parent_hashes) > 1`.
-- Preview/Info покажут merge details.
+- `GitMerge` 16px в header (§2.4).
 
-### 5.6 Очень длинное message
+### 5.6 Head indicator
 
-- Item: 1 строка title + line-clamp 2 для body.
-- Full text в Content Info после select.
+- Icon placeholder или pill fallback; только tip ветки.
 
-### 5.7 Поиск без результатов
+### 5.6a Screenshot missing
+
+- 32×32 placeholder (checkerboard / `ImageIcon` muted).
+
+### 5.6b Files stats loading
+
+- Skeleton `+ – − –` в footer; hide after error.
+
+### 5.6c No tag
+
+- Tag Badge не рендерится; footer сжимается.
+
+### 5.7 Очень длинное message
+
+- Title: 1 строка truncate; description: `line-clamp-2`.
+
+### 5.7a Клик ⋮
+
+- `stopPropagation`; destructive → `AlertDialog`; Revert disabled для HEAD.
+
+### 5.8 Date / tooltip
+
+- Relative на badge; absolute в `Tooltip`.
+
+### 5.9 Поиск без результатов
 
 - Inline empty: «No commits match "query"».
-- Clear search button в Input (shadcn `X`).
-
-### 5.8 Timestamp
-
-- `timestamp` — unix seconds (проверить при интеграции).
-- Invalid / 0 → показывать «—».
-- Future skew → «in …» или absolute date.
-
-### 5.9 Screenshot path
-
-- Sidebar **не** показывает thumbnail в v1 (только text).
-- v2: optional avatar/thumbnail слева если `screenshot_path` exists и file readable.
+- Clear search button в Input.
 
 ### 5.10 Log loading при быстрой смене ветки
 
-- Cancel / ignore stale responses (request id или AbortController pattern в Wails wrapper).
-- Показывать skeleton на list при `loadingLog`.
+- Cancel stale responses; skeleton на list.
 
 ### 5.11 Selected commit исчез из log
 
@@ -333,8 +341,11 @@ interface HistoryViewState {
 | `HistoryHeader` | Title |
 | `BranchSelector` | Dropdown + load branches |
 | `CommitSearch` | Controlled Input |
-| `CommitList` | ScrollArea + map |
-| `CommitListItem` | Row layout from Figma |
+| `CommitList` | `ScrollArea`, gap `space-2`, padding `px-2` |
+| `CommitCard` | Card layout §2.4; states Default/Hover/Selected |
+| `CommitCardMenu` | `DropdownMenu` on `MoreVertical` §2.4.6 |
+| `CommitCardScreenshot` | 32×32 thumb |
+| `CommitCardStats` | Files Changed +/− |
 
 ### Keyboard
 
@@ -364,6 +375,7 @@ interface HistoryViewState {
 | # | Тема | Решение |
 |---|------|---------|
 | 1 | Branch dropdown | **Browse log only** — `historyBranch` + `log.get`; checkout отдельно (§2.5) |
-| 2 | Description в commit row | v1: вторая строка = первая строка после `\n\n` в `message`, иначе скрыть |
-| 3 | Auto-select первого коммита | **Нет** — selection пустой до клика пользователя |
-| 4 | Graph view (`lol`) | Вне Sidebar v1; отдельная панель / v2 |
+| 2 | Commit card | [commit-card.md](./commit-card.md) |
+| 3 | Head | Icon placeholder (не text badge) |
+| 4 | API extensions | `tags`, `files_added`/`files_removed` в log |
+| 5 | Auto-select | **Нет** |

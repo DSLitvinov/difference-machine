@@ -68,6 +68,7 @@ Sidebar управляет выбором **папки**, **ветки/комм�
 | Search | `Input` |
 | Changed toggle | `Switch` + `Label` |
 | Folder tree rows | `FolderTreeRow` + virtual scroll |
+| Commit cards | `Card` + `Badge` + `Tooltip` + `DropdownMenu` |
 | Scroll area | `ScrollArea` |
 | Empty / loading | `Skeleton` |
 
@@ -158,8 +159,10 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 |-------------|----------|------------|
 | `GetStatus(repoPath)` | `status.get` | Ветка, HEAD, списки changed/untracked |
 | `ListBranches(repoPath)` | `branch.list` | Dropdown веток (History) |
-| `GetLog(repoPath, branch, maxCount)` | `log.get` | Список коммитов |
-| `GetCommit(repoPath, hash)` | `commit.get` | Детали выбранного коммита (для Info) |
+| `GetLog(repoPath, branch, maxCount)` | `log.get` | Commits; расширить: `tags`, `files_added`, `files_removed` |
+| `GetCommit(repoPath, hash)` | `commit.get` | Детали коммита (Info) |
+| `GetCommitFileStats(repoPath, hash)` | **новый** `commit.stats` | Files Changed если не в log |
+| `ListTags(repoPath)` | **новый** | Tag Badge fallback |
 | `ListWorkdirTree(repoPath)` | **новый** | Folder tree (folders only, recursive counts) |
 | `ListWorkdirFiles(repoPath, folder)` | **новый** | Для **Content Preview**, не Sidebar |
 
@@ -306,7 +309,10 @@ frontend/src/
       BranchSelector.tsx
       CommitSearch.tsx
       CommitList.tsx
-      CommitListItem.tsx
+      CommitCard.tsx
+      CommitCardMenu.tsx
+      CommitCardScreenshot.tsx
+      CommitCardStats.tsx
   state/
     sidebarStore.ts          # zustand или context
   wails/
@@ -329,4 +335,5 @@ frontend/src/
 
 - [sidebar-project-view.md](./sidebar-project-view.md) — режим папок
 - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
+- [commit-card.md](./commit-card.md) — карточка коммита
 - [plan.md](./plan.md) — исходное ТЗ
