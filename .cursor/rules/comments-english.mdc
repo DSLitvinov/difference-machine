@@ -10,17 +10,16 @@ All code comments in this project must be written in English.
 - Use English for single-line comments (`//`)
 - Use English for multi-line comments (`/* */`)
 - Use English for documentation strings (docstrings)
-- Use English for QML `//` comments
 - Use English for TODO/FIXME/NOTE annotations
 
 ### Examples
 
-```qml
-// Good: View mode switch and file search (height depends on content)
-// Bad: Переключение режимов просмотра и поиск файлов
-```
-
 ```python
 # Good: Load repository configuration on startup
 # Bad: Загрузить конфигурацию репозитория при запуске
+```
+
+```go
+// Good: Load repository configuration on startup
+// Bad: Загрузить конфигурацию репозитория при запуске
 ```

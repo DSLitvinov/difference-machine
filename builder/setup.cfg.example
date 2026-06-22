@@ -12,7 +12,7 @@ blender_enabled = true
 [blender]
 path = /Applications/Blender.app
 # Optional: path to merge_apply_background.py for auto-resolve of .blend merge conflicts.
-# merge_apply_script = /path/to/difference_machine/scripts/merge_apply_background.py
+# merge_apply_script = /path/to/addons/blender/difference_machine/scripts/merge_apply_background.py
 
 [user]
 email = user@example.com

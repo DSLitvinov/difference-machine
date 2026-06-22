@@ -25,7 +25,7 @@ dfm_distr/
 └── VERSION
 ```
 
-Do not reintroduce `<os>/forester/` nesting or GUI (`difference_machine` PyInstaller) paths in the payload.
+Do not reintroduce `<os>/forester/` nesting or legacy desktop-app paths in the payload.
 
 ## Script structure
 
@@ -52,5 +52,5 @@ Do not reintroduce `<os>/forester/` nesting or GUI (`difference_machine` PyInsta
 ## Avoid
 
 - OS install scripts (`install.sh`, `install.bat`) in the build pipeline
-- GUI / PyInstaller / ISO build steps
+- Legacy desktop-app / PyInstaller / ISO build steps
 - Writing absolute paths into files inside the payload (use `setup.cfg.template` placeholders)

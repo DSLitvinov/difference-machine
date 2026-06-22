@@ -170,8 +170,7 @@ project/
 - **Go 1.21+** — компилятор Go
 - **SQLite3** — библиотека и заголовочные файлы (для CGO)
 - **GCC/C компилятор** — для CGO (обычно встроен)
-- **Blender 4.5.0+** — для аддона
-- **Python 3.10+** — встроен в Blender
+- **Blender 4.5.0+** — для аддона (Python 3.10+ встроен в Blender)
 
 
 ## Внешние интеграции
@@ -183,8 +182,8 @@ project/
 - Аддон вызывает forester API
 
 **Конфигурация**:
-- Путь к forester CLI читается из `~/.dfm/setup.cfg`
-- Путь к difference machine gui читается из `~/.dfm/setup.cfg`
+- Путь к forester CLI и native API читаются из `~/.dfm/setup.cfg`
+- Путь к Blender addon читается из `~/.dfm/setup.cfg` (секция `[addons]`)
 
 **Примеры команд**:
 - `forester init` — инициализация репозитория
@@ -245,14 +244,12 @@ project/
 path = /<Системная папка>/DiffMachine/bin/forester
 installed = true
 
-[difference machine gui]
-path = /<Системная папка>/DiffMachine/difference_machine/main.py
-installed = false
-enabled = false
-
-[python_bindings]
+[api]
+path = /<Системная папка>/DiffMachine/lib/libforester.so
 installed = true
-path = /<Системная папка>/DiffMachine/lib/python
+
+[addons]
+diffmachine_path = /<Системная папка>/DiffMachine/addons/blender/difference_machine
 
 [plugins]
 blender_enabled = true

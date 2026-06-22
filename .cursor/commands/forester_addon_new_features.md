@@ -1,22 +1,12 @@
 # План добавления новых функций в Forester и Addon
 
-**Версии компонентов:** Forester 0.7.5, difference_machine 0.7.5, Blender Addon 0.7.5.
+**Версии компонентов:** Forester 0.7.5, Blender Addon 0.7.5.
 
 ## Обзор
 
 Этот документ описывает план добавления новых функций в **Forester** (Go) и **Blender Addon** (Python), выделенных из общего roadmap. Задачи сгруппированы по компонентам и приоритетам.
 
 **Связь с roadmap:** см. `.cursor/commands/roadmap.md`. Этапы roadmap: 9 (Replace/Retrieve), 10 (Ghost), 11 (History), 12 (screenshots), 13 (Save Asset), 14 (Mark To), 16 (Review) — соответствуют разделам 1.x и 2.x ниже.
-
-### difference_machine: текущее состояние (по анализу кода)
-
-Структура и возможности GUI (см. подробнее в roadmap, раздел «difference_machine: текущее состояние»):
-
-- **Пути в коде:** используется `difference_machine/repository/`, а не `models/` и `services/`. В roadmap этапы 1–8 ссылаются на `models/` и `services/` — при реализации ориентироваться на фактический `repository/` или ввести новые папки по желанию.
-- **Есть:** `CommitModel` (одиночный коммит), `BranchModel`, `StatusModel`; `ForesterAPIWrapper` и `RepositoryManager` с getLog, getBranches, getStatus, createCommit, getCommitFiles, getDiffHtml, getCommitInfo, getImageFromCommit, getImageFromWorkingDir, generateDiffImage, compareCommitFile, startAutoRefresh/stopAutoRefresh. В UI: StructProjectPanel (вкладка Commits — список коммитов через `getLog()` и QML ListModel), ChangedPanel/ChangesPanel, DiffPanel, BranchSelectorPanel.
-- **Нет по сравнению с roadmap 1–8:** QAbstractListModel для списка коммитов; ролей tag, screenshot_hash, is_head в данных; отдельного ForesterService; TagModel и фильтрации по тегам/поиску; PreviewService и превью по screenshot_path; CommitItemDelegate с миниатюрой/тегом/HEAD; EmptyState; MergePanel/MergeService/EditorLauncher. Утилиты: нет `file_utils.py` (есть только `getFileSize` в RepositoryManager).
-
-Для этапов 1–8, 12.2, 15–18 в roadmap — смотреть раздел «difference_machine: текущее состояние» в roadmap.
 
 ---
 
@@ -375,7 +365,7 @@
      - Merge: заменить/добавить объекты с тегом 'MERGE' (использовать retrieve логику)
   4. Сохранить результат
 - [ ] Обработка ошибок и логирование
-- [ ] Возврат кода ошибки для обработки в GUI
+- [ ] Возврат кода ошибки для обработки в addon UI
 
 **Зависимости:** 2.1 (Replace Object), 2.6 (Mark To операторы)
 
