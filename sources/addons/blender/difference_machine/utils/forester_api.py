@@ -17,7 +17,7 @@ try:
     bindings_path = get_python_bindings_path()
     if bindings_path and bindings_path not in sys.path:
         sys.path.insert(0, bindings_path)
-    from python_bindings_structured import ForesterAPI
+    from python_bindings_json import ForesterAPI
     _API_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"Forester API not available: {e}.")

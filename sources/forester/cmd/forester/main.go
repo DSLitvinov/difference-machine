@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/difference-machine/forester/internal/commands"
+	"github.com/difference-machine/forester/internal/jsonapi"
 )
 
 // Set by ldflags at build time
@@ -81,6 +82,7 @@ var subcommands = map[string]func([]string) error{
 	"compare":      commands.Compare,
 	"clean":        commands.Clean,
 	"cherry-pick":  commands.CherryPick,
+	"api":          jsonapi.RunCLI,
 }
 
 func printUsage() {

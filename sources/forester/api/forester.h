@@ -318,6 +318,22 @@ void ForesterFreeObject(ForesterObject* obj);
 // Free object list
 void ForesterFreeObjectList(ForesterObjectList* list);
 
+// ============================================================================
+// JSON API (thin C layer)
+// ============================================================================
+
+// Open a session handle for a repository working directory.
+void* ForesterOpen(const char* repo_path);
+
+// Call a JSON API method. Returns heap-allocated JSON string; free with ForesterFreeString.
+char* ForesterCall(void* handle, const char* method, const char* args_json);
+
+// Free a string returned by ForesterCall.
+void ForesterFreeString(void* s);
+
+// Close a session handle opened with ForesterOpen.
+void ForesterClose(void* handle);
+
 #ifdef __cplusplus
 }
 #endif
