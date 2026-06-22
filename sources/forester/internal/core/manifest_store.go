@@ -36,7 +36,7 @@ func NewManifestStore(repoPath string) *ManifestStore {
 }
 
 func encodeManifestPath(filePath string) string {
-	return strings.ReplaceAll(filepath.ToSlash(filePath), "/", "__")
+	return EncodeStoragePath(filePath)
 }
 
 func (m *ManifestStore) manifestPath(commitHash, filePath string) string {
@@ -65,15 +65,17 @@ func (m *ManifestStore) load(commitHash, filePath string) (*FileManifest, error)
 
 func (m *ManifestStore) save(manifest *FileManifest) error {
 	path := m.manifestPath(manifest.CommitHash, manifest.FilePath)
-	if err := utils.EnsureDirectory(filepath.Dir(path)); err != nil {
-		return err
-	}
 	manifest.UpdatedAt = time.Now().Unix()
 	data, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
 		return err
 	}
-	return utils.WriteFile(path, data)
+	return utils.WithFileLock(path, func() error {
+		if err := utils.EnsureDirectory(filepath.Dir(path)); err != nil {
+			return err
+		}
+		return utils.WriteFileAtomic(path, data)
+	})
 }
 
 func findObject(objects []models.Object, objectName string) (int, bool) {
@@ -150,6 +152,15 @@ func (m *ManifestStore) DeleteObjectsByFile(commitHash, filePath string) error {
 	return os.Remove(path)
 }
 
+// DeleteManifestsForCommit removes all manifest files for a commit.
+func (m *ManifestStore) DeleteManifestsForCommit(commitHash string) error {
+	dir := filepath.Join(m.manifestDir, commitHash)
+	if !utils.Exists(dir) {
+		return nil
+	}
+	return os.RemoveAll(dir)
+}
+
 // GetObjectsByCommit returns all objects across manifests for a commit.
 func (m *ManifestStore) GetObjectsByCommit(commitHash string) ([]*models.Object, error) {
 	dir := filepath.Join(m.manifestDir, commitHash)
@@ -182,7 +193,7 @@ func (m *ManifestStore) GetObjectsByCommit(commitHash string) ([]*models.Object,
 }
 
 // GetObjectsByFile returns objects for one file at a commit.
-func (m *ManifestStore) GetObjectsByFile(filePath, commitHash string) ([]*models.Object, error) {
+func (m *ManifestStore) GetObjectsByFile(commitHash, filePath string) ([]*models.Object, error) {
 	manifest, err := m.load(commitHash, filePath)
 	if err != nil {
 		return nil, err

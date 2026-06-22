@@ -124,6 +124,9 @@ func GC(args []string) error {
 				gcErrors = append(gcErrors, fmt.Sprintf("delete commit %s: %v", commitHash, err))
 				continue
 			}
+			if err := repo.Manifests.DeleteManifestsForCommit(commitHash); err != nil {
+				gcErrors = append(gcErrors, fmt.Sprintf("delete manifests for %s: %v", commitHash, err))
+			}
 			commitsDeleted++
 		} else {
 			commitsDeleted++

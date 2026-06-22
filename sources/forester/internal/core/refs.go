@@ -142,6 +142,15 @@ func (r *Refs) ListTags() ([]string, error) {
 	return tags, nil
 }
 
+// CurrentBranchOrDefault returns the current branch name or "main".
+func (r *Refs) CurrentBranchOrDefault() string {
+	branch, err := r.GetCurrentBranch()
+	if err != nil || branch == "" {
+		return "main"
+	}
+	return branch
+}
+
 // GetCurrentBranch gets the current branch name from HEAD
 func (r *Refs) GetCurrentBranch() (string, error) {
 	headPath := filepath.Join(r.repoPath, ".DFM", "HEAD")

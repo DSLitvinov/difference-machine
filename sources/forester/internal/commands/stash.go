@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/difference-machine/forester/internal/core"
 	"github.com/difference-machine/forester/internal/models"
@@ -65,60 +63,8 @@ func Stash(args []string) error {
 			message = args[1]
 		}
 
-		// Build tree from current state
-		tree := models.NewTree()
-
-		patterns := utils.NewPatterns()
-		ignorePath := filepath.Join(repoPath, ".dfmignore")
-		if utils.Exists(ignorePath) {
-			if err := patterns.LoadFromFile(ignorePath); err != nil {
-				// Ignore error
-			}
-		}
-
-		allFiles, err := utils.ListFiles(repoPath, true)
+		stash, err := core.CreateStashFromWorkingTree(repo, message)
 		if err != nil {
-			return fmt.Errorf("failed to list files: %w", err)
-		}
-
-		for _, filePath := range allFiles {
-			if strings.Contains(filePath, ".DFM") {
-				continue
-			}
-
-			relPath, err := utils.GetRelativePath(repoPath, filePath)
-			if err != nil {
-				continue
-			}
-
-			if patterns.Matches(relPath) {
-				continue
-			}
-
-			hash, err := storage.StoreBlobFromFile(filePath)
-			if err != nil {
-				continue
-			}
-
-			entry := models.NewTreeEntry(hash, relPath, "blob")
-			tree.AddEntry(entry)
-		}
-
-		treeJSON, err := tree.ToJSON()
-		if err != nil {
-			return fmt.Errorf("failed to serialize tree: %w", err)
-		}
-
-		treeHash, err := storage.StoreTree(treeJSON)
-		if err != nil {
-			return fmt.Errorf("failed to store tree: %w", err)
-		}
-
-		stash := models.NewStash(message, treeHash)
-		stashJSON := fmt.Sprintf(`{"message":"%s","tree_hash":"%s"}`, message, treeHash)
-		stash.Hash = core.HashString(stashJSON)
-
-		if _, err := stashStore.CreateStash(stash); err != nil {
 			return fmt.Errorf("failed to create stash: %w", err)
 		}
 
@@ -139,7 +85,7 @@ func Stash(args []string) error {
 		if len(args) > 1 {
 			stashHash = args[1]
 			// Resolve short hash if needed
-			resolved, err := resolveStashHash(stashStore, stashHash)
+			resolved, err := stashStore.ResolveHash(stashHash)
 			if err != nil {
 				return fmt.Errorf("stash not found: %s", stashHash)
 			}
@@ -161,22 +107,8 @@ func Stash(args []string) error {
 			return fmt.Errorf("failed to get stash: %w", err)
 		}
 
-		treeContent, err := storage.GetTreeContent(stash.TreeHash)
-		if err != nil {
-			return fmt.Errorf("failed to get tree content: %w", err)
-		}
-
-		var tree models.Tree
-		if err := json.Unmarshal([]byte(treeContent), &tree); err != nil {
-			return fmt.Errorf("failed to parse tree: %w", err)
-		}
-
-		// Restore files
-		for _, entry := range tree.Entries {
-			filePath := filepath.Join(repoPath, entry.Name)
-			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
-				return fmt.Errorf("failed to restore file %s: %w", entry.Name, err)
-			}
+		if err := core.RestoreTreeToWorkdir(storage, repoPath, stash.TreeHash); err != nil {
+			return fmt.Errorf("failed to restore stash: %w", err)
 		}
 
 		hashShort := stashHash
@@ -206,7 +138,7 @@ func Stash(args []string) error {
 
 		stashHash := args[1]
 		// Resolve short hash if needed
-		resolved, err := resolveStashHash(stashStore, stashHash)
+		resolved, err := stashStore.ResolveHash(stashHash)
 		if err != nil {
 			return fmt.Errorf("stash not found: %s", stashHash)
 		}
@@ -258,7 +190,7 @@ func Stash(args []string) error {
 		if len(args) > 1 {
 			stashHash = args[1]
 			// Resolve short hash if needed
-			resolved, err := resolveStashHash(stashStore, stashHash)
+			resolved, err := stashStore.ResolveHash(stashHash)
 			if err != nil {
 				return fmt.Errorf("stash not found: %s", stashHash)
 			}
@@ -397,7 +329,7 @@ func Stash(args []string) error {
 		if len(args) > 2 {
 			stashHash = args[2]
 			// Resolve short hash if needed
-			resolved, err := resolveStashHash(stashStore, stashHash)
+			resolved, err := stashStore.ResolveHash(stashHash)
 			if err != nil {
 				return fmt.Errorf("stash not found: %s", stashHash)
 			}
@@ -430,10 +362,7 @@ func Stash(args []string) error {
 		}
 
 		// Create commit from stash tree
-		author := os.Getenv("FORESTER_AUTHOR")
-		if author == "" {
-			author = "Unknown"
-		}
+		author := core.DefaultAuthor()
 
 		commit := models.NewCommit()
 		commit.ParentHash = "" // Stash branch starts from empty
@@ -442,26 +371,8 @@ func Stash(args []string) error {
 		commit.Message = fmt.Sprintf("Stash: %s", stash.Message)
 		commit.Type = models.CommitTypeProject
 
-		// Calculate commit hash
-		commitJSONWithoutHash, err := commit.ToJSON()
+		commitHash, err := core.FinalizeCommit(repo, commit)
 		if err != nil {
-			return fmt.Errorf("failed to serialize commit: %w", err)
-		}
-
-		var commitMap map[string]interface{}
-		if err := json.Unmarshal([]byte(commitJSONWithoutHash), &commitMap); err != nil {
-			return fmt.Errorf("failed to parse commit JSON: %w", err)
-		}
-		delete(commitMap, "hash")
-		commitJSONForHash, err := json.Marshal(commitMap)
-		if err != nil {
-			return fmt.Errorf("failed to marshal commit for hash: %w", err)
-		}
-
-		commitHash := core.HashString(string(commitJSONForHash))
-		commit.Hash = commitHash
-
-		if _, err := repo.StoreCommit(commit); err != nil {
 			return fmt.Errorf("failed to store commit: %w", err)
 		}
 
@@ -478,30 +389,4 @@ func Stash(args []string) error {
 	}
 
 	return fmt.Errorf("unknown stash command: %s\nUsage: forester stash [save|list|pop|apply|drop|show|clear|branch]", command)
-}
-
-// resolveStashHash resolves a stash hash from short or full hash
-func resolveStashHash(stashStore *core.StashStore, hash string) (string, error) {
-	// If it's a full hash, validate and return
-	if utils.IsValidCommitHash(hash) {
-		// Try to get stash
-		_, err := stashStore.GetStash(hash)
-		if err == nil {
-			return hash, nil
-		}
-	}
-
-	// Try to find by short hash prefix
-	stashes, err := stashStore.ListStashes()
-	if err != nil {
-		return "", err
-	}
-
-	for _, stash := range stashes {
-		if strings.HasPrefix(stash.Hash, hash) {
-			return stash.Hash, nil
-		}
-	}
-
-	return "", fmt.Errorf("stash not found: %s", hash)
 }

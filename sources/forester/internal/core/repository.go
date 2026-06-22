@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,9 +17,9 @@ type Repository struct {
 	Storage   *Storage
 	Refs      *Refs
 	Reflog    *Reflog
-	Stash     *StashStore
-	Manifests *ManifestStore
-	Reviews   *ReviewStore
+	Stash     StashService
+	Manifests ManifestService
+	Reviews   ReviewService
 }
 
 // OpenRepository opens a Forester repository.
@@ -50,7 +51,8 @@ func (r *Repository) GetCommit(hash string) (*models.Commit, error) {
 	}
 	content, err := r.Storage.GetCommitContent(hash)
 	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
+		var notFound *ErrObjectNotFound
+		if errors.As(err, &notFound) {
 			return nil, &ErrCommitNotFound{Hash: hash}
 		}
 		return nil, fmt.Errorf("get commit %s: %w", hash, err)

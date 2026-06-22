@@ -76,13 +76,39 @@ func ReadFileString(path string) (string, error) {
 	return string(data), nil
 }
 
-// WriteFile writes content to a file, creating directories if needed
-func WriteFile(path string, content []byte) error {
+// WriteFileAtomic writes content atomically via a temporary file and rename.
+func WriteFileAtomic(path string, content []byte) error {
 	dir := filepath.Dir(path)
 	if err := CreateDirectories(dir); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
-	return os.WriteFile(path, content, 0644)
+	tmp, err := os.CreateTemp(dir, ".tmp-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tmpName := tmp.Name()
+	cleanup := func() {
+		_ = tmp.Close()
+		_ = os.Remove(tmpName)
+	}
+	if _, err := tmp.Write(content); err != nil {
+		cleanup()
+		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		cleanup()
+		return fmt.Errorf("failed to close temp file: %w", err)
+	}
+	if err := os.Rename(tmpName, path); err != nil {
+		cleanup()
+		return fmt.Errorf("failed to rename temp file: %w", err)
+	}
+	return nil
+}
+
+// WriteFile writes content to a file, creating directories if needed
+func WriteFile(path string, content []byte) error {
+	return WriteFileAtomic(path, content)
 }
 
 // WriteFileString writes a string to a file

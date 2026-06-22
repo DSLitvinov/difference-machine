@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -39,8 +38,7 @@ func TestCollectUsedObjects_StashTree(t *testing.T) {
 	}
 
 	stash := models.NewStash("test stash", treeHash)
-	stashJSON := fmt.Sprintf(`{"message":"%s","tree_hash":"%s"}`, stash.Message, stash.TreeHash)
-	stash.Hash = HashString(stashJSON)
+	stash.Hash = HashStash(stash.Message, stash.TreeHash)
 	if _, err := repo.Stash.CreateStash(stash); err != nil {
 		t.Fatalf("create stash: %v", err)
 	}

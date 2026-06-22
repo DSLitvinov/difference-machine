@@ -166,49 +166,18 @@ func Switch(args []string) error {
 		return fmt.Errorf("failed to get target commit: %w", err)
 	}
 
-	// Get target tree
-	treeContent, err := storage.GetTreeContent(targetCommit.TreeHash)
-	if err != nil {
-		return fmt.Errorf("failed to get tree content: %w", err)
-	}
-
-	var tree models.Tree
-	if err := json.Unmarshal([]byte(treeContent), &tree); err != nil {
-		return fmt.Errorf("failed to parse tree: %w", err)
-	}
-
-	// Restore files from target tree
-	for _, entry := range tree.Entries {
-		filePath := filepath.Join(repoPath, entry.Name)
-
-		if entry.Type == "blob" {
-			// Ensure directory exists
-			if err := utils.EnsureDirectory(filepath.Dir(filePath)); err != nil {
-				return fmt.Errorf("failed to create directory: %w", err)
-			}
-			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
-				return fmt.Errorf("failed to restore file %s: %w", entry.Name, err)
-			}
-		} else if entry.Type == "tree" {
-			// Recursively restore tree using the same logic as reset
-			if err := restoreTreeForSwitch(storage, filepath.Dir(filePath), entry.Hash); err != nil {
-				return fmt.Errorf("failed to restore tree %s: %w", entry.Name, err)
-			}
-		}
+	if err := core.RestoreTreeToWorkdir(storage, repoPath, targetCommit.TreeHash); err != nil {
+		return fmt.Errorf("failed to restore files: %w", err)
 	}
 
 	// Delete files that are not in target tree
 	allFiles, err := utils.ListFiles(repoPath, true)
-	if err == nil {
+	targetFiles, mapErr := core.TreeBlobPaths(storage, targetCommit.TreeHash)
+	if err == nil && mapErr == nil {
 		patterns := utils.NewPatterns()
 		ignorePath := filepath.Join(repoPath, ".dfmignore")
 		if utils.Exists(ignorePath) {
 			patterns.LoadFromFile(ignorePath)
-		}
-
-		targetFiles := make(map[string]bool)
-		for _, entry := range tree.Entries {
-			targetFiles[entry.Name] = true
 		}
 
 		for _, filePath := range allFiles {
@@ -385,64 +354,11 @@ func hasUncommittedChanges(repoPath string, repo *core.Repository, branch string
 
 // createAutoStash creates an automatic stash for the current branch
 func createAutoStash(repoPath string, repo *core.Repository, branch string) (string, error) {
-	storage := repo.Storage
-	stashStore := repo.Stash
-	// Build tree from current state
-	tree := models.NewTree()
-
-	patterns := utils.NewPatterns()
-	ignorePath := filepath.Join(repoPath, ".dfmignore")
-	if utils.Exists(ignorePath) {
-		patterns.LoadFromFile(ignorePath)
-	}
-
-	allFiles, err := utils.ListFiles(repoPath, true)
-	if err != nil {
-		return "", err
-	}
-
-	for _, filePath := range allFiles {
-		if strings.Contains(filePath, ".DFM") {
-			continue
-		}
-
-		relPath, err := utils.GetRelativePath(repoPath, filePath)
-		if err != nil {
-			continue
-		}
-
-		if patterns.Matches(relPath) {
-			continue
-		}
-
-		hash, err := storage.StoreBlobFromFile(filePath)
-		if err != nil {
-			continue
-		}
-
-		entry := models.NewTreeEntry(hash, relPath, "blob")
-		tree.AddEntry(entry)
-	}
-
-	treeJSON, err := tree.ToJSON()
-	if err != nil {
-		return "", err
-	}
-
-	treeHash, err := storage.StoreTree(treeJSON)
-	if err != nil {
-		return "", err
-	}
-
 	message := fmt.Sprintf("Auto-stash: switching from %s", branch)
-	stash := models.NewStash(message, treeHash)
-	stashJSON := fmt.Sprintf(`{"message":"%s","tree_hash":"%s"}`, message, treeHash)
-	stash.Hash = core.HashString(stashJSON)
-
-	if _, err := stashStore.CreateStash(stash); err != nil {
+	stash, err := core.CreateStashFromWorkingTree(repo, message)
+	if err != nil {
 		return "", err
 	}
-
 	return stash.Hash, nil
 }
 
@@ -528,29 +444,10 @@ func restoreAutoStashIfNeeded(repoPath string, repo *core.Repository, branch str
 			continue
 		}
 
-		// Restore stash
-		treeContent, err := storage.GetTreeContent(stash.TreeHash)
-		if err != nil {
+		if err := core.RestoreTreeToWorkdir(storage, repoPath, stash.TreeHash); err != nil {
 			continue
 		}
 
-		var tree models.Tree
-		if err := json.Unmarshal([]byte(treeContent), &tree); err != nil {
-			continue
-		}
-
-		// Restore files
-		for _, entry := range tree.Entries {
-			filePath := filepath.Join(repoPath, entry.Name)
-			if err := utils.EnsureDirectory(filepath.Dir(filePath)); err != nil {
-				continue
-			}
-			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
-				continue
-			}
-		}
-
-		// Delete stash from database
 		stashStore.DeleteStash(stashHash)
 		restoredCount++
 
@@ -571,38 +468,4 @@ func restoreAutoStashIfNeeded(repoPath string, repo *core.Repository, branch str
 		data, _ := json.MarshalIndent(stack, "", "  ")
 		utils.WriteFile(stashInfoPath, data)
 	}
-}
-
-// restoreTreeForSwitch recursively restores a tree and its entries
-func restoreTreeForSwitch(storage *core.Storage, repoPath string, treeHash string) error {
-	treeContent, err := storage.GetTreeContent(treeHash)
-	if err != nil {
-		return err
-	}
-
-	var tree models.Tree
-	if err := json.Unmarshal([]byte(treeContent), &tree); err != nil {
-		return err
-	}
-
-	for _, entry := range tree.Entries {
-		filePath := filepath.Join(repoPath, entry.Name)
-
-		switch entry.Type {
-		case "blob":
-			if err := utils.EnsureDirectory(filepath.Dir(filePath)); err != nil {
-				return err
-			}
-			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
-				return fmt.Errorf("failed to restore file %s: %w", entry.Name, err)
-			}
-		case "tree":
-			// Recursively restore sub-tree
-			if err := restoreTreeForSwitch(storage, filepath.Dir(filePath), entry.Hash); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }

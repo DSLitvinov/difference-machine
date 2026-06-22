@@ -1,6 +1,8 @@
 //go:build cgo
 // +build cgo
 
+// Package main implements the Forester C API (c-shared).
+// CGO typedefs and exports live in capi_structured.go.
 package main
 
 /*
@@ -2261,7 +2263,7 @@ func ForesterGetObjectsByFile(repoPath *C.char, filePath *C.char, commitHash *C.
 	}
 	defer repo.Close()
 
-	objects, err := repo.Manifests.GetObjectsByFile(C.GoString(filePath), C.GoString(commitHash))
+	objects, err := repo.Manifests.GetObjectsByFile(C.GoString(commitHash), C.GoString(filePath))
 	if err != nil {
 		return nil
 	}

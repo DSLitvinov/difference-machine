@@ -128,11 +128,7 @@ func Commit(args []string) error {
 
 	// Get author (from arguments or environment variable)
 	if author == "" {
-		if envAuthor := os.Getenv("FORESTER_AUTHOR"); envAuthor != "" {
-			author = envAuthor
-		} else {
-			author = "Unknown"
-		}
+		author = core.DefaultAuthor()
 	}
 
 	// Execute pre-commit hook
@@ -350,29 +346,8 @@ func Commit(args []string) error {
 	commit.Message = message
 	commit.Type = models.CommitTypeProject
 
-	// Calculate commit hash from JSON (hash will be empty in JSON)
-	commitJSONWithoutHash, err := commit.ToJSON()
+	commitHash, err := core.FinalizeCommit(repo, commit)
 	if err != nil {
-		return fmt.Errorf("failed to serialize commit: %w", err)
-	}
-
-	// Extract hash from JSON and recalculate
-	var commitMap map[string]interface{}
-	if err := json.Unmarshal([]byte(commitJSONWithoutHash), &commitMap); err != nil {
-		return fmt.Errorf("failed to parse commit JSON: %w", err)
-	}
-	delete(commitMap, "hash") // Remove hash field
-	commitJSONForHash, err := json.Marshal(commitMap)
-	if err != nil {
-		return fmt.Errorf("failed to marshal commit for hash: %w", err)
-	}
-
-	commitHash := core.HashString(string(commitJSONForHash))
-
-	// Set hash and create final JSON
-	commit.Hash = commitHash
-
-	if _, err := repo.StoreCommit(commit); err != nil {
 		return fmt.Errorf("failed to store commit: %w", err)
 	}
 

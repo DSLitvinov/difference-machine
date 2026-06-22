@@ -84,6 +84,18 @@ func HashCombined(parts []string) string {
 	return HashString(combined.String())
 }
 
+// HashStash computes a stable stash hash from message and tree hash.
+func HashStash(message, treeHash string) string {
+	payload, err := json.Marshal(map[string]string{
+		"message":   message,
+		"tree_hash": treeHash,
+	})
+	if err != nil {
+		return HashString(message + treeHash)
+	}
+	return HashString(string(payload))
+}
+
 // HashCommitJSON computes the commit object hash from JSON (excludes the hash field).
 func HashCommitJSON(commitJSON string) string {
 	var commitMap map[string]interface{}

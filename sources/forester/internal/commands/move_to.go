@@ -314,9 +314,8 @@ func MoveTo(args []string) error {
 			continue
 		}
 
-		// Get author
-		author := os.Getenv("FORESTER_AUTHOR")
-		if author == "" {
+		author := core.DefaultAuthor()
+		if author == "Unknown" && commitToMove.Author != "" {
 			author = commitToMove.Author
 		}
 
@@ -362,27 +361,9 @@ func MoveTo(args []string) error {
 		commit.Message = commitToMove.Message
 		commit.Type = models.CommitTypeProject
 
-		// Calculate commit hash
-		commitJSONWithoutHash, err := commit.ToJSON()
+		newCommitHash, err := storePreparedCommit(repo, commit)
 		if err != nil {
-			return fmt.Errorf("failed to serialize commit: %w", err)
-		}
-
-		var commitMap map[string]interface{}
-		if err := json.Unmarshal([]byte(commitJSONWithoutHash), &commitMap); err != nil {
-			return fmt.Errorf("failed to parse commit JSON: %w", err)
-		}
-		delete(commitMap, "hash")
-		commitJSONForHash, err := json.Marshal(commitMap)
-		if err != nil {
-			return fmt.Errorf("failed to marshal commit for hash: %w", err)
-		}
-
-		newCommitHash := core.HashString(string(commitJSONForHash))
-		commit.Hash = newCommitHash
-
-		if _, err := repo.StoreCommit(commit); err != nil {
-			return fmt.Errorf("failed to store commit: %w", err)
+			return err
 		}
 
 		// Update newHead for next iteration

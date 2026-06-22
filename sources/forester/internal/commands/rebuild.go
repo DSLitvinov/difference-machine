@@ -52,7 +52,7 @@ func Rebuild(args []string) error {
 	branches, _ := repo.ListBranches()
 	tagList, _ := repo.ListTags()
 
-	fmt.Println("Rebuild complete!")
+	fmt.Println("Scan complete!")
 	fmt.Printf("  Commits: %d\n", commitsFound)
 	fmt.Printf("  Trees: %d\n", treesFound)
 	fmt.Printf("  Blobs: %d\n", blobsFound)

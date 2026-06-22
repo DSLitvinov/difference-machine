@@ -74,7 +74,7 @@ func (s *Storage) readObject(hash string) (objectType string, payload []byte, er
 		return "", nil, err
 	}
 	if !utils.Exists(fullPath) {
-		return "", nil, fmt.Errorf("object not found: %s", hash)
+		return "", nil, &ErrObjectNotFound{Hash: hash}
 	}
 	data, err := utils.ReadFile(fullPath)
 	if err != nil {

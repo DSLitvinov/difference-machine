@@ -32,7 +32,7 @@ func (l *Locking) Close() error {
 }
 
 func encodeLockPath(filePath string) string {
-	return strings.ReplaceAll(filepath.ToSlash(filePath), "/", "__")
+	return EncodeStoragePath(filePath)
 }
 
 func (l *Locking) lockFilePath(branch, filePath string) string {
@@ -52,48 +52,51 @@ func (l *Locking) readLock(path string) (*models.Lock, error) {
 }
 
 func (l *Locking) writeLock(path string, lock *models.Lock) error {
-	if err := utils.EnsureDirectory(filepath.Dir(path)); err != nil {
-		return err
-	}
 	data, err := json.MarshalIndent(lock, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0644)
+	return utils.WriteFileAtomic(path, data)
 }
 
 // AcquireLock acquires a file lock using exclusive file creation.
 func (l *Locking) AcquireLock(lock *models.Lock) (bool, error) {
+	if lock.LockType == models.LockTypeShared {
+		return false, fmt.Errorf("shared locks are not supported yet")
+	}
+
 	path := l.lockFilePath(lock.Branch, lock.FilePath)
 	if err := utils.EnsureDirectory(filepath.Dir(path)); err != nil {
 		return false, err
 	}
-	if utils.Exists(path) {
-		existing, err := l.readLock(path)
-		if err != nil {
-			return false, fmt.Errorf("read existing lock: %w", err)
-		}
-		if existing.IsExpired() {
-			if err := os.Remove(path); err != nil {
+
+	for attempt := 0; attempt < 2; attempt++ {
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
+		if err == nil {
+			_ = f.Close()
+			if err := l.writeLock(path, lock); err != nil {
+				_ = os.Remove(path)
 				return false, err
 			}
-		} else {
+			return true, nil
+		}
+		if !os.IsExist(err) {
+			return false, fmt.Errorf("acquire lock: %w", err)
+		}
+
+		existing, readErr := l.readLock(path)
+		if readErr != nil {
+			return false, fmt.Errorf("read existing lock: %w", readErr)
+		}
+		if !existing.IsExpired() {
 			return false, nil
 		}
-	}
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
-	if err != nil {
-		if os.IsExist(err) {
-			return false, nil
+		if removeErr := os.Remove(path); removeErr != nil {
+			return false, removeErr
 		}
-		return false, fmt.Errorf("acquire lock: %w", err)
 	}
-	f.Close()
-	if err := l.writeLock(path, lock); err != nil {
-		_ = os.Remove(path)
-		return false, err
-	}
-	return true, nil
+
+	return false, nil
 }
 
 // ReleaseLock releases a file lock for the given user.

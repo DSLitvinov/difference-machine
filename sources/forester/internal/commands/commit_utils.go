@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/difference-machine/forester/internal/core"
+	"github.com/difference-machine/forester/internal/models"
 	"github.com/difference-machine/forester/internal/utils"
 )
 
@@ -93,4 +94,12 @@ func resolveCommitHash(repo *core.Repository, currentBranch, hash string) (strin
 	}
 
 	return "", fmt.Errorf("commit not found: %s", hash)
+}
+
+func storePreparedCommit(repo *core.Repository, commit *models.Commit) (string, error) {
+	hash, err := core.FinalizeCommit(repo, commit)
+	if err != nil {
+		return "", fmt.Errorf("failed to store commit: %w", err)
+	}
+	return hash, nil
 }

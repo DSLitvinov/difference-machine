@@ -253,27 +253,3 @@ func NewObject(editorType, filePath, objectName, objectType, commitHash string) 
 	}
 }
 
-// Review represents a review comment
-type Review struct {
-	ID         int64  `json:"id"`
-	CommitHash string `json:"commit_hash"` // commit
-	FilePath   string `json:"file_path"`   // file
-	ObjectName string `json:"object_name"`  // object (can be empty for file-level review)
-	Comment    string `json:"comment"`     // comment text
-	Author     string `json:"author"`      // author
-	CreatedAt  int64  `json:"created_at"`
-}
-
-// NewReview creates a new review with default values
-func NewReview(commitHash, filePath, objectName, comment, author string) *Review {
-	return &Review{
-		CommitHash: commitHash,
-		FilePath:   filePath,
-		ObjectName: objectName,
-		Comment:    comment,
-		Author:     author,
-		CreatedAt:  time.Now().Unix(),
-	}
-}
-
-

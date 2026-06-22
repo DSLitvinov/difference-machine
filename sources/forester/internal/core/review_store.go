@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,7 +28,7 @@ func NewReviewStore(repoPath string) *ReviewStore {
 }
 
 func reviewAssetKey(assetType, assetID string) string {
-	return strings.ReplaceAll(assetType, "/", "_") + "__" + strings.ReplaceAll(assetID, "/", "_")
+	return EncodeStoragePath(assetType + "\x00" + assetID)
 }
 
 func (r *ReviewStore) commentsPath(assetType, assetID string) string {
@@ -36,6 +37,27 @@ func (r *ReviewStore) commentsPath(assetType, assetID string) string {
 
 func (r *ReviewStore) approvalsPath(assetType, assetID string) string {
 	return filepath.Join(r.reviewDir, "approvals", reviewAssetKey(assetType, assetID)+".json")
+}
+
+func (r *ReviewStore) nextCommentID() (int, error) {
+	seqPath := filepath.Join(r.reviewDir, ".comment_seq")
+	next := 1
+	if utils.Exists(seqPath) {
+		data, err := os.ReadFile(seqPath)
+		if err != nil {
+			return 0, err
+		}
+		if parsed, err := strconv.Atoi(strings.TrimSpace(string(data))); err == nil && parsed > 0 {
+			next = parsed
+		}
+	}
+	if err := utils.EnsureDirectory(r.reviewDir); err != nil {
+		return 0, err
+	}
+	if err := utils.WriteFileAtomic(seqPath, []byte(strconv.Itoa(next+1))); err != nil {
+		return 0, err
+	}
+	return next, nil
 }
 
 // CreateComment adds a comment to an asset.
@@ -51,7 +73,11 @@ func (r *ReviewStore) CreateComment(comment *models.Comment) (int, error) {
 			return 0, err
 		}
 	}
-	comment.ID = len(comments) + 1
+	id, err := r.nextCommentID()
+	if err != nil {
+		return 0, err
+	}
+	comment.ID = id
 	if comment.CreatedAt == 0 {
 		comment.CreatedAt = time.Now().Unix()
 	}
@@ -59,11 +85,7 @@ func (r *ReviewStore) CreateComment(comment *models.Comment) (int, error) {
 	if err := utils.EnsureDirectory(filepath.Dir(path)); err != nil {
 		return 0, err
 	}
-	data, err := json.MarshalIndent(comments, "", "  ")
-	if err != nil {
-		return 0, err
-	}
-	if err := utils.WriteFile(path, data); err != nil {
+	if err := utils.WriteJSONFileAtomic(path, comments); err != nil {
 		return 0, err
 	}
 	return comment.ID, nil
@@ -91,17 +113,22 @@ func (r *ReviewStore) GetComments(assetType, assetID string) ([]*models.Comment,
 	return result, nil
 }
 
-// ResolveComment marks a comment as resolved.
+// ResolveComment marks a comment as resolved by globally unique ID.
 func (r *ReviewStore) ResolveComment(commentID int) error {
 	dir := filepath.Join(r.reviewDir, "comments")
 	if !utils.Exists(dir) {
-		return fmt.Errorf("comment not found: %d", commentID)
+		return &ErrCommentNotFound{ID: commentID}
 	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return err
 	}
+	var matchedPath string
+	var matchedComments []models.Comment
 	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
+			continue
+		}
 		path := filepath.Join(dir, entry.Name())
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -111,23 +138,21 @@ func (r *ReviewStore) ResolveComment(commentID int) error {
 		if err := json.Unmarshal(data, &comments); err != nil {
 			continue
 		}
-		changed := false
 		for i := range comments {
 			if comments[i].ID == commentID {
+				if matchedPath != "" {
+					return fmt.Errorf("comment id %d is ambiguous across assets", commentID)
+				}
 				comments[i].Resolved = true
-				changed = true
-				break
+				matchedPath = path
+				matchedComments = comments
 			}
-		}
-		if changed {
-			out, err := json.MarshalIndent(comments, "", "  ")
-			if err != nil {
-				return err
-			}
-			return utils.WriteFile(path, out)
 		}
 	}
-	return fmt.Errorf("comment not found: %d", commentID)
+	if matchedPath == "" {
+		return &ErrCommentNotFound{ID: commentID}
+	}
+	return utils.WriteJSONFileAtomic(matchedPath, matchedComments)
 }
 
 // CreateApproval creates or updates an approval.
@@ -162,11 +187,7 @@ func (r *ReviewStore) CreateApproval(approval *models.Approval) error {
 	if err := utils.EnsureDirectory(filepath.Dir(path)); err != nil {
 		return err
 	}
-	data, err := json.MarshalIndent(approvals, "", "  ")
-	if err != nil {
-		return err
-	}
-	return utils.WriteFile(path, data)
+	return utils.WriteJSONFileAtomic(path, approvals)
 }
 
 // GetApprovals returns approvals for an asset.

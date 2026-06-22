@@ -42,7 +42,10 @@ func (s *StashStore) CreateStash(stash *models.Stash) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("marshal stash: %w", err)
 	}
-	if err := utils.WriteFile(s.stashPath(stash.Hash), data); err != nil {
+	path := s.stashPath(stash.Hash)
+	if err := utils.WithFileLock(path, func() error {
+		return utils.WriteFileAtomic(path, data)
+	}); err != nil {
 		return "", fmt.Errorf("write stash: %w", err)
 	}
 	return stash.Hash, nil
@@ -94,6 +97,33 @@ func (s *StashStore) ListStashes() ([]*models.Stash, error) {
 		return stashes[i].CreatedAt > stashes[j].CreatedAt
 	})
 	return stashes, nil
+}
+
+// ResolveHash resolves a full stash hash from a full or prefix hash.
+func (s *StashStore) ResolveHash(prefix string) (string, error) {
+	if utils.IsValidCommitHash(prefix) {
+		if _, err := s.GetStash(prefix); err == nil {
+			return prefix, nil
+		}
+	}
+	stashes, err := s.ListStashes()
+	if err != nil {
+		return "", err
+	}
+	var matches []string
+	for _, stash := range stashes {
+		if strings.HasPrefix(stash.Hash, prefix) {
+			matches = append(matches, stash.Hash)
+		}
+	}
+	switch len(matches) {
+	case 0:
+		return "", fmt.Errorf("stash not found: %s", prefix)
+	case 1:
+		return matches[0], nil
+	default:
+		return "", &ErrAmbiguousStashPrefix{Prefix: prefix}
+	}
 }
 
 // DeleteStash removes stash metadata.

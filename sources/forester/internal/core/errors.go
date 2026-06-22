@@ -2,6 +2,33 @@ package core
 
 import "fmt"
 
+// ErrObjectNotFound represents a missing object in the object store.
+type ErrObjectNotFound struct {
+	Hash string
+}
+
+func (e *ErrObjectNotFound) Error() string {
+	return fmt.Sprintf("object not found: %s", e.Hash)
+}
+
+// ErrAmbiguousStashPrefix represents an ambiguous stash hash prefix.
+type ErrAmbiguousStashPrefix struct {
+	Prefix string
+}
+
+func (e *ErrAmbiguousStashPrefix) Error() string {
+	return fmt.Sprintf("ambiguous stash prefix: %s", e.Prefix)
+}
+
+// ErrCommentNotFound represents a missing review comment.
+type ErrCommentNotFound struct {
+	ID int
+}
+
+func (e *ErrCommentNotFound) Error() string {
+	return fmt.Sprintf("comment not found: %d", e.ID)
+}
+
 // ErrCommitNotFound represents an error when a commit is not found
 type ErrCommitNotFound struct {
 	Hash string
