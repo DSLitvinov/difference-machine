@@ -1,7 +1,9 @@
 # Sidebar — History view
 
 Режим просмотра **веток и коммитов**.  
-**Figma:** [Sidebar/History `7311:19014`](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014) · legacy [7301:17611](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17611)
+**Figma (shadcn kit):** [Sidebar/History `4026:4547`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
+
+**Цвета:** [design-tokens.md](./design-tokens.md)
 
 ---
 
@@ -36,7 +38,7 @@
 ```
 
 Список коммитов — **карточки** с gap `8px`, не разделители `border-b`.  
-**Figma:** [Sidebar/History `7311:19014`](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014) · [Commit card](./commit-card.md)
+**Figma (shadcn kit):** [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547) · [Commit card](./commit-card.md)
 
 ### 2.1 Header
 
@@ -59,13 +61,15 @@
 
 ### 2.4 Цвета (List Container)
 
-| Элемент | Фон |
-|---------|-----|
-| Shell Sidebar | `#fafafa` (`background/primary/light`) |
-| List Container (`7311:19033`) | **`white`** (`background/default`) |
-| Branch selector | `white` + border |
-| Search input | `white` + border |
-| Commit card Default | `white` (`bg-background`) |
+См. [design-tokens.md §3.1](./design-tokens.md).
+
+| Элемент | Figma token | Tailwind |
+|---------|-------------|----------|
+| Shell Sidebar | `background/primary/light` | `bg-sidebar` |
+| List Container | `background/default` | `bg-background` |
+| Branch selector | `background/default` | `bg-background border-border` |
+| Search input | `background/default` | `bg-background border-input` |
+| Commit card Default | `background/default` | `bg-background border-border` |
 
 ### 2.6 Branch selector: browse vs checkout
 

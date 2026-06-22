@@ -3,7 +3,7 @@
 Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar и Content Preview (Project view) задокументированы; Content Info — позже.
 
 **Стек:** Wails (Go backend) + React + shadcn/ui  
-**Дизайн:** [M.OS — Sidebar Project view](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19040) · [M.OS — Sidebar History](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014)
+**Дизайн:** [design-tokens.md](./design-tokens.md) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
 
 ---
 
@@ -48,7 +48,7 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 | History | `GitFork` | `sidebarMode = 'history'` |
 | User avatar | image | Зарезервировано (профиль / author — вне scope v1) |
 
-Активный пункт rail: тёмный фон (`bg-primary`), неактивный — прозрачный hover.
+Активный пункт rail: `bg-primary text-primary-foreground`. Неактивный — прозрачный + `hover:bg-accent`.
 
 ### 2.2 Main panel
 
@@ -62,34 +62,34 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 4. **Scrollable list** — папки / коммиты (белый фон Container, §2.4).
 5. **Collapse control** — кнопка `PanelLeft` на правом краю; сворачивает всю Sidebar (состояние в `ui.sidebarCollapsed`).
 
-### 2.4 Цвета и фоны (обновление макета v2)
+### 2.4 Цвета и фоны
 
-**Figma:** Project view `7311:19040` · History `7311:19014`
+**Источник токенов:** [design-tokens.md](./design-tokens.md) (shadcn/ui Zinc light, Figma kit).
 
-| Слой | Token Figma | Tailwind / shadcn | Hex |
-|------|-------------|-------------------|-----|
-| **Shell** (весь Sidebar) | `background/primary/light` | `bg-muted` или custom | `#fafafa` |
-| **Rail** (левая колонка) | наследует shell | — | `#fafafa` |
-| **Main panel** (285px) | прозрачный / наследует shell | — | — |
-| **Header** (title + controls) | без заливки | `border-b border-border` | — |
-| **List Container** (scroll) | `background/default` | `bg-background` | **`white`** |
-| **Context selector** (repo / branch) | `background/default` | `bg-background border` | `white` |
-| **Search input** (History) | `background/default` | `bg-background` | `white` |
-| **Selected folder row** | `background/primary/light` | `bg-muted` | `#fafafa` |
-| **Active rail item** | `background/primary/default` | `bg-primary` | `#18181b` |
-| **Border** | `border/default` | `border-border` | `#e4e4e7` |
+**Figma (adapted):** Project view [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
+
+| Слой | Figma token | Tailwind (shadcn) |
+|------|-------------|-------------------|
+| **Shell** (весь Sidebar + Rail) | `background/primary/light` | `bg-sidebar` |
+| **List Container** (scroll) | `background/default` | `bg-background` |
+| **Header** | — | `border-b border-border` |
+| **Context selector** | `background/default` | `bg-background border-border` |
+| **Search input** | `background/default` | `bg-background border-input` |
+| **Selected folder row** | `background/primary/light` | `bg-sidebar rounded-sm` |
+| **Active rail item** | `background/primary/default` | `bg-primary text-primary-foreground` |
+| **Border** | `border/default` | `border-border` |
+| **Section title** | `foreground/muted` | `text-muted-foreground` |
+| **Row label** | `foreground/secondary` | `text-secondary-foreground` |
 
 ```
 ┌──────────┬─────────────────────────────┐
-│  Rail    │  Header (no fill)           │  shell #fafafa
-│ #fafafa  ├─────────────────────────────┤
+│  Rail    │  Header                     │  bg-sidebar
+│ sidebar  ├─────────────────────────────┤
 │          │  List Container             │
-│          │  bg-white                   │  ← обновление макета
-│          │  [selected row #fafafa]     │
+│          │  bg-background              │
+│          │  [selected row bg-sidebar]  │
 └──────────┴─────────────────────────────┘
 ```
-
-> **Изменение v2:** scrollable **Container** списка (папки / коммиты) — **`bg-background` (white)**. Раньше мог совпадать с shell `#fafafa`; теперь контраст: белая область списка на сером shell.
 
 ### 2.3 shadcn/ui mapping
 
@@ -369,6 +369,7 @@ frontend/src/
 - [sidebar-project-view.md](./sidebar-project-view.md) — режим папок
 - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
 - [commit-card.md](./commit-card.md) — карточка коммита
+- [design-tokens.md](./design-tokens.md) — shadcn/ui цвета (Figma kit)
 - [content-preview-project-view.md](./content-preview-project-view.md) — Content Preview (Project view)
 - [folder-preview-item.md](./folder-preview-item.md) — item папки
 - [file-preview-item.md](./file-preview-item.md) — item файла

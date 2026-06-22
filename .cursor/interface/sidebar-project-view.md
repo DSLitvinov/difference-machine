@@ -1,7 +1,9 @@
 # Sidebar — Project view
 
 Режим просмотра **структуры папок** рабочей директории репозитория.  
-**Figma (reference):** [Sidebar/Files `7311:19040`](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19040) · legacy [7301:17587](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17587)
+**Figma (shadcn kit):** [Sidebar/Files `4026:4812`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812)
+
+**Цвета:** [design-tokens.md](./design-tokens.md)
 
 ---
 
@@ -73,7 +75,7 @@ Toggle **Changed** одновременно:
 - Name (`text-sm/medium`, `foreground/secondary`).
 - Count badge справа (`text-xs/semibold`).
 - **Default:** прозрачный фон на белом Container.
-- **Hover / Selected:** `bg-muted` (`#fafafa`), `rounded-sm`, padding `px-3 py-2` (Figma `7311:19060`).
+- **Hover / Selected:** `bg-sidebar rounded-sm` (Figma `background/primary/light`)
 
 #### Клик по папке / root
 
@@ -103,17 +105,15 @@ Toggle **Changed** одновременно:
 
 ### 2.4 Цвета (List Container)
 
-Scrollable-область списка папок — **белый фон** (`background/default`, `bg-background`).
+См. [design-tokens.md §3.1](./design-tokens.md).
 
-| Элемент | Figma node | Фон |
-|---------|------------|-----|
-| Shell Sidebar | `7311:19040` | `#fafafa` |
-| List Container | `7311:19058` | **`white`** |
-| Repo selector | `7311:19057` | `white` + border |
-| Folder row Default | `7311:19061` | прозрачный |
-| Folder row Selected | `7311:19060` | `#fafafa` |
-
-См. [architecture.md §2.4](./architecture.md).
+| Элемент | Figma token | Tailwind |
+|---------|-------------|----------|
+| Shell Sidebar | `background/primary/light` | `bg-sidebar` |
+| List Container | `background/default` | `bg-background` |
+| Repo selector | `background/default` | `bg-background border-border` |
+| Folder row Default | — | transparent |
+| Folder row Selected | `background/primary/light` | `bg-sidebar rounded-sm` |
 
 ---
 

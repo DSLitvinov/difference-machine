@@ -2,10 +2,12 @@
 
 Панель **Content Preview** в режиме **Project view**: сетка папок и файлов выбранной в Sidebar рабочей категории (папки).
 
-**Figma:**
-- [Content Preview / View Folder content](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-15988) — общий layout
-- [Folder Item](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16074) — состояния папки
-- [File Item](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16038) — состояния файла
+**Figma (shadcn kit):**
+- [Content Preview](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4988)
+- [Folder Item](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5059)
+- [File Item](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5023)
+
+**Цвета:** [design-tokens.md](./design-tokens.md)
 
 **Стек:** Wails (Go backend) + React + shadcn/ui
 
@@ -121,9 +123,11 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 | Состояние | Background | Border | Node |
 |-----------|-----------|--------|------|
-| **Default** | прозрачный | нет | `7310:16075` |
-| **Hover** | `#f4f4f5` | нет, `rounded-md` | `7310:16080` |
-| **Selected** | `#f4f4f5` | `border-primary` 1px, `rounded-md` | `7310:16085` |
+| **Default** | прозрачный | нет | — |
+| **Hover** | `bg-accent` | нет, `rounded-md` | — |
+| **Selected** | `bg-accent` | `border-ring`, `rounded-md` | — |
+
+Токены: [design-tokens.md §3.3](./design-tokens.md).
 
 > Папка **не мультиселектится**. Selected — подсветка при single-click; drill-down — double-click (§4).
 
@@ -178,7 +182,7 @@ Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-код�
 | Folder | ✓ | ✓ | ✓ (1 шт.) | ✗ | ✗ |
 | File | ✓ | ✓ | ✓ | ✓ (Shift/Ctrl/рамка) | ✓ (если не clean) |
 
-Стили Selected и Multi-selected визуально идентичны (`bg-accent` + `border-primary`).
+Стили Selected и Multi-selected: `bg-accent border-ring` ([design-tokens.md](./design-tokens.md)).
 
 ---
 
@@ -444,7 +448,7 @@ interface PreviewSelectionState {
 ### 9.3 Рамка (marquee selection)
 
 - Старт: `mousedown` на пустой области сетки Files (не на item).
-- Рисуется полупрозрачный прямоугольник (`bg-primary/10 border-primary`).
+- Рисуется полупрозрачный прямоугольник (`bg-primary/10 border-ring`).
 - Файлы, чьи bounding boxes пересекают рамку → `Selected`.
 - Авто-скролл при подведении к краю контейнера.
 - Рамка работает **только** в секции Files (папки не захватываются).

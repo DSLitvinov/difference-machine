@@ -4,14 +4,15 @@
 
 Sidebar - управление режимом просмотра: Просмотр содержимого папки репозитория или простмотр истории: ветки и коммиты. В зависимости от выбранного режима Content Preview и Content Info меняют свои Layout. Также в Sidebar меняется секция с элементами проекта: Просмотр списка папок репозитория или просмотр дерева репозитория
 
-Посмотри на дизайн Sidebar:
+Посмотри на дизайн Sidebar (shadcn kit):
 Это режим просмотра папок рабочей дирректории
-https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19040
+https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812
 
 Это просмотр списка веток и коммитов
-https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014
+https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 
 Нужно создать файлы:
+- [design-tokens.md](./design-tokens.md) — shadcn/ui цвета (Figma kit, единый справочник)
 - архитектуры проекта с корнеркейсами → [architecture.md](./architecture.md)
 - архитектура side bar в двух версиях:
   - [sidebar-project-view.md](./sidebar-project-view.md) — папки рабочей директории

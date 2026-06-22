@@ -2,12 +2,11 @@
 
 Компонент списка коммитов в **Sidebar → History view**.
 
-**Figma:** [Commit card variants](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7306-16271)  
-**Nodes:** Default `7306:16272` · Hover `7306:16308` · Selected `7306:16290`
+**Figma:** [Commit card variants](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4490) (в составе History `4026:4547`)
 
 **Стек:** React + shadcn/ui (`Card`, `Badge`, `Tooltip`, `DropdownMenu`, `Button`)
 
-**Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [architecture.md](./architecture.md)
+**Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [architecture.md](./architecture.md) · [design-tokens.md](./design-tokens.md)
 
 ---
 
@@ -102,12 +101,12 @@ Loading: skeleton `— files changed`. Error: скрыть строку.
 
 | Property | Default | Hover | Selected |
 |----------|---------|-------|----------|
-| **Background** | `bg-background` (white) | `bg-background` | `bg-muted` (`#f4f4f5`) |
-| **Border** | `border-border` 1px | `border-primary` (`#a1a1aa`) 1px | `border-border` 1px |
+| **Background** | `bg-background` | `bg-background` | `bg-accent` |
+| **Border** | `border-border` | `border-ring` | `border-border` |
 | **Shadow** | none | none | none |
 | **Cursor** | `pointer` | `pointer` | `pointer` |
 
-> Hover в Figma меняет **только border** на более тёмный zinc. Selected — **заливка muted**, border обычный.
+> Hover меняет **только border** (`border-ring`). Selected — заливка `bg-accent`, border обычный. См. [design-tokens.md §3.4](./design-tokens.md).
 
 ### 3.2 Поведение состояний
 
@@ -126,7 +125,7 @@ stateDiagram-v2
 |---------|--------|
 | **Один selected** | В списке только одна карточка `selectedCommitHash` |
 | **Hover** | Только под курсором; selected card может одновременно не hover |
-| **Hover + Selected** | Если selected под курсором: `bg-muted` + `border-primary` (merge styles) |
+| **Hover + Selected** | `bg-accent border-ring` |
 | **Keyboard** | `↑↓` move focus ring; `Enter` → Selected |
 | **⋮ hover** | Не снимает selected; `stopPropagation` на menu trigger |
 
@@ -135,9 +134,9 @@ stateDiagram-v2
 ```tsx
 const stateClasses = {
   default: 'bg-background border-border',
-  hover: 'bg-background border-primary',
-  selected: 'bg-muted border-border',
-  selectedHover: 'bg-muted border-primary',
+  hover: 'bg-background border-ring',
+  selected: 'bg-accent border-border',
+  selectedHover: 'bg-accent border-ring',
 }
 ```
 

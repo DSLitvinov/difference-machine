@@ -2,11 +2,10 @@
 
 Компонент карточки **файла** в **Content Preview → Project view** (секция `Files`).
 
-**Figma:** [File Item variants](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16038)  
-**Nodes:** Default Min `7310:16039` · Hover Min `7310:16049` · Selected Min `7310:16059` · Default Max `7310:16044` · Hover Max `7310:16054` · Selected Max `7310:16064`
+**Figma (shadcn kit):** [4026:5023](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5023) · legacy [7310:16038](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16038)
 
 **Стек:** React + shadcn/ui (`Badge`)  
-**Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [architecture.md](./architecture.md)
+**Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [design-tokens.md](./design-tokens.md) · [architecture.md](./architecture.md)
 
 ---
 
@@ -74,10 +73,12 @@ Thumbnail генерируется async через Wails (`GetFileThumbnail` �
 
 | Property | Default | Hover | Selected |
 |----------|---------|-------|----------|
-| **Background** | transparent | `bg-muted` | `bg-accent` |
-| **Border** | none | none | `1px border-primary` |
+| **Background** | transparent | `bg-accent` | `bg-accent` |
+| **Border** | none | none | `border border-ring` |
 | **Border radius** | — | `rounded-md` | `rounded-md` |
 | **Cursor** | `pointer` | `pointer` | `pointer` |
+
+Figma tokens: см. [design-tokens.md §3.3](./design-tokens.md).
 
 ### 3.2 Multiselect visual
 
@@ -92,7 +93,7 @@ Thumbnail генерируется async через Wails (`GetFileThumbnail` �
 
 | Комбинация | Стили |
 |------------|-------|
-| **Selected + Hover** | `bg-accent` + `border-primary` |
+| **Selected + Hover** | `bg-accent border-ring` |
 | **Selected in multiselect group** | Идентично single selected |
 | **Focus (keyboard)** | `ring-2 ring-ring ring-offset-2` |
 | **Deleted file** | Thumbnail dimmed `opacity-50`; badge `D` |
@@ -115,9 +116,9 @@ stateDiagram-v2
 ```tsx
 const fileItemClasses = {
   default: '',
-  hover: 'bg-muted rounded-md',
-  selected: 'bg-accent border border-primary rounded-md',
-  selectedHover: 'bg-accent border border-primary rounded-md',
+  hover: 'bg-accent rounded-md',
+  selected: 'bg-accent border border-ring rounded-md',
+  selectedHover: 'bg-accent border border-ring rounded-md',
 }
 ```
 

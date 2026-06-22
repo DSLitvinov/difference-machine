@@ -2,11 +2,10 @@
 
 Компонент карточки **подпапки** в **Content Preview → Project view** (секция `Folders`).
 
-**Figma:** [Folder Item variants](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16074)  
-**Nodes:** Default `7310:16075` · Hover `7310:16080` · Selected `7310:16085`
+**Figma (shadcn kit):** [4026:5059](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5059) · legacy [7310:16074](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16074)
 
 **Стек:** React + shadcn/ui  
-**Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [sidebar-project-view.md](./sidebar-project-view.md) · [architecture.md](./architecture.md)
+**Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [design-tokens.md](./design-tokens.md) · [architecture.md](./architecture.md)
 
 ---
 
@@ -51,18 +50,18 @@
 
 | Property | Default | Hover | Selected |
 |----------|---------|-------|----------|
-| **Background** | transparent | `bg-muted` (`#f4f4f5`) | `bg-accent` (`#f4f4f5`) |
-| **Border** | none | none | `1px border-primary` (`#a1a1aa`) |
+| **Background** | transparent | `bg-accent` | `bg-accent` |
+| **Border** | none | none | `border border-ring` |
 | **Border radius** | — | `rounded-md` | `rounded-md` |
 | **Cursor** | `pointer` | `pointer` | `pointer` |
 
-> Hover и Selected используют одинаковый фон; Selected дополнительно получает border — как у File Item и Commit Card.
+Figma: Hover → `background/primary/light-hover`; Selected → `background/accent` + `border/primary/default`. См. [design-tokens.md §3.3](./design-tokens.md).
 
 ### 3.2 Комбинированные состояния
 
 | Комбинация | Стили |
 |------------|-------|
-| **Selected + Hover** | `bg-accent` + `border-primary` |
+| **Selected + Hover** | `bg-accent border-ring` |
 | **Focus (keyboard)** | `ring-2 ring-ring ring-offset-2` поверх текущего визуала |
 | **Focus + Selected** | Selected styles + focus ring |
 
@@ -85,9 +84,9 @@ stateDiagram-v2
 ```tsx
 const folderItemClasses = {
   default: '',
-  hover: 'bg-muted rounded-md',
-  selected: 'bg-accent border border-primary rounded-md',
-  selectedHover: 'bg-accent border border-primary rounded-md',
+  hover: 'bg-accent rounded-md',
+  selected: 'bg-accent border border-ring rounded-md',
+  selectedHover: 'bg-accent border border-ring rounded-md',
 }
 ```
 
