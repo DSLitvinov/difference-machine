@@ -1,7 +1,7 @@
 # Sidebar — Project view
 
 Режим просмотра **структуры папок** рабочей директории репозитория.  
-**Figma (reference):** [node 7301:17587](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17587)
+**Figma (reference):** [Sidebar/Files `7311:19040`](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19040) · legacy [7301:17587](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17587)
 
 ---
 
@@ -52,6 +52,7 @@ Toggle **Changed** одновременно:
 
 - Иконка `FolderGit2`, текст = `repoName`.
 - Dropdown: Open repository, Recent, (v2) Reveal in Finder.
+- Фон: `bg-background` (white) + border.
 
 ### 2.3 Дерево папок (v1) — **зафиксировано**
 
@@ -69,8 +70,10 @@ Toggle **Changed** одновременно:
 - Отступ по глубине (`paddingLeft = depth * indent`).
 - Chevron `ChevronDown` (декоративный в v1 — все узлы expanded) или без chevron.
 - Icon `Folder`.
-- Name (medium).
-- Count badge справа (recursive, §7.1).
+- Name (`text-sm/medium`, `foreground/secondary`).
+- Count badge справа (`text-xs/semibold`).
+- **Default:** прозрачный фон на белом Container.
+- **Hover / Selected:** `bg-muted` (`#fafafa`), `rounded-sm`, padding `px-3 py-2` (Figma `7311:19060`).
 
 #### Клик по папке / root
 
@@ -97,6 +100,20 @@ Toggle **Changed** одновременно:
 - Обязательна **`@tanstack/react-virtual`** на flat list (DFS flatten expanded tree).
 - Backend: один вызов `ListWorkdirTree` при open repo + invalidate on refresh.
 - Skeleton при первой загрузке.
+
+### 2.4 Цвета (List Container)
+
+Scrollable-область списка папок — **белый фон** (`background/default`, `bg-background`).
+
+| Элемент | Figma node | Фон |
+|---------|------------|-----|
+| Shell Sidebar | `7311:19040` | `#fafafa` |
+| List Container | `7311:19058` | **`white`** |
+| Repo selector | `7311:19057` | `white` + border |
+| Folder row Default | `7311:19061` | прозрачный |
+| Folder row Selected | `7311:19060` | `#fafafa` |
+
+См. [architecture.md §2.4](./architecture.md).
 
 ---
 

@@ -1,9 +1,9 @@
-# Forester GUI — Sidebar (архитектура)
+# Forester GUI — архитектура
 
-Документация для разработчиков. **Scope v1: только Sidebar.** Content Preview и Content Info описываются отдельно позже; здесь — контракт событий, которые Sidebar отдаёт наружу.
+Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar и Content Preview (Project view) задокументированы; Content Info — позже.
 
 **Стек:** Wails (Go backend) + React + shadcn/ui  
-**Дизайн:** [M.OS — Sidebar Project view](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17587) · [M.OS — Sidebar History](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17611)
+**Дизайн:** [M.OS — Sidebar Project view](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19040) · [M.OS — Sidebar History](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014)
 
 ---
 
@@ -17,6 +17,9 @@ Sidebar управляет выбором **папки**, **ветки/комм�
 |-------|----------|--------|
 | **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | Дерево папок (fully expanded) + toggle «Changed» |
 | **History** | [sidebar-history-view.md](./sidebar-history-view.md) | Ветка + список коммитов + поиск |
+
+**Content Preview (Project view):** [content-preview-project-view.md](./content-preview-project-view.md) — сетка папок/файлов, drill-down, multiselect, поиск, slider.  
+Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 
 ---
 
@@ -56,8 +59,37 @@ Sidebar управляет выбором **папки**, **ветки/комм�
    - Project view → имя репозитория (basename root path).
    - History → текущая выбранная ветка.
 3. **Mode-specific controls** — см. дочерние документы.
-4. **Scrollable list** — папки / коммиты.
+4. **Scrollable list** — папки / коммиты (белый фон Container, §2.4).
 5. **Collapse control** — кнопка `PanelLeft` на правом краю; сворачивает всю Sidebar (состояние в `ui.sidebarCollapsed`).
+
+### 2.4 Цвета и фоны (обновление макета v2)
+
+**Figma:** Project view `7311:19040` · History `7311:19014`
+
+| Слой | Token Figma | Tailwind / shadcn | Hex |
+|------|-------------|-------------------|-----|
+| **Shell** (весь Sidebar) | `background/primary/light` | `bg-muted` или custom | `#fafafa` |
+| **Rail** (левая колонка) | наследует shell | — | `#fafafa` |
+| **Main panel** (285px) | прозрачный / наследует shell | — | — |
+| **Header** (title + controls) | без заливки | `border-b border-border` | — |
+| **List Container** (scroll) | `background/default` | `bg-background` | **`white`** |
+| **Context selector** (repo / branch) | `background/default` | `bg-background border` | `white` |
+| **Search input** (History) | `background/default` | `bg-background` | `white` |
+| **Selected folder row** | `background/primary/light` | `bg-muted` | `#fafafa` |
+| **Active rail item** | `background/primary/default` | `bg-primary` | `#18181b` |
+| **Border** | `border/default` | `border-border` | `#e4e4e7` |
+
+```
+┌──────────┬─────────────────────────────┐
+│  Rail    │  Header (no fill)           │  shell #fafafa
+│ #fafafa  ├─────────────────────────────┤
+│          │  List Container             │
+│          │  bg-white                   │  ← обновление макета
+│          │  [selected row #fafafa]     │
+└──────────┴─────────────────────────────┘
+```
+
+> **Изменение v2:** scrollable **Container** списка (папки / коммиты) — **`bg-background` (white)**. Раньше мог совпадать с shell `#fafafa`; теперь контраст: белая область списка на сером shell.
 
 ### 2.3 shadcn/ui mapping
 
@@ -104,7 +136,7 @@ interface SidebarState {
 }
 ```
 
-> **Файлы** не хранятся в Sidebar state. `selectedFilePath` живёт в Preview / global app store.
+> **Файлы** не хранятся в Sidebar state. `selectedFilePaths` (multiselect) живёт в [Content Preview store](./content-preview-project-view.md) §9.
 
 ### 3.1 События наружу (контракт с Preview / Info)
 
@@ -117,10 +149,10 @@ type SidebarSelection =
   | { kind: 'folder'; path: string }
   | { kind: 'commit'; hash: string; branch: string }
 
-// File selection — Content Preview (not Sidebar)
+// File selection — Content Preview (not Sidebar); see content-preview-project-view.md §9
 type PreviewSelection =
   | { kind: 'none' }
-  | { kind: 'file'; path: string; vcsStatus?: VcsFileStatus }
+  | { kind: 'files'; paths: string[]; primary: string }
 
 interface SidebarEvents {
   onSelectionChange(selection: SidebarSelection): void
@@ -165,6 +197,7 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 | `ListTags(repoPath)` | **новый** | Tag Badge fallback |
 | `ListWorkdirTree(repoPath)` | **новый** | Folder tree (folders only, recursive counts) |
 | `ListWorkdirFiles(repoPath, folder)` | **новый** | Для **Content Preview**, не Sidebar |
+| `OpenWithDefaultApp(repoPath, fileRel)` | **новый** | Double-click в Preview: открыть файл в приложении ОС по умолчанию |
 
 > `status.get` возвращает **плоские** списки путей, не иерархию. Для Project view (список папок) нужен отдельный метод на Go: обход FS + агрегация + учёт `.dfmignore` и скрытия `.DFM/`.
 
@@ -325,9 +358,9 @@ frontend/src/
 
 | Фаза | Scope |
 |------|-------|
-| **v1** | Rail, folder tree (always expanded), Changed dual-filter + Preview signal, History log browse |
-| **v1.1** | Virtual scroll polish, changed-count badge on folders |
-| **v2** | Tree collapse per node, context menu, branch checkout, fs watcher |
+| **v1** | Sidebar + Content Preview Project view (grid, multiselect, search, slider) |
+| **v1.1** | Thumbnails, virtual scroll polish, changed-count badge on folders |
+| **v2** | Preview History layout, tree collapse, context menus, fs watcher |
 
 ---
 
@@ -336,4 +369,7 @@ frontend/src/
 - [sidebar-project-view.md](./sidebar-project-view.md) — режим папок
 - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
 - [commit-card.md](./commit-card.md) — карточка коммита
+- [content-preview-project-view.md](./content-preview-project-view.md) — Content Preview (Project view)
+- [folder-preview-item.md](./folder-preview-item.md) — item папки
+- [file-preview-item.md](./file-preview-item.md) — item файла
 - [plan.md](./plan.md) — исходное ТЗ

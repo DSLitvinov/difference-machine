@@ -1,7 +1,7 @@
 # Sidebar — History view
 
 Режим просмотра **веток и коммитов**.  
-**Figma:** [node 7301:17611](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17611)
+**Figma:** [Sidebar/History `7311:19014`](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014) · legacy [7301:17611](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17611)
 
 ---
 
@@ -36,7 +36,7 @@
 ```
 
 Список коммитов — **карточки** с gap `8px`, не разделители `border-b`.  
-**Figma:** [History sidebar](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7301-17611) · [Commit card](./commit-card.md)
+**Figma:** [Sidebar/History `7311:19014`](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7311-19014) · [Commit card](./commit-card.md)
 
 ### 2.1 Header
 
@@ -47,8 +47,25 @@
 
 - Icon `GitBranch`, label = имя **просматриваемой** ветки (`historyBranch`).
 - Dropdown — см. §2.6 (browse vs checkout).
+- Фон: `bg-background` (white) + border.
 
 **Важно:** `historyBranch` (что смотрим в log) и `currentBranch` (на какой ветке рабочая копия) — **разные поля**. Они совпадают после checkout, но могут расходиться при «browse without checkout».
+
+### 2.3 Commit list (scroll area)
+
+- Container `7311:19033`: **`bg-background` (white)**, `border-r`, vertical scroll.
+- Карточки коммитов на белом фоне, gap `8px`, padding `8px`.
+- См. [architecture.md §2.4](./architecture.md) · [commit-card.md](./commit-card.md).
+
+### 2.4 Цвета (List Container)
+
+| Элемент | Фон |
+|---------|-----|
+| Shell Sidebar | `#fafafa` (`background/primary/light`) |
+| List Container (`7311:19033`) | **`white`** (`background/default`) |
+| Branch selector | `white` + border |
+| Search input | `white` + border |
+| Commit card Default | `white` (`bg-background`) |
 
 ### 2.6 Branch selector: browse vs checkout
 
