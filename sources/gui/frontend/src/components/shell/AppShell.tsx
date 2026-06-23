@@ -4,6 +4,7 @@ import {
   bootstrapRepositories,
   ProjectSidebarPanel,
 } from "@/components/sidebar/ProjectSidebarPanel";
+import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
@@ -64,15 +65,10 @@ export function AppShell() {
       >
         {loading && !repoPath ? (
           <PlaceholderPanel title="Loading" subtitle="Opening repository…" />
+        ) : sidebarMode === "project" ? (
+          <ProjectPreviewPanel />
         ) : (
-          <PlaceholderPanel
-            title="Content Preview"
-            subtitle={
-              repoPath
-                ? "File grid and diff views — coming in slices 2–4"
-                : "Select a repository from the sidebar"
-            }
-          />
+          <PlaceholderPanel title="Content Preview" subtitle="Commit diff — coming in slice 4" />
         )}
       </main>
 

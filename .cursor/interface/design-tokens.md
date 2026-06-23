@@ -126,13 +126,13 @@
 |---------|-------|----------|
 | Shell | `background/primary/light` | `bg-sidebar` |
 | Outer border | `border/default` | `border-border` |
-| List Container | `background/default` | `bg-background` |
+| List Container | `background/default` | `bg-background` (no side border; shell column owns `border-r`) |
 | Header title | `foreground/accent` | `text-foreground font-semibold` |
 | Section label «Folders» | `foreground/muted` | `text-muted-foreground text-xs font-semibold` |
 | Row label | `foreground/secondary` | `text-secondary-foreground` |
 | Row count badge | `foreground/default` | `text-foreground text-xs font-semibold` |
-| Folder row Hover | `background/primary/light-hover` | см. §4 `itemStateClasses.hover` |
-| Folder row Selected | `background/accent` + `border/primary/default` | см. §4 `itemStateClasses.selected` |
+| Folder row Hover | `background/primary/light-hover` | см. §4 `treeRowStateClasses.hover` |
+| Folder row Selected | `background/accent` | см. §4 `treeRowStateClasses.selected` |
 | Active rail item | `background/primary/default` | `bg-primary text-primary-foreground` |
 | Repo / branch selector | `background/default` + `border/default` | `bg-background border border-border` |
 | Current branch label (Project) | `foreground/muted` | `text-muted-foreground text-xs` + `GitBranch` icon — read-only |
@@ -238,7 +238,7 @@
 
 ## 4. Состояния item — канон (Tailwind)
 
-Единый паттерн для **FolderPreviewItem**, **FilePreviewItem**, **FolderTreeRow** (Sidebar Project view). Atom-спеки ссылаются сюда, не копируют классы.
+**Preview grid** (`FolderPreviewItem`, `FilePreviewItem`) — border на selected:
 
 ```tsx
 export const itemStateClasses = {
@@ -246,6 +246,17 @@ export const itemStateClasses = {
   hover: 'bg-accent rounded-md',
   selected: 'bg-accent border border-ring rounded-md',
   selectedHover: 'bg-accent border border-ring rounded-md',
+} as const
+```
+
+**Sidebar folder tree** (`FolderTreeRow`) — только фон, **без** border (плотный список):
+
+```tsx
+export const treeRowStateClasses = {
+  default: '',
+  hover: 'bg-accent rounded-md',
+  selected: 'bg-accent rounded-md',
+  selectedHover: 'bg-accent rounded-md',
 } as const
 ```
 

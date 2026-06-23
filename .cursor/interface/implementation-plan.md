@@ -49,18 +49,18 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **2 — Slice 1** (доработка) / **1 — Backend API** |
-| **Следующий шаг** | `1.1.1` `workdir.tree` **или** `2.2.3` RepoSelector dropdown |
-| **Заметки** | Bootstrap: `sources/gui/`, `wails build` OK. Shell + OpenRepo + Rail. |
+| **Активная фаза** | **3 — Slice 2** (частично) |
+| **Следующий шаг** | `3.4.1` status polling · `2.3.3` error banner · `3.2.1` toolbar |
+| **Заметки** | workdir.open + FilePreviewItem badges + breadcrumb drill-down |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
-| 1 | Backend API | `[ ]` 0/17 |
-| 2 | Slice 1 — Shell + OpenRepo | `[~]` 8/12 |
-| 3 | Slice 2 — Project browse | `[ ]` 0/15 |
+| 1 | Backend API | `[~]` 4/17 |
+| 2 | Slice 1 — Shell + OpenRepo | `[~]` 11/12 |
+| 3 | Slice 2 — Project browse | `[~]` 13/15 |
 | 4 | Slice 3 — Create commit | `[ ]` 0/6 |
 | 5 | Slice 4 — History + diff | `[ ]` 0/17 |
 | 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
@@ -87,10 +87,10 @@
 
 ### 1.1 Workdir
 
-- [ ] **1.1.1** `workdir.tree` — lazy `{ path, depth }` — [api-contract.md §4.1](./api-contract.md)
-- [ ] **1.1.2** `workdir.entries` — pagination `{ path, offset, limit }`
-- [ ] **1.1.3** `workdir.metadata` — stat + mime
-- [ ] **1.1.4** `workdir.open` — OS default app (macOS / Windows)
+- [x] **1.1.1** `workdir.tree` — lazy `{ path, depth }` — [api-contract.md §4.1](./api-contract.md)
+- [x] **1.1.2** `workdir.entries` — pagination `{ path, offset, limit }`
+- [x] **1.1.3** `workdir.metadata` — stat + mime
+- [x] **1.1.4** `workdir.open` — OS default app (macOS / Windows)
 - [ ] **1.1.5** `workdir.search` — global search по репо
 - [ ] **1.1.6** `workdir.thumbnail` — placeholder (icon по mime)
 
@@ -136,7 +136,7 @@
 
 - [x] **2.2.1** Startup: read `[current repo]` → `OpenRepo`
 - [x] **2.2.2** Empty state: «Open repository» + **+ Add repository**
-- [ ] **2.2.3** `RepoSelector` dropdown — [multi-repo.md §3](./multi-repo.md)
+- [x] **2.2.3** `RepoSelector` dropdown — [multi-repo.md §3](./multi-repo.md)
 - [x] **2.2.4** Native folder picker → `AddKnownRepo`
 - [x] **2.2.5** Corner cases: invalid path, not a repo (toast via error state)
 
@@ -156,9 +156,9 @@
 
 ### 3.1 Sidebar — Project view
 
-- [ ] **3.1.1** `ProjectViewPanel` — header, Changed toggle, repo selector
-- [ ] **3.1.2** Read-only `currentBranch` под repo name
-- [ ] **3.1.3** `FolderTree` — lazy expand — [decisions.md §5](./decisions.md)
+- [x] **3.1.1** `ProjectViewPanel` — header, Changed toggle, repo selector
+- [x] **3.1.2** Read-only `currentBranch` под repo name
+- [x] **3.1.3** `FolderTree` — lazy expand — [decisions.md §5](./decisions.md)
 - [ ] **3.1.4** `FolderTreeRow` — states — [design-tokens.md §4](./design-tokens.md)
 - [ ] **3.1.5** Toggle Changed → filter tree + emit `onProjectViewContextChange`
 - [ ] **3.1.6** per-repo persist: `selectedFolderPath`, `showChangedOnly`
@@ -166,13 +166,13 @@
 ### 3.2 Content Preview — Project view
 
 - [ ] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
-- [ ] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
-- [ ] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
-- [ ] **3.2.4** VCS badges из `status.get` only
-- [ ] **3.2.5** Changed ON → hide Folders section; filter committable files
-- [ ] **3.2.6** Double-click file → `workdir.open`
-- [ ] **3.2.7** `onPreviewSelectionChange` — single file select (multiselect в фазе 6)
-- [ ] **3.2.8** Смена папки → сброс file selection
+- [x] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
+- [x] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
+- [x] **3.2.4** VCS badges из `status.get` only
+- [x] **3.2.5** Changed ON → hide Folders section; filter committable files
+- [x] **3.2.6** Double-click file → `workdir.open`
+- [x] **3.2.7** `onPreviewSelectionChange` — single file select (multiselect в фазе 6)
+- [x] **3.2.8** Смена папки → сброс file selection
 
 ### 3.3 Content Info — stub
 

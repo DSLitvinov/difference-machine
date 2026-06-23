@@ -38,6 +38,10 @@ var handlers = map[string]handlerFunc{
 	"commit.get":           handleCommitGet,
 	"commit.revert":        handleCommitRevert,
 	"commit.reset":         handleCommitReset,
+	"workdir.tree":         handleWorkdirTree,
+	"workdir.entries":      handleWorkdirEntries,
+	"workdir.metadata":     handleWorkdirMetadata,
+	"workdir.open":         handleWorkdirOpen,
 }
 
 // Call dispatches a JSON API method for the given session handle.

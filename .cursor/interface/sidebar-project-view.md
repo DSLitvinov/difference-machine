@@ -93,7 +93,7 @@ Toggle **Changed** одновременно:
 - Name (`text-sm/medium`, `foreground/secondary`).
 - Count badge справа (`text-xs/semibold`).
 - **Default:** прозрачный фон на белом Container.
-- **Hover / Selected:** канон [design-tokens.md §4](./design-tokens.md) — как Preview items (`bg-accent`; selected + `border border-ring`).
+- **Hover / Selected:** канон [design-tokens.md §4](./design-tokens.md) — `treeRowStateClasses` (`bg-accent` only; **без** border).
 
 #### Клик по папке / root
 
@@ -120,6 +120,8 @@ Toggle **Changed** одновременно:
 - v1.1: `@tanstack/react-virtual` на flat list при fully expanded ([decisions.md §3](./decisions.md)).
 - Skeleton при первой загрузке уровня.
 
+**Layout:** scroll-область дерева — `bg-background`, **без** собственного `border-r`; правая граница Sidebar — один раз на shell-колонке ([architecture.md §2.5](./architecture.md)).
+
 ### 2.4 Цвета (List Container)
 
 См. [design-tokens.md §3.1](./design-tokens.md).
@@ -130,7 +132,7 @@ Toggle **Changed** одновременно:
 | List Container | `background/default` | `bg-background` |
 | Repo selector | `background/default` | `bg-background border-border` |
 | Folder row Default | — | transparent |
-| Folder row Hover / Selected | см. [design-tokens.md §4](./design-tokens.md) | `itemStateClasses` |
+| Folder row Hover / Selected | см. [design-tokens.md §4](./design-tokens.md) | `treeRowStateClasses` |
 
 ---
 

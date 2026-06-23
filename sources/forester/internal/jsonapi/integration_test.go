@@ -372,3 +372,66 @@ func TestDoubleInitFails(t *testing.T) {
 	_, h := initTestRepo(t)
 	mustFail(t, h, "repo.init", `{}`)
 }
+
+func TestWorkdirTreeAndEntries(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "readme.txt", "hello")
+	writeFile(t, dir, "assets/a.txt", "a")
+	if err := os.MkdirAll(filepath.Join(dir, "assets", "nested"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, dir, "assets/nested/b.txt", "b")
+
+	var tree folderNodeResult
+	if err := json.Unmarshal(mustOK(t, h, "workdir.tree", `{"path":"","depth":1}`), &tree); err != nil {
+		t.Fatalf("decode tree: %v", err)
+	}
+	if tree.Path != "" {
+		t.Fatalf("root path = %q, want empty", tree.Path)
+	}
+	if len(tree.Children) == 0 {
+		t.Fatal("expected folder children at repo root")
+	}
+	foundAssets := false
+	for _, child := range tree.Children {
+		if child.Path == "assets" {
+			foundAssets = true
+			if child.ItemCount < 2 {
+				t.Fatalf("assets item_count = %d, want >= 2", child.ItemCount)
+			}
+		}
+	}
+	if !foundAssets {
+		t.Fatalf("children = %+v, want assets", tree.Children)
+	}
+
+	var entriesResult struct {
+		Entries []struct {
+			Path  string `json:"path"`
+			IsDir bool   `json:"is_dir"`
+		} `json:"entries"`
+		Total   int  `json:"total"`
+		HasMore bool `json:"has_more"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.entries", `{"path":"","offset":0,"limit":50}`), &entriesResult); err != nil {
+		t.Fatalf("decode entries: %v", err)
+	}
+	if entriesResult.Total < 2 {
+		t.Fatalf("total = %d, want >= 2", entriesResult.Total)
+	}
+
+	var openResult map[string]bool
+	if err := json.Unmarshal(mustOK(t, h, "workdir.open", `{"path":"readme.txt"}`), &openResult); err != nil {
+		t.Fatalf("decode workdir.open: %v", err)
+	}
+	if !openResult["success"] {
+		t.Fatalf("workdir.open success = %v, want true", openResult["success"])
+	}
+}
+
+type folderNodeResult struct {
+	Name      string             `json:"name"`
+	Path      string             `json:"path"`
+	ItemCount int                `json:"item_count"`
+	Children  []folderNodeResult `json:"children"`
+}

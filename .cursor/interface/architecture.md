@@ -129,11 +129,12 @@ onSettingsClick={() => setSettingsOpen(true)}
 | Слой | Figma token | Tailwind (shadcn) |
 |------|-------------|-------------------|
 | **Shell** (весь Sidebar + Rail) | `background/primary/light` | `bg-sidebar` |
-| **List Container** (scroll) | `background/default` | `bg-background` |
+| **List Container** (scroll) | `background/default` | `bg-background` (без side border) |
+| **Sidebar shell edge** | `border/default` | `border-r border-sidebar-border` на колонке Sidebar в AppShell |
 | **Header** | — | `border-b border-border` |
 | **Context selector** | `background/default` | `bg-background border-border` |
 | **Search input** | `background/default` | `bg-background border-input` |
-| **Selected folder row** | `background/accent` + `border/primary/default` | см. [design-tokens.md §4](./design-tokens.md) — `bg-accent border border-ring rounded-md` |
+| **Selected folder row** | `background/accent` | см. [design-tokens.md §4](./design-tokens.md) — `treeRowStateClasses.selected` (`bg-accent rounded-md`) |
 | **Active rail item** | `background/primary/default` | `bg-primary text-primary-foreground` |
 | **Border** | `border/default` | `border-border` |
 | **Section title** | `foreground/muted` | `text-muted-foreground` |

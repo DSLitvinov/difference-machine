@@ -62,7 +62,7 @@
 
 ### 2.3 Commit list (scroll area)
 
-- Container `7311:19033`: **`bg-background` (white)**, `border-r`, vertical scroll.
+- Container `7311:19033`: **`bg-background` (white)**, vertical scroll (без `border-r` — правая граница только на shell Sidebar).
 - Карточки коммитов на белом фоне, gap `8px`, padding `8px`.
 - См. [architecture.md §2.4](./architecture.md) · [commit-card.md](./commit-card.md).
 
