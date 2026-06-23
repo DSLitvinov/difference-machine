@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 
+import { ContentInfoPanel } from "@/components/info/ContentInfoPanel";
 import {
   bootstrapRepositories,
   ProjectSidebarPanel,
 } from "@/components/sidebar/ProjectSidebarPanel";
 import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
+import { ForesterErrorBanner } from "@/components/shell/ForesterErrorBanner";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
+import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 
@@ -36,6 +39,8 @@ export function AppShell() {
     void bootstrapRepositories(setRepo, setError, setLoading);
   }, [setRepo, setError, setLoading]);
 
+  useProjectStatusPolling();
+
   const showInfo = sidebarMode === "project";
   const sidebarWidth = sidebarCollapsed ? 48 : SIDEBAR_MIN;
 
@@ -63,6 +68,7 @@ export function AppShell() {
         className="flex min-h-0 min-w-0 flex-1 flex-col bg-background"
         style={{ minWidth: PREVIEW_MIN }}
       >
+        <ForesterErrorBanner />
         {loading && !repoPath ? (
           <PlaceholderPanel title="Loading" subtitle="Opening repository…" />
         ) : sidebarMode === "project" ? (
@@ -80,7 +86,7 @@ export function AppShell() {
           )}
           style={{ width: INFO_MIN, minWidth: INFO_MIN }}
         >
-          <PlaceholderPanel title="Content Info" subtitle="File details — coming in slice 3" />
+          <ContentInfoPanel />
         </aside>
       ) : null}
 

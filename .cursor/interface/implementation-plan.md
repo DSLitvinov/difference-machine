@@ -50,8 +50,8 @@
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
 | **Активная фаза** | **3 — Slice 2** (частично) |
-| **Следующий шаг** | `3.4.1` status polling · `2.3.3` error banner · `3.2.1` toolbar |
-| **Заметки** | workdir.open + FilePreviewItem badges + breadcrumb drill-down |
+| **Следующий шаг** | Slice 3 — Content Info single file · `1.2` diff API |
+| **Заметки** | polling, error banner, Content Info stub, localStorage prefs, sort toolbar |
 
 ### Прогресс v1.0
 
@@ -59,8 +59,8 @@
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
 | 1 | Backend API | `[~]` 4/17 |
-| 2 | Slice 1 — Shell + OpenRepo | `[~]` 11/12 |
-| 3 | Slice 2 — Project browse | `[~]` 13/15 |
+| 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
+| 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[ ]` 0/6 |
 | 5 | Slice 4 — History + diff | `[ ]` 0/17 |
 | 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
@@ -129,7 +129,7 @@
 - [x] **2.1.1** `AppShell`: Rail 48px + 3-column layout (без resize handles)
 - [x] **2.1.2** `SidebarRail` — mode icons (Project / History), Settings, avatar placeholder
 - [x] **2.1.3** `SetMinSize` — 1435×720
-- [ ] **2.1.4** localStorage: `dfm.layout.*`, `dfm.sidebar.collapsed`, `dfm.sidebar.mode`
+- [x] **2.1.4** localStorage: `dfm.layout.*`, `dfm.sidebar.collapsed`, `dfm.sidebar.mode`
 - [x] **2.1.5** Sidebar collapse → Rail only (+ expand button)
 
 ### 2.2 Multi-repo
@@ -144,7 +144,7 @@
 
 - [x] **2.3.1** `appStore` (zustand): `mode`, `repoPath`, `collapsed`, loading, error
 - [x] **2.3.2** Wails bindings + `wails/bridge.ts`
-- [ ] **2.3.3** Error banner «Forester unavailable» + Retry
+- [x] **2.3.3** Error banner «Forester unavailable» + Retry
 
 **Проверка:** добавить репо → виден basename; перезапуск → авто-open; пустой cfg → empty state.
 
@@ -159,13 +159,13 @@
 - [x] **3.1.1** `ProjectViewPanel` — header, Changed toggle, repo selector
 - [x] **3.1.2** Read-only `currentBranch` под repo name
 - [x] **3.1.3** `FolderTree` — lazy expand — [decisions.md §5](./decisions.md)
-- [ ] **3.1.4** `FolderTreeRow` — states — [design-tokens.md §4](./design-tokens.md)
-- [ ] **3.1.5** Toggle Changed → filter tree + emit `onProjectViewContextChange`
-- [ ] **3.1.6** per-repo persist: `selectedFolderPath`, `showChangedOnly`
+- [x] **3.1.4** `FolderTreeRow` — states — [design-tokens.md §4](./design-tokens.md)
+- [x] **3.1.5** Toggle Changed → filter tree + emit `onProjectViewContextChange`
+- [x] **3.1.6** per-repo persist: `selectedFolderPath`, `showChangedOnly`
 
 ### 3.2 Content Preview — Project view
 
-- [ ] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
+- [~] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
 - [x] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
 - [x] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 - [x] **3.2.4** VCS badges из `status.get` only
@@ -176,13 +176,13 @@
 
 ### 3.3 Content Info — stub
 
-- [ ] **3.3.1** Панель видна в Project mode; empty state при `selection: none`
+- [x] **3.3.1** Панель видна в Project mode; empty state при `selection: none`
 - [ ] **3.3.2** Resize Info column — [panel-layout.md](./panel-layout.md)
 
 ### 3.4 Polling
 
-- [ ] **3.4.1** `status.get` каждые 5s в Project mode + on window focus
-- [ ] **3.4.2** Файл удалён → сброс selection + toast
+- [x] **3.4.1** `status.get` каждые 5s в Project mode + on window focus
+- [x] **3.4.2** Файл удалён → сброс selection + toast
 
 **Проверка:** дерево lazy; клик папки → файлы; badges; Changed filter; drill-down.
 

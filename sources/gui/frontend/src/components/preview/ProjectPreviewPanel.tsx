@@ -3,15 +3,16 @@ import { ChevronRight } from "lucide-react";
 
 import { FilePreviewItem } from "@/components/preview/FilePreviewItem";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
+import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
-import type { DirEntry } from "@/wails/forester";
 import {
   fetchStatus,
   fetchWorkdirEntries,
   fetchWorkdirTree,
   openWorkdirFile,
   vcsFileStatus,
+  type DirEntry,
 } from "@/wails/forester";
 
 function filesForPreview(folderPath: string, committable: string[]): string[] {
@@ -42,12 +43,19 @@ function breadcrumbSegments(folderPath: string): { label: string; path: string }
 
 export async function loadProjectData() {
   const store = useProjectStore.getState();
+  const repoPath = useAppStore.getState().repoPath;
+  if (repoPath) {
+    store.restoreRepoPrefs(repoPath);
+  }
   store.setTreeLoading(true);
   try {
     const [tree, status] = await Promise.all([fetchWorkdirTree("", 1), fetchStatus()]);
     store.setFolderTree(tree);
     store.setStatus(status);
-    store.setSelectedFolderPath("");
+    useAppStore.getState().setForesterError(null);
+  } catch (err) {
+    useAppStore.getState().setForesterError(err instanceof Error ? err.message : String(err));
+    throw err;
   } finally {
     store.setTreeLoading(false);
   }
@@ -63,6 +71,8 @@ export function ProjectPreviewPanel() {
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const status = useProjectStore((s) => s.status);
+  const sortLocale = useProjectStore((s) => s.sortLocale);
+  const setSortLocale = useProjectStore((s) => s.setSortLocale);
 
   const [entries, setEntries] = useState<DirEntry[]>([]);
   const [subfolders, setSubfolders] = useState<DirEntry[]>([]);
@@ -130,25 +140,30 @@ export function ProjectPreviewPanel() {
   }
 
   const crumbs = breadcrumbSegments(selectedFolderPath);
+  const sortedSubfolders = sortByName(subfolders, sortLocale);
+  const sortedEntries = sortByName(entries, sortLocale);
 
   return (
     <div className="flex h-full flex-col">
       <header className="border-b border-border px-4 py-3">
-        <nav className="mb-1 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
-          {crumbs.map((segment, index) => (
-            <span key={segment.path || "root"} className="flex items-center gap-1">
-              {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}
-              <button
-                type="button"
-                className="hover:text-foreground"
-                onClick={() => openFolder(segment.path)}
-              >
-                {segment.label}
-              </button>
-            </span>
-          ))}
-          {showChangedOnly ? <span className="ml-2 text-xs">· changed only</span> : null}
-        </nav>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <nav className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+            {crumbs.map((segment, index) => (
+              <span key={segment.path || "root"} className="flex items-center gap-1">
+                {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}
+                <button
+                  type="button"
+                  className="hover:text-foreground"
+                  onClick={() => openFolder(segment.path)}
+                >
+                  {segment.label}
+                </button>
+              </span>
+            ))}
+            {showChangedOnly ? <span className="ml-2 text-xs">· changed only</span> : null}
+          </nav>
+          <PreviewToolbar sortLocale={sortLocale} onSortLocaleChange={setSortLocale} />
+        </div>
       </header>
       <div className="flex-1 overflow-auto p-4">
         {loading ? (
@@ -159,7 +174,7 @@ export function ProjectPreviewPanel() {
               <div className="mb-6">
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Folders</p>
                 <ul className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
-                  {subfolders.map((entry) => (
+                  {sortedSubfolders.map((entry) => (
                     <li key={entry.path}>
                       <FolderPreviewItem
                         name={entry.name}
@@ -171,13 +186,13 @@ export function ProjectPreviewPanel() {
               </div>
             ) : null}
 
-            {entries.length === 0 ? (
+            {sortedEntries.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 {showChangedOnly ? "No changed files here" : "No files in this folder"}
               </p>
             ) : (
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
-                {entries.map((entry) => (
+                {sortedEntries.map((entry) => (
                   <li key={entry.path}>
                     <FilePreviewItem
                       name={entry.name}
