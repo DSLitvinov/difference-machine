@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/difference-machine/forester/pkg/jsonapi"
 	"github.com/difference-machine/gui/internal/config"
 	"github.com/difference-machine/gui/internal/forester"
 	"github.com/difference-machine/gui/internal/paths"
@@ -144,6 +146,57 @@ func (a *App) GetForesterBinaryPath() (string, error) {
 		return "", fmt.Errorf("config not loaded")
 	}
 	return a.cfg.ForesterBinaryPath(), nil
+}
+
+// IsForesterRepository reports whether the path contains a .DFM directory.
+func (a *App) IsForesterRepository(path string) (bool, error) {
+	canonical, err := paths.CanonicalAbsPath(path)
+	if err != nil {
+		return false, err
+	}
+	return isForesterRepo(canonical), nil
+}
+
+// InitRepository initializes a Forester repository in the given directory.
+func (a *App) InitRepository(path string) error {
+	canonical, err := paths.CanonicalAbsPath(path)
+	if err != nil {
+		return err
+	}
+	info, err := os.Stat(canonical)
+	if err != nil {
+		return fmt.Errorf("repository not found")
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("path is not a directory")
+	}
+	if isForesterRepo(canonical) {
+		return nil
+	}
+	raw := jsonapi.CallStateless(canonical, "repo.init", "{}")
+	return decodeForesterAPIResponse(raw)
+}
+
+func decodeForesterAPIResponse(raw []byte) error {
+	var resp struct {
+		OK    bool   `json:"ok"`
+		Error string `json:"error"`
+	}
+	if err := json.Unmarshal(raw, &resp); err != nil {
+		return err
+	}
+	if !resp.OK {
+		if resp.Error != "" {
+			return fmt.Errorf("%s", resp.Error)
+		}
+		return fmt.Errorf("forester API failed")
+	}
+	return nil
+}
+
+func isForesterRepo(path string) bool {
+	info, err := os.Stat(filepath.Join(path, ".DFM"))
+	return err == nil && info.IsDir()
 }
 
 func (a *App) openRepo(path string, persist bool) (*RepoState, error) {

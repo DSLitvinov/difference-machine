@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
+import { getRepositoryAddActions } from "@/lib/repositoryAddActions";
 import { fetchStatus, foresterCall } from "@/wails/forester";
 
 const POLL_INTERVAL_MS = 5000;
@@ -104,21 +105,27 @@ export async function retryForesterConnection() {
 
 export async function reopenRepositoryFromPicker() {
   const { setRepo, setError, setForesterError, setLoading } = useAppStore.getState();
+  const actions = getRepositoryAddActions();
+  if (!actions) {
+    setError("Repository picker is not ready");
+    return;
+  }
+
   setLoading(true);
   setError(null);
   setForesterError(null);
   try {
-    const { openRepository, pickRepositoryFolder } = await import("@/wails/bridge");
-    const picked = await pickRepositoryFolder();
-    if (!picked) return;
-    const state = await openRepository(picked);
-    setRepo(
-      state.repoPath,
-      state.repoName,
-      typeof state.status.current_branch === "string" ? state.status.current_branch : null,
-    );
-    await loadProjectData();
-    useAppStore.getState().setNotice("Repository opened");
+    await actions.pickRepositoryPath(async (path) => {
+      const { addRepository } = await import("@/wails/bridge");
+      const state = await addRepository(path);
+      setRepo(
+        state.repoPath,
+        state.repoName,
+        typeof state.status.current_branch === "string" ? state.status.current_branch : null,
+      );
+      await loadProjectData();
+      useAppStore.getState().setNotice("Repository opened");
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     setError(message);

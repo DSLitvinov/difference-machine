@@ -118,6 +118,7 @@
 | History / Image diff | `Screen / History / Image diff` | [image-diff-panel.md](./image-diff-panel.md) |
 | History / Empty preview | `Screen / History / Empty preview` | [content-preview-history-view.md §1.2](./content-preview-history-view.md) |
 | Dirty branch switch | [4040:8317](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4040-8317) | [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md) |
+| Init repository | shadcn `AlertDialog` (no Figma node) | [init-repository-dialog.md](./init-repository-dialog.md) |
 | Settings / Appearance | [4040:5530](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4040-5530) | [settings-dialog.md §4](./settings-dialog.md) |
 
 ### 3.1 Sidebar shell

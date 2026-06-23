@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { AppShell } from "@/components/shell/AppShell";
+import { RepositoryAddProvider } from "@/components/shell/RepositoryAddProvider";
 import { applyAppearance } from "@/lib/applyAppearance";
 import { fetchSettings, resolveAppearanceFromSettings } from "@/wails/settings";
 
@@ -18,7 +19,11 @@ function App() {
     })();
   }, []);
 
-  return <AppShell />;
+  return (
+    <RepositoryAddProvider>
+      <AppShell />
+    </RepositoryAddProvider>
+  );
 }
 
 export default App;

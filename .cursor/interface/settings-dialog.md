@@ -222,7 +222,7 @@ Load order: `localStorage` → fallback `[gui]` in cfg → defaults (`light`, `i
 | Element | Spec |
 |---------|------|
 | Path input | read-only display abs path (native OS); `truncate` + tooltip |
-| **Select** | `Button outline` — native folder picker → replace row path |
+| **Select** | `Button outline` — native folder picker → replace row path; если нет `.DFM` → [init-repository-dialog.md](./init-repository-dialog.md) |
 | **Trash** | `Button destructive` 40×40 — `AlertDialog` «Remove from list?» |
 | Row validation | Path must be valid Forester repo (`.DFM` exists) on save |
 
@@ -230,7 +230,7 @@ Load order: `localStorage` → fallback `[gui]` in cfg → defaults (`light`, `i
 
 | Button | Style | Action |
 |--------|-------|--------|
-| **Add repository** | `secondary` / light bg | folder picker → append `path_N` |
+| **Add repository** | `secondary` / light bg | folder picker → append `path_N`; init dialog если не repo |
 | **Save list** | `default` primary | persist `[repo]`; dedupe `SamePath`; refresh Sidebar |
 
 ### 5.3 Правила
@@ -398,6 +398,7 @@ interface SettingsSnapshot {
 |------|-----------|
 | `setup.cfg` missing | create minimal on first save |
 | Invalid repo path in list | block Save list; highlight row |
+| Add non-repo folder | [init-repository-dialog.md](./init-repository-dialog.md) → **Create** before Save list |
 | Remove last repo | allow; app → empty state |
 | Forester path wrong after save | next API call fails → banner «Forester unavailable» + link Settings |
 | Concurrent CLI `config --global` | v1: last-write-wins |

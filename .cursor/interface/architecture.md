@@ -343,8 +343,10 @@ interface SidebarEvents {
 
 ### 6.2 Путь не является Forester repo
 
-- `status.get` → error `not a Forester repository`.
-- Показать inline error в header + toast; не падать.
+- При **Add repository** / folder picker: [init-repository-dialog.md](./init-repository-dialog.md).
+- **Cancel** → `not a Forester repository` в error state.
+- **Create** → `repo.init` + добавление в список.
+- При открытии уже добавленного битого пути: `status.get` → error `not a Forester repository`; banner + **Re-open…**.
 
 ### 6.3 Repo root недоступен
 
@@ -464,5 +466,5 @@ sources/gui/frontend/src/
 - [folder-preview-item.md](./folder-preview-item.md) — item папки
 - [file-preview-item.md](./file-preview-item.md) — item файла
 - [content-info-project-view.md](./content-info-project-view.md) — Content Info (Project)
-- [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md) · [merge-dialog.md](./merge-dialog.md) · [settings-dialog.md](./settings-dialog.md)
+- [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md) · [init-repository-dialog.md](./init-repository-dialog.md) · [merge-dialog.md](./merge-dialog.md) · [settings-dialog.md](./settings-dialog.md)
 - [plan.md](./plan.md) — исходное ТЗ

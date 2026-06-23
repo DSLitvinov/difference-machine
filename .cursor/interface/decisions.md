@@ -188,8 +188,10 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ### 8.3 Add repository без `.DFM`
 
-- Toast `not a Forester repository`.
-- Hint: initialize with `forester init` (без wizard в v1.0).
+- [init-repository-dialog.md](./init-repository-dialog.md): **AlertDialog** «This folder is not a repository».
+- **Cancel** → error `not a Forester repository` (inline / toast).
+- **Create** → `InitRepository` (`repo.init`) → `AddKnownRepo` / append в Settings list.
+- CLI `forester init` — альтернатива вне GUI; wizard в v1.0 не нужен.
 
 ### 8.4 После `commit.create`
 

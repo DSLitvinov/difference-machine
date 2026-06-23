@@ -110,6 +110,7 @@
 
 - [ ] **1.4.1** `GetKnownRepos` / `GetCurrentRepoPath`
 - [ ] **1.4.2** `AddKnownRepo` / `RemoveKnownRepo` — [multi-repo.md](./multi-repo.md)
+- [x] **1.4.2a** `IsForesterRepository` / `InitRepository` — [init-repository-dialog.md](./init-repository-dialog.md)
 - [ ] **1.4.3** `OpenRepo` — validate `.DFM` + `status.get`
 - [ ] **1.4.4** `SetCurrentRepoPath` — atomic write `setup.cfg`
 - [ ] **1.4.5** `GetRepoUser` / `SetRepoUser` — `[user].name`
@@ -138,7 +139,8 @@
 - [x] **2.2.2** Empty state: «Open repository» + **+ Add repository**
 - [x] **2.2.3** `RepoSelector` dropdown — [multi-repo.md §3](./multi-repo.md)
 - [x] **2.2.4** Native folder picker → `AddKnownRepo`
-- [x] **2.2.5** Corner cases: invalid path, not a repo (toast via error state)
+- [x] **2.2.5** `InitRepositoryDialog` — [init-repository-dialog.md](./init-repository-dialog.md)
+- [x] **2.2.6** Corner cases: invalid path; not a repo → dialog или error
 
 ### 2.3 State foundation
 

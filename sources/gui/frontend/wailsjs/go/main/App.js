@@ -30,6 +30,14 @@ export function GetSettings() {
   return window['go']['main']['App']['GetSettings']();
 }
 
+export function InitRepository(arg1) {
+  return window['go']['main']['App']['InitRepository'](arg1);
+}
+
+export function IsForesterRepository(arg1) {
+  return window['go']['main']['App']['IsForesterRepository'](arg1);
+}
+
 export function OpenRepo(arg1) {
   return window['go']['main']['App']['OpenRepo'](arg1);
 }

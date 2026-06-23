@@ -119,8 +119,20 @@ function ConfirmAlertDialog({
   onConfirm,
   onCancel,
 }: ConfirmAlertDialogProps) {
+  const confirmedRef = React.useRef(false);
+
   return (
-    <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) return;
+        if (confirmedRef.current) {
+          confirmedRef.current = false;
+          return;
+        }
+        onCancel();
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -128,7 +140,14 @@ function ConfirmAlertDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={loading}>{cancelLabel}</AlertDialogCancel>
-          <AlertDialogAction disabled={loading} onClick={onConfirm}>
+          <AlertDialogAction
+            disabled={loading}
+            onClick={(event) => {
+              event.preventDefault();
+              confirmedRef.current = true;
+              onConfirm();
+            }}
+          >
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

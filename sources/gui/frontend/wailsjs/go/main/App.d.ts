@@ -16,6 +16,10 @@ export function GetRepoUser():Promise<string>;
 
 export function GetSettings():Promise<main.SettingsSnapshot>;
 
+export function InitRepository(arg1:string):Promise<void>;
+
+export function IsForesterRepository(arg1:string):Promise<boolean>;
+
 export function OpenRepo(arg1:string):Promise<main.RepoState>;
 
 export function PickRepositoryFolder():Promise<string>;

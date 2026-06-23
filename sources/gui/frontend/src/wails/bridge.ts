@@ -3,9 +3,13 @@ import {
   GetCurrentRepoPath,
   GetKnownRepos,
   GetRepoUser,
+  InitRepository,
+  IsForesterRepository,
   OpenRepo,
   PickRepositoryFolder,
 } from "../../wailsjs/go/main/App";
+
+export const NOT_FORESTER_REPOSITORY_ERROR = "not a Forester repository";
 
 export interface RepoState {
   repoPath: string;
@@ -51,6 +55,14 @@ export async function openRepository(path: string) {
 export async function addRepository(path: string) {
   const raw = await AddKnownRepo(path);
   return parseRepoState(raw);
+}
+
+export async function checkIsForesterRepository(path: string): Promise<boolean> {
+  return IsForesterRepository(path);
+}
+
+export async function initRepository(path: string): Promise<void> {
+  await InitRepository(path);
 }
 
 export async function pickRepositoryFolder(): Promise<string> {

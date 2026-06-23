@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 
 import { SettingsLabeledPathRow, SettingsPathListRow } from "@/components/settings/SettingsPathRow";
 import { ThemePreviewCard } from "@/components/settings/ThemePreviewCard";
+import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ import {
   saveSettingsProfile,
   saveSettingsRepos,
 } from "@/wails/settings";
-import { openRepository, pickRepositoryFolder } from "@/wails/bridge";
+import { openRepository } from "@/wails/bridge";
 
 type SettingsTab = "profile" | "appearance" | "repositories" | "external-editors" | "forester";
 
@@ -50,6 +51,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [configPath, setConfigPath] = useState("");
   const [theme, setTheme] = useState<GuiTheme>("light");
   const [font, setFont] = useState<GuiFont>("inter");
+  const { pickRepositoryPath } = useRepositoryAdd();
 
   useEffect(() => {
     if (!open) return;
@@ -299,9 +301,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                             key={`${path}-${index}`}
                             path={path}
                             onSelect={async () => {
-                              const picked = await pickRepositoryFolder();
-                              if (!picked) return;
-                              setRepos((list) => list.map((item, i) => (i === index ? picked : item)));
+                              await pickRepositoryPath((picked) => {
+                                setRepos((list) => list.map((item, i) => (i === index ? picked : item)));
+                              });
                             }}
                             onRemove={() => setRepos((list) => list.filter((_, i) => i !== index))}
                           />
@@ -311,10 +313,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         <Button
                           type="button"
                           variant="secondary"
-                          onClick={async () => {
-                            const picked = await pickRepositoryFolder();
-                            if (picked) setRepos((list) => [...list, picked]);
-                          }}
+                          onClick={() =>
+                            void pickRepositoryPath((picked) => {
+                              setRepos((list) => [...list, picked]);
+                            })
+                          }
                         >
                           Add repository
                         </Button>

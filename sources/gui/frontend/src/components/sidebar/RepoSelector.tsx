@@ -7,11 +7,11 @@ import { Separator } from "@/components/ui/separator";
 import { basename, cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
+import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import {
   addRepository,
   fetchKnownRepos,
   openRepository,
-  pickRepositoryFolder,
 } from "@/wails/bridge";
 
 interface RepoSelectorProps {
@@ -24,7 +24,7 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
   const setRepo = useAppStore((s) => s.setRepo);
   const setError = useAppStore((s) => s.setError);
   const setLoading = useAppStore((s) => s.setLoading);
-
+  const { pickRepositoryPath } = useRepositoryAdd();
   const [open, setOpen] = useState(false);
   const [repos, setRepos] = useState<string[]>([]);
 
@@ -60,18 +60,18 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
     try {
       setLoading(true);
       setError(null);
-      const picked = await pickRepositoryFolder();
-      if (!picked) return;
-      const state = await addRepository(picked);
-      setRepo(
-        state.repoPath,
-        state.repoName,
-        typeof state.status.current_branch === "string" ? state.status.current_branch : null,
-      );
-      await loadProjectData();
-      handleOpenChange(false);
-      const list = await fetchKnownRepos();
-      setRepos(list);
+      await pickRepositoryPath(async (path) => {
+        const state = await addRepository(path);
+        setRepo(
+          state.repoPath,
+          state.repoName,
+          typeof state.status.current_branch === "string" ? state.status.current_branch : null,
+        );
+        await loadProjectData();
+        handleOpenChange(false);
+        const list = await fetchKnownRepos();
+        setRepos(list);
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

@@ -27,6 +27,8 @@
 ### 2. Add repo → browse → select file
 
 - [ ] Empty state → **Add repository** → folder picker
+- [ ] Папка без `.DFM` → dialog «This folder is not a repository» → **Create** → repo открыт
+- [ ] **Cancel** в dialog → error `not a Forester repository`
 - [ ] Project: дерево папок, drill-down в Preview, клик по файлу
 - [ ] Content Info показывает metadata; VCS badge на файле (если changed)
 
@@ -60,7 +62,7 @@
 | # | Сценарий | Ожидание | Проверено |
 |---|----------|----------|-----------|
 | 6.1 | Нет репо в cfg | Empty state + Add repository | [ ] |
-| 6.2 | Путь не Forester repo | Inline error, не crash | [ ] |
+| 6.2 | Папка без `.DFM` при Add | Init dialog; Cancel → error; Create → repo init + open | [ ] |
 | 6.3 | Repo path удалён / диск отмонтирован | Error banner + **Re-open** / Retry | [ ] |
 | 6.4 | Forester binary недоступен | Banner «Forester unavailable» + Retry | [ ] |
 | 6.5 | Файл удалён с диска при selection | Selection сброшен, notice | [ ] |

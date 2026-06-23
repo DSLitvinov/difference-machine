@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/difference-machine/gui/internal/paths"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -171,9 +170,4 @@ func (a *App) PickSettingsFolder() (string, error) {
 	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Select folder",
 	})
-}
-
-func isForesterRepo(path string) bool {
-	info, err := os.Stat(filepath.Join(path, ".DFM"))
-	return err == nil && info.IsDir()
 }

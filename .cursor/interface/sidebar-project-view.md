@@ -61,7 +61,7 @@ Toggle **Changed** одновременно:
 - Иконка `FolderGit2`, текст = `basename(repoPath)`.
 - **Dropdown:** канон [design-tokens.md §4.5](./design-tokens.md) — кастомный trigger + panel (как `DropdownSelector`); **не** нативный `<select>`.
 - Список из `[repo]` в `setup.cfg` ([paths.md §2](./paths.md)); галочка `Check` у текущего.
-- **+ Add repository…** — native folder picker; добавить в `[repo]` (`path_N`) и открыть.
+- **+ Add repository…** — native folder picker; если нет `.DFM` → [init-repository-dialog.md](./init-repository-dialog.md); иначе добавить в `[repo]` (`path_N`) и открыть.
 - Фон: `bg-background` (white) + border.
 - При запуске: авто-open из `[current repo] path` (см. [multi-repo.md §3](./multi-repo.md)).
 

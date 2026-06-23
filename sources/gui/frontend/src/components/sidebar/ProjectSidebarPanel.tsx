@@ -8,13 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { reopenRepositoryFromPicker } from "@/hooks/useProjectStatusPolling";
+import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
-import {
-  addRepository,
-  openRepository,
-  pickRepositoryFolder,
-} from "@/wails/bridge";
+import { addRepository, openRepository } from "@/wails/bridge";
 
 export function EmptyRepoState() {
   const setLoading = useAppStore((s) => s.setLoading);
@@ -22,20 +19,21 @@ export function EmptyRepoState() {
   const setRepo = useAppStore((s) => s.setRepo);
   const loading = useAppStore((s) => s.loading);
   const error = useAppStore((s) => s.error);
+  const { pickRepositoryPath } = useRepositoryAdd();
 
   const handleAdd = async () => {
     try {
       setError(null);
       setLoading(true);
-      const picked = await pickRepositoryFolder();
-      if (!picked) return;
-      const state = await addRepository(picked);
-      setRepo(
-        state.repoPath,
-        state.repoName,
-        typeof state.status.current_branch === "string" ? state.status.current_branch : null,
-      );
-      await loadProjectData();
+      await pickRepositoryPath(async (path) => {
+        const state = await addRepository(path);
+        setRepo(
+          state.repoPath,
+          state.repoName,
+          typeof state.status.current_branch === "string" ? state.status.current_branch : null,
+        );
+        await loadProjectData();
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

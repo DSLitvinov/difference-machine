@@ -97,7 +97,7 @@ name = Artist
 |----------|-----------|
 | **Запуск приложения** | Прочитать `[current repo] path` → `CanonicalAbsPath` → `OpenRepo` если валидный |
 | **Клик по репо в списке** | `OpenRepo(path)`; записать канонический `path` в `[current repo]` |
-| **+ Add repository…** | Native folder picker → `CanonicalAbsPath` → валидация Forester repo → append `path_N` в `[repo]` (dedupe `SamePath`) → `[current repo]` → `OpenRepo` |
+| **+ Add repository…** | Native folder picker → `IsForesterRepository` → если нет `.DFM`: [init-repository-dialog.md](./init-repository-dialog.md) → иначе `AddKnownRepo` → `OpenRepo` |
 | **Trigger label** | `basename(repoPath)` |
 | **Tooltip** | полный **нативный** abs path ([paths.md §8](./paths.md)) |
 
@@ -127,6 +127,8 @@ name = Artist
 | `GetCurrentRepoPath()` | `string` из `[current repo] path` или `""` |
 | `SetCurrentRepoPath(path)` | Канонизировать → обновить `[current repo]` |
 | `AddKnownRepo(path)` | Dedupe `SamePath` → append `path_N` + `SetCurrentRepoPath` |
+| `IsForesterRepository(path)` | `bool` — есть ли `path/.DFM` |
+| `InitRepository(path)` | `repo.init` в `path` (см. [init-repository-dialog.md](./init-repository-dialog.md)) |
 | `RemoveKnownRepo(path)` | Remove `path_N` from `[repo]`; fix `[current repo]` if needed — [settings-dialog.md §4](./settings-dialog.md) |
 | `OpenRepo(path)` | `CanonicalAbsPath` → валидация `.DFM` / `status.get` → app state + `[current repo]` |
 
@@ -141,7 +143,7 @@ name = Artist
 | Нет `setup.cfg` | Empty state «Open repository»; после Add — создать файл |
 | `[current repo] path` пустой / отсутствует | Empty state; dropdown показывает только **+ Add repository** |
 | `path` не существует на диске | Empty state + toast «Repository not found»; **не** перезаписывать cfg |
-| Путь не Forester repo | Toast `not a Forester repository`; не добавлять в `[repo]` |
+| Путь не Forester repo | [init-repository-dialog.md](./init-repository-dialog.md): **Cancel** → error `not a Forester repository`; **Create** → `InitRepository` + add/open |
 | `path` в `[current repo]`, но нет в `[repo]` | **Открыть** при старте; dedupe при Add |
 | Два `path_N` с `SamePath` после нормализации | v1.1: merge; v1: первый wins в UI |
 | Все `path_N` битые | Empty state; список в dropdown с warning (v1.1) |
@@ -168,7 +170,7 @@ Per-repo UI prefs (`dfm.sidebar.showChangedOnly`, `selectedFolderPath`, …) —
 | 1 | Хранилище списка | `setup.cfg` `[repo]` |
 | 2 | Last opened | `[current repo] path` |
 | 3 | Старт | Авто-open из `[current repo]` |
-| 4 | Добавление | **+** → folder picker → `path_N` |
+| 4 | Добавление | **+** → folder picker → init dialog при необходимости → `path_N` |
 | 5 | Переключение | Dropdown по `[repo]` |
 | 6 | Ключи | `path_1`, `path_2`, … sequential |
 | 7 | Формат путей | [paths.md](./paths.md) |
