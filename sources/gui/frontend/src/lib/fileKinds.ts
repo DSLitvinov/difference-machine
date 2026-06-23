@@ -34,9 +34,9 @@ export type HistoryDiffKind = "text" | "image" | "binary" | "deleted";
 
 export function classifyHistoryDiff(status: "A" | "M" | "D", path: string, isBinary?: boolean): HistoryDiffKind {
   if (status === "D") return "deleted";
-  if (isBinary) return "binary";
   const ext = fileExtension(path);
   if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  if (isBinary) return "binary";
   if (TEXT_EXTENSIONS.has(ext)) return "text";
   return "binary";
 }

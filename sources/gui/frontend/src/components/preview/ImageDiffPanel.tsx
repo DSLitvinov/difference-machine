@@ -20,7 +20,7 @@ function Checkerboard({ children, className }: { children: React.ReactNode; clas
   return (
     <div
       className={cn(
-        "relative min-h-0 flex-1 bg-muted/50",
+        "relative h-full min-h-[240px] w-full bg-muted/50",
         "[background-image:linear-gradient(45deg,#e5e5e5_25%,transparent_25%),linear-gradient(-45deg,#e5e5e5_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e5e5_75%),linear-gradient(-45deg,transparent_75%,#e5e5e5_75%)]",
         "[background-size:16px_16px]",
         "[background-position:0_0,0_8px,8px_-8px,-8px_0px]",
@@ -62,9 +62,9 @@ function ImageDiffSplit({
   };
 
   return (
-    <Checkerboard className="flex min-h-0">
-      <div className="relative flex min-h-0 flex-1">
-        <div className="absolute inset-0 flex">
+    <Checkerboard className="h-full w-full">
+      <div className="relative h-full w-full">
+        <div className="absolute inset-0 flex h-full">
           <div className="relative h-full overflow-hidden" style={{ width: `${position}%` }}>
             <span className="absolute left-2 top-2 text-xs text-muted-foreground">Before</span>
             {beforeUrl ? (
@@ -106,8 +106,8 @@ function ImageDiffOverlay({
   const [opacity, setOpacity] = useState(50);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <Checkerboard className="relative min-h-0">
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <Checkerboard className="relative min-h-0 flex-1">
         {beforeUrl ? (
           <img
             src={beforeUrl}
@@ -170,8 +170,8 @@ export function ImageDiffPanel({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1">
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         {layout === "overlay" ? (
           <ImageDiffOverlay beforeUrl={beforeUrl} afterUrl={afterUrl} />
         ) : (

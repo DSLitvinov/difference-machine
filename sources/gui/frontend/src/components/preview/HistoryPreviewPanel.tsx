@@ -165,14 +165,18 @@ export function HistoryPreviewPanel() {
     return classifyHistoryDiff(selectedFile.status, selectedFile.path, isBinary);
   }, [selectedFile, isBinary]);
 
+  const isImageDiff = selectedKind === "image";
+
   const loadTextDiff = useCallback(async () => {
     if (!selectedCommitHash || !commit || !selectedChangedFilePath || !selectedFile) return;
     const generation = ++textDiffGeneration.current;
+    const pathAtStart = selectedChangedFilePath;
     setLoadingDiff(true);
     setDiffError(null);
     try {
       const result = await fetchDiffText(selectedCommitHash, commit, selectedChangedFilePath);
       if (generation !== textDiffGeneration.current) return;
+      if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) return;
       if (result.is_binary) {
         setIsBinary(true);
         setDiffContent("");
@@ -182,6 +186,7 @@ export function HistoryPreviewPanel() {
       }
     } catch (err) {
       if (generation !== textDiffGeneration.current) return;
+      if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) return;
       const message = err instanceof Error ? err.message : String(err);
       setDiffError(message === "file_too_large" ? "File too large to display" : message);
       setDiffContent("");
@@ -193,8 +198,17 @@ export function HistoryPreviewPanel() {
   const loadImageDiff = useCallback(async () => {
     if (!selectedCommitHash || !commit || !selectedFile) return;
     const generation = ++imageDiffGeneration.current;
+    const pathAtStart = selectedFile.path;
     setImageLoading(true);
     setImageError(null);
+    setBeforeImageUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setAfterImageUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
 
     try {
       const parent = firstParentHash(commit);
@@ -202,6 +216,7 @@ export function HistoryPreviewPanel() {
       if (selectedFile.status !== "A" && parent) {
         const blob = await fetchBlob(parent, selectedFile.path);
         if (generation !== imageDiffGeneration.current) return;
+        if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) return;
         before = base64ToObjectUrl(blob.content_base64, blob.mime);
       }
       const afterBlob = await fetchBlob(selectedCommitHash, selectedFile.path);
@@ -209,26 +224,19 @@ export function HistoryPreviewPanel() {
         if (before) URL.revokeObjectURL(before);
         return;
       }
+      if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) {
+        if (before) URL.revokeObjectURL(before);
+        return;
+      }
       const after = base64ToObjectUrl(afterBlob.content_base64, afterBlob.mime);
-      setBeforeImageUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return before;
-      });
-      setAfterImageUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return after;
-      });
+      setBeforeImageUrl(before);
+      setAfterImageUrl(after);
     } catch (err) {
       if (generation !== imageDiffGeneration.current) return;
+      if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) return;
       setImageError(err instanceof Error ? err.message : String(err));
-      setBeforeImageUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      setAfterImageUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
+      setBeforeImageUrl(null);
+      setAfterImageUrl(null);
     } finally {
       if (generation === imageDiffGeneration.current) setImageLoading(false);
     }
@@ -371,7 +379,7 @@ export function HistoryPreviewPanel() {
             imageLayout={imageLayout}
             beforeImageUrl={beforeImageUrl}
             afterImageUrl={afterImageUrl}
-            imageLoading={imageLoading && selectedKind === "image"}
+            imageLoading={imageLoading && isImageDiff}
             imageError={imageError}
             screenshotUrl={screenshotUrl}
             screenshotLoading={screenshotLoading}
