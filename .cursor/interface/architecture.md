@@ -444,6 +444,7 @@ sources/gui/frontend/src/
 ## 9. Связанные документы
 
 - [decisions.md](./decisions.md) — decision log (scope v1.0/v1.1, API, UX)
+- [implementation-plan.md](./implementation-plan.md) — чеклист реализации GUI (прогресс)
 - [api-contract.md](./api-contract.md) — JSON API + UI events
 - [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)
 - [panel-layout.md](./panel-layout.md) — resize Sidebar / Preview / Info

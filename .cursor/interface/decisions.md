@@ -232,3 +232,4 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 - [sidebar-history-view.md](./sidebar-history-view.md) — branch flowchart
 - [sidebar-project-view.md](./sidebar-project-view.md) — lazy tree v1.0
 - [architecture.md](./architecture.md) — фазы реализации
+- [implementation-plan.md](./implementation-plan.md) — чеклист реализации GUI (прогресс)

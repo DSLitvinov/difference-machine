@@ -55,6 +55,8 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 
 **Канон решений:** [decisions.md](./decisions.md) — scope v1.0/v1.1, API, отступления от atom-спек.
 
+**План реализации (чеклист):** [implementation-plan.md](./implementation-plan.md) — отмечайте прогресс при работе.
+
 **MVP v1.0 (ship):** Shell + multi-repo + 3-panel resize · Sidebar (Project lazy tree + History) · Content Preview (Project + History diff) · Content Info (Project, single-file core) · Create commit · dirty branch dialog. **Branch UX:** GitHub Desktop — `currentBranch`; dropdown в History = checkout on select ([sidebar-history-view.md §2.6](./sidebar-history-view.md)).
 
 **v1.1 (polish):** multiselect (Shift/marquee), virtual scroll, thumbnails, dark theme, commit card stats + full ⋮ menu, fully expanded tree, Settings (Appearance + External editors).

@@ -1,0 +1,299 @@
+# Forester GUI — план реализации (v1.0)
+
+Живой чеклист для возобновления работы после прерывания.
+
+**Канон scope:** [decisions.md](./decisions.md) · **API:** [api-contract.md](./api-contract.md) · **архитектура:** [architecture.md](./architecture.md)
+
+---
+
+## Как пользоваться
+
+1. Перед паузой — отметьте `[x]` выполненные шаги и обновите блок **«Сейчас»** ниже.
+2. После возврата — читайте **«Сейчас»** → первый незакрытый `[ ]` в активной фазе.
+3. Definition of done фазы — все `[x]` в секции фазы + краткая проверка в **«Проверка»**.
+4. Не отмечайте родительский шаг `[x]`, пока не закрыты все вложенные подпункты (если есть).
+
+### Легенда
+
+| Маркер | Значение |
+|--------|----------|
+| `[ ]` | Не начато |
+| `[~]` | В работе (замените на `[x]` по завершении) |
+| `[x]` | Готово |
+| `[—]` | Отложено (v1.1 / v2) |
+
+---
+
+## Сейчас (обновляйте при каждой сессии)
+
+| Поле | Значение |
+|------|----------|
+| **Последнее обновление** | — |
+| **Активная фаза** | **0 — Подготовка** |
+| **Следующий шаг** | `0.1` — создать `sources/gui/` (Wails bootstrap) |
+| **Заметки** | GUI и новые jsonapi-методы ещё не в репозитории |
+
+### Прогресс v1.0
+
+| Фаза | Название | Статус |
+|------|----------|--------|
+| 0 | Подготовка | `[ ]` 0/N |
+| 1 | Backend API | `[ ]` 0/N |
+| 2 | Slice 1 — Shell + OpenRepo | `[ ]` 0/N |
+| 3 | Slice 2 — Project browse | `[ ]` 0/N |
+| 4 | Slice 3 — Create commit | `[ ]` 0/N |
+| 5 | Slice 4 — History + diff | `[ ]` 0/N |
+| 6 | Slice 5 — Polish + Settings | `[ ]` 0/N |
+| 7 | Сборка и smoke | `[ ]` 0/N |
+
+---
+
+## Фаза 0 — Подготовка
+
+- [ ] **0.1** Создать Wails-проект `sources/gui/` (`main.go`, `wails.json`, `frontend/`)
+- [ ] **0.2** React + TypeScript + Vite + Tailwind + shadcn/ui (Zinc light)
+- [ ] **0.3** Подключить `design-tokens.md` → `globals.css` / `tailwind.config`
+- [ ] **0.4** Go-модуль GUI: вызов `forester/internal/jsonapi` (или subprocess + JSON — зафиксировать в коде)
+- [ ] **0.5** Чтение `~/.dfm/setup.cfg`: путь к forester binary (`[forester].path`)
+- [ ] **0.6** Утилиты путей: `CanonicalAbsPath`, `SamePath` — [paths.md](./paths.md)
+
+**Проверка:** `wails dev` открывает пустое окно без ошибок.
+
+---
+
+## Фаза 1 — Backend API (`jsonapi`)
+
+Регистрация в `dispatch.go` + тесты в `integration_test.go`.
+
+### 1.1 Workdir
+
+- [ ] **1.1.1** `workdir.tree` — lazy `{ path, depth }` — [api-contract.md §4.1](./api-contract.md)
+- [ ] **1.1.2** `workdir.entries` — pagination `{ path, offset, limit }`
+- [ ] **1.1.3** `workdir.metadata` — stat + mime
+- [ ] **1.1.4** `workdir.open` — OS default app (macOS / Windows)
+- [ ] **1.1.5** `workdir.search` — global search по репо
+- [ ] **1.1.6** `workdir.thumbnail` — placeholder (icon по mime)
+
+### 1.2 Diff / blob
+
+- [ ] **1.2.1** `diff.name_status` — `from: null` для initial commit
+- [ ] **1.2.2** `diff.text` — unified; error `file_too_large` > 5 MB
+- [ ] **1.2.3** `diff.stat` — для PreviewCommitHeader (одиночный вызов)
+- [ ] **1.2.4** `blob.get` — base64 + mime; лимит 5 MB
+
+### 1.3 Log / restore
+
+- [ ] **1.3.1** `log.get` + filter `path` (file history)
+- [ ] **1.3.2** `restore.file` — single/multi path
+
+### 1.4 App shell (Wails, не jsonapi)
+
+- [ ] **1.4.1** `GetKnownRepos` / `GetCurrentRepoPath`
+- [ ] **1.4.2** `AddKnownRepo` / `RemoveKnownRepo` — [multi-repo.md](./multi-repo.md)
+- [ ] **1.4.3** `OpenRepo` — validate `.DFM` + `status.get`
+- [ ] **1.4.4** `SetCurrentRepoPath` — atomic write `setup.cfg`
+- [ ] **1.4.5** `GetRepoUser` / `SetRepoUser` — `[user].name`
+- [ ] **1.4.6** `settings.get` / `settings.save` (partial cfg)
+- [ ] **1.4.7** (optional) `commit.get` + `screenshot_base64` для `.blend` stub
+
+**Проверка:** `go test ./internal/jsonapi/...` зелёный; ручной вызов новых методов из тестового handler.
+
+---
+
+## Фаза 2 — Slice 1: Shell + OpenRepo
+
+Спеки: [architecture.md §2](./architecture.md) · [multi-repo.md](./multi-repo.md) · [panel-layout.md](./panel-layout.md)
+
+### 2.1 Layout shell
+
+- [ ] **2.1.1** `AppShell`: Rail 48px + resizable columns — [panel-layout.md](./panel-layout.md)
+- [ ] **2.1.2** `SidebarRail` — mode icons (Project / History), Settings, avatar placeholder
+- [ ] **2.1.3** `SetMinSize` — 1435 Project / 1081 History
+- [ ] **2.1.4** localStorage: `dfm.layout.*`, `dfm.sidebar.collapsed`, `dfm.sidebar.mode`
+- [ ] **2.1.5** Sidebar collapse → 48px Rail only
+
+### 2.2 Multi-repo
+
+- [ ] **2.2.1** Startup: read `[current repo]` → `OpenRepo`
+- [ ] **2.2.2** Empty state: «Open repository» + **+ Add repository**
+- [ ] **2.2.3** `RepoSelector` dropdown — [multi-repo.md §3](./multi-repo.md)
+- [ ] **2.2.4** Native folder picker → `AddKnownRepo`
+- [ ] **2.2.5** Corner cases: invalid path, not a repo, dedupe `SamePath`
+
+### 2.3 State foundation
+
+- [ ] **2.3.1** `sidebarStore` (zustand): `mode`, `repoPath`, `collapsed`, loading, error
+- [ ] **2.3.2** `ForesterCall` typed wrapper в `frontend/src/wails/`
+- [ ] **2.3.3** Error banner «Forester unavailable» + Retry
+
+**Проверка:** добавить репо → виден basename; перезапуск → авто-open; пустой cfg → empty state.
+
+---
+
+## Фаза 3 — Slice 2: Project browse
+
+Спеки: [sidebar-project-view.md](./sidebar-project-view.md) · [content-preview-project-view.md](./content-preview-project-view.md)
+
+### 3.1 Sidebar — Project view
+
+- [ ] **3.1.1** `ProjectViewPanel` — header, Changed toggle, repo selector
+- [ ] **3.1.2** Read-only `currentBranch` под repo name
+- [ ] **3.1.3** `FolderTree` — lazy expand — [decisions.md §5](./decisions.md)
+- [ ] **3.1.4** `FolderTreeRow` — states — [design-tokens.md §4](./design-tokens.md)
+- [ ] **3.1.5** Toggle Changed → filter tree + emit `onProjectViewContextChange`
+- [ ] **3.1.6** per-repo persist: `selectedFolderPath`, `showChangedOnly`
+
+### 3.2 Content Preview — Project view
+
+- [ ] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
+- [ ] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
+- [ ] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
+- [ ] **3.2.4** VCS badges из `status.get` only
+- [ ] **3.2.5** Changed ON → hide Folders section; filter committable files
+- [ ] **3.2.6** Double-click file → `workdir.open`
+- [ ] **3.2.7** `onPreviewSelectionChange` — single file select (multiselect в фазе 6)
+- [ ] **3.2.8** Смена папки → сброс file selection
+
+### 3.3 Content Info — stub
+
+- [ ] **3.3.1** Панель видна в Project mode; empty state при `selection: none`
+- [ ] **3.3.2** Resize Info column — [panel-layout.md](./panel-layout.md)
+
+### 3.4 Polling
+
+- [ ] **3.4.1** `status.get` каждые 5s в Project mode + on window focus
+- [ ] **3.4.2** Файл удалён → сброс selection + toast
+
+**Проверка:** дерево lazy; клик папки → файлы; badges; Changed filter; drill-down.
+
+---
+
+## Фаза 4 — Slice 3: Create commit
+
+Спеки: [content-info-project-view.md](./content-info-project-view.md) · [create-commit-dialog.md](./create-commit-dialog.md)
+
+### 4.1 Content Info — single file
+
+- [ ] **4.1.1** `InfoFilePreviewSingle` — [info-file-preview-single.md](./info-file-preview-single.md)
+- [ ] **4.1.2** `InfoMetadataSection` — FS metadata, hide empty — [info-metadata-section.md](./info-metadata-section.md)
+- [ ] **4.1.3** Lock badge read-only — `lock.list`
+- [ ] **4.1.4** `InfoHistorySection` — branch/commit combobox, Revert, Compare — [info-history-section.md](./info-history-section.md)
+- [ ] **4.1.5** `restore.file` + AlertDialog; `compare.extract` + toast
+
+### 4.2 Create commit
+
+- [ ] **4.2.1** Footer button → pre-step `index.add` (selected committable only)
+- [ ] **4.2.2** `CreateCommitDialog` — [create-commit-dialog.md](./create-commit-dialog.md)
+- [ ] **4.2.3** Author read-only from `setup.cfg`
+- [ ] **4.2.4** Success → toast, refresh status; остаться в Project view
+
+**Проверка:** select file → metadata; create commit из selection; hook error → toast.
+
+---
+
+## Фаза 5 — Slice 4: History + diff
+
+Спеки: [sidebar-history-view.md](./sidebar-history-view.md) · [content-preview-history-view.md](./content-preview-history-view.md)
+
+### 5.1 Sidebar — History view
+
+- [ ] **5.1.1** `HistoryViewPanel` — header, branch selector, search
+- [ ] **5.1.2** `BranchSelector` — checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md)
+- [ ] **5.1.3** `DirtyBranchSwitchDialog` — [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md)
+- [ ] **5.1.4** `CommitList` + `CommitCard` — [commit-card.md](./commit-card.md)
+- [ ] **5.1.5** v1.0: **без** files-changed row; ⋮ menu урезанное — [decisions.md §6](./decisions.md)
+- [ ] **5.1.6** `log.get` cap 100 + hint
+- [ ] **5.1.7** persist `selectedCommitHash` per repo; no auto-select on enter
+- [ ] **5.1.8** Rail → History: скрыть Content Info
+
+### 5.2 Content Preview — History view
+
+- [ ] **5.2.1** `PreviewCommitHeader` + `diff.stat` — [preview-commit-header.md](./preview-commit-header.md)
+- [ ] **5.2.2** Changed files list — resizable ~373px — [history-changed-file-item.md](./history-changed-file-item.md)
+- [ ] **5.2.3** Auto-select first file A→Z on commit select
+- [ ] **5.2.4** `DiffView` routing — [diff-view.md](./diff-view.md)
+- [ ] **5.2.5** `TextDiffPanel` — Unified default, Split client-side — [text-diff-panel.md](./text-diff-panel.md)
+- [ ] **5.2.6** `ImageDiffPanel` — Split / Overlay — [image-diff-panel.md](./image-diff-panel.md)
+- [ ] **5.2.7** `BinaryDiffStub` — `.blend` screenshot — [binary-diff-stub.md](./binary-diff-stub.md)
+- [ ] **5.2.8** `DeletedDiffStub` — [deleted-diff-stub.md](./deleted-diff-stub.md)
+- [ ] **5.2.9** Abort stale diff requests; `file_too_large` stub
+
+**Проверка:** branch switch + dirty dialog; commit → diff text/image/binary; initial commit all-added.
+
+---
+
+## Фаза 6 — Slice 5: Polish + Settings
+
+### 6.1 Multiselect + Info multi
+
+- [ ] **6.1.1** Ctrl/Cmd toggle multiselect — [decisions.md §5](./decisions.md)
+- [ ] **6.1.2** `InfoFilePreviewMulti` + tiles — [info-file-preview-multi.md](./info-file-preview-multi.md)
+- [ ] **6.1.3** History section скрыта при multiselect
+
+### 6.2 Settings
+
+- [ ] **6.2.1** `SettingsDialog` — large modal — [settings-dialog.md](./settings-dialog.md)
+- [ ] **6.2.2** Tab Profile — author name
+- [ ] **6.2.3** Tab Repositories — add/remove list
+- [ ] **6.2.4** Tab Forester — read-only paths
+- [ ] **6.2.5** `[—]` Appearance / External editors → v1.1
+
+### 6.3 Доработки
+
+- [ ] **6.3.1** History ↔ Project mode switch — сброс selection по [architecture.md §3.1](./architecture.md)
+- [ ] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — пройти чеклист
+- [ ] **6.3.3** Keyboard a11y на commit list (roving tabindex)
+
+**Проверка:** multiselect → multi Info; Settings save author; resize persist после restart.
+
+---
+
+## Фаза 7 — Сборка и smoke
+
+- [ ] **7.1** `wails build` macOS
+- [ ] **7.2** `wails build` Windows (CI или ручная машина)
+- [ ] **7.3** Интеграция в `builder/` (опционально v1.0)
+- [ ] **7.4** Smoke script / чеклист E2E вручную:
+
+| # | Сценарий |
+|---|----------|
+| 1 | Cold start → auto-open last repo |
+| 2 | Add repo → browse → select file |
+| 3 | Create commit |
+| 4 | History → select commit → text diff |
+| 5 | Switch branch clean + dirty (stash) |
+| 6 | Revert file from Info History |
+
+---
+
+## v1.1 — backlog (не блокирует v1.0)
+
+Отмечать `[x]` только после явного старта v1.1.
+
+- [—] Fully expanded folder tree + virtual scroll
+- [—] Marquee + Shift-range multiselect
+- [—] Real thumbnails
+- [—] Dark theme + Appearance tab
+- [—] External editors tab
+- [—] `diff.stat` на commit cards
+- [—] Commit card full ⋮ menu (destructive)
+- [—] Init repository wizard
+- [—] Linux build + QA
+
+---
+
+## v2 — backlog
+
+- [—] [merge-dialog.md](./merge-dialog.md) + `merge.*` API
+- [—] Fs watcher
+- [—] Rename `R` в diff
+- [—] Detached HEAD UI
+- [—] Branch create/delete в GUI
+
+---
+
+## Журнал сессий (опционально)
+
+| Дата | Фаза | Сделано | Следующий шаг |
+|------|------|---------|---------------|
+| — | — | — | `0.1` Wails bootstrap |
