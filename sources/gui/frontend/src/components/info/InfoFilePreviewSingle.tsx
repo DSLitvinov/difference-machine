@@ -36,15 +36,11 @@ export function InfoFilePreviewSingle({
 }: InfoFilePreviewSingleProps) {
   const statusLabel = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
   const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
-  const { loading: previewLoading, previewUrl, textPreview } = useWorkdirPreview(
-    dimmed ? null : path,
-    kind,
-  );
-  const loading = metadataLoading || previewLoading;
+  const { previewUrl, textPreview } = useWorkdirPreview(dimmed ? null : path, kind);
 
   return (
     <div className="relative mx-auto flex h-[200px] w-full max-w-[312px] items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
-      {loading ? (
+      {metadataLoading ? (
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       ) : previewUrl ? (
         <img

@@ -17,6 +17,22 @@ import { useAppStore } from "@/stores/appStore";
 import type { FolderNode, StatusPayload } from "@/wails/forester";
 import { committablePaths } from "@/wails/forester";
 
+function sameStringArrays(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  for (let i = 0; i < sortedA.length; i += 1) {
+    if (sortedA[i] !== sortedB[i]) return false;
+  }
+  return true;
+}
+
+function sameStatusPayload(a: StatusPayload | null, b: StatusPayload | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 interface ProjectState {
   selectedFolderPath: string;
   selectedFilePaths: string[];
@@ -153,9 +169,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ folderTree: next });
   },
   setStatus: (status) =>
-    set({
-      status,
-      committable: status ? committablePaths(status) : [],
+    set((state) => {
+      const committable = status ? committablePaths(status) : [];
+      if (sameStatusPayload(state.status, status) && sameStringArrays(state.committable, committable)) {
+        return state;
+      }
+      return { status, committable };
     }),
   setSortLocale: (locale) => {
     const repoPath = useAppStore.getState().repoPath;

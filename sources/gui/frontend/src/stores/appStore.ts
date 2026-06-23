@@ -48,7 +48,18 @@ export const useAppStore = create<AppState>((set) => ({
     set({ sidebarCollapsed: collapsed });
   },
   setRepo: (repoPath, repoName, currentBranch = null) =>
-    set({ repoPath, repoName, currentBranch, error: null, foresterError: null }),
+    set((state) => {
+      if (
+        state.repoPath === repoPath &&
+        state.repoName === repoName &&
+        state.currentBranch === currentBranch &&
+        state.error === null &&
+        state.foresterError === null
+      ) {
+        return state;
+      }
+      return { repoPath, repoName, currentBranch, error: null, foresterError: null };
+    }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setForesterError: (foresterError) => set({ foresterError }),

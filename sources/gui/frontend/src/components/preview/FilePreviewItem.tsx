@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { File, Loader2 } from "lucide-react";
+import { File } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function FilePreviewItem({
   const maxVisual = isMaxThumbVisual(thumbScale);
   const iconSize = Math.max(16, Math.round(thumbScale * 0.5));
   const wantsThumbnail = isImagePreviewPath(path) && !dimmed;
-  const { loading, previewUrl } = useWorkdirPreview(wantsThumbnail ? path : null, "image");
+  const { previewUrl } = useWorkdirPreview(wantsThumbnail ? path : null, "image");
 
   return (
     <Button
@@ -61,9 +61,7 @@ export function FilePreviewItem({
           )}
           style={{ width: thumbScale, height: thumbScale }}
         >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          ) : previewUrl ? (
+          {previewUrl ? (
             <img
               src={previewUrl}
               alt=""

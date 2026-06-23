@@ -109,7 +109,7 @@ export async function ensurePreviewLoaded(
   }
 
   cache.set(key, { ...emptyState, loading: true, previewUrlOwned: false });
-  notify(key);
+  // Skip notify while loading to avoid icon → spinner → image flicker.
 
   const loadPromise = (async () => {
     try {

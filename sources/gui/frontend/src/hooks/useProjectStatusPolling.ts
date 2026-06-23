@@ -9,11 +9,14 @@ const POLL_INTERVAL_MS = 5000;
 
 async function refreshStatus() {
   const status = await fetchStatus();
-  useProjectStore.getState().setStatus(status);
+  const { repoPath, repoName, currentBranch, setRepo } = useAppStore.getState();
   const branch = status.current_branch;
-  const { repoPath, repoName, setRepo } = useAppStore.getState();
-  if (repoPath && typeof branch === "string" && branch.length > 0) {
-    setRepo(repoPath, repoName, branch);
+  const nextBranch = typeof branch === "string" && branch.length > 0 ? branch : currentBranch;
+
+  useProjectStore.getState().setStatus(status);
+
+  if (repoPath && nextBranch && nextBranch !== currentBranch) {
+    setRepo(repoPath, repoName, nextBranch);
   }
   useAppStore.getState().setForesterError(null);
   return status;
