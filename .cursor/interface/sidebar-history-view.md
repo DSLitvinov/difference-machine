@@ -102,6 +102,8 @@ flowchart TD
 
 #### Диалог при dirty tree
 
+Макет: [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md) · Figma [`4040:8317`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4040-8317)
+
 ```
 Switch branch to "feature/ui"?
 

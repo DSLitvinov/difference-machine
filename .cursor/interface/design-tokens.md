@@ -106,6 +106,20 @@
 | Content Info — preview single | [4037:707](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-707) |
 | Create commit dialog | [4037:1076](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1076) |
 
+**Full screens (DFM page, 1434×1120 Project / 1081×1120 History):**
+
+| Screen | Node | Спека |
+|--------|------|-------|
+| Project / Default | [4040:6507](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4040-6507) | [architecture.md §2.0](./architecture.md) |
+| Project / Changed only | `Screen / Project / Changed only` | [sidebar-project-view.md](./sidebar-project-view.md) |
+| Project / No selection | `Screen / Project / No selection` | [content-info-project-view.md §6.1](./content-info-project-view.md) |
+| Project / Multiselect | `Screen / Project / Multiselect` | [info-file-preview-multi.md](./info-file-preview-multi.md) |
+| History / Text diff | `Screen / History / Text diff` | [content-preview-history-view.md](./content-preview-history-view.md) |
+| History / Image diff | `Screen / History / Image diff` | [image-diff-panel.md](./image-diff-panel.md) |
+| History / Empty preview | `Screen / History / Empty preview` | [content-preview-history-view.md §1.2](./content-preview-history-view.md) |
+| Dirty branch switch | [4040:8317](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4040-8317) | [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md) |
+| Settings / Appearance | [4040:5530](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4040-5530) | [settings-dialog.md §4](./settings-dialog.md) |
+
 ### 3.1 Sidebar shell
 
 | Элемент | Figma | Tailwind |
@@ -121,6 +135,7 @@
 | Folder row Selected | `background/accent` + `border/primary/default` | см. §4 `itemStateClasses.selected` |
 | Active rail item | `background/primary/default` | `bg-primary text-primary-foreground` |
 | Repo / branch selector | `background/default` + `border/default` | `bg-background border border-border` |
+| Current branch label (Project) | `foreground/muted` | `text-muted-foreground text-xs` + `GitBranch` icon — read-only |
 | Switch track OFF | `background/input` | `bg-input` |
 | Switch track ON | `background/primary/default` | `bg-primary` |
 

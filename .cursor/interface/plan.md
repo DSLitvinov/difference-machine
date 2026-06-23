@@ -46,6 +46,7 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
   - [info-metadata-section.md](./info-metadata-section.md) — Metadata single/multi
   - [info-history-section.md](./info-history-section.md) — History: branch, commit, Revert, Compare (single file only; скрыта при multiselect)
   - [create-commit-dialog.md](./create-commit-dialog.md) — диалог (`4037:1076`)
+  - [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md) — checkout dirty tree (`4040:8317`)
   - [merge-dialog.md](./merge-dialog.md) — merge commit + object preview (`4039:1093`, states `4039:1041`)
   - Figma panel: [single `4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) · [multi `4037:1898`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1898)
 
