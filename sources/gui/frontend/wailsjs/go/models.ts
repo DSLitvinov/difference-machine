@@ -26,6 +26,8 @@ export namespace main {
 	    blenderPath: string;
 	    addonPath: string;
 	    editors: string[];
+	    theme: string;
+	    font: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new SettingsSnapshot(source);
@@ -42,6 +44,8 @@ export namespace main {
 	        this.blenderPath = source["blenderPath"];
 	        this.addonPath = source["addonPath"];
 	        this.editors = source["editors"];
+	        this.theme = source["theme"];
+	        this.font = source["font"];
 	    }
 	}
 

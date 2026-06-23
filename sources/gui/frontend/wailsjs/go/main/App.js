@@ -50,6 +50,10 @@ export function RemoveKnownRepo(arg1) {
   return window['go']['main']['App']['RemoveKnownRepo'](arg1);
 }
 
+export function SaveSettingsAppearance(arg1, arg2) {
+  return window['go']['main']['App']['SaveSettingsAppearance'](arg1, arg2);
+}
+
 export function SaveSettingsEditors(arg1) {
   return window['go']['main']['App']['SaveSettingsEditors'](arg1);
 }

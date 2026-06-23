@@ -2,17 +2,22 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { SettingsLabeledPathRow, SettingsPathListRow } from "@/components/settings/SettingsPathRow";
+import { ThemePreviewCard } from "@/components/settings/ThemePreviewCard";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import type { GuiFont, GuiTheme } from "@/lib/applyAppearance";
+import { applyAppearance, persistAppearanceLocal } from "@/lib/applyAppearance";
 import { useAppStore } from "@/stores/appStore";
 import {
   fetchSettings,
   pickSettingsFile,
   pickSettingsFolder,
+  resolveAppearanceFromSettings,
+  saveSettingsAppearance,
   saveSettingsEditors,
   saveSettingsForester,
   saveSettingsProfile,
@@ -20,7 +25,7 @@ import {
 } from "@/wails/settings";
 import { openRepository, pickRepositoryFolder } from "@/wails/bridge";
 
-type SettingsTab = "profile" | "repositories" | "external-editors" | "forester";
+type SettingsTab = "profile" | "appearance" | "repositories" | "external-editors" | "forester";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -43,6 +48,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [blenderPath, setBlenderPath] = useState("");
   const [addonPath, setAddonPath] = useState("");
   const [configPath, setConfigPath] = useState("");
+  const [theme, setTheme] = useState<GuiTheme>("light");
+  const [font, setFont] = useState<GuiFont>("inter");
 
   useEffect(() => {
     if (!open) return;
@@ -59,6 +66,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         setBlenderPath(data.blenderPath ?? "");
         setAddonPath(data.addonPath ?? "");
         setConfigPath(data.configPath ?? "");
+        const appearance = resolveAppearanceFromSettings(data);
+        setTheme(appearance.theme);
+        setFont(appearance.font);
+        applyAppearance(appearance.theme, appearance.font);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : String(err));
@@ -139,8 +150,27 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     }
   };
 
+  const handleSaveAppearance = async () => {
+    setSaving(true);
+    try {
+      await saveSettingsAppearance(theme, font);
+      persistAppearanceLocal(theme, font);
+      setNotice("Appearance saved");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleThemeSelect = (next: GuiTheme) => {
+    setTheme(next);
+    applyAppearance(next, font);
+  };
+
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: "profile", label: "Profile" },
+    { id: "appearance", label: "Appearance" },
     { id: "repositories", label: "Repositories" },
     { id: "external-editors", label: "External editors" },
     { id: "forester", label: "Forester" },
@@ -209,6 +239,50 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                         <Button disabled={saving} onClick={() => void handleSaveProfile()}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                           Save profile
+                        </Button>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {tab === "appearance" ? (
+                    <>
+                      <h3 className="text-lg font-semibold">Appearance</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Customize the appearance of the app. Automatically switch between day and night
+                        themes.
+                      </p>
+                      <Separator className="my-4" />
+                      <div className="max-w-md space-y-6">
+                        <div>
+                          <Label className="mb-2 block">Font</Label>
+                          <Input value="Inter" disabled className="max-w-[348px]" />
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            Set the font you want to use in the dashboard.
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="mb-2 block">Theme</Label>
+                          <p className="mb-4 text-sm text-muted-foreground">
+                            Select the theme for the dashboard.
+                          </p>
+                          <div className="flex flex-wrap gap-6">
+                            <ThemePreviewCard
+                              theme="light"
+                              selected={theme === "light"}
+                              onSelect={() => handleThemeSelect("light")}
+                            />
+                            <ThemePreviewCard
+                              theme="dark"
+                              selected={theme === "dark"}
+                              onSelect={() => handleThemeSelect("dark")}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-auto flex justify-end pt-6">
+                        <Button disabled={saving} onClick={() => void handleSaveAppearance()}>
+                          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          Save appearance
                         </Button>
                       </div>
                     </>

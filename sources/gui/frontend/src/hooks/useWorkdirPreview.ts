@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 
 import type { InfoPreviewKind } from "@/lib/fileKinds";
-import { base64ToObjectUrl, fetchWorkdirThumbnail } from "@/wails/forester";
-
-export interface WorkdirPreviewState {
-  loading: boolean;
-  previewUrl: string | null;
-  textPreview: string | null;
-  failed: boolean;
-}
+import {
+  ensurePreviewLoaded,
+  getCachedPreview,
+  previewCacheKey,
+  subscribePreview,
+  type WorkdirPreviewState,
+} from "@/lib/previewCache";
+import { useAppStore } from "@/stores/appStore";
 
 const initialState: WorkdirPreviewState = {
   loading: false,
@@ -17,67 +17,24 @@ const initialState: WorkdirPreviewState = {
   failed: false,
 };
 
+export type { WorkdirPreviewState };
+
 export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "image"): WorkdirPreviewState {
-  const [state, setState] = useState<WorkdirPreviewState>(initialState);
+  const repoPath = useAppStore((s) => s.repoPath);
+  const cacheKey = path ? previewCacheKey(repoPath, path) : null;
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    if (!path) {
-      setState(initialState);
-      return;
-    }
+    if (!cacheKey) return;
+    return subscribePreview(cacheKey, () => setRevision((n) => n + 1));
+  }, [cacheKey]);
 
-    if (kind !== "image" && kind !== "text" && kind !== "blend") {
-      setState({ ...initialState, loading: false });
-      return;
-    }
+  useEffect(() => {
+    if (!cacheKey || !path) return;
+    void ensurePreviewLoaded(cacheKey, path, kind);
+  }, [cacheKey, path, kind]);
 
-    let cancelled = false;
-    let objectUrl: string | null = null;
-
-    const load = async () => {
-      setState({ ...initialState, loading: true });
-      try {
-        const result = await fetchWorkdirThumbnail(path);
-        if (cancelled) return;
-
-        if (result.kind === "image" && result.content_base64) {
-          objectUrl = base64ToObjectUrl(result.content_base64, result.mime);
-          setState({
-            loading: false,
-            previewUrl: objectUrl,
-            textPreview: null,
-            failed: false,
-          });
-          return;
-        }
-
-        if (result.kind === "text" && result.text_preview) {
-          setState({
-            loading: false,
-            previewUrl: null,
-            textPreview: result.text_preview,
-            failed: false,
-          });
-          return;
-        }
-
-        setState({ ...initialState, loading: false, failed: kind === "image" || kind === "blend" });
-      } catch {
-        if (!cancelled) {
-          setState({ ...initialState, loading: false, failed: true });
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [path, kind]);
-
-  return state;
+  if (!cacheKey) return initialState;
+  void revision;
+  return getCachedPreview(cacheKey);
 }

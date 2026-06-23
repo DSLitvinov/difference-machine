@@ -20,6 +20,8 @@ type SettingsSnapshot struct {
 	BlenderPath string   `json:"blenderPath"`
 	AddonPath   string   `json:"addonPath"`
 	Editors     []string `json:"editors"`
+	Theme       string   `json:"theme"`
+	Font        string   `json:"font"`
 }
 
 // GetSettings returns the current GUI configuration snapshot.
@@ -45,6 +47,8 @@ func (a *App) GetSettings() (*SettingsSnapshot, error) {
 		BlenderPath: a.cfg.BlenderPath(),
 		AddonPath:   a.cfg.AddonPath(),
 		Editors:     editors,
+		Theme:       a.cfg.GUITheme(),
+		Font:        a.cfg.GUIFont(),
 	}, nil
 }
 
@@ -107,6 +111,14 @@ func (a *App) SaveSettingsRepos(repoPaths []string) error {
 		}
 	}
 	return nil
+}
+
+// SaveSettingsAppearance persists theme and font in setup.cfg.
+func (a *App) SaveSettingsAppearance(theme, font string) error {
+	if a.cfg == nil {
+		return fmt.Errorf("config not loaded")
+	}
+	return a.cfg.SetAppearance(theme, font)
 }
 
 // SaveSettingsEditors persists the external editor list.

@@ -336,6 +336,35 @@ func (s *Store) SetLanguage(lang string) error {
 	return s.Save()
 }
 
+// GUITheme returns [gui].theme or "light".
+func (s *Store) GUITheme() string {
+	if theme := s.Get("gui", "theme"); theme != "" {
+		return theme
+	}
+	return "light"
+}
+
+// GUIFont returns [gui].font or "inter".
+func (s *Store) GUIFont() string {
+	if font := s.Get("gui", "font"); font != "" {
+		return font
+	}
+	return "inter"
+}
+
+// SetAppearance updates [gui].theme and [gui].font.
+func (s *Store) SetAppearance(theme, font string) error {
+	if theme != "dark" {
+		theme = "light"
+	}
+	if font == "" {
+		font = "inter"
+	}
+	s.Set("gui", "theme", theme)
+	s.Set("gui", "font", font)
+	return s.Save()
+}
+
 // BlenderPath returns [blender].path.
 func (s *Store) BlenderPath() string {
 	return s.Get("blender", "path")

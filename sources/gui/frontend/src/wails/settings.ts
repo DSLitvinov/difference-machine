@@ -2,11 +2,15 @@ import {
   GetSettings,
   PickSettingsFile,
   PickSettingsFolder,
+  SaveSettingsAppearance,
   SaveSettingsEditors,
   SaveSettingsForester,
   SaveSettingsProfile,
   SaveSettingsRepos,
 } from "../../wailsjs/go/main/App";
+
+import type { GuiFont, GuiTheme } from "@/lib/applyAppearance";
+import { loadStoredFont, loadStoredTheme, normalizeFont, normalizeTheme } from "@/lib/applyAppearance";
 
 export interface SettingsSnapshot {
   userName: string;
@@ -18,10 +22,32 @@ export interface SettingsSnapshot {
   blenderPath: string;
   addonPath: string;
   editors: string[];
+  theme: string;
+  font: string;
 }
 
 export async function fetchSettings(): Promise<SettingsSnapshot> {
   return GetSettings();
+}
+
+export function resolveAppearanceFromSettings(snapshot: SettingsSnapshot): {
+  theme: GuiTheme;
+  font: GuiFont;
+} {
+  const localTheme = loadStoredTheme();
+  const localFont = loadStoredFont();
+  const cfgTheme = normalizeTheme(snapshot.theme);
+  const cfgFont = normalizeFont(snapshot.font);
+
+  try {
+    if (localStorage.getItem("dfm.gui.theme")) {
+      return { theme: localTheme, font: localFont };
+    }
+  } catch {
+    // ignore
+  }
+
+  return { theme: cfgTheme, font: cfgFont };
 }
 
 export async function saveSettingsProfile(userName: string, language: string): Promise<void> {
@@ -42,6 +68,10 @@ export async function saveSettingsForester(
   addonPath: string,
 ): Promise<void> {
   await SaveSettingsForester(cliPath, blenderPath, addonPath);
+}
+
+export async function saveSettingsAppearance(theme: GuiTheme, font: GuiFont): Promise<void> {
+  await SaveSettingsAppearance(theme, font);
 }
 
 export async function pickSettingsFile(): Promise<string> {
