@@ -127,7 +127,7 @@ function clamp(width: number, min: number, max: number): number {
 | Sidebar collapsed (History) | min `W`: **48 + 747 = 795** |
 | Resize окна ОС | Пересчитать max; clamp сохранённые ширины; Preview забирает delta |
 | History mode | Info panel width не меняется в layout, только в persisted state |
-| Sidebar collapsed | Preview + Info делят `W − railCollapsedWidth` (v1: collapsed = только Rail 48px) |
+| Sidebar collapsed | Preview + Info делят `W − railCollapsedWidth` (v1: collapsed = только Rail 48px; **Settings** остаётся на Rail) |
 | Очень широкий монитор | Max растёт линейно с `W`; нет искусственного cap в v1 |
 
 **Минимальная ширина окна (v1):**

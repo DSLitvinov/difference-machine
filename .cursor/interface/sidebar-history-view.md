@@ -7,11 +7,13 @@
 
 **API:** [api-contract.md](./api-contract.md)
 
+**Rail (общий):** [architecture.md §2.2](./architecture.md) — **Settings** → [settings-dialog.md](./settings-dialog.md). Figma: [`4026:4547`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547).
+
 ## 1. Назначение
 
 Пользователь выбирает **ветку**, просматривает **линейный список коммитов**, фильтрует поиском и выбирает коммит для просмотра в Content Preview / Info.
 
-**Не в scope v1 Sidebar:** checkout (`repo.switch`), создание/удаление веток, merge — только навигация и selection.
+**Не в scope v1 Sidebar:** checkout (`repo.switch`), создание/удаление веток — только навигация и selection. **Merge** — v2: [merge-dialog.md](./merge-dialog.md).
 
 ---
 
@@ -145,7 +147,7 @@ You have uncommitted changes:
 |-----------|-----|
 | `historyBranch === currentBranch` | Branch label normal; check в dropdown |
 | `historyBranch !== currentBranch` | Muted subtitle под selector: «Viewing · not checked out» или dot badge |
-| Merge in progress | Banner над list: «Merge in progress»; checkout disabled |
+| Merge in progress | Banner над list: «Merge in progress» + **Review merge** → [merge-dialog.md](./merge-dialog.md); checkout disabled |
 | Detached HEAD (v2) | «(detached)» в label |
 
 #### Corner cases checkout

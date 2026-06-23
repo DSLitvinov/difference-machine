@@ -41,6 +41,37 @@ Committable paths = union всех непустых списков (см. [sideb
 
 Badge priority: staged > unstaged для одного path.
 
+### 2.2 Merge (v2)
+
+| JSON method | CLI | GUI |
+|-------------|-----|-----|
+| `merge.status` | read `.DFM/MERGE_HEAD` | banner + [merge-dialog.md](./merge-dialog.md) |
+| `merge.start` | `merge <branch>` | pre-merge preview |
+| `merge.continue` | `merge --continue` | Merge button in dialog |
+| `merge.abort` | `merge --abort` | banner action |
+| `objects.by_file` | objects DB / JSON | object list in merge dialog |
+
+#### `merge.status`
+
+```json
+→ {
+  "in_progress": true,
+  "branch": "feature/ui",
+  "current_head": "abc…",
+  "target_head": "def…",
+  "has_conflicts": false
+}
+```
+
+#### `objects.by_file`
+
+```json
+{ "path": "assets/scene.blend", "commit_hash": "abc…" }
+→ { "objects": [{ "object_name", "object_type", "tags", "metadata" }] }
+```
+
+См. [merge-dialog.md §5–§6](./merge-dialog.md).
+
 ---
 
 ## 3. VCS — новые обёртки
@@ -176,7 +207,7 @@ type DirEntry struct {
 | Wails | Источник |
 |-------|----------|
 | `GetKnownRepos` / `AddKnownRepo` / `OpenRepo` | `~/.dfm/setup.cfg` — [multi-repo.md](./multi-repo.md) |
-| `GetRepoUser` | `setup.cfg` `[user].name` |
+| `GetRepoUser` / `SetRepoUser` | `setup.cfg` `[user].name` — [settings-dialog.md](./settings-dialog.md) |
 
 ---
 
@@ -218,4 +249,5 @@ type DirEntry struct {
 | `diff` rename detection | как `git diff -M` |
 | Fs watcher | v2 |
 | Tree collapse | v2 |
+| Branch merge UI | v2 — [merge-dialog.md](./merge-dialog.md) |
 | `EvalSymlinks` для repo paths | v1.1 |

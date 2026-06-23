@@ -66,21 +66,44 @@ History:
 │  [proj]  │  Context selector           │  │
 │  [hist]  │  Search / toggle (mode-dep)  │  │
 │          │  Scrollable list            │  │
-│          │                             │  │
+│  [⚙]    │                             │  │
 │  [user]  │                             │  │
 └──────────┴─────────────────────────────┴──┘
 ```
 
 ### 2.2 Rail (левая узкая колонка)
 
-| Элемент | Иконка (lucide) | Действие |
-|---------|-----------------|----------|
-| App / home | `GalleryVerticalEnd` | Зарезервировано (настройки / about — вне scope v1) |
-| Project view | `FolderGit2` | `sidebarMode = 'project'` |
-| History | `GitFork` | `sidebarMode = 'history'` |
-| User avatar | image | Зарезервировано (профиль / author — вне scope v1) |
+**Figma:** Project [`4026:4812`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [`4026:4547`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547) — узел Settings: `4039:1102` / `4039:1261`.
 
-Активный пункт rail: `bg-primary text-primary-foreground`. Неактивный — прозрачный + `hover:bg-accent`.
+Вертикальный stack `flex flex-col h-full` (сверху вниз):
+
+| # | Элемент | Иконка (lucide) | Действие |
+|---|---------|-----------------|----------|
+| 1 | App / home | `GalleryVerticalEnd` | Зарезервировано (about — вне scope v1) |
+| 2 | Project view | `FolderGit2` | `sidebarMode = 'project'` |
+| 3 | History | `GitFork` | `sidebarMode = 'history'` |
+| — | *(spacer)* | — | `flex-1` между mode icons и footer |
+| 4 | **Settings** | `Settings` | Открыть [settings-dialog.md](./settings-dialog.md) |
+| 5 | User avatar | image 32×32 | Зарезервировано (профиль — вне scope v1) |
+
+Mode icons — блок по центру (`flex-1`, `gap-1`, `p-2`). Footer: Settings → avatar.
+
+#### Settings button
+
+| Property | Spec |
+|----------|------|
+| Icon | `Settings` 16×16 |
+| Hit area | `p-2` (`padding-xxs`), `rounded-sm` |
+| Variant | `Button ghost` — как неактивный rail item |
+| Active state | **нет** — не toggle |
+| Tooltip | `Settings` |
+| Collapsed sidebar | **виден** (Rail всегда 48px) |
+
+```ts
+onSettingsClick={() => setSettingsOpen(true)}
+```
+
+Активный пункт mode rail: `bg-primary text-primary-foreground`. Неактивный — прозрачный + `hover:bg-accent`. Settings **не** получает `bg-primary` при открытом dialog.
 
 ### 2.3 Main panel
 
@@ -128,6 +151,7 @@ History:
 | UI | shadcn component |
 |----|------------------|
 | Rail buttons | `Button` variant `ghost` / `secondary` |
+| Settings | `Button ghost` + `Settings` icon → `Dialog` |
 | Dropdowns | `DropdownMenu` или `Popover` + `Command` |
 | Search | `Input` |
 | Changed toggle | `Switch` + `Label` |
@@ -373,7 +397,8 @@ interface SidebarEvents {
 frontend/src/
   components/sidebar/
     Sidebar.tsx              # shell + rail
-    SidebarRail.tsx
+    SidebarRail.tsx          # logo, mode icons, Settings, avatar
+    SettingsDialog.tsx
     SidebarCollapseButton.tsx
     project/
       ProjectViewPanel.tsx
@@ -403,7 +428,7 @@ frontend/src/
 |------|-------|
 | **v1 (MVP)** | Full GUI: Sidebar (Project + History) · Preview (Project + History diff) · Content Info · multi-repo · 3-panel resize · commit card ⋮ (full menu) |
 | **v1 polish** | Thumbnails, virtual scroll, `+N` multiselect badge, changed-count on folders |
-| **v2** | Tree collapse, fs watcher, rename `R` in diff, remove repo from list |
+| **v2** | Tree collapse, fs watcher, rename `R` in diff, remove repo from list, **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
 
 **Порядок:** backend (`api-contract.md` §7) → shell → panels.
 
@@ -430,5 +455,5 @@ frontend/src/
 - [folder-preview-item.md](./folder-preview-item.md) — item папки
 - [file-preview-item.md](./file-preview-item.md) — item файла
 - [content-info-project-view.md](./content-info-project-view.md) — Content Info (Project)
-- [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md)
+- [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md) · [merge-dialog.md](./merge-dialog.md) · [settings-dialog.md](./settings-dialog.md)
 - [plan.md](./plan.md) — исходное ТЗ

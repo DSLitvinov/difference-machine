@@ -5,6 +5,8 @@
 
 **Цвета:** [design-tokens.md](./design-tokens.md)
 
+**Rail (общий):** [architecture.md §2.2](./architecture.md) — logo, mode icons, **Settings**, avatar. Figma: [`4026:4812`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812).
+
 ---
 
 ## 1. Назначение
