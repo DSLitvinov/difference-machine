@@ -39,7 +39,7 @@ func handleLogGet(workPath string, args json.RawMessage) (interface{}, error) {
 		}
 		out := make([]map[string]interface{}, 0, len(commits))
 		for _, c := range commits {
-			out = append(out, commitToMap(c))
+			out = append(out, commitToMapWithRepo(repo, c))
 		}
 		return map[string]interface{}{
 			"commits":  out,
@@ -217,17 +217,7 @@ func handleCommitGet(workPath string, args json.RawMessage) (interface{}, error)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get commit: %w", err)
 		}
-		result := map[string]interface{}{
-			"hash":            commit.Hash,
-			"parent_hash":     commit.ParentHash,
-			"parent_hashes":   commit.ParentHashes,
-			"tree_hash":       commit.TreeHash,
-			"author":          commit.Author,
-			"message":         commit.Message,
-			"timestamp":       commit.Timestamp,
-			"type":            commit.Type,
-			"screenshot_path": commit.ScreenshotPath,
-		}
+		result := commitToMapWithRepo(repo, commit)
 		if b64, err := readScreenshotBase64(repoPath, commit.ScreenshotPath); err == nil && b64 != "" {
 			result["screenshot_base64"] = b64
 		}

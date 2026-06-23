@@ -111,3 +111,13 @@ func commitToMap(c *models.Commit) map[string]interface{} {
 		"screenshot_path": c.ScreenshotPath,
 	}
 }
+
+func commitToMapWithRepo(repo *core.Repository, c *models.Commit) map[string]interface{} {
+	m := commitToMap(c)
+	if repo != nil && c != nil && c.Hash != "" {
+		if tag, err := repo.GetTagByCommitHash(c.Hash); err == nil && tag != "" {
+			m["tag"] = tag
+		}
+	}
+	return m
+}

@@ -48,6 +48,7 @@ class _CommitView:
         self.timestamp = data.get("timestamp", 0)
         self.type = data.get("type", 0)
         self.screenshot_path = data.get("screenshot_path", "")
+        self.tag = data.get("tag", "")
 
 
 class _BranchView:
@@ -182,23 +183,43 @@ class ForesterAPI:
     def add(self, repo_path: str, files: Optional[List[str]] = None) -> Dict[str, Any]:
         return self._call(repo_path, "index.add", {"files": files or ["."]})
 
-    def commit(self, repo_path: str, message: str, author: Optional[str] = None, amend: bool = False) -> Dict[str, Any]:
+    def commit(
+        self,
+        repo_path: str,
+        message: str,
+        author: Optional[str] = None,
+        amend: bool = False,
+        tag: Optional[str] = None,
+    ) -> Dict[str, Any]:
         args: Dict[str, Any] = {"message": message, "amend": amend}
         if author:
             args["author"] = author
+        if tag:
+            args["tag"] = tag
         return self._call(repo_path, "commit.create", args)
 
     def get_status(self, repo_path: str) -> Optional[_StatusView]:
         result = self._call(repo_path, "status.get")
         return _StatusView(result)
 
-    def get_log(self, repo_path: str, max_count: int = 100, branch: Optional[str] = None) -> Optional[List[_CommitView]]:
+    def get_log(
+        self,
+        repo_path: str,
+        max_count: int = 100,
+        branch: Optional[str] = None,
+        path: Optional[str] = None,
+    ) -> Optional[List[_CommitView]]:
         args: Dict[str, Any] = {"max_count": max_count}
         if branch:
             args["branch"] = branch
+        if path:
+            args["path"] = path
         result = self._call(repo_path, "log.get", args)
         commits = result.get("commits", [])
         return [_CommitView(c) for c in commits]
+
+    def get_commit(self, repo_path: str, commit_hash: str) -> Optional[Dict[str, Any]]:
+        return self._call(repo_path, "commit.get", {"hash": commit_hash})
 
     def get_branches(self, repo_path: str) -> Optional[List[_BranchView]]:
         result = self._call(repo_path, "branch.list")
@@ -222,6 +243,9 @@ class ForesterAPI:
 
     def restore_version(self, repo_path: str, commit_hash: str) -> Dict[str, Any]:
         return self._call(repo_path, "restore.version", {"commit_hash": commit_hash})
+
+    def restore_file(self, repo_path: str, commit_hash: str, paths: List[str]) -> Dict[str, Any]:
+        return self._call(repo_path, "restore.file", {"commit_hash": commit_hash, "paths": paths})
 
     def gc(self, repo_path: str, dry_run: bool = False, reflog_expire_days: int = 90) -> Dict[str, Any]:
         result = self._call(
@@ -297,6 +321,14 @@ class ForesterAPI:
 
     def get_objects_by_commit(self, repo_path: str, commit_hash: str) -> List[Dict[str, Any]]:
         result = self._call(repo_path, "object.list_by_commit", {"commit_hash": commit_hash})
+        return result.get("objects", [])
+
+    def get_objects_by_file(self, repo_path: str, commit_hash: str, file_path: str) -> List[Dict[str, Any]]:
+        result = self._call(
+            repo_path,
+            "object.list_by_file",
+            {"commit_hash": commit_hash, "file_path": file_path},
+        )
         return result.get("objects", [])
 
     def add_tag_to_object(

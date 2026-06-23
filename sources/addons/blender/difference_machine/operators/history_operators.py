@@ -73,7 +73,7 @@ class DF_OT_refresh_history(Operator):
             commit_all.message = commit_data.get("message", "")
             commit_all.author = commit_data.get("author", "")
             commit_all.tag = commit_data.get("tag", "") or ""
-            commit_all.timestamp = 0
+            commit_all.timestamp = commit_data.get("timestamp", 0)
             # Support both screenshot_path (new) and screenshot_hash (old)
             screenshot_path = commit_data.get("screenshot_path", "")
             if screenshot_path:

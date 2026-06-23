@@ -46,6 +46,7 @@ func handleCommitCreate(workPath string, args json.RawMessage) (interface{}, err
 		Message string `json:"message"`
 		Author  string `json:"author"`
 		Amend   bool   `json:"amend"`
+		Tag     string `json:"tag"`
 	}
 	if err := decodeArgs(args, &params); err != nil {
 		return nil, err
@@ -61,6 +62,9 @@ func handleCommitCreate(workPath string, args json.RawMessage) (interface{}, err
 		}
 		if params.Amend {
 			cmdArgs = append(cmdArgs, "--amend")
+		}
+		if params.Tag != "" {
+			cmdArgs = append(cmdArgs, "--tag", params.Tag)
 		}
 		if err := commands.Commit(cmdArgs); err != nil {
 			return nil, err

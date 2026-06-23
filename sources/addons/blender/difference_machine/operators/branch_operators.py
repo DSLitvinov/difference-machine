@@ -138,7 +138,7 @@ class DF_OT_load_branch_commits(Operator):
             commit_all.message = commit_data.get("message", "")
             commit_all.author = commit_data.get("author", "")
             commit_all.tag = commit_data.get("tag", "") or ""
-            commit_all.timestamp = 0
+            commit_all.timestamp = commit_data.get("timestamp", 0)
             # Mark HEAD commit
             is_head = commit_data.get("is_head", False)
             if not is_head and current_head:
