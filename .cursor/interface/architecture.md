@@ -3,7 +3,9 @@
 Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar, Content Preview и Content Info (Project) задокументированы.
 
 **Стек:** Wails (Go backend) + React + shadcn/ui  
-**Дизайн:** [design-tokens.md](./design-tokens.md) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
+**Дизайн:** [design-tokens.md](./design-tokens.md) (канон цветов и item states) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
+
+**Канон типов и API:** `PreviewSelection` — §3.1; `item_count` — §4.2; пути — [paths.md](./paths.md); multi-repo — [multi-repo.md](./multi-repo.md); resize — [panel-layout.md](./panel-layout.md).
 
 ---
 
@@ -23,7 +25,7 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 
 **Content Preview (History view):** [content-preview-history-view.md](./content-preview-history-view.md) — orchestration. Atoms: [preview-commit-header.md](./preview-commit-header.md) · … **Content Info скрыта**.
 
-**Content Info (Project view):** [content-info-project-view.md](./content-info-project-view.md) — preview, metadata, history, create commit. Atoms: [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md). **Скрыта в History mode**.
+**Content Info (Project view):** [content-info-project-view.md](./content-info-project-view.md) — preview, metadata, history (single file only), create commit. Atoms: [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md). **Скрыта в History mode**.
 
 ---
 
@@ -39,21 +41,26 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 ```
 Project view:
 ┌──────────┬─────────────────────────────┬──────────────┐
-│ Sidebar  │  Content Preview          │ Content Info │
+│ Sidebar  │  Content Preview            │ Content Info │
+│ min 334  │  min 747                    │  min 354     │
 └──────────┴─────────────────────────────┴──────────────┘
+  ◀ resize handles — [panel-layout.md](./panel-layout.md)
 
 History:
 ┌──────────┬────────────────────────────────────────────┐
-│ Sidebar  │  Content Preview (full remaining width)    │
+│ Sidebar  │  Content Preview (min 747)                 │
+│ min 334  │                                            │
 └──────────┴────────────────────────────────────────────┘
 ```
+
+Ширины и max: **[panel-layout.md](./panel-layout.md)**.
 
 ### 2.1 Sidebar (общая для обоих режимов)
 
 ```
 ┌──────────┬─────────────────────────────┬──┐
-│  Rail    │  Main sidebar panel         │◀ │ collapse
-│  (48px)  │  (~285px)                   │  │
+│  Rail    │  Main sidebar panel         │◀ │ resize / collapse
+│  (48px)  │  (min 334 total column)     │  │
 │          │                             │  │
 │  [logo]  │  Header (title + controls)  │  │
 │  [proj]  │  Context selector           │  │
@@ -100,7 +107,7 @@ History:
 | **Header** | — | `border-b border-border` |
 | **Context selector** | `background/default` | `bg-background border-border` |
 | **Search input** | `background/default` | `bg-background border-input` |
-| **Selected folder row** | `background/primary/light` | `bg-sidebar rounded-sm` |
+| **Selected folder row** | `background/accent` + `border/primary/default` | см. [design-tokens.md §4](./design-tokens.md) — `bg-accent border border-ring rounded-md` |
 | **Active rail item** | `background/primary/default` | `bg-primary text-primary-foreground` |
 | **Border** | `border/default` | `border-border` |
 | **Section title** | `foreground/muted` | `text-muted-foreground` |
@@ -112,7 +119,7 @@ History:
 │ sidebar  ├─────────────────────────────┤
 │          │  List Container             │
 │          │  bg-background              │
-│          │  [selected row bg-sidebar]  │
+│          │  [selected row — preview item style] │
 └──────────┴─────────────────────────────┘
 ```
 
@@ -174,10 +181,14 @@ type SidebarSelection =
   | { kind: 'folder'; path: string }
   | { kind: 'commit'; hash: string; branch: string }
 
-// File selection — Content Preview (not Sidebar); see content-preview-project-view.md §9
+// File selection — Content Preview (not Sidebar). **Canonical type** — единственное определение в репозитории.
 type PreviewSelection =
   | { kind: 'none' }
   | { kind: 'files'; paths: string[]; primary: string }
+
+// `primary` — anchor для Shift-range и «главный» файл в UI.
+// Single-file layout (Content Info, History): `paths.length === 1` → path = `primary`.
+// Multi layout: `paths.length > 1`.
 
 interface SidebarEvents {
   onSelectionChange(selection: SidebarSelection): void
@@ -198,13 +209,20 @@ interface ProjectViewContext {
 
 | Ключ | Что хранить |
 |------|-------------|
+| `~/.dfm/setup.cfg` `[current repo] path` | Последний открытый репозиторий (авто-open при старте) |
+| `~/.dfm/setup.cfg` `[repo] path_N` | Список добавленных репозиториев |
+| `localStorage` `dfm.layout.sidebarWidth` | number — [panel-layout.md](./panel-layout.md) |
+| `localStorage` `dfm.layout.infoWidth` | number |
+| `localStorage` `dfm.layout.previewWidth` | optional number |
 | `localStorage` `dfm.sidebar.collapsed` | boolean |
 | `localStorage` `dfm.sidebar.mode` | `project` \| `history` |
 | per-repo `dfm.sidebar.showChangedOnly` | boolean |
 | per-repo `dfm.sidebar.selectedFolderPath` | string (`''` = root) |
 | per-repo `dfm.sidebar.historyBranch` | string |
 
-При смене репозитория сбрасывать selection, но восстанавливать mode и per-repo prefs.
+Полная спека multi-repo: [multi-repo.md](./multi-repo.md). Пути: [paths.md](./paths.md). Resize: [panel-layout.md](./panel-layout.md).
+
+При смене репозитория сбрасывать selection, но восстанавливать mode и per-repo prefs (localStorage keyed by `repoPath`).
 
 ---
 
@@ -214,13 +232,17 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 
 | Метод Wails | JSON API | Назначение |
 |-------------|----------|------------|
+| `GetKnownRepos()` | **новый** | Список путей из `setup.cfg` `[repo]` |
+| `GetCurrentRepoPath()` | **новый** | `[current repo] path` |
+| `AddKnownRepo(path)` | **новый** | Append `path_N` + set current |
+| `OpenRepo(path)` | **новый** | Валидация + load repo context |
 | `GetStatus(repoPath)` | `status.get` | Ветка, HEAD, списки changed/untracked |
 | `ListBranches(repoPath)` | `branch.list` | Dropdown веток (History) |
 | `GetLog(repoPath, branch, maxCount)` | `log.get` | Commits; расширить: `tags`, `files_added`, `files_removed` |
 | `GetCommit(repoPath, hash)` | `commit.get` | Детали коммита (Info) |
 | `GetCommitFileStats(repoPath, hash)` | **новый** `commit.stats` | Files Changed если не в log |
 | `ListTags(repoPath)` | **новый** | Tag Badge fallback |
-| `ListWorkdirTree(repoPath)` | **новый** | Folder tree (folders only, recursive counts) |
+| `ListWorkdirTree(repoPath)` | **новый** | Folder tree (folders only, recursive **file** counts) |
 | `ListWorkdirFiles(repoPath, folder)` | **новый** | Для **Content Preview**, не Sidebar |
 | `OpenWithDefaultApp(repoPath, fileRel)` | **новый** | Double-click в Preview (Project): открыть workdir-файл в ОС |
 | `GetCommitChangedFiles(repoPath, hash)` | **новый** `commit.files` | History Preview: список A/M/D/R |
@@ -270,7 +292,7 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 }
 ```
 
-`item_count` — **recursive**. Узлы — **только папки**; файлы не включаются. Дерево отдаётся полностью; UI раскрывает все узлы сразу.
+`item_count` — **recursive file count** в поддереве папки (все файлы в этой папке и во вложенных подпапках; **сами папки не считаются**). **Одинаковая семантика везде:** `ListWorkdirTree`, `ListWorkdirEntries` (`DirEntry` для папок), `FolderPreviewItem` count label. Узлы дерева — **только папки**; файлы в JSON дерева не возвращаются. Дерево отдаётся полностью; UI раскрывает все узлы сразу.
 
 ---
 
@@ -306,9 +328,10 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 
 ### 6.1 Репозиторий не открыт
 
-- Rail виден, main panel — empty state: «Open repository».
+- Старт: прочитать `[current repo] path` из `~/.dfm/setup.cfg` → `OpenRepo` ([multi-repo.md §3](./multi-repo.md)).
+- Если путь пустой / невалидный: Rail виден, main panel — empty state «Open repository» + **+ Add repository**.
 - Selection = `{ kind: 'none' }`.
-- Dropdown disabled.
+- Repo selector: dropdown с **+ Add repository** (список пуст).
 
 ### 6.2 Путь не является Forester repo
 
@@ -342,10 +365,12 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 - History: пустой список коммитов, copy «No commits yet».
 - Project: папки FS видны; все файлы untracked.
 
-### 6.8 Очень длинные имена / unicode
+### 6.8 Очень длинные имена / unicode / пути
 
-- Truncate с `title` tooltip.
-- Paths всегда хранить relative, slash-normalized (`/`).
+- Truncate с `title` tooltip; UTF-8 в UI.
+- **Relative** (файлы, папки, API, selection): всегда `/` — [paths.md §4](./paths.md).
+- **Absolute** (`repoPath`, cfg, FS): нативный ОС — [paths.md §3](./paths.md).
+- macOS vs Windows: [paths.md §2](./paths.md), [multi-repo.md §2](./multi-repo.md).
 
 ### 6.9 Collapse
 
@@ -403,6 +428,9 @@ frontend/src/
 
 ## 9. Связанные документы
 
+- [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)
+- [panel-layout.md](./panel-layout.md) — resize Sidebar / Preview / Info
+- [multi-repo.md](./multi-repo.md) — multi-repo (`~/.dfm/setup.cfg`)
 - [sidebar-project-view.md](./sidebar-project-view.md) — режим папок
 - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
 - [commit-card.md](./commit-card.md) — карточка коммита

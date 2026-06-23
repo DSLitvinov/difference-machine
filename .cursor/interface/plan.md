@@ -14,6 +14,9 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 Нужно создать файлы:
 - [design-tokens.md](./design-tokens.md) — shadcn/ui цвета (Figma kit, единый справочник)
 - архитектуры проекта с корнеркейсами → [architecture.md](./architecture.md)
+- пути (macOS / Windows) → [paths.md](./paths.md)
+- multi-repo (`setup.cfg`) → [multi-repo.md](./multi-repo.md)
+- resize трёх панелей → [panel-layout.md](./panel-layout.md)
 - архитектура side bar в двух версиях:
   - [sidebar-project-view.md](./sidebar-project-view.md) — папки рабочей директории
   - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
@@ -34,12 +37,12 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
   - Figma: [text diff `4028:5655`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4028-5655) · [image diff `4030:3317`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317) · [binary stub `4031:3754`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4031-3754)
   - В History mode **нет Content Info** — только Sidebar + Content Preview
 - Content Info (режим Project view):
-  - [content-info-project-view.md](./content-info-project-view.md) — панель: preview, metadata, history, create commit
+  - [content-info-project-view.md](./content-info-project-view.md) — панель: preview, metadata, history (single only), create commit
   - [info-file-preview-single.md](./info-file-preview-single.md) — preview одного файла (`4037:707`)
   - [info-file-preview-multi.md](./info-file-preview-multi.md) — multiselect stack (`4037:1879`)
   - [info-file-preview-tile.md](./info-file-preview-tile.md) — tile в стеке (`4037:1843`)
   - [info-metadata-section.md](./info-metadata-section.md) — Metadata single/multi
-  - [info-history-section.md](./info-history-section.md) — History: branch, commit, Revert, Compare
+  - [info-history-section.md](./info-history-section.md) — History: branch, commit, Revert, Compare (single file only; скрыта при multiselect)
   - [create-commit-dialog.md](./create-commit-dialog.md) — диалог (`4037:1076`)
   - Figma panel: [single `4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) · [multi `4037:1898`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1898)
 

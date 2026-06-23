@@ -21,7 +21,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [⑂] [Head]  Commit message title                             │
+│ [⑂] [⎇]  Commit message title                             │
 │ Author name                                                   │
 │ abc1234…  [Copy]              7 files changed  +12  −12      │
 └──────────────────────────────────────────────────────────────┘
@@ -41,7 +41,7 @@
 | # | Элемент | Spec | Условие | Данные |
 |---|---------|------|---------|--------|
 | 1 | Merge icon | `GitMerge` 16×16 | `parent_hashes.length > 1` | merge commit |
-| 2 | Head badge | `Badge variant="default"` pill `Head` | `hash ===` tip `historyBranch` | tooltip «Branch tip (HEAD)» |
+| 2 | Head indicator | `GitBranch` 16×16 + `Tooltip` | `hash ===` tip `historyBranch` | «Branch tip (HEAD)» — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
 | 3 | Title | `text-base font-semibold truncate flex-1` | всегда | первая строка `message` |
 | 4 | Author | `text-sm text-foreground` | всегда | `commit.author` |
 | 5 | Short hash | `text-xs font-mono text-muted-foreground` | всегда | 7–8 символов |
@@ -55,7 +55,7 @@
 | | Commit Card | Preview Commit Header |
 |---|-------------|----------------------|
 | Description | 2-line clamp (optional) | **нет** (только title) |
-| Date / Tag badges | да | **нет** (только Head) |
+| Date / Tag badges | да | **нет** (только Head icon) |
 | ⋮ menu | да | **нет** |
 | Hash + copy | нет | **да** |
 
@@ -103,7 +103,7 @@ interface PreviewCommitHeaderProps {
 | Только subject, без body | Title = subject |
 | `files_changed === 0` | `0 files changed`, без +/− |
 | Merge без icon data | скрыть merge icon |
-| Head на другой ветке | Head badge **не** показывать |
+| Head на другой ветке | Head icon **не** показывать |
 | Очень длинный author | truncate + tooltip |
 
 ---
@@ -112,7 +112,7 @@ interface PreviewCommitHeaderProps {
 
 | UI | Component |
 |----|-----------|
-| Head badge | `Badge` variant `default` |
+| Head indicator | `GitBranch` 16×16 + `Tooltip` |
 | Copy | `Button` variant `ghost` size `sm` |
 | Loading | `Skeleton` |
 | Error | `Alert` variant `destructive` |

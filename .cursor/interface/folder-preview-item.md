@@ -38,8 +38,7 @@
 ### 2.1 Count label (`item_count`)
 
 - Формат: `{n} File` / `{n} Files` (i18n plural).
-- **`item_count` = число файлов** — учитываются только файлы; папки в счёт **не** входят.
-- **Immediate only:** `n` = число **непосредственных** дочерних файлов папки (не recursive, не подпапки).
+- Семантика: **recursive file count** — см. [architecture.md §4.2](./architecture.md) (только файлы; папки не считаются).
 - Источник: поле `item_count` из `ListWorkdirEntries` / `DirEntry`.
 
 ---
@@ -55,7 +54,7 @@
 | **Border radius** | — | `rounded-md` | `rounded-md` |
 | **Cursor** | `pointer` | `pointer` | `pointer` |
 
-Figma: Hover → `background/primary/light-hover`; Selected → `background/accent` + `border/primary/default`. См. [design-tokens.md §3.3](./design-tokens.md).
+Figma: Hover → `background/primary/light-hover`; Selected → `background/accent` + `border/primary/default`. Канон Tailwind: [design-tokens.md §4](./design-tokens.md).
 
 ### 3.2 Комбинированные состояния
 
@@ -81,14 +80,7 @@ stateDiagram-v2
 
 ### 3.4 Tailwind mapping
 
-```tsx
-const folderItemClasses = {
-  default: '',
-  hover: 'bg-accent rounded-md',
-  selected: 'bg-accent border border-ring rounded-md',
-  selectedHover: 'bg-accent border border-ring rounded-md',
-}
-```
+См. [design-tokens.md §4](./design-tokens.md) — `itemStateClasses`.
 
 Transition: `transition-colors duration-150`.
 
@@ -122,7 +114,7 @@ Transition: `transition-colors duration-150`.
 interface FolderPreviewItemData {
   name: string
   path: string           // relative, e.g. "assets/References"
-  fileCount: number      // immediate files only
+  fileCount: number      // item_count — recursive files (architecture.md §4.2)
 }
 ```
 
@@ -130,7 +122,7 @@ interface FolderPreviewItemData {
 |------|----------|
 | `name` | basename `path` |
 | `path` | `ListWorkdirFiles` / tree child |
-| `fileCount` | `item_count` из backend — immediate files only |
+| `fileCount` | `item_count` из backend — recursive files ([architecture.md §4.2](./architecture.md)) |
 
 ---
 

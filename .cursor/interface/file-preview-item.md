@@ -78,7 +78,7 @@ Thumbnail генерируется async через Wails (`GetFileThumbnail` �
 | **Border radius** | — | `rounded-md` | `rounded-md` |
 | **Cursor** | `pointer` | `pointer` | `pointer` |
 
-Figma tokens: см. [design-tokens.md §3.3](./design-tokens.md).
+Figma tokens: [design-tokens.md §3.3](./design-tokens.md). Tailwind states: §4 `itemStateClasses`.
 
 ### 3.2 Multiselect visual
 
@@ -113,14 +113,7 @@ stateDiagram-v2
 
 ### 3.5 Tailwind mapping
 
-```tsx
-const fileItemClasses = {
-  default: '',
-  hover: 'bg-accent rounded-md',
-  selected: 'bg-accent border border-ring rounded-md',
-  selectedHover: 'bg-accent border border-ring rounded-md',
-}
-```
+См. [design-tokens.md §4](./design-tokens.md) — `itemStateClasses`.
 
 ---
 

@@ -4,6 +4,17 @@
 
 **Правило для разработки:** в React/Tailwind использовать **только семантические классы shadcn** (`bg-background`, `text-muted-foreground`, …). Hex и Figma-имена — справочно, не хардкодить в компонентах.
 
+**Канонические источники (не дублировать в atom-спеках):**
+
+| Тема | Документ |
+|------|----------|
+| Цвета, состояния hover/selected | **этот файл** §3–§4 |
+| `PreviewSelection`, sidebar events | [architecture.md §3.1](./architecture.md) |
+| `item_count` (recursive files) | [architecture.md §4.2](./architecture.md) |
+| Multi-repo, `setup.cfg` | [multi-repo.md](./multi-repo.md) |
+| Paths (macOS / Windows) | [paths.md](./paths.md) |
+| Panel resize (3 columns) | [panel-layout.md](./panel-layout.md) |
+
 **Стек:** Wails + React + shadcn/ui (theme **Zinc**, mode **light**).
 
 ---
@@ -106,13 +117,12 @@
 | Section label «Folders» | `foreground/muted` | `text-muted-foreground text-xs font-semibold` |
 | Row label | `foreground/secondary` | `text-secondary-foreground` |
 | Row count badge | `foreground/default` | `text-foreground text-xs font-semibold` |
-| Selected row | `background/primary/light` | `bg-sidebar` или `bg-accent`† |
+| Folder row Hover | `background/primary/light-hover` | см. §4 `itemStateClasses.hover` |
+| Folder row Selected | `background/accent` + `border/primary/default` | см. §4 `itemStateClasses.selected` |
 | Active rail item | `background/primary/default` | `bg-primary text-primary-foreground` |
 | Repo / branch selector | `background/default` + `border/default` | `bg-background border border-border` |
 | Switch track OFF | `background/input` | `bg-input` |
 | Switch track ON | `background/primary/default` | `bg-primary` |
-
-† Selected sidebar row в Figma `#fafafa`; `bg-accent` = `#f4f4f5`. Предпочтительно **`bg-sidebar`** (`#fafafa`) для pixel-match.
 
 ### 3.2 Content Preview
 
@@ -154,7 +164,8 @@
 | Added `+N` | `foreground/success/default` | `text-emerald-700` |
 | Removed `−N` | `foreground/destructive/default` | `text-destructive` |
 | Date Badge | `background/secondary` + `foreground/secondary` | `Badge variant="secondary"` |
-| Tag / Head Badge | `background/primary/default` + `foreground/primary/default` | `Badge variant="default"` |
+| Tag Badge | `background/primary/default` + `foreground/primary/default` | `Badge variant="default"` |
+| Head indicator | icon 16×16 | `GitBranch` 16×16 + `Tooltip` «Branch tip (HEAD)» — **icon only**, без pill |
 
 ### 3.5 History Preview / Diff view
 
@@ -195,27 +206,23 @@
 
 ---
 
-## 4. Состояния item — сводка (Tailwind only)
+## 4. Состояния item — канон (Tailwind)
+
+Единый паттерн для **FolderPreviewItem**, **FilePreviewItem**, **FolderTreeRow** (Sidebar Project view). Atom-спеки ссылаются сюда, не копируют классы.
 
 ```tsx
-// Shared pattern: FolderPreviewItem, FilePreviewItem, FolderTreeRow (sidebar)
-const itemStateClasses = {
+export const itemStateClasses = {
   default: '',
   hover: 'bg-accent rounded-md',
   selected: 'bg-accent border border-ring rounded-md',
   selectedHover: 'bg-accent border border-ring rounded-md',
 } as const
+```
 
-// Sidebar tree row — use bg-sidebar instead of bg-accent for #fafafa match
-const sidebarRowStateClasses = {
-  default: '',
-  hover: 'bg-sidebar rounded-sm',
-  selected: 'bg-sidebar rounded-sm',
-  selectedHover: 'bg-sidebar rounded-sm',
-} as const
+**Commit card** — отдельный паттерн (card, не grid item):
 
-// Commit card
-const commitCardStateClasses = {
+```tsx
+export const commitCardStateClasses = {
   default: 'bg-background border-border',
   hover: 'bg-background border-ring',
   selected: 'bg-accent border-border',
@@ -228,6 +235,9 @@ const commitCardStateClasses = {
 ## 5. Связанные документы
 
 - [architecture.md](./architecture.md) — layout + §2.4 цвета Sidebar
+- [panel-layout.md](./panel-layout.md)
+- [paths.md](./paths.md)
+- [multi-repo.md](./multi-repo.md)
 - [sidebar-project-view.md](./sidebar-project-view.md)
 - [sidebar-history-view.md](./sidebar-history-view.md)
 - [content-preview-project-view.md](./content-preview-project-view.md)

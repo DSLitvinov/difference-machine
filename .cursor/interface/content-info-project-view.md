@@ -35,26 +35,19 @@
 ```
 ┌──────────┬─────────────────────────────┬──────────────┐
 │ Sidebar  │  Content Preview            │ Content Info │
-│          │                             │  ~354px      │
+│          │                             │  min 354     │
 └──────────┴─────────────────────────────┴──────────────┘
 ```
 
 ### 1.2 Вход
 
-`onPreviewSelectionChange` из [content-preview-project-view.md §9.4](./content-preview-project-view.md):
-
-```ts
-type PreviewSelection =
-  | { kind: 'none' }
-  | { kind: 'file'; path: string; vcsStatus?: VcsFileStatus }
-  | { kind: 'files'; paths: string[] }
-```
+`onPreviewSelectionChange` из [content-preview-project-view.md §9.4](./content-preview-project-view.md). Тип **`PreviewSelection`** — канон: [architecture.md §3.1](./architecture.md).
 
 | Selection | Layout |
 |-------------|--------|
 | `none` | Empty state §6.1 |
-| `file` (1 path) | Single panel [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) |
-| `files` (2+) | Multi panel [`4037:1898`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1898) |
+| `files`, `paths.length === 1` | Single panel [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) |
+| `files`, `paths.length > 1` | Multi panel [`4037:1898`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1898) |
 
 Папки не эмитят selection — Content Info не реагирует на drill-down папок.
 
@@ -62,14 +55,14 @@ type PreviewSelection =
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Ширина | Default **354px**; **resizable**; min **280px** |
+| 1 | Ширина | Default **354px**; resizable — [panel-layout.md](./panel-layout.md): min **354px**, max `W − 334 − 747` |
 | 2 | Preview types | text → stub; binary → другая stub; image → preview; blend → `GetThumbnail` или stub |
 | 3 | Badges | status = VCS; lock = Forester lock (`lock.list`) |
 | 4 | File name row | **Read-only**, `disabled` Input |
 | 5 | Metadata v1 | FS only; пустые поля **скрывать** |
 | 6 | History commits | **File log** (коммиты, где менялся файл) |
 | 7 | Compare | `compare.extract` → tmp_review + **toast** (без auto-open Blender) |
-| 8 | Revert | `restore --source=<commit>` + **AlertDialog**; batch в multiselect |
+| 8 | Revert | `restore --source=<commit>` + **AlertDialog**; **single file only** (History скрыта при multiselect) |
 | 9 | Create commit | Только **выбранные** файлы (auto stage) |
 | 10 | Author в диалоге | Read-only из config |
 
@@ -104,11 +97,21 @@ type PreviewSelection =
 
 ### 2.2 Multi (`4037:1898`)
 
+```
+┌─────────────────────────────┐
+│  [multi preview stack]      │
+│  ▼ Metadata                   │
+│    Size (sum), Type           │
+│  ─────────────────────────    │
+│  [ Create commit ]            │
+└─────────────────────────────┘
+```
+
 | Блок | Atom |
 |------|------|
 | Preview stack | [info-file-preview-multi.md](./info-file-preview-multi.md) |
 | File name row | **скрыта** |
-| History | Revert **only** (full width), no Compare |
+| History | **не рендерится** (только single file) |
 | Metadata | Size (sum) + Type (aggregated) |
 | Footer | Create commit |
 
@@ -151,7 +154,7 @@ interface ContentInfoState {
   selection: PreviewSelection
   panelWidth: number              // default 354
 
-  // Single file
+  // Single file only — not loaded when selection.paths.length > 1
   fileMetadata: FileMetadata | null
   fileLock: LockInfo | null
   fileHistory: FileHistoryEntry[] // file log
@@ -191,7 +194,7 @@ Metadata из last known / partial; preview stub; toast on Revert/Compare fail.
 
 ### 6.3 Multiselect 2 vs 10+ files
 
-Stack shows max **3** tiles [`4037:1879`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1879); при >3 — center + 2 rotated; optional `+N` badge v1.1.
+Stack shows max **3** tiles [`4037:1879`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1879); при >3 — center + 2 rotated; optional `+N` badge v1.1. **History** секция **скрыта** — Revert/Compare недоступны до выбора одного файла.
 
 ### 6.4 History: файл never committed
 
@@ -274,5 +277,5 @@ state/
 | 1 | Compare after extract | Toast only |
 | 2 | File name | Read-only disabled |
 | 3 | Empty metadata fields | Hide |
-| 4 | Multiselect History | Revert only, batch restore |
+| 4 | Multiselect History | **Секция скрыта** — History только при single file |
 | 5 | Create commit scope | Selected files only |

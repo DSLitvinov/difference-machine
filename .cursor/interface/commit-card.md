@@ -27,7 +27,7 @@
 
 ```
 ┌─────────────────────────────────────────────┐
-│ [⑂] [Head] Commit message               [⋮] │
+│ [⑂] [⎇] Commit message               [⋮] │
 │ Author                                      │
 │ Description: Thank you for the…             │
 │ 7 files changed  +12  -12                   │
@@ -42,7 +42,7 @@
 | # | Элемент | Size | Условие | Данные |
 |---|---------|------|---------|--------|
 | 1 | **Merge Icon** | 16×16 `GitMerge` | `parent_hashes.length > 1` | merge commit |
-| 2 | **Head indicator** | 16×16 icon **или** pill `Head` | `hash ===` tip `historyBranch` | tooltip: «Branch tip (HEAD)» |
+| 2 | **Head indicator** | 16×16 `GitBranch` icon | `hash ===` tip `historyBranch` | tooltip: «Branch tip (HEAD)» — **icon only**, без pill |
 | 3 | **Title** | `text-sm font-semibold` | всегда | первая строка `message` |
 | 4 | **⋮** | 16×16 `MoreVertical` | всегда | context menu §6 |
 
@@ -128,14 +128,7 @@ stateDiagram-v2
 
 ### 3.3 Tailwind / shadcn mapping
 
-```tsx
-const stateClasses = {
-  default: 'bg-background border-border',
-  hover: 'bg-background border-ring',
-  selected: 'bg-accent border-border',
-  selectedHover: 'bg-accent border-ring',
-}
-```
+См. [design-tokens.md §4](./design-tokens.md) — `commitCardStateClasses`.
 
 Transition: `transition-colors duration-150` на border и background.
 
@@ -266,3 +259,4 @@ interface CommitCardProps {
 | Footer | Только Date + Tag badges (без +/-) |
 | States | Явно описаны Default / Hover / Selected |
 | Hash badge | Удалён |
+| Head indicator | **Icon only** (`GitBranch`) — без pill; [design-tokens.md §3.4](./design-tokens.md) |

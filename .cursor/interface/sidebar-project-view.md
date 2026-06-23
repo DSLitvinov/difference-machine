@@ -52,9 +52,13 @@ Toggle **Changed** одновременно:
 
 ### 2.2 Repo selector
 
-- Иконка `FolderGit2`, текст = `repoName`.
-- Dropdown: Open repository, Recent, (v2) Reveal in Finder.
+Спека multi-repo: [multi-repo.md](./multi-repo.md).
+
+- Иконка `FolderGit2`, текст = `basename(repoPath)`.
+- **Dropdown:** список из `[repo]` в `setup.cfg` ([paths.md §2](./paths.md)); галочка у текущего.
+- **+ Add repository…** — native folder picker; добавить в `[repo]` (`path_N`) и открыть.
 - Фон: `bg-background` (white) + border.
+- При запуске: авто-open из `[current repo] path` (см. [multi-repo.md §3](./multi-repo.md)).
 
 ### 2.3 Дерево папок (v1) — **зафиксировано**
 
@@ -75,7 +79,7 @@ Toggle **Changed** одновременно:
 - Name (`text-sm/medium`, `foreground/secondary`).
 - Count badge справа (`text-xs/semibold`).
 - **Default:** прозрачный фон на белом Container.
-- **Hover / Selected:** `bg-sidebar rounded-sm` (Figma `background/primary/light`)
+- **Hover / Selected:** канон [design-tokens.md §4](./design-tokens.md) — как Preview items (`bg-accent`; selected + `border border-ring`).
 
 #### Клик по папке / root
 
@@ -87,7 +91,7 @@ Toggle **Changed** одновременно:
 #### Папки без файлов (только подпапки)
 
 - Показываются в дереве как обычно.
-- `item_count` может быть > 0 (считаются вложенные папки + файлы в поддереве).
+- `item_count` может быть > 0 (recursive **файлы** в поддереве; папки не считаются).
 - Клик → Preview: empty state «No files in this folder» (только подпапки есть).
 
 #### Сворачивание (collapse)
@@ -113,7 +117,7 @@ Toggle **Changed** одновременно:
 | List Container | `background/default` | `bg-background` |
 | Repo selector | `background/default` | `bg-background border-border` |
 | Folder row Default | — | transparent |
-| Folder row Selected | `background/primary/light` | `bg-sidebar rounded-sm` |
+| Folder row Hover / Selected | см. [design-tokens.md §4](./design-tokens.md) | `itemStateClasses` |
 
 ---
 
@@ -266,7 +270,7 @@ sequenceDiagram
 | Папка удалена на диске | Refresh → узел исчезает; сброс selection если была выбрана |
 | Очень глубокое дерево | Virtual scroll |
 | Toggle Changed при выбранной папке | Preview перефильтровывает без сброса folder |
-| Переключение репо | Перезагрузка tree; selection → root или none |
+| Переключение репо | Перезагрузка tree; selection → root; `[current repo]` в setup.cfg ([multi-repo.md](./multi-repo.md)) |
 | Unicode / длинные имена | truncate + tooltip |
 
 ---
@@ -293,7 +297,7 @@ sequenceDiagram
 type FolderTreeNode struct {
     Name      string           `json:"name"`
     Path      string           `json:"path"`
-    ItemCount int              `json:"item_count"` // recursive
+    ItemCount int              `json:"item_count"` // recursive file count — см. architecture.md §4.2
     Children  []FolderTreeNode `json:"children"`
 }
 
@@ -302,7 +306,7 @@ func (a *App) ListWorkdirTree(repoPath string) (*FolderTreeNode, error)
 
 - Корень: synthetic node `path: ""`, `name` = repo basename или `"."`.
 - **Только директории** в `children`; файлы не возвращаются.
-- `item_count` — recursive (файлы + папки в поддереве).
+- `item_count` — recursive **file count** (папки не считаются). Семантика: [architecture.md §4.2](./architecture.md).
 - Exclude `.DFM`, `.dfmignore`, no symlink follow.
 
 ### 7.2 `ListWorkdirFiles` (для Content Preview, не Sidebar)
@@ -319,10 +323,11 @@ Immediate children files only — вызывается из Preview при `fold
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Count badge | **Recursive** |
+| 1 | Count badge | **Recursive files** — [architecture.md §4.2](./architecture.md) |
 | 2 | Навигация | **Full tree, always expanded** |
 | 3 | Файлы в Sidebar | **Нет** — только в Content Preview |
 | 4 | Drill-down | **Отменён** |
 | 5 | Changed toggle | Фильтр папок в Sidebar **+** committable-only в Preview (§3) |
 | 6 | Root | **Selectable** — файлы корня в Preview |
 | 7 | Collapse узлов | **Отключён** в v1 |
+| 8 | Multi-repo | [multi-repo.md](./multi-repo.md) — `~/.dfm/setup.cfg` `[current repo]` + `[repo]` |

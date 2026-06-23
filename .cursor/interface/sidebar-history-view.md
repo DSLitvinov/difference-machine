@@ -25,7 +25,7 @@
 │ [ Type to search...           ]     │
 ├─────────────────────────────────────┤
 │ ┌───────────────────────────────┐ ⋮   │
-│ │ ⑂ [Head] Commit message       │     │
+│ │ ⑂ [⎇] Commit message       │     │
 │ │ Author                        │     │
 │ │ Description: Thank you…       │     │
 │ │ 7 files changed  +12  -12     │     │
@@ -294,7 +294,7 @@ interface HistoryViewState {
 
 ### 5.6 Head indicator
 
-- Icon placeholder или pill fallback; только tip ветки.
+- `GitBranch` 16×16 + `Tooltip` «Branch tip (HEAD)» — **icon only** (как [commit-card.md](./commit-card.md), [design-tokens.md §3.4](./design-tokens.md)); только tip ветки.
 
 ### 5.6a No description
 
@@ -395,7 +395,7 @@ interface HistoryViewState {
 |---|------|---------|
 | 1 | Branch dropdown | **Browse log only** — `historyBranch` + `log.get`; checkout отдельно (§2.5) |
 | 2 | Commit card | [commit-card.md](./commit-card.md) |
-| 3 | Head | Icon placeholder (не text badge) |
+| 3 | Head | `GitBranch` 16×16 icon + Tooltip — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
 | 4 | API extensions | `tags`, `files_added`/`files_removed` в log |
 | 5 | Auto-select commit | **Нет** (в Sidebar); Content Preview auto-select **первый файл** при выборе коммита — [content-preview-history-view.md](./content-preview-history-view.md) |
 | 6 | Content Preview | [content-preview-history-view.md](./content-preview-history-view.md); atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) + diff panels |

@@ -127,7 +127,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | **Hover** | `bg-accent` | нет, `rounded-md` | — |
 | **Selected** | `bg-accent` | `border-ring`, `rounded-md` | — |
 
-Токены: [design-tokens.md §3.3](./design-tokens.md).
+Токены: [design-tokens.md §4](./design-tokens.md) — `itemStateClasses`.
 
 > Папка **не мультиселектится**. Selected — подсветка при single-click; drill-down — double-click (§4).
 
@@ -247,7 +247,7 @@ sequenceDiagram
 #### Правила
 
 - Открывается **ровно один** файл — тот, по которому сделан double-click (даже при активном multiselect).
-- Путь: `filepath.Join(repoRoot, fileRel)`; нормализация slash → OS separator.
+- Пути: [paths.md §6–§7](./paths.md) — `Join(repoRoot, FromSlash(fileRel))`, native abs для ОС.
 - **Не** открывать встроенный preview/diff Forester — только делегирование ОС (Content Info / diff — отдельные действия).
 - При успехе: без модального UI; опционально toast «Opened in …» (v1.1).
 - Selection **не сбрасывается** после открытия.
@@ -434,7 +434,7 @@ interface PreviewSelectionState {
 
 | Жест | Поведение |
 |------|-----------|
-| **Click** | `selected = {path}`, `anchor = path`, `active = path` |
+| **Click** | `selected = {path}`, `anchor = path`, `active = path`; emit `{ kind: 'files', paths: [path], primary: path }` |
 | **Ctrl/Cmd + click** | Тоггл `path` в set; `anchor = path` |
 | **Shift + click** | Выделить диапазон `[anchor … path]` в текущем порядке сортировки; заменяет set (без Ctrl) |
 | **Ctrl + Shift + click** | Добавить диапазон к существующему set |
@@ -456,16 +456,19 @@ interface PreviewSelectionState {
 
 ### 9.4 Эмит наружу
 
-```ts
-type PreviewSelection =
-  | { kind: 'none' }
-  | { kind: 'file'; path: string; vcsStatus?: VcsFileStatus }
-  | { kind: 'files'; paths: string[] }   // multi
+Тип **`PreviewSelection`** — канон в [architecture.md §3.1](./architecture.md). Не дублировать в компонентах.
 
+```ts
 onPreviewSelectionChange(sel: PreviewSelection): void
 ```
 
-Content Info реагирует на selection (одиночный файл → детали; множество → multi layout). См. [content-info-project-view.md](./content-info-project-view.md). Папка в Preview не эмитит file-selection.
+| Событие | Payload |
+|---------|---------|
+| Снятие selection | `{ kind: 'none' }` |
+| Один файл | `{ kind: 'files', paths: [path], primary: path }` |
+| Multiselect | `{ kind: 'files', paths: [...], primary: anchor }` |
+
+Content Info: `paths.length === 1` → single layout; `paths.length > 1` → multi. См. [content-info-project-view.md](./content-info-project-view.md).
 
 ---
 
@@ -482,9 +485,9 @@ Content Info реагирует на selection (одиночный файл → 
 ```go
 type DirEntry struct {
     Name      string `json:"name"`
-    Path      string `json:"path"`       // relative, slash-normalized
+    Path      string `json:"path"`       // relative — paths.md §4
     IsDir     bool   `json:"is_dir"`
-    ItemCount int    `json:"item_count"` // для папок: число файлов (папки не учитываются)
+    ItemCount int    `json:"item_count"` // recursive file count — architecture.md §4.2
     Size      int64  `json:"size"`       // для файлов
     VcsStatus string `json:"vcs_status,omitempty"` // A/M/D/?/empty
 }
@@ -493,7 +496,7 @@ func (a *App) ListWorkdirEntries(repoPath, folderRel string) ([]DirEntry, error)
 func (a *App) SearchWorkdir(repoPath, query string) ([]DirEntry, error)
 ```
 
-- `item_count` для папки = **число файлов** (папки в счёт не входят). Label «N Files» / «1 File» на `FolderPreviewItem`. Считаются **immediate** дочерние файлы папки (не recursive, не подпапки).
+- `item_count` для папки: **recursive file count** — [architecture.md §4.2](./architecture.md). Label «N Files» / «1 File» на `FolderPreviewItem`.
 - Exclude `.DFM`, `.dfmignore`, no symlink follow.
 - Миниатюры: поддерживаемые форматы (png/jpg/exr-preview/blend-preview) — рендер/извлечение; иначе generic file-icon placeholder.
 
