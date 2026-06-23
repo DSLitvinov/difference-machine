@@ -1,7 +1,10 @@
-import { AlertCircle, RotateCcw } from "lucide-react";
+import { AlertCircle, FolderOpen, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { retryForesterConnection } from "@/hooks/useProjectStatusPolling";
+import {
+  reopenRepositoryFromPicker,
+  retryForesterConnection,
+} from "@/hooks/useProjectStatusPolling";
 import { useAppStore } from "@/stores/appStore";
 
 export function ForesterErrorBanner() {
@@ -21,17 +24,30 @@ export function ForesterErrorBanner() {
           <span className="font-medium">Forester unavailable.</span> {foresterError}
         </span>
       </div>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="h-auto shrink-0 gap-1 border-destructive/40 px-2 py-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-        disabled={loading}
-        onClick={() => void retryForesterConnection()}
-      >
-        <RotateCcw className="h-3 w-3" />
-        Retry
-      </Button>
+      <div className="flex shrink-0 items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-auto gap-1 border-destructive/40 px-2 py-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+          disabled={loading}
+          onClick={() => void reopenRepositoryFromPicker()}
+        >
+          <FolderOpen className="h-3 w-3" />
+          Re-open
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-auto gap-1 border-destructive/40 px-2 py-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+          disabled={loading}
+          onClick={() => void retryForesterConnection()}
+        >
+          <RotateCcw className="h-3 w-3" />
+          Retry
+        </Button>
+      </div>
     </div>
   );
 }

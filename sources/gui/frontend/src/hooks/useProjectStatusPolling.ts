@@ -11,12 +11,9 @@ async function refreshStatus() {
   const status = await fetchStatus();
   useProjectStore.getState().setStatus(status);
   const branch = status.current_branch;
-  if (typeof branch === "string" && branch.length > 0) {
-    const { repoPath, setRepo } = useAppStore.getState();
-    if (repoPath) {
-      const { repoName } = useAppStore.getState();
-      setRepo(repoPath, repoName, branch);
-    }
+  const { repoPath, repoName, setRepo } = useAppStore.getState();
+  if (repoPath && typeof branch === "string" && branch.length > 0) {
+    setRepo(repoPath, repoName, branch);
   }
   useAppStore.getState().setForesterError(null);
   return status;
@@ -37,8 +34,8 @@ async function validateSelectedFiles() {
   }
   if (stillValid.length !== selectedFilePaths.length) {
     setSelectedFilePaths(stillValid);
-    if (stillValid.length === 0) {
-      useAppStore.getState().setError("Selected file was removed or is no longer available");
+    if (stillValid.length < selectedFilePaths.length) {
+      useAppStore.getState().setNotice("Selected file was removed or is no longer available");
     }
   }
 }
@@ -50,11 +47,13 @@ export function useProjectStatusPolling() {
   const ticking = useRef(false);
 
   const poll = async () => {
-    if (!repoPath || sidebarMode !== "project" || ticking.current) return;
+    if (!repoPath || ticking.current) return;
     ticking.current = true;
     try {
       await refreshStatus();
-      await validateSelectedFiles();
+      if (sidebarMode === "project") {
+        await validateSelectedFiles();
+      }
     } catch (err) {
       setForesterError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -63,7 +62,7 @@ export function useProjectStatusPolling() {
   };
 
   useEffect(() => {
-    if (!repoPath || sidebarMode !== "project") return;
+    if (!repoPath) return;
 
     const id = window.setInterval(() => {
       if (document.hasFocus()) {
@@ -75,7 +74,7 @@ export function useProjectStatusPolling() {
   }, [repoPath, sidebarMode]);
 
   useEffect(() => {
-    if (!repoPath || sidebarMode !== "project") return;
+    if (!repoPath) return;
 
     const onFocus = () => {
       void poll();
@@ -95,6 +94,32 @@ export async function retryForesterConnection() {
     await loadProjectData();
   } catch (err) {
     setForesterError(err instanceof Error ? err.message : String(err));
+  } finally {
+    setLoading(false);
+  }
+}
+
+export async function reopenRepositoryFromPicker() {
+  const { setRepo, setError, setForesterError, setLoading } = useAppStore.getState();
+  setLoading(true);
+  setError(null);
+  setForesterError(null);
+  try {
+    const { openRepository, pickRepositoryFolder } = await import("@/wails/bridge");
+    const picked = await pickRepositoryFolder();
+    if (!picked) return;
+    const state = await openRepository(picked);
+    setRepo(
+      state.repoPath,
+      state.repoName,
+      typeof state.status.current_branch === "string" ? state.status.current_branch : null,
+    );
+    await loadProjectData();
+    useAppStore.getState().setNotice("Repository opened");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    setError(message);
+    setForesterError(message);
   } finally {
     setLoading(false);
   }

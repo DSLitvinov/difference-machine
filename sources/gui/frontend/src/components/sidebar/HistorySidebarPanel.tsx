@@ -100,7 +100,7 @@ export function HistorySidebarPanel() {
     return () => {
       cancelled = true;
     };
-  }, [repoPath, sidebarMode, loadBranches, loadLog, setError]);
+  }, [repoPath, sidebarMode, currentBranch, loadBranches, loadLog, setError]);
 
   const filteredCommits = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase();
@@ -193,6 +193,7 @@ export function HistorySidebarPanel() {
           headHash={headHash}
           loading={loadingLog}
           capped={logCapped}
+          emptyLabel={headHash ? "No commits on this branch" : "No commits yet"}
           onSelect={(hash) => selectCommit(repoPath, hash)}
         />
       </div>

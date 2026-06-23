@@ -9,6 +9,7 @@ interface CommitListProps {
   headHash: string | null;
   loading: boolean;
   capped: boolean;
+  emptyLabel?: string;
   onSelect: (hash: string) => void;
 }
 
@@ -18,6 +19,7 @@ export function CommitList({
   headHash,
   loading,
   capped,
+  emptyLabel = "No commits on this branch",
   onSelect,
 }: CommitListProps) {
   const [focusIndex, setFocusIndex] = useState(0);
@@ -58,7 +60,7 @@ export function CommitList({
   if (commits.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center p-6 text-center text-sm text-muted-foreground">
-        No commits on this branch
+        {emptyLabel}
       </div>
     );
   }

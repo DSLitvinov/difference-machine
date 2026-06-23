@@ -50,8 +50,8 @@
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
 | **Активная фаза** | **7 — Сборка и smoke** |
-| **Следующий шаг** | `7.4` smoke checklist · `6.3.2` corner cases |
-| **Заметки** | Project toolbar: back/forward, search, thumb slider; `workdir.search` API |
+| **Следующий шаг** | Пройти [smoke-checklist.md](./smoke-checklist.md) · `7.2` Windows build |
+| **Заметки** | Corner cases 6.3–6.7; polling в History mode |
 
 ### Прогресс v1.0
 
@@ -63,8 +63,8 @@
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
-| 6 | Slice 5 — Polish + Settings | `[x]` 8/9 |
-| 7 | Сборка и smoke | `[ ]` 1/4 |
+| 6 | Slice 5 — Polish + Settings | `[x]` 9/9 |
+| 7 | Сборка и smoke | `[ ]` 2/4 |
 
 ---
 
@@ -261,7 +261,7 @@
 ### 6.3 Доработки
 
 - [x] **6.3.1** History ↔ Project mode switch — сброс selection по [architecture.md §3.1](./architecture.md)
-- [~] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — пройти чеклист
+- [x] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — пройти чеклист
 - [x] **6.3.3** Keyboard a11y на commit list (roving tabindex)
 
 **Проверка:** multiselect → multi Info; Settings save author; resize persist после restart.
@@ -270,19 +270,10 @@
 
 ## Фаза 7 — Сборка и smoke
 
-- [ ] **7.1** `wails build` macOS — **done once** 2025-06-23
+- [x] **7.1** `wails build` macOS — 2025-06-23
 - [ ] **7.2** `wails build` Windows (CI или ручная машина)
 - [ ] **7.3** Интеграция в `builder/` (опционально v1.0)
-- [ ] **7.4** Smoke script / чеклист E2E вручную:
-
-| # | Сценарий |
-|---|----------|
-| 1 | Cold start → auto-open last repo |
-| 2 | Add repo → browse → select file |
-| 3 | Create commit |
-| 4 | History → select commit → text diff |
-| 5 | Switch branch clean + dirty (stash) |
-| 6 | Revert file from Info History |
+- [ ] **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) (ручная проверка)
 
 ---
 
@@ -320,3 +311,4 @@
 | 2025-06-23 | 5–6 | Slice 4 History+diff; Slice 5 Settings+multiselect | Smoke / Windows build |
 | 2025-06-23 | 7 | shadcn migration; 3-panel resize + persist | Smoke checklist · toolbar polish |
 | 2025-06-23 | 3 + 7 | Project toolbar; `workdir.search` API | Smoke checklist |
+| 2025-06-23 | 6 + 7 | Corner cases; smoke-checklist.md; wails build | Ручной smoke |

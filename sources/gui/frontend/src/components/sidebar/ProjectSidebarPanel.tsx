@@ -7,6 +7,7 @@ import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { reopenRepositoryFromPicker } from "@/hooks/useProjectStatusPolling";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
@@ -20,6 +21,7 @@ export function EmptyRepoState() {
   const setError = useAppStore((s) => s.setError);
   const setRepo = useAppStore((s) => s.setRepo);
   const loading = useAppStore((s) => s.loading);
+  const error = useAppStore((s) => s.error);
 
   const handleAdd = async () => {
     try {
@@ -48,11 +50,28 @@ export function EmptyRepoState() {
         <p className="max-w-sm text-sm text-muted-foreground">
           Add a Forester repository to browse files, commits, and diffs.
         </p>
+        {error ? (
+          <p className="max-w-sm text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
-      <Button onClick={handleAdd} disabled={loading}>
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Add repository
-      </Button>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        <Button onClick={handleAdd} disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          Add repository
+        </Button>
+        {error ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={loading}
+            onClick={() => void reopenRepositoryFromPicker()}
+          >
+            Re-open…
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
