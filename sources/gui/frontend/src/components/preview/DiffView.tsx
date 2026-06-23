@@ -82,7 +82,8 @@ export function DiffView({
             <LayoutToggle
               value={imageLayout}
               options={[
-                { value: "split", label: "Split" },
+                { value: "2up", label: "2-up" },
+                { value: "swipe", label: "Swipe" },
                 { value: "overlay", label: "Overlay" },
               ]}
               onChange={onImageLayoutChange}

@@ -59,7 +59,7 @@ export function HistoryPreviewPanel() {
   const [loadingDiff, setLoadingDiff] = useState(false);
   const [diffError, setDiffError] = useState<string | null>(null);
   const [textLayout, setTextLayout] = useState<HistoryTextLayout>("unified");
-  const [imageLayout, setImageLayout] = useState<HistoryImageLayout>("split");
+  const [imageLayout, setImageLayout] = useState<HistoryImageLayout>("2up");
   const [beforeImageUrl, setBeforeImageUrl] = useState<string | null>(null);
   const [afterImageUrl, setAfterImageUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);

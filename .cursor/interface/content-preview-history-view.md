@@ -67,7 +67,7 @@
 | 1 | Baseline diff | **Коммит vs parent** (первый parent для merge) |
 | 2 | Триггер | Выбор коммита → header + file list; **auto-select первый файл** по пути A→Z |
 | 3 | Текстовый diff | **Unified** default; toggle в [diff-view.md](./diff-view.md) |
-| 4 | Изображения | Split + Overlay — [image-diff-panel.md](./image-diff-panel.md) |
+| 4 | Изображения | 2-up + Swipe + Overlay — [image-diff-panel.md](./image-diff-panel.md) |
 | 5 | Расширения image | `png`, `jpg`/`jpeg`, `gif`, `webp`, `bmp`, `tiff`, `exr`; **`svg` → text** |
 | 6 | Бинарный | [binary-diff-stub.md](./binary-diff-stub.md); **`.blend`** → скриншот коммита вместо icon ([4030:2796](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-2796)) |
 | 7 | Удалённый (D) | [deleted-diff-stub.md](./deleted-diff-stub.md) |
@@ -150,7 +150,7 @@ Divider: `w-px bg-border` + hit area 4px; double-click → reset to 373px.
 ### 3.3 Diff atoms
 
 - [text-diff-panel.md](./text-diff-panel.md) — Unified / Split
-- [image-diff-panel.md](./image-diff-panel.md) — Split (vertical slider) / Overlay (opacity)
+- [image-diff-panel.md](./image-diff-panel.md) — 2-up (side by side) / Swipe / Overlay
 - [binary-diff-stub.md](./binary-diff-stub.md) — кнопка `Open in external application`; `.blend` + screenshot preview
 - [deleted-diff-stub.md](./deleted-diff-stub.md) — «File was deleted»
 
@@ -160,7 +160,7 @@ Divider: `w-px bg-border` + hit area 4px; double-click → reset to 373px.
 
 ```ts
 type TextDiffLayout = 'unified' | 'split'
-type ImageDiffLayout = 'split' | 'overlay'
+type ImageDiffLayout = '2up' | 'swipe' | 'overlay'
 
 interface HistoryPreviewState {
   commitHash: string | null
@@ -172,7 +172,7 @@ interface HistoryPreviewState {
   imageBlobCache: Map<string, { before?: Blob; after?: Blob }>
   filesPanelWidth: number          // default 373
   textDiffLayout: TextDiffLayout   // default 'unified'
-  imageDiffLayout: ImageDiffLayout // default 'split'
+  imageDiffLayout: ImageDiffLayout // default '2up'
   loadingCommit: boolean
   loadingDiff: boolean
   error: string | null
@@ -193,7 +193,7 @@ interface HistoryPreviewState {
 |-----|-------|
 | `dfm.preview.history.filesPanelWidth` | number |
 | `dfm.preview.history.textDiffLayout` | `unified` \| `split` |
-| `dfm.preview.history.imageDiffLayout` | `split` \| `overlay` |
+| `dfm.preview.history.imageDiffLayout` | `2up` \| `swipe` \| `overlay` |
 
 ---
 

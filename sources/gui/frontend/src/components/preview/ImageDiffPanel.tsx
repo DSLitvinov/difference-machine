@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,11 +16,16 @@ interface ImageDiffPanelProps {
   onRetry: () => void;
 }
 
-function Checkerboard({ children, className }: { children: React.ReactNode; className?: string }) {
+const Checkerboard = forwardRef<
+  HTMLDivElement,
+  { children: React.ReactNode; className?: string; onMouseDown?: React.MouseEventHandler<HTMLDivElement> }
+>(function Checkerboard({ children, className, onMouseDown }, ref) {
   return (
     <div
+      ref={ref}
+      onMouseDown={onMouseDown}
       className={cn(
-        "relative h-full min-h-[240px] w-full bg-muted/50",
+        "relative h-full min-h-[240px] w-full overflow-hidden bg-muted/50",
         "[background-image:linear-gradient(45deg,#e5e5e5_25%,transparent_25%),linear-gradient(-45deg,#e5e5e5_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e5e5_75%),linear-gradient(-45deg,transparent_75%,#e5e5e5_75%)]",
         "[background-size:16px_16px]",
         "[background-position:0_0,0_8px,8px_-8px,-8px_0px]",
@@ -30,70 +35,168 @@ function Checkerboard({ children, className }: { children: React.ReactNode; clas
       {children}
     </div>
   );
-}
+});
 
-function ImageDiffSplit({
+/** 2-up: before and after side by side (natural object-contain per panel). */
+function ImageDiffTwoUp({
   beforeUrl,
   afterUrl,
   status,
 }: Pick<ImageDiffPanelProps, "beforeUrl" | "afterUrl" | "status">) {
-  const [position, setPosition] = useState(50);
+  return (
+    <div className="flex h-full min-h-[240px] w-full divide-x divide-border">
+      <Checkerboard className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <span className="shrink-0 px-2 py-1.5 text-xs text-muted-foreground">Before</span>
+        <div className="relative min-h-0 flex-1">
+          {beforeUrl ? (
+            <img src={beforeUrl} alt="" className="h-full w-full object-contain" draggable={false} />
+          ) : (
+            <div className="flex h-full items-center justify-center px-2 text-center text-xs text-muted-foreground">
+              {status === "A" ? "No previous version" : "No image"}
+            </div>
+          )}
+        </div>
+      </Checkerboard>
+      <Checkerboard className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <span className="shrink-0 px-2 py-1.5 text-xs text-muted-foreground">After</span>
+        <div className="relative min-h-0 flex-1">
+          {afterUrl ? (
+            <img src={afterUrl} alt="" className="h-full w-full object-contain" draggable={false} />
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+              No image
+            </div>
+          )}
+        </div>
+      </Checkerboard>
+    </div>
+  );
+}
+
+/** Swipe: stacked images with a draggable divider (pixel-aligned before/after). */
+function ImageDiffSwipe({
+  beforeUrl,
+  afterUrl,
+  status,
+}: Pick<ImageDiffPanelProps, "beforeUrl" | "afterUrl" | "status">) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+  const [position, setPosition] = useState(50);
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  const onMouseDown = (event: React.MouseEvent) => {
-    event.preventDefault();
-    dragging.current = true;
-    const container = (event.currentTarget as HTMLElement).parentElement;
-    if (!container) return;
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
 
-    const onMove = (moveEvent: MouseEvent) => {
-      if (!dragging.current) return;
-      const rect = container.getBoundingClientRect();
-      const pct = ((moveEvent.clientX - rect.left) / rect.width) * 100;
-      setPosition(Math.min(100, Math.max(0, pct)));
-    };
-    const onUp = () => {
-      dragging.current = false;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    const update = () => setContainerWidth(node.clientWidth);
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const setPositionFromClientX = useCallback((clientX: number) => {
+    const node = containerRef.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    const pct = ((clientX - rect.left) / rect.width) * 100;
+    setPosition(Math.min(100, Math.max(0, pct)));
+  }, []);
+
+  const startDrag = useCallback(
+    (clientX: number) => {
+      dragging.current = true;
+      setPositionFromClientX(clientX);
+
+      const onMove = (event: MouseEvent | TouchEvent) => {
+        if (!dragging.current) return;
+        const x = "touches" in event ? event.touches[0]?.clientX : event.clientX;
+        if (x != null) setPositionFromClientX(x);
+      };
+      const onEnd = () => {
+        dragging.current = false;
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onEnd);
+        window.removeEventListener("touchmove", onMove);
+        window.removeEventListener("touchend", onEnd);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onEnd);
+      window.addEventListener("touchmove", onMove);
+      window.addEventListener("touchend", onEnd);
+    },
+    [setPositionFromClientX],
+  );
+
+  const onContainerPointerDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest("[data-swipe-handle]")) return;
+    setPositionFromClientX(event.clientX);
   };
 
   return (
-    <Checkerboard className="h-full w-full">
-      <div className="relative h-full w-full">
-        <div className="absolute inset-0 flex h-full">
-          <div className="relative h-full overflow-hidden" style={{ width: `${position}%` }}>
-            <span className="absolute left-2 top-2 text-xs text-muted-foreground">Before</span>
-            {beforeUrl ? (
-              <img src={beforeUrl} alt="" className="h-full w-full object-contain" draggable={false} />
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                {status === "A" ? "No previous version" : "No image"}
-              </div>
-            )}
+    <Checkerboard
+      ref={containerRef}
+      className="h-full w-full cursor-col-resize select-none"
+      onMouseDown={onContainerPointerDown}
+    >
+      {/* Before (parent) — full layer underneath */}
+      <div className="pointer-events-none absolute inset-0">
+        <span className="absolute right-2 top-2 z-[1] rounded bg-background/70 px-1.5 py-0.5 text-xs text-muted-foreground">
+          Before
+        </span>
+        {beforeUrl ? (
+          <img src={beforeUrl} alt="" className="h-full w-full object-contain" draggable={false} />
+        ) : (
+          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+            {status === "A" ? "No previous version" : "No image"}
           </div>
-          <div
-            className="relative h-full flex-1 overflow-hidden"
-            style={{ width: `${100 - position}%` }}
-          >
-            <span className="absolute right-2 top-2 text-xs text-muted-foreground">After</span>
-            {afterUrl ? (
-              <img src={afterUrl} alt="" className="h-full w-full object-contain" draggable={false} />
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                No image
-              </div>
-            )}
-          </div>
+        )}
+      </div>
+
+      {/* After (commit) — clipped top layer, same pixel grid as before */}
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 overflow-hidden"
+        style={{ width: `${position}%` }}
+      >
+        <span className="absolute left-2 top-2 z-[1] rounded bg-background/70 px-1.5 py-0.5 text-xs text-muted-foreground">
+          After
+        </span>
+        <div className="relative h-full" style={{ width: containerWidth || "100%" }}>
+          {afterUrl ? (
+            <img
+              src={afterUrl}
+              alt=""
+              className="absolute left-0 top-0 h-full object-contain"
+              style={{ width: containerWidth || "100%" }}
+              draggable={false}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+              No image
+            </div>
+          )}
         </div>
-        <div
-          className="absolute bottom-0 top-0 z-10 w-1 -translate-x-1/2 cursor-col-resize border-l border-ring bg-background/80"
-          style={{ left: `${position}%` }}
-          onMouseDown={onMouseDown}
-        />
+      </div>
+
+      {/* Divider + handle */}
+      <div
+        data-swipe-handle
+        className="absolute bottom-0 top-0 z-20 -translate-x-1/2 cursor-col-resize"
+        style={{ left: `${position}%` }}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          startDrag(event.clientX);
+        }}
+        onTouchStart={(event) => {
+          event.stopPropagation();
+          const touch = event.touches[0];
+          if (touch) startDrag(touch.clientX);
+        }}
+      >
+        <div className="h-full w-0.5 bg-ring" />
+        <div className="absolute left-1/2 top-1/2 h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ring bg-background shadow-sm" />
       </div>
     </Checkerboard>
   );
@@ -174,8 +277,10 @@ export function ImageDiffPanel({
       <div className="flex min-h-0 flex-1 flex-col">
         {layout === "overlay" ? (
           <ImageDiffOverlay beforeUrl={beforeUrl} afterUrl={afterUrl} />
+        ) : layout === "swipe" ? (
+          <ImageDiffSwipe beforeUrl={beforeUrl} afterUrl={afterUrl} status={status} />
         ) : (
-          <ImageDiffSplit beforeUrl={beforeUrl} afterUrl={afterUrl} status={status} />
+          <ImageDiffTwoUp beforeUrl={beforeUrl} afterUrl={afterUrl} status={status} />
         )}
       </div>
     </div>

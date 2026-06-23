@@ -211,7 +211,7 @@ export function saveHistoryFilesPanelWidth(repoPath: string, width: number): voi
 }
 
 export type HistoryTextLayout = "unified" | "split";
-export type HistoryImageLayout = "split" | "overlay";
+export type HistoryImageLayout = "2up" | "swipe" | "overlay";
 
 export function loadHistoryTextLayout(repoPath: string): HistoryTextLayout {
   try {
@@ -231,11 +231,13 @@ export function saveHistoryTextLayout(repoPath: string, layout: HistoryTextLayou
 
 export function loadHistoryImageLayout(repoPath: string): HistoryImageLayout {
   try {
-    return localStorage.getItem(perRepoKey(HISTORY_IMAGE_LAYOUT, repoPath)) === "overlay"
-      ? "overlay"
-      : "split";
+    const raw = localStorage.getItem(perRepoKey(HISTORY_IMAGE_LAYOUT, repoPath));
+    if (raw === "overlay") return "overlay";
+    if (raw === "swipe" || raw === "split") return "swipe";
+    if (raw === "2up") return "2up";
+    return "2up";
   } catch {
-    return "split";
+    return "2up";
   }
 }
 

@@ -88,11 +88,11 @@ function classifyDiffKind(file: ChangedFile, ext: string, isBinary?: boolean): D
 | Diff kind | Controls |
 |-----------|----------|
 | Text (incl. svg) | `ToggleGroup`: **Unified** / **Split** |
-| Image | `ToggleGroup`: **Split** / **Overlay** |
+| Image | `ToggleGroup`: **2-up** / **Swipe** / **Overlay** |
 | Binary | **нет** toggles |
 | Deleted | **нет** toggles |
 
-Defaults: text → `unified`; image → `split`. Persist: см. [content-preview-history-view.md §5.2](./content-preview-history-view.md).
+Defaults: text → `unified`; image → `2up`. Persist: см. [content-preview-history-view.md §5.2](./content-preview-history-view.md).
 
 ### 4.3 Empty / no file selected
 
@@ -120,9 +120,9 @@ interface DiffViewProps {
   commitHash: string
   parentHash: string
   textLayout: 'unified' | 'split'
-  imageLayout: 'split' | 'overlay'
+  imageLayout: '2up' | 'swipe' | 'overlay'
   onTextLayoutChange: (v: 'unified' | 'split') => void
-  onImageLayoutChange: (v: 'split' | 'overlay') => void
+  onImageLayoutChange: (v: '2up' | 'swipe' | 'overlay') => void
   loading: boolean
   error: string | null
   onRetry: () => void

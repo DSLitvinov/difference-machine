@@ -1,6 +1,6 @@
 # Image Diff Panel — спецификация
 
-Панель **diff изображений** в Diff view: режимы **Split** и **Overlay**.
+Панель **diff изображений** в Diff view: режимы **2-up**, **Swipe** и **Overlay**.
 
 **Figma (shadcn kit):** [4030:3317](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317)
 
@@ -28,7 +28,7 @@ interface ImageDiffPanelProps {
   beforeUrl?: string   // object URL or null
   afterUrl?: string
   status: 'added' | 'modified' | 'renamed'
-  layout: 'split' | 'overlay'
+  layout: '2up' | 'swipe' | 'overlay'
   loading: boolean
   error: string | null
   onRetry: () => void
@@ -37,41 +37,66 @@ interface ImageDiffPanelProps {
 
 ---
 
-## 3. Mode: Split (default)
+## 3. Mode: 2-up (default)
 
-Как GitHub Desktop — вертикальный слайдер делит viewport:
+**2-up (рядом)** — обе версии бок о бок; удобно оценить общий вид и размер. При разных размерах `object-contain` в каждой половине показывает это наглядно (как GitHub Desktop).
 
 ```
-┌─────────────────┬──┬─────────────────┐
-│     Before      │▐│      After      │
-│                 │▐│                 │
-└─────────────────┴──┴─────────────────┘
+┌─────────────────┬─────────────────┐
+│     Before      │      After      │
+│  object-contain │ object-contain  │
+└─────────────────┴─────────────────┘
 ```
 
 | Token | Значение |
 |-------|----------|
-| Viewport | `relative flex-1 min-h-0`, checkerboard bg |
-| Images | `object-contain`, max fill |
-| Divider | vertical bar `border-ring`, drag handle ~4px hit area |
-| Labels | `Before` / `After`, `text-xs text-muted-foreground`, углы |
-
-- Slider position: 0–100% (default 50%).
-- Drag обновляет clip-path или width левой/правой половины.
-
-### 3.1 Added (A)
-
-- Before: checkerboard + «No previous version» muted.
-- After: image commit.
-
-### 3.2 Modified / Renamed
-
-- Оба blob при наличии.
+| Layout | `flex`, две равные колонки, `divide-x` |
+| Каждая панель | checkerboard + label + `object-contain` |
+| Added (A) | Before: placeholder; After: image |
 
 ---
 
-## 4. Mode: Overlay
+## 4. Mode: Swipe
 
-«Локовая кожа» — opacity верхнего слоя:
+**Swipe (прокрутка)** — попиксельное сравнение «было — стало»: оба кадра в одной позиции, разделитель сдвигает границу обрезки верхнего слоя. Паттерн как в [слайдере «было — стало»](https://thecode.media/slider-2/).
+
+```
+┌─────────────────────────────────────┐
+│ After (clip)  │▐│  Before (full)    │
+│  [верхний]    │▐│  [нижний слой]    │
+└─────────────────────────────────────┘
+         ↑ draggable divider
+```
+
+| Слой | Источник | Поведение |
+|------|----------|-----------|
+| **Нижний** | parent (before) | `absolute inset-0`, `object-contain`, на всю область |
+| **Верхний** | commit (after) | `overflow: hidden`, ширина = позиция слайдера; `img` той же ширины, что контейнер (pixel-align) |
+| **Разделитель** | — | вертикальная линия + круглая ручка, `cursor-col-resize` |
+
+| Token | Значение |
+|-------|----------|
+| Viewport | `relative`, checkerboard bg, `overflow: hidden` |
+| Slider position | 0–100% (default 50%) |
+| Labels | `After` слева, `Before` справа — `text-xs`, полупрозрачный фон |
+| Ввод | drag ручки; клик по области → переместить разделитель; touch |
+
+Слева от разделителя — **after**, справа — **before** (просвечивает нижний слой).
+
+### 4.1 Added (A)
+
+- Before: checkerboard + «No previous version» muted.
+- After: image commit (полный слой слева при position > 0).
+
+### 4.2 Modified / Renamed
+
+- Оба blob при наличии; пиксели совмещены через одинаковый `object-contain` и ширину `img` = ширина контейнера.
+
+---
+
+## 5. Mode: Overlay
+
+«Наложение» — opacity верхнего слоя:
 
 ```
 ┌─────────────────────────────────────┐
@@ -92,7 +117,7 @@ interface ImageDiffPanelProps {
 
 ---
 
-## 5. Фон и прозрачность
+## 6. Фон и прозрачность
 
 Checkerboard pattern для alpha PNG/WebP:
 
@@ -102,7 +127,7 @@ Checkerboard pattern для alpha PNG/WebP:
 
 ---
 
-## 6. Состояния
+## 7. Состояния
 
 | State | UI |
 |-------|-----|
@@ -112,7 +137,7 @@ Checkerboard pattern для alpha PNG/WebP:
 
 ---
 
-## 7. Corner cases
+## 8. Corner cases
 
 | Case | Поведение |
 |------|-----------|
@@ -122,23 +147,26 @@ Checkerboard pattern для alpha PNG/WebP:
 | Быстрая смена файла | revoke old object URLs |
 | Initial commit | только after |
 | Deleted in list | **не** монтировать ImageDiffPanel |
+| Legacy localStorage `split` | трактуется как `swipe` |
+| Нет сохранённого layout | default `2up` |
 
 ---
 
-## 8. Подкомпоненты (React)
+## 9. Подкомпоненты (React)
 
 | Component | Responsibility |
 |-----------|----------------|
-| `ImageDiffSplit.tsx` | vertical slider mode |
-| `ImageDiffOverlay.tsx` | opacity overlay mode |
-| `ImageDiffPanel.tsx` | layout switch + blob fetch |
+| `ImageDiffTwoUp` | side-by-side mode (default) |
+| `ImageDiffSwipe` | stacked swipe divider mode |
+| `ImageDiffOverlay` | opacity overlay mode |
+| `ImageDiffPanel.tsx` | layout switch |
 
 ---
 
-## 9. shadcn/ui
+## 10. shadcn/ui
 
 | UI | Component |
 |----|-----------|
-| Split divider | custom + `border-ring` |
+| Swipe divider | custom + `border-ring` + round handle |
 | Overlay slider | `Slider` |
 | Retry | `Button` variant `outline` |
