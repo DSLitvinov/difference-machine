@@ -106,3 +106,24 @@ export function saveFileHistoryBranch(repoPath: string, branch: string): void {
     // ignore
   }
 }
+
+export function loadSelectedCommitHash(repoPath: string): string | null {
+  try {
+    return localStorage.getItem(perRepoKey("dfm.history.selectedCommitHash", repoPath));
+  } catch {
+    return null;
+  }
+}
+
+export function saveSelectedCommitHash(repoPath: string, hash: string | null): void {
+  try {
+    const key = perRepoKey("dfm.history.selectedCommitHash", repoPath);
+    if (!hash) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, hash);
+    }
+  } catch {
+    // ignore
+  }
+}

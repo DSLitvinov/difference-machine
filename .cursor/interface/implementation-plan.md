@@ -49,20 +49,20 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **4 — Slice 3** (завершён) / **5 — Slice 4** |
-| **Следующий шаг** | `5.1` History sidebar · `1.2` diff API |
-| **Заметки** | log.get+path, restore.file, InfoHistory Revert/Compare |
+| **Активная фаза** | **5 — Slice 4** (ядро готово) |
+| **Следующий шаг** | `5.2.2` resizable files column · `5.2.5` Split diff · `5.2.6–7` image/blend panels |
+| **Заметки** | diff API + History sidebar/preview wired; image/split/resizable — stubs |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
-| 1 | Backend API | `[~]` 6/17 |
+| 1 | Backend API | `[~]` 10/17 |
 | 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
-| 5 | Slice 4 — History + diff | `[ ]` 0/17 |
+| 5 | Slice 4 — History + diff | `[~]` 13/17 |
 | 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
 | 7 | Сборка и smoke | `[ ]` 1/4 |
 
@@ -96,10 +96,10 @@
 
 ### 1.2 Diff / blob
 
-- [ ] **1.2.1** `diff.name_status` — `from: null` для initial commit
-- [ ] **1.2.2** `diff.text` — unified; error `file_too_large` > 5 MB
-- [ ] **1.2.3** `diff.stat` — для PreviewCommitHeader (одиночный вызов)
-- [ ] **1.2.4** `blob.get` — base64 + mime; лимит 5 MB
+- [x] **1.2.1** `diff.name_status` — `from: null` для initial commit
+- [x] **1.2.2** `diff.text` — unified; error `file_too_large` > 5 MB
+- [x] **1.2.3** `diff.stat` — для PreviewCommitHeader (одиночный вызов)
+- [x] **1.2.4** `blob.get` — base64 + mime; лимит 5 MB
 
 ### 1.3 Log / restore
 
@@ -217,26 +217,26 @@
 
 ### 5.1 Sidebar — History view
 
-- [ ] **5.1.1** `HistoryViewPanel` — header, branch selector, search
-- [ ] **5.1.2** `BranchSelector` — checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md)
-- [ ] **5.1.3** `DirtyBranchSwitchDialog` — [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md)
-- [ ] **5.1.4** `CommitList` + `CommitCard` — [commit-card.md](./commit-card.md)
-- [ ] **5.1.5** v1.0: **без** files-changed row; ⋮ menu урезанное — [decisions.md §6](./decisions.md)
-- [ ] **5.1.6** `log.get` cap 100 + hint
-- [ ] **5.1.7** persist `selectedCommitHash` per repo; no auto-select on enter
-- [ ] **5.1.8** Rail → History: скрыть Content Info
+- [x] **5.1.1** `HistoryViewPanel` — header, branch selector, search
+- [x] **5.1.2** `BranchSelector` — checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md)
+- [x] **5.1.3** `DirtyBranchSwitchDialog` — [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md)
+- [x] **5.1.4** `CommitList` + `CommitCard` — [commit-card.md](./commit-card.md)
+- [x] **5.1.5** v1.0: **без** files-changed row; ⋮ menu урезанное — [decisions.md §6](./decisions.md)
+- [x] **5.1.6** `log.get` cap 100 + hint
+- [x] **5.1.7** persist `selectedCommitHash` per repo; no auto-select on enter
+- [x] **5.1.8** Rail → History: скрыть Content Info
 
 ### 5.2 Content Preview — History view
 
-- [ ] **5.2.1** `PreviewCommitHeader` + `diff.stat` — [preview-commit-header.md](./preview-commit-header.md)
-- [ ] **5.2.2** Changed files list — resizable ~373px — [history-changed-file-item.md](./history-changed-file-item.md)
-- [ ] **5.2.3** Auto-select first file A→Z on commit select
-- [ ] **5.2.4** `DiffView` routing — [diff-view.md](./diff-view.md)
-- [ ] **5.2.5** `TextDiffPanel` — Unified default, Split client-side — [text-diff-panel.md](./text-diff-panel.md)
-- [ ] **5.2.6** `ImageDiffPanel` — Split / Overlay — [image-diff-panel.md](./image-diff-panel.md)
-- [ ] **5.2.7** `BinaryDiffStub` — `.blend` screenshot — [binary-diff-stub.md](./binary-diff-stub.md)
-- [ ] **5.2.8** `DeletedDiffStub` — [deleted-diff-stub.md](./deleted-diff-stub.md)
-- [ ] **5.2.9** Abort stale diff requests; `file_too_large` stub
+- [x] **5.2.1** `PreviewCommitHeader` + `diff.stat` — [preview-commit-header.md](./preview-commit-header.md)
+- [~] **5.2.2** Changed files list — resizable ~373px — [history-changed-file-item.md](./history-changed-file-item.md)
+- [x] **5.2.3** Auto-select first file A→Z on commit select
+- [x] **5.2.4** `DiffView` routing — [diff-view.md](./diff-view.md)
+- [~] **5.2.5** `TextDiffPanel` — Unified default, Split client-side — [text-diff-panel.md](./text-diff-panel.md)
+- [~] **5.2.6** `ImageDiffPanel` — Split / Overlay — [image-diff-panel.md](./image-diff-panel.md)
+- [~] **5.2.7** `BinaryDiffStub` — `.blend` screenshot — [binary-diff-stub.md](./binary-diff-stub.md)
+- [x] **5.2.8** `DeletedDiffStub` — [deleted-diff-stub.md](./deleted-diff-stub.md)
+- [x] **5.2.9** Abort stale diff requests; `file_too_large` stub
 
 **Проверка:** branch switch + dirty dialog; commit → diff text/image/binary; initial commit all-added.
 

@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 
 import { ContentInfoPanel } from "@/components/info/ContentInfoPanel";
+import { HistoryPreviewPanel } from "@/components/preview/HistoryPreviewPanel";
 import {
   bootstrapRepositories,
   ProjectSidebarPanel,
 } from "@/components/sidebar/ProjectSidebarPanel";
+import { HistorySidebarPanel } from "@/components/sidebar/HistorySidebarPanel";
 import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
 import { ForesterErrorBanner } from "@/components/shell/ForesterErrorBanner";
 import { AppNotice } from "@/components/shell/AppNotice";
@@ -12,6 +14,7 @@ import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRa
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
+import { useHistoryStore } from "@/stores/historyStore";
 
 const SIDEBAR_MIN = 334;
 const PREVIEW_MIN = 747;
@@ -40,6 +43,12 @@ export function AppShell() {
     void bootstrapRepositories(setRepo, setError, setLoading);
   }, [setRepo, setError, setLoading]);
 
+  useEffect(() => {
+    if (!repoPath) {
+      useHistoryStore.getState().reset();
+    }
+  }, [repoPath]);
+
   useProjectStatusPolling();
 
   const showInfo = sidebarMode === "project";
@@ -58,7 +67,7 @@ export function AppShell() {
           {sidebarMode === "project" ? (
             <ProjectSidebarPanel />
           ) : (
-            <PlaceholderPanel title="History" subtitle="Commit list — coming in slice 4" />
+            <HistorySidebarPanel />
           )}
         </div>
       ) : (
@@ -75,7 +84,7 @@ export function AppShell() {
         ) : sidebarMode === "project" ? (
           <ProjectPreviewPanel />
         ) : (
-          <PlaceholderPanel title="Content Preview" subtitle="Commit diff — coming in slice 4" />
+          <HistoryPreviewPanel />
         )}
       </main>
 

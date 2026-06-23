@@ -9,6 +9,11 @@ import (
 	"github.com/difference-machine/forester/internal/utils"
 )
 
+// ResolveCommitHash resolves a commit hash from various formats:
+func ResolveCommitHash(repo *core.Repository, currentBranch, hash string) (string, error) {
+	return resolveCommitHash(repo, currentBranch, hash)
+}
+
 // resolveCommitHash resolves a commit hash from various formats:
 // - Full 64-character hash
 // - Short hash (8+ characters)

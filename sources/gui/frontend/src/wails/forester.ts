@@ -182,6 +182,8 @@ export interface CommitLogEntry {
   message: string;
   author: string;
   timestamp: number;
+  parent_hash?: string;
+  parent_hashes?: string[];
 }
 
 export interface BranchEntry {
@@ -195,6 +197,58 @@ export async function fetchFileLog(branch: string, path: string, maxCount = 100)
     capped: boolean;
     filtered: boolean;
   }>("log.get", { branch, path, max_count: maxCount });
+}
+
+export async function fetchBranchLog(branch: string, maxCount = 100) {
+  return foresterCall<{
+    commits: CommitLogEntry[];
+    capped: boolean;
+    filtered: boolean;
+  }>("log.get", { branch, max_count: maxCount });
+}
+
+export function firstParentHash(commit: CommitLogEntry): string | null {
+  if (commit.parent_hashes?.length) return commit.parent_hashes[0] ?? null;
+  if (commit.parent_hash) return commit.parent_hash;
+  return null;
+}
+
+export function diffFromArgs(commit: CommitLogEntry): Record<string, unknown> {
+  const parent = firstParentHash(commit);
+  if (!parent) return { from: null };
+  return {};
+}
+
+export interface DiffFileEntry {
+  status: "A" | "M" | "D";
+  path: string;
+}
+
+export async function fetchDiffNameStatus(to: string, commit: CommitLogEntry) {
+  return foresterCall<{ files: DiffFileEntry[] }>("diff.name_status", {
+    to,
+    ...diffFromArgs(commit),
+  });
+}
+
+export async function fetchDiffStat(to: string, commit: CommitLogEntry) {
+  return foresterCall<{
+    files_changed: number;
+    insertions: number;
+    deletions: number;
+  }>("diff.stat", { to, ...diffFromArgs(commit) });
+}
+
+export async function fetchDiffText(to: string, commit: CommitLogEntry, path: string) {
+  return foresterCall<{
+    content: string;
+    format: string;
+    is_binary: boolean;
+  }>("diff.text", { to, path, unified: true, ...diffFromArgs(commit) });
+}
+
+export async function switchBranch(target: string, autoStash = false): Promise<void> {
+  await foresterCall("repo.switch", { target, auto_stash: autoStash });
 }
 
 export async function fetchBranchList(): Promise<BranchEntry[]> {

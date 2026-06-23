@@ -467,6 +467,56 @@ func TestLogGetPathFilterAndRestoreFile(t *testing.T) {
 	}
 }
 
+func TestDiffHandlers(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "version-one")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"add tracked","author":"tester"}`)
+	writeFile(t, dir, "tracked.txt", "version-two")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"update tracked","author":"tester"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{"max_count":10}`), &logResult); err != nil {
+		t.Fatalf("decode log.get: %v", err)
+	}
+	if len(logResult.Commits) < 2 {
+		t.Fatalf("commits = %d, want >= 2", len(logResult.Commits))
+	}
+	latest := logResult.Commits[0].Hash
+
+	var nameStatus struct {
+		Files []struct {
+			Status string `json:"status"`
+			Path   string `json:"path"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "diff.name_status", `{"to":"`+latest+`"}`), &nameStatus); err != nil {
+		t.Fatalf("decode diff.name_status: %v", err)
+	}
+	if len(nameStatus.Files) == 0 {
+		t.Fatal("diff.name_status files empty")
+	}
+
+	var diffText struct {
+		Content  string `json:"content"`
+		IsBinary bool   `json:"is_binary"`
+	}
+	if err := json.Unmarshal(
+		mustOK(t, h, "diff.text", `{"to":"`+latest+`","path":"tracked.txt","unified":true}`),
+		&diffText,
+	); err != nil {
+		t.Fatalf("decode diff.text: %v", err)
+	}
+	if diffText.IsBinary || diffText.Content == "" {
+		t.Fatalf("diff.text = %+v, want text content", diffText)
+	}
+}
+
 type folderNodeResult struct {
 	Name      string             `json:"name"`
 	Path      string             `json:"path"`

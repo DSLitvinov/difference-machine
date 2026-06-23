@@ -43,6 +43,10 @@ var handlers = map[string]handlerFunc{
 	"workdir.entries":      handleWorkdirEntries,
 	"workdir.metadata":     handleWorkdirMetadata,
 	"workdir.open":         handleWorkdirOpen,
+	"diff.name_status":     handleDiffNameStatus,
+	"diff.stat":            handleDiffStat,
+	"diff.text":            handleDiffText,
+	"blob.get":             handleBlobGet,
 }
 
 // Call dispatches a JSON API method for the given session handle.
