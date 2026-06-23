@@ -84,11 +84,12 @@ History:
 | 1 | App / home | `GalleryVerticalEnd` | Зарезервировано (about — вне scope v1) |
 | 2 | Project view | `FolderGit2` | `sidebarMode = 'project'` |
 | 3 | History | `GitFork` | `sidebarMode = 'history'` |
-| — | *(spacer)* | — | `flex-1` между mode icons и footer |
+| — | *(spacer)* | — | `flex-1` между **header** (home + modes) и **footer** |
 | 4 | **Settings** | `Settings` | Открыть [settings-dialog.md](./settings-dialog.md) |
 | 5 | User avatar | image 32×32 | Зарезервировано (профиль — вне scope v1) |
 
-Mode icons — блок по центру (`flex-1`, `gap-1`, `p-2`). Footer: Settings → avatar.
+**Header (верх):** Home → Project view → History — один stack `flex flex-col gap-1 p-2` под логотипом.  
+**Footer (низ):** Settings → avatar — `flex flex-col gap-1 p-2`. Между ними `flex-1` spacer.
 
 #### Settings button
 

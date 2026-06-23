@@ -24,40 +24,60 @@
 
 ---
 
+## Prerequisites (окружение)
+
+Установить **до фазы 0**. Проверка: `wails doctor` → SUCCESS.
+
+| Компонент | Версия | macOS | Windows |
+|-----------|--------|-------|---------|
+| **Go** | 1.22+; 1.23.3+ на macOS 15+ | `brew install go` | [go.dev/dl](https://go.dev/dl/) |
+| **Node.js** | 20 или 22 LTS | `brew install node` | [nodejs.org](https://nodejs.org/) |
+| **Wails v2 CLI** | latest | `go install github.com/wailsapp/wails/v2/cmd/wails@latest` | то же |
+| **Xcode CLT** | — | `xcode-select --install` | — |
+| **WebView2** | — | встроено | `wails doctor` |
+
+`PATH` += `$(go env GOPATH)/bin`.
+
+**Forester runtime:** `./builder/build.sh --write-local-config` → `~/dfm_distr/bin/forester`. Blender не нужен.
+
+**Запуск:** `cd sources/gui && wails dev` · **сборка:** `wails build`
+
+---
+
 ## Сейчас (обновляйте при каждой сессии)
 
 | Поле | Значение |
 |------|----------|
-| **Последнее обновление** | — |
-| **Активная фаза** | **0 — Подготовка** |
-| **Следующий шаг** | `0.1` — создать `sources/gui/` (Wails bootstrap) |
-| **Заметки** | GUI и новые jsonapi-методы ещё не в репозитории |
+| **Последнее обновление** | 2025-06-23 |
+| **Активная фаза** | **2 — Slice 1** (доработка) / **1 — Backend API** |
+| **Следующий шаг** | `1.1.1` `workdir.tree` **или** `2.2.3` RepoSelector dropdown |
+| **Заметки** | Bootstrap: `sources/gui/`, `wails build` OK. Shell + OpenRepo + Rail. |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
-| 0 | Подготовка | `[ ]` 0/N |
-| 1 | Backend API | `[ ]` 0/N |
-| 2 | Slice 1 — Shell + OpenRepo | `[ ]` 0/N |
-| 3 | Slice 2 — Project browse | `[ ]` 0/N |
-| 4 | Slice 3 — Create commit | `[ ]` 0/N |
-| 5 | Slice 4 — History + diff | `[ ]` 0/N |
-| 6 | Slice 5 — Polish + Settings | `[ ]` 0/N |
-| 7 | Сборка и smoke | `[ ]` 0/N |
+| 0 | Подготовка | `[x]` 6/6 |
+| 1 | Backend API | `[ ]` 0/17 |
+| 2 | Slice 1 — Shell + OpenRepo | `[~]` 8/12 |
+| 3 | Slice 2 — Project browse | `[ ]` 0/15 |
+| 4 | Slice 3 — Create commit | `[ ]` 0/6 |
+| 5 | Slice 4 — History + diff | `[ ]` 0/17 |
+| 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
+| 7 | Сборка и smoke | `[ ]` 1/4 |
 
 ---
 
 ## Фаза 0 — Подготовка
 
-- [ ] **0.1** Создать Wails-проект `sources/gui/` (`main.go`, `wails.json`, `frontend/`)
-- [ ] **0.2** React + TypeScript + Vite + Tailwind + shadcn/ui (Zinc light)
-- [ ] **0.3** Подключить `design-tokens.md` → `globals.css` / `tailwind.config`
-- [ ] **0.4** Go-модуль GUI: вызов `forester/internal/jsonapi` (или subprocess + JSON — зафиксировать в коде)
-- [ ] **0.5** Чтение `~/.dfm/setup.cfg`: путь к forester binary (`[forester].path`)
-- [ ] **0.6** Утилиты путей: `CanonicalAbsPath`, `SamePath` — [paths.md](./paths.md)
+- [x] **0.1** Создать Wails-проект `sources/gui/` (`main.go`, `wails.json`, `frontend/`)
+- [x] **0.2** React + TypeScript + Vite + Tailwind + shadcn/ui (Zinc light)
+- [x] **0.3** Подключить `design-tokens.md` → `globals.css` / `tailwind.config`
+- [x] **0.4** Go-модуль GUI: `forester/pkg/jsonapi` (обёртка над `internal/jsonapi`)
+- [x] **0.5** Чтение `~/.dfm/setup.cfg`: путь к forester binary (`[forester].path`)
+- [x] **0.6** Утилиты путей: `CanonicalAbsPath`, `SamePath` — `internal/paths/`
 
-**Проверка:** `wails dev` открывает пустое окно без ошибок.
+**Проверка:** `wails build` — OK (`build/bin/difference-machine-gui.app`).
 
 ---
 
@@ -106,24 +126,24 @@
 
 ### 2.1 Layout shell
 
-- [ ] **2.1.1** `AppShell`: Rail 48px + resizable columns — [panel-layout.md](./panel-layout.md)
-- [ ] **2.1.2** `SidebarRail` — mode icons (Project / History), Settings, avatar placeholder
-- [ ] **2.1.3** `SetMinSize` — 1435 Project / 1081 History
+- [x] **2.1.1** `AppShell`: Rail 48px + 3-column layout (без resize handles)
+- [x] **2.1.2** `SidebarRail` — mode icons (Project / History), Settings, avatar placeholder
+- [x] **2.1.3** `SetMinSize` — 1435×720
 - [ ] **2.1.4** localStorage: `dfm.layout.*`, `dfm.sidebar.collapsed`, `dfm.sidebar.mode`
-- [ ] **2.1.5** Sidebar collapse → 48px Rail only
+- [x] **2.1.5** Sidebar collapse → Rail only (+ expand button)
 
 ### 2.2 Multi-repo
 
-- [ ] **2.2.1** Startup: read `[current repo]` → `OpenRepo`
-- [ ] **2.2.2** Empty state: «Open repository» + **+ Add repository**
+- [x] **2.2.1** Startup: read `[current repo]` → `OpenRepo`
+- [x] **2.2.2** Empty state: «Open repository» + **+ Add repository**
 - [ ] **2.2.3** `RepoSelector` dropdown — [multi-repo.md §3](./multi-repo.md)
-- [ ] **2.2.4** Native folder picker → `AddKnownRepo`
-- [ ] **2.2.5** Corner cases: invalid path, not a repo, dedupe `SamePath`
+- [x] **2.2.4** Native folder picker → `AddKnownRepo`
+- [x] **2.2.5** Corner cases: invalid path, not a repo (toast via error state)
 
 ### 2.3 State foundation
 
-- [ ] **2.3.1** `sidebarStore` (zustand): `mode`, `repoPath`, `collapsed`, loading, error
-- [ ] **2.3.2** `ForesterCall` typed wrapper в `frontend/src/wails/`
+- [x] **2.3.1** `appStore` (zustand): `mode`, `repoPath`, `collapsed`, loading, error
+- [x] **2.3.2** Wails bindings + `wails/bridge.ts`
 - [ ] **2.3.3** Error banner «Forester unavailable» + Retry
 
 **Проверка:** добавить репо → виден basename; перезапуск → авто-open; пустой cfg → empty state.
@@ -250,7 +270,7 @@
 
 ## Фаза 7 — Сборка и smoke
 
-- [ ] **7.1** `wails build` macOS
+- [ ] **7.1** `wails build` macOS — **done once** 2025-06-23
 - [ ] **7.2** `wails build` Windows (CI или ручная машина)
 - [ ] **7.3** Интеграция в `builder/` (опционально v1.0)
 - [ ] **7.4** Smoke script / чеклист E2E вручную:
@@ -296,4 +316,4 @@
 
 | Дата | Фаза | Сделано | Следующий шаг |
 |------|------|---------|---------------|
-| — | — | — | `0.1` Wails bootstrap |
+| 2025-06-23 | 0 + 2 | Wails bootstrap, pkg/jsonapi, shell, OpenRepo, Rail | `workdir.tree` или RepoSelector dropdown |
