@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { WindowSetMinSize } from "../../../wailsjs/runtime/runtime";
 
 import { ContentInfoPanel } from "@/components/info/ContentInfoPanel";
 import { HistoryPreviewPanel } from "@/components/preview/HistoryPreviewPanel";
@@ -11,16 +12,14 @@ import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { ForesterErrorBanner } from "@/components/shell/ForesterErrorBanner";
 import { AppNotice } from "@/components/shell/AppNotice";
+import { PanelResizeHandle } from "@/components/shell/PanelResizeHandle";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
+import { usePanelLayout } from "@/hooks/usePanelLayout";
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
+import { MIN_WINDOW_HEIGHT, MIN_WINDOW_HISTORY, MIN_WINDOW_PROJECT, PREVIEW_MIN } from "@/lib/layout";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
-
-const SIDEBAR_MIN = 334;
-const PREVIEW_MIN = 747;
-const INFO_MIN = 354;
 
 function PlaceholderPanel({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -42,6 +41,15 @@ export function AppShell() {
   const loading = useAppStore((s) => s.loading);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const {
+    sidebarMainWidth,
+    previewWidth,
+    infoWidth,
+    startSidebarResize,
+    startInfoResize,
+    showSidebarHandle,
+  } = usePanelLayout(sidebarMode, sidebarCollapsed);
+
   useEffect(() => {
     void bootstrapRepositories(setRepo, setError, setLoading);
   }, [setRepo, setError, setLoading]);
@@ -52,19 +60,23 @@ export function AppShell() {
     }
   }, [repoPath]);
 
+  useEffect(() => {
+    const minWidth = sidebarMode === "project" ? MIN_WINDOW_PROJECT : MIN_WINDOW_HISTORY;
+    WindowSetMinSize(minWidth, MIN_WINDOW_HEIGHT);
+  }, [sidebarMode]);
+
   useProjectStatusPolling();
 
   const showInfo = sidebarMode === "project";
-  const sidebarWidth = sidebarCollapsed ? 48 : SIDEBAR_MIN;
 
   return (
-    <div className="flex h-screen min-h-0 bg-sidebar">
+    <div className="flex h-screen min-h-0 overflow-hidden bg-sidebar">
       <SidebarRail onSettingsClick={() => setSettingsOpen(true)} />
 
       {!sidebarCollapsed ? (
         <div
           className="relative flex min-h-0 shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
-          style={{ width: sidebarWidth, minWidth: sidebarWidth }}
+          style={{ width: sidebarMainWidth, minWidth: sidebarMainWidth }}
         >
           <SidebarCollapseButton onClick={() => setSidebarCollapsed(true)} />
           {sidebarMode === "project" ? (
@@ -73,13 +85,13 @@ export function AppShell() {
             <HistorySidebarPanel />
           )}
         </div>
-      ) : (
-        <div className="relative w-0" />
-      )}
+      ) : null}
+
+      {showSidebarHandle ? <PanelResizeHandle onMouseDown={startSidebarResize} /> : null}
 
       <main
-        className="flex min-h-0 min-w-0 flex-1 flex-col bg-background"
-        style={{ minWidth: PREVIEW_MIN }}
+        className="flex min-h-0 shrink-0 flex-col bg-background"
+        style={{ width: previewWidth, minWidth: PREVIEW_MIN }}
       >
         <ForesterErrorBanner />
         {loading && !repoPath ? (
@@ -92,15 +104,15 @@ export function AppShell() {
       </main>
 
       {showInfo ? (
-        <aside
-          className={cn(
-            "hidden shrink-0 border-l border-border bg-background xl:flex xl:flex-col",
-            !repoPath && "opacity-60",
-          )}
-          style={{ width: INFO_MIN, minWidth: INFO_MIN }}
-        >
-          <ContentInfoPanel />
-        </aside>
+        <>
+          <PanelResizeHandle onMouseDown={startInfoResize} />
+          <aside
+            className={!repoPath ? "flex min-h-0 shrink-0 flex-col border-l border-border bg-background opacity-60" : "flex min-h-0 shrink-0 flex-col border-l border-border bg-background"}
+            style={{ width: infoWidth, minWidth: infoWidth }}
+          >
+            <ContentInfoPanel />
+          </aside>
+        </>
       ) : null}
 
       {sidebarCollapsed ? (

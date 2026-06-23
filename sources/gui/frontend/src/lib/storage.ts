@@ -131,6 +131,46 @@ export function saveSelectedCommitHash(repoPath: string, hash: string | null): v
 const HISTORY_FILES_PANEL_WIDTH = "dfm.history.filesPanelWidth";
 const HISTORY_TEXT_LAYOUT = "dfm.history.textLayout";
 const HISTORY_IMAGE_LAYOUT = "dfm.history.imageLayout";
+const LAYOUT_SIDEBAR_WIDTH = "dfm.layout.sidebarWidth";
+const LAYOUT_INFO_WIDTH = "dfm.layout.infoWidth";
+
+export function loadLayoutSidebarWidth(): number | null {
+  try {
+    const raw = localStorage.getItem(LAYOUT_SIDEBAR_WIDTH);
+    if (!raw) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLayoutSidebarWidth(width: number): void {
+  try {
+    localStorage.setItem(LAYOUT_SIDEBAR_WIDTH, String(Math.round(width)));
+  } catch {
+    // ignore
+  }
+}
+
+export function loadLayoutInfoWidth(): number | null {
+  try {
+    const raw = localStorage.getItem(LAYOUT_INFO_WIDTH);
+    if (!raw) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLayoutInfoWidth(width: number): void {
+  try {
+    localStorage.setItem(LAYOUT_INFO_WIDTH, String(Math.round(width)));
+  } catch {
+    // ignore
+  }
+}
 
 export function loadHistoryFilesPanelWidth(repoPath: string): number | null {
   try {

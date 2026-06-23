@@ -49,9 +49,9 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **6 — Slice 5** (завершён) / **7 — Сборка** |
-| **Следующий шаг** | `7.4` smoke checklist · `7.2` Windows build |
-| **Заметки** | Settings dialog, multiselect, mode-switch reset, commit keyboard nav |
+| **Активная фаза** | **7 — Сборка и smoke** |
+| **Следующий шаг** | `7.4` smoke checklist · `3.2.1` toolbar (back/forward, search, slider) |
+| **Заметки** | 3-panel resize + persist; shadcn dropdown fixes |
 
 ### Прогресс v1.0
 
@@ -177,7 +177,7 @@
 ### 3.3 Content Info — stub
 
 - [x] **3.3.1** Панель видна в Project mode; empty state при `selection: none`
-- [ ] **3.3.2** Resize Info column — [panel-layout.md](./panel-layout.md)
+- [x] **3.3.2** Resize Info column — [panel-layout.md](./panel-layout.md)
 
 ### 3.4 Polling
 
@@ -318,3 +318,4 @@
 |------|------|---------|---------------|
 | 2025-06-23 | 0 + 2 | Wails bootstrap, pkg/jsonapi, shell, OpenRepo, Rail | `workdir.tree` или RepoSelector dropdown |
 | 2025-06-23 | 5–6 | Slice 4 History+diff; Slice 5 Settings+multiselect | Smoke / Windows build |
+| 2025-06-23 | 7 | shadcn migration; 3-panel resize + persist | Smoke checklist · toolbar polish |
