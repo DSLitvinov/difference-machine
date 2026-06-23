@@ -4,7 +4,7 @@
 
 **Принцип:** обёртки над существующими `commands.*` (как Git CLI). Новые методы — тонкий JSON-слой, не параллельный API.
 
-**Связанные:** [architecture.md](./architecture.md) · [paths.md](./paths.md)
+**Связанные:** [architecture.md](./architecture.md) · [paths.md](./paths.md) · [decisions.md](./decisions.md)
 
 ---
 
@@ -49,7 +49,7 @@ Badge priority: staged > unstaged для одного path.
 | `merge.start` | `merge <branch>` | pre-merge preview |
 | `merge.continue` | `merge --continue` | Merge button in dialog |
 | `merge.abort` | `merge --abort` | banner action |
-| `objects.by_file` | objects DB / JSON | object list in merge dialog |
+| `objects.by_file` | objects DB / JSON | object list in merge dialog — **канон:** `object.list_by_file` ([decisions.md §7.1](./decisions.md)) |
 
 #### `merge.status`
 
@@ -63,14 +63,14 @@ Badge priority: staged > unstaged для одного path.
 }
 ```
 
-#### `objects.by_file`
+#### `object.list_by_file` (alias в docs: `objects.by_file`)
 
 ```json
 { "path": "assets/scene.blend", "commit_hash": "abc…" }
 → { "objects": [{ "object_name", "object_type", "tags", "metadata" }] }
 ```
 
-См. [merge-dialog.md §5–§6](./merge-dialog.md).
+Реализовано в `dispatch.go` как `object.list_by_file`. См. [merge-dialog.md §5–§6](./merge-dialog.md).
 
 ---
 
@@ -82,8 +82,8 @@ Badge priority: staged > unstaged для одного path.
 **Git-аналог:** `git diff-tree --name-status` / `git show --name-status`
 
 ```json
-// args
-{ "from": "<parent_hash>", "to": "<commit_hash>" }
+// args — initial commit: from = null (empty tree baseline)
+{ "from": "<parent_hash> | null", "to": "<commit_hash>" }
 
 // result
 {
@@ -97,16 +97,18 @@ Badge priority: staged > unstaged для одного path.
 
 | Правило | Значение |
 |---------|----------|
-| `from` | **first parent** коммита (merge — как в History spec) |
+| `from` | **first parent** коммита (merge — как в History spec); **`null`** = initial commit (empty baseline) |
 | `to` | hash выбранного коммита |
-| `status` | `A` \| `M` \| `D` (v1); `R` — когда backend добавит rename detect |
+| `status` | `A` \| `M` \| `D` (v1.0); `R` — v2 |
 | `path` | relative `/` |
 
-History Preview: список changed files. Commit card stats: опционально `diff.stat` (§3.2).
+History Preview: список changed files. Commit card stats: **v1.1** — `diff.stat` (§3.2); v1.0 строка stats **скрыта** ([decisions.md §5](./decisions.md)).
 
-### 3.2 `diff.stat` (optional v1)
+### 3.2 `diff.stat` (v1.1)
 
 **CLI:** `diff <from> <to> --stat`
+
+v1.0: используется только в **PreviewCommitHeader** после выбора коммита (один вызов). Не на каждой commit card.
 
 ```json
 { "from": "...", "to": "..." }
@@ -126,6 +128,8 @@ History Preview: список changed files. Commit card stats: опционал
 }
 → { "content": "...", "format": "unified", "is_binary": false }
 ```
+
+Ответ > **5 MB** → error `file_too_large` ([decisions.md §7.7](./decisions.md)).
 
 Split layout в UI — клиент режет unified (v1).
 
@@ -162,10 +166,12 @@ Image diff: два вызова (`from` parent, `to` commit).
 ```json
 {
   "branch": "main",
-  "max_count": 500,
+  "max_count": 100,
   "path": "assets/scene.blend"
 }
 ```
+
+Default `max_count`: **100** (если `<= 0` в backend). UI hint при cap: «Showing latest 100 commits».
 
 Backend: коммиты ветки, где **blob hash файла** изменился (parent tree vs commit tree). Git-аналог: `git log -- <path>`.
 
@@ -177,8 +183,8 @@ Content Info History — commit combobox.
 
 | JSON method | Назначение |
 |-------------|------------|
-| `workdir.tree` | Sidebar: папки only, recursive `item_count` |
-| `workdir.entries` | Preview: immediate subfolders + files папки |
+| `workdir.tree` | Sidebar: папки only, recursive `item_count`; **v1.0:** lazy `depth` ([decisions.md §7.6](./decisions.md)) |
+| `workdir.entries` | Preview: immediate subfolders + files папки; **v1.0:** pagination |
 | `workdir.search` | Global search по репо |
 | `workdir.metadata` | Content Info: stat + mime |
 | `workdir.thumbnail` | Preview / Info thumbnails (v1: placeholder ok) |
@@ -187,6 +193,16 @@ Content Info History — commit combobox.
 ### 4.1 `workdir.tree`
 
 См. [architecture.md §4.2](./architecture.md).
+
+**v1.0 (lazy):**
+
+```json
+{ "path": "", "depth": 1 }
+```
+
+`depth` — глубина от `path` (default `1`). Children без вложенных `children` до expand / следующего запроса с `path` узла.
+
+**v1.1:** optional full tree (как в architecture §4.2) для малых репо.
 
 ### 4.2 `workdir.entries`
 
@@ -199,6 +215,15 @@ type DirEntry struct {
     Size      int64  `json:"size"`        // files only
 }
 ```
+
+**Pagination (v1.0):**
+
+```json
+{ "path": "assets", "offset": 0, "limit": 200 }
+→ { "entries": [...], "total": 4521, "has_more": true }
+```
+
+Default `limit`: 200.
 
 ---
 
@@ -231,24 +256,29 @@ type DirEntry struct {
 
 ## 7. Реализация (порядок)
 
-1. `paths` + multi-repo cfg  
-2. `workdir.*`  
+См. также vertical slices: [decisions.md §4](./decisions.md).
+
+1. Wails bootstrap (`sources/gui/`) + `paths` + multi-repo cfg — **параллельно** с п.2  
+2. `workdir.tree` (lazy) / `workdir.entries` (pagination) / `workdir.open`  
 3. `diff.name_status` / `diff.text` / `blob.get`  
 4. `log.get` + `path`  
 5. `restore.file`  
-6. Shell + panels UI  
+6. Shell + panels UI (slices 1→5)  
 
 Все новые методы — в `jsonapi` (тесты как `integration_test.go`).
 
 ---
 
-## 8. Отложено (не v1)
+## 8. Отложено
 
 | Тема | Версия |
 |------|--------|
-| Rename `R` в `diff.name_status` | backend similarity |
-| `diff` rename detection | как `git diff -M` |
+| Rename `R` в `diff.name_status` | v2 |
+| `diff.stat` на commit cards | v1.1 |
+| `diff` rename detection | v2 |
 | Fs watcher | v2 |
-| Tree collapse | v2 |
+| Tree collapse + fully expanded tree | v1.1 / v2 |
 | Branch merge UI | v2 — [merge-dialog.md](./merge-dialog.md) |
 | `EvalSymlinks` для repo paths | v1.1 |
+| Virtual scroll (Preview) | v1.1 |
+| Init repository wizard | v1.1 |

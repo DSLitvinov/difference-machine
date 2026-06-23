@@ -5,6 +5,8 @@
 
 **Цвета:** [design-tokens.md](./design-tokens.md)
 
+**Решения v1.0:** [decisions.md §5](./decisions.md) — lazy folder tree.
+
 **Rail (общий):** [architecture.md §2.2](./architecture.md) — logo, mode icons, **Settings**, avatar. Figma: [`4026:4812`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812).
 
 ---
@@ -64,21 +66,29 @@ Toggle **Changed** одновременно:
 
 **Текущая ветка (read-only):** под repo selector — `GitBranch` + `currentBranch` (`text-xs text-muted-foreground`). Checkout только из History `BranchSelector` ([sidebar-history-view.md §2.6](./sidebar-history-view.md)); в Project mode ветка не переключается.
 
-### 2.3 Дерево папок (v1) — **зафиксировано**
+### 2.3 Дерево папок
+
+**Канон v1.0:** [decisions.md §5](./decisions.md) · API: [api-contract.md §4.1](./api-contract.md).
 
 **Решения:**
 
-| # | Решение |
-|---|---------|
-| Содержимое | **Только папки**, файлы не рендерятся |
-| Layout | **Tree**, не drill-down |
-| Раскрытие | **Always expanded** — collapse узлов отключён в v1 |
-| Root | **Selectable** — `path: ''` → Preview показывает файлы корня репо |
+| # | v1.0 | v1.1 (Figma target) |
+|---|------|---------------------|
+| Содержимое | **Только папки**, файлы не рендерятся | то же |
+| Layout | **Tree**, не drill-down | то же |
+| Раскрытие | **Lazy expand** — первый уровень при open; дети по клику chevron | **Always expanded** |
+| Root | **Selectable** — `path: ''` → Preview показывает файлы корня репо | то же |
+
+#### Lazy expand (v1.0)
+
+- Первый запрос: `workdir.tree({ path: '', depth: 1 })`.
+- Клик chevron на узле без загруженных детей → `workdir.tree({ path: '<node>', depth: 1 })` → merge в локальное дерево.
+- Chevron **активен** (rotate on expand/collapse локального узла).
 
 #### Визуал строки папки
 
 - Отступ по глубине (`paddingLeft = depth * indent`).
-- Chevron `ChevronDown` (декоративный в v1 — все узлы expanded) или без chevron.
+- Chevron `ChevronRight` / `ChevronDown` — expand/collapse узла (v1.0 lazy).
 - Icon `Folder`.
 - Name (`text-sm/medium`, `foreground/secondary`).
 - Count badge справа (`text-xs/semibold`).
@@ -100,16 +110,15 @@ Toggle **Changed** одновременно:
 
 #### Сворачивание (collapse)
 
-- **v1: always expanded** — пользователь не может свернуть узлы; chevron декоративный или отсутствует.
-- Collapse per-node — не раньше v2.
+- **v1.0:** lazy expand/collapse per-node (chevron).
+- **v1.1:** optional «expand all» / fully expanded для малых репо.
+- Persist expanded paths в `localStorage` per repo — v1.1.
 
 #### Производительность
 
-При большом числе папок (>500 nodes):
-
-- Обязательна **`@tanstack/react-virtual`** на flat list (DFS flatten expanded tree).
-- Backend: один вызов `workdir.tree` при open repo + invalidate on refresh.
-- Skeleton при первой загрузке.
+- v1.0: lazy `workdir.tree` — не грузить всё дерево сразу.
+- v1.1: `@tanstack/react-virtual` на flat list при fully expanded ([decisions.md §3](./decisions.md)).
+- Skeleton при первой загрузке уровня.
 
 ### 2.4 Цвета (List Container)
 

@@ -6,7 +6,7 @@
 
 **Стек:** React + shadcn/ui (`Card`, `Badge`, `Tooltip`, `DropdownMenu`, `Button`)
 
-**Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [architecture.md](./architecture.md) · [design-tokens.md](./design-tokens.md)
+**Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [architecture.md](./architecture.md) · [design-tokens.md](./design-tokens.md) · [decisions.md §6](./decisions.md) (v1.0 menu scope)
 
 ---
 
@@ -176,7 +176,7 @@ function parseCommitMessage(message: string) {
 |------|----------|
 | base | `log.get` |
 | `tags` | extend `log.get` or `tag.list` |
-| `files_*` | `diff.stat` or lazy `diff.name_status` — [api-contract.md](./api-contract.md) |
+| `files_*` | `diff.stat` — **v1.1**; v1.0 строка **скрыта** ([decisions.md §5](./decisions.md)) |
 
 ---
 
@@ -192,6 +192,8 @@ function parseCommitMessage(message: string) {
 ---
 
 ## 6. Context menu (⋮)
+
+**v1.0:** только View in Preview, Copy hash, Copy message — [decisions.md §6](./decisions.md). Остальные пункты — v1.1.
 
 `DropdownMenuContent` `align="end"` `side="bottom"`
 

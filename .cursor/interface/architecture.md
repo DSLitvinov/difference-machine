@@ -5,7 +5,7 @@
 **Стек:** Wails (Go backend) + React + shadcn/ui  
 **Дизайн:** [design-tokens.md](./design-tokens.md) (канон цветов и item states) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
 
-**Канон:** события §3.1 · API [api-contract.md](./api-contract.md) · пути [paths.md](./paths.md) · multi-repo [multi-repo.md](./multi-repo.md) · resize [panel-layout.md](./panel-layout.md)
+**Канон:** события §3.1 · API [api-contract.md](./api-contract.md) · решения [decisions.md](./decisions.md) · пути [paths.md](./paths.md) · multi-repo [multi-repo.md](./multi-repo.md) · resize [panel-layout.md](./panel-layout.md)
 
 ---
 
@@ -17,7 +17,7 @@ Sidebar управляет выбором **папки**, **ветки/комм�
 
 | Режим | Документ | Кратко |
 |-------|----------|--------|
-| **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | Дерево папок (fully expanded) + toggle «Changed» |
+| **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | Дерево папок (lazy expand v1.0) + toggle «Changed» |
 | **History** | [sidebar-history-view.md](./sidebar-history-view.md) | Ветка + список коммитов + поиск |
 
 **Content Preview (Project view):** [content-preview-project-view.md](./content-preview-project-view.md) — сетка папок/файлов, drill-down, multiselect, поиск, slider.  
@@ -394,8 +394,10 @@ interface SidebarEvents {
 
 ## 7. Структура файлов (frontend)
 
+Wails app: **`sources/gui/`** ([decisions.md §2](./decisions.md)).
+
 ```
-frontend/src/
+sources/gui/frontend/src/
   components/sidebar/
     Sidebar.tsx              # shell + rail
     SidebarRail.tsx          # logo, mode icons, Settings, avatar
@@ -425,13 +427,15 @@ frontend/src/
 
 ## 8. Фазы реализации
 
+Канон scope: [decisions.md](./decisions.md).
+
 | Фаза | Scope |
 |------|-------|
-| **v1 (MVP)** | Full GUI: Sidebar (Project + History) · Preview (Project + History diff) · Content Info · multi-repo · 3-panel resize · commit card ⋮ (full menu) |
-| **v1 polish** | Thumbnails, virtual scroll, `+N` multiselect badge, changed-count on folders |
-| **v2** | Tree collapse, fs watcher, rename `R` in diff, **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
+| **v1.0 (ship)** | Shell · multi-repo · resize · Project (lazy tree) · History + diff · Info single-file · Create commit · dirty dialog · commit card (урезанное ⋮) |
+| **v1.1 (polish)** | Fully expanded tree · virtual scroll · thumbnails · multiselect (Shift/marquee) · dark theme · commit card stats + full ⋮ · Settings (Appearance, External editors) |
+| **v2** | Fs watcher · rename `R` · detached HEAD · **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
 
-**Порядок:** backend (`api-contract.md` §7) → shell → panels.
+**Порядок:** [decisions.md §4](./decisions.md) · backend ([api-contract.md §7](./api-contract.md)) → UI slices.
 
 **Окно:** enforce min size — [panel-layout.md §5](./panel-layout.md) (1435px Project / 1081px History).
 
@@ -439,6 +443,7 @@ frontend/src/
 
 ## 9. Связанные документы
 
+- [decisions.md](./decisions.md) — decision log (scope v1.0/v1.1, API, UX)
 - [api-contract.md](./api-contract.md) — JSON API + UI events
 - [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)
 - [panel-layout.md](./panel-layout.md) — resize Sidebar / Preview / Info

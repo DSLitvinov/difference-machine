@@ -7,6 +7,8 @@
 
 **API:** [api-contract.md](./api-contract.md)
 
+**Решения v1.0:** [decisions.md §6–§8](./decisions.md) — commit card menu, selection, dirty switch.
+
 **Rail (общий):** [architecture.md §2.2](./architecture.md) — **Settings** → [settings-dialog.md](./settings-dialog.md). Figma: [`4026:4547`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547).
 
 ## 1. Назначение
@@ -91,12 +93,12 @@ flowchart TD
   D -->|dirty| F[Dirty-tree dialog]
   F -->|Cancel| G[Abort — dropdown reverts to currentBranch]
   F -->|Stash and switch| H[repo.switch auto_stash true]
-  F -->|Try anyway| I[repo.switch without stash]
-  I -->|error| J[Toast Forester error — stay on currentBranch]
   E --> K[Refresh branches status log Project tree]
   H --> K
   K --> L[currentBranch = X clear commit selection reload log.get]
 ```
+
+> v1.0: только Cancel + Stash & switch — [decisions.md §8.2](./decisions.md). **Try anyway** не в UI (Forester отклоняет dirty switch без stash).
 
 **Dirty** = любой непустой массив в `status.get` (staged/unstaged/untracked) или merge in progress.
 
@@ -120,7 +122,7 @@ You have uncommitted changes:
 | **Stash & switch** | `repo.switch({ target, auto_stash: true })` | Forester `-a` |
 | **Discard & switch** | v1.1 | Требует `workdir.discard` / reset index — API пока нет |
 
-**Try anyway** (обычный `repo.switch` без stash): Forester **отклоняет** switch при dirty — не показывать как primary action в v1; при необходимости v1.1 — отдельная кнопка с toast ошибки.
+**Try anyway** — **не в v1.0** ([decisions.md §8.2](./decisions.md)). Forester отклоняет `repo.switch` без stash при dirty tree.
 
 После успешного switch:
 
