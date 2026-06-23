@@ -11,7 +11,7 @@
 
 **Стек:** Wails (Go backend) + React + shadcn/ui
 
-**Связанные документы:** [architecture.md](./architecture.md) · [sidebar-project-view.md](./sidebar-project-view.md) · [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
+**Связанные документы:** [architecture.md](./architecture.md) · [sidebar-project-view.md](./sidebar-project-view.md) · [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md) · [content-info-project-view.md](./content-info-project-view.md)
 
 ---
 
@@ -465,7 +465,7 @@ type PreviewSelection =
 onPreviewSelectionChange(sel: PreviewSelection): void
 ```
 
-Content Info реагирует на selection (одиночный файл → детали; множество → summary «N files selected»). Папка в Preview не эмитит file-selection.
+Content Info реагирует на selection (одиночный файл → детали; множество → multi layout). См. [content-info-project-view.md](./content-info-project-view.md). Папка в Preview не эмитит file-selection.
 
 ---
 

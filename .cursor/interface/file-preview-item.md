@@ -5,7 +5,7 @@
 **Figma (shadcn kit):** [4026:5023](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5023) · legacy [7310:16038](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16038)
 
 **Стек:** React + shadcn/ui (`Badge`)  
-**Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [design-tokens.md](./design-tokens.md) · [architecture.md](./architecture.md)
+**Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [content-info-project-view.md](./content-info-project-view.md) · [design-tokens.md](./design-tokens.md) · [architecture.md](./architecture.md)
 
 ---
 

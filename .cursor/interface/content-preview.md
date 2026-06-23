@@ -1,3 +1,5 @@
-> **Перенесено:** актуальные спеки — [content-preview-project-view.md](./content-preview-project-view.md) · [content-preview-history-view.md](./content-preview-history-view.md).  
+> **Перенесено:** Preview — [content-preview-project-view.md](./content-preview-project-view.md) · [content-preview-history-view.md](./content-preview-history-view.md).  
+> Content Info — [content-info-project-view.md](./content-info-project-view.md).  
 > Project atoms: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)  
-> History atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) · [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md)
+> History atoms: [preview-commit-header.md](./preview-commit-header.md) · … · [deleted-diff-stub.md](./deleted-diff-stub.md)  
+> Info atoms: [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [create-commit-dialog.md](./create-commit-dialog.md)

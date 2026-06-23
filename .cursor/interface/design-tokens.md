@@ -90,6 +90,10 @@
 | History Preview — image diff | [4030:3317](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317) |
 | History Preview — binary stub | [4031:3754](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4031-3754) |
 | History Preview — blend screenshot stub | [4030:2796](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-2796) |
+| Content Info — single | [4027:5041](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) |
+| Content Info — multi | [4037:1898](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1898) |
+| Content Info — preview single | [4037:707](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-707) |
+| Create commit dialog | [4037:1076](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1076) |
 
 ### 3.1 Sidebar shell
 
@@ -174,6 +178,21 @@
 | Image diff handle | `border/primary/default` | `border-ring bg-background` |
 | Resize divider | `border/default` | `bg-border` |
 
+### 3.6 Content Info
+
+| Элемент | Figma | Tailwind |
+|---------|-------|----------|
+| Panel | `background/default` | `bg-background border-border` |
+| Preview frame | `border/default` | `border border-border rounded-md` |
+| Status badge | `background/primary/default` | `Badge variant="default"` |
+| Lock badge | `background/secondary` | `Badge variant="secondary"` |
+| Section header | `foreground/default` | `text-sm font-semibold` |
+| Metadata label | `foreground/default` | `text-sm` |
+| Disabled name input | `background/default` + border | `Input disabled` |
+| Revert button | accent light | `Button variant="secondary"` |
+| Compare button | outline | `Button variant="outline"` |
+| Create commit | `background/primary/default` | `Button variant="default"` |
+
 ---
 
 ## 4. Состояния item — сводка (Tailwind only)
@@ -220,6 +239,7 @@ const commitCardStateClasses = {
 - [image-diff-panel.md](./image-diff-panel.md)
 - [binary-diff-stub.md](./binary-diff-stub.md)
 - [deleted-diff-stub.md](./deleted-diff-stub.md)
+- [content-info-project-view.md](./content-info-project-view.md)
 - [folder-preview-item.md](./folder-preview-item.md)
 - [file-preview-item.md](./file-preview-item.md)
 - [commit-card.md](./commit-card.md)

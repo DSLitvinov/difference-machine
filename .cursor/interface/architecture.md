@@ -1,6 +1,6 @@
 # Forester GUI — архитектура
 
-Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar и Content Preview (Project + History) задокументированы; Content Info — позже.
+Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar, Content Preview и Content Info (Project) задокументированы.
 
 **Стек:** Wails (Go backend) + React + shadcn/ui  
 **Дизайн:** [design-tokens.md](./design-tokens.md) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
@@ -21,7 +21,9 @@ Sidebar управляет выбором **папки**, **ветки/комм�
 **Content Preview (Project view):** [content-preview-project-view.md](./content-preview-project-view.md) — сетка папок/файлов, drill-down, multiselect, поиск, slider.  
 Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 
-**Content Preview (History view):** [content-preview-history-view.md](./content-preview-history-view.md) — orchestration. Atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) · [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md). **Content Info скрыта**.
+**Content Preview (History view):** [content-preview-history-view.md](./content-preview-history-view.md) — orchestration. Atoms: [preview-commit-header.md](./preview-commit-header.md) · … **Content Info скрыта**.
+
+**Content Info (Project view):** [content-info-project-view.md](./content-info-project-view.md) — preview, metadata, history, create commit. Atoms: [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md). **Скрыта в History mode**.
 
 ---
 
@@ -31,7 +33,7 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 
 | Режим | Панели | Content Preview |
 |-------|--------|-----------------|
-| **Project view** | Sidebar + Preview (+ Content Info v2) | Grid папок/файлов |
+| **Project view** | Sidebar + Preview + **Content Info** | Grid папок/файлов |
 | **History** | **Sidebar + Preview** (Content Info скрыта) | Commit diff layout |
 
 ```
@@ -226,6 +228,12 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 | `GetCommitFileBlob(repoPath, hash, filePath)` | **новый** `commit.blob` | History Preview: image before/after |
 | `OpenCommitFileWithDefaultApp(repoPath, hash, filePath)` | **новый** | History Preview: binary stub → temp blob + OS open |
 | `GetCommitScreenshot(repoPath, hash)` | **новый** `commit.screenshot` | History Preview: `.blend` binary stub preview |
+| `GetFileMetadata(repoPath, fileRel)` | **новый** `file.metadata` | Content Info metadata |
+| `GetFileThumbnail(repoPath, fileRel, size)` | **новый** | Content Info + Preview thumbnails |
+| `GetFileLog(repoPath, branch, fileRel)` | **новый** `file.log` | Content Info History |
+| `RestoreFileFromCommit(repoPath, hash, paths[])` | **новый** `restore.file` | Content Info Revert |
+| `CompareExtract(repoPath, hash)` | `compare.extract` | Content Info Compare |
+| `StageFiles(repoPath, paths[])` | `add` | Before create commit |
 
 > `status.get` возвращает **плоские** списки путей, не иерархию. Для Project view (список папок) нужен отдельный метод на Go: обход FS + агрегация + учёт `.dfmignore` и скрытия `.DFM/`.
 
@@ -388,8 +396,8 @@ frontend/src/
 | Фаза | Scope |
 |------|-------|
 | **v1** | Sidebar + Content Preview Project view (grid, multiselect, search, slider) |
-| **v1.1** | Thumbnails, virtual scroll polish, changed-count badge on folders |
-| **v2** | Content Preview History (diff), Content Info, tree collapse, context menus, fs watcher |
+| **v1.1** | Content Info, thumbnails, virtual scroll polish, changed-count badge on folders |
+| **v2** | Content Preview History (diff), tree collapse, context menus, fs watcher |
 
 ---
 
@@ -407,4 +415,6 @@ frontend/src/
 - [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md)
 - [folder-preview-item.md](./folder-preview-item.md) — item папки
 - [file-preview-item.md](./file-preview-item.md) — item файла
+- [content-info-project-view.md](./content-info-project-view.md) — Content Info (Project)
+- [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md)
 - [plan.md](./plan.md) — исходное ТЗ
