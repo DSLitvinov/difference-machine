@@ -197,25 +197,28 @@ onProjectViewContextChange(ctx: ProjectViewContext): void
 | `showChangedOnly` | Файлы в Preview для `selectedFolderPath` |
 |-------------------|------------------------------------------|
 | `false` | Все immediate files в папке (`workdir.entries`) |
-| `true` | Только committable files **в этой папке** (immediate children, path under folder) |
+| `true` | Все **committable** files **рекурсивно** в поддереве выбранной папки (`''` = весь репозиторий) |
 
 Фильтр Preview при `showChangedOnly = true`:
 
 ```ts
-function filesForPreview(
+function committableFilesInSubtree(
   folderPath: string,
   committable: string[],
 ): string[] {
-  return committable.filter((filePath) => {
-    if (folderPath === '') {
-      // root: files without '/' in path
-      return !filePath.includes('/')
-    }
-    return filePath.startsWith(folderPath + '/') &&
-      !filePath.slice(folderPath.length + 1).includes('/')
-  })
+  if (folderPath === '') {
+    return [...committable]
+  }
+  const prefix = folderPath + '/'
+  return committable.filter((filePath) => filePath.startsWith(prefix))
 }
 ```
+
+- **Root (`''`):** flat-список всех committable файлов репозитория — удобно для multiselect и **Create commit**.
+- **Подпапка:** только committable внутри этой папки и вложенных подпапок.
+- Сортировка: по **полному относительному path** (не только basename).
+- В карточке файла: subtitle = parent folder (`assets` / `root`) для различения одноимённых имён.
+- Секция **Folders** в Preview скрыта; навигация по scope — через дерево Sidebar или breadcrumbs.
 
 Каждый файл в Preview сопровождается `VcsFileStatus` из `status.get` (badge `M`, `A`, `D`, `U`, `??`).
 
@@ -267,7 +270,7 @@ sequenceDiagram
     PV->>W: workdir.entries(folderPath)
   else showChangedOnly ON
     PV->>App: committable from status
-    PV->>PV: filesForPreview(folderPath)
+    PV->>PV: committableFilesInSubtree(folderPath)
   end
 ```
 
@@ -278,8 +281,8 @@ sequenceDiagram
 | Ситуация | Поведение |
 |----------|-----------|
 | Нет папок (только файлы в root) | Дерево: только selectable **root** row; Preview root по клику |
-| Changed ON, root files only | Root в дереве; Preview filtered committable в root |
-| Changed ON, нет изменений | Empty tree «No changed folders»; Preview empty |
+| Changed ON, root | Root в дереве; Preview — все committable репо (flat) |
+| Changed ON, нет изменений | Empty tree «No changed folders»; Preview «No changed files» |
 | Пустая папка в дереве | Показать узел, count `0`, лист без детей |
 | `.DFM/` | Не включается в дерево |
 | `.dfmignore` | Игнорируемые папки не строятся |

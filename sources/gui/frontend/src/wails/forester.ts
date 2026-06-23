@@ -120,14 +120,16 @@ export function committablePaths(status: StatusPayload): string[] {
   return [...out];
 }
 
+export function committableFilesInSubtree(folderPath: string, committable: string[]): string[] {
+  if (folderPath === "") {
+    return [...committable];
+  }
+  const prefix = `${folderPath}/`;
+  return committable.filter((filePath) => filePath.startsWith(prefix));
+}
+
 export function folderHasCommittable(folderPath: string, committable: string[]): boolean {
-  if (committable.length === 0) return false;
-  return committable.some((filePath) => {
-    if (folderPath === "") {
-      return !filePath.includes("/");
-    }
-    return filePath === folderPath || filePath.startsWith(`${folderPath}/`);
-  });
+  return committableFilesInSubtree(folderPath, committable).length > 0;
 }
 
 export async function fetchWorkdirTree(path = "", depth = 1): Promise<FolderNode> {

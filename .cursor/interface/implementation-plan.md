@@ -171,7 +171,7 @@
 - [x] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
 - [x] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 - [x] **3.2.4** VCS badges из `status.get` only
-- [x] **3.2.5** Changed ON → hide Folders section; filter committable files
+- [x] **3.2.5** Changed ON → hide Folders section; recursive committable flat list
 - [x] **3.2.6** Double-click file → `workdir.open`
 - [x] **3.2.7** `onPreviewSelectionChange` — single file select (multiselect в фазе 6)
 - [x] **3.2.8** Смена папки → сброс file selection

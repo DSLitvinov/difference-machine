@@ -8,6 +8,7 @@ import { gridMinCellSize } from "@/lib/previewScale";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
+  committableFilesInSubtree,
   fetchStatus,
   fetchWorkdirEntries,
   fetchWorkdirSearch,
@@ -16,17 +17,21 @@ import {
   vcsFileStatus,
   type DirEntry,
 } from "@/wails/forester";
+import type { SortLocale } from "@/lib/storage";
 
-function filesForPreview(folderPath: string, committable: string[]): string[] {
-  return committable.filter((filePath) => {
-    if (folderPath === "") {
-      return !filePath.includes("/");
-    }
-    return (
-      filePath.startsWith(`${folderPath}/`) &&
-      !filePath.slice(folderPath.length + 1).includes("/")
-    );
-  });
+function dirEntriesFromPaths(paths: string[]): DirEntry[] {
+  return paths.map((path) => ({
+    name: path.split("/").pop() ?? path,
+    path,
+    is_dir: false,
+    item_count: 0,
+    size: 0,
+  }));
+}
+
+function sortByPath<T extends { path: string }>(items: T[], locale: SortLocale): T[] {
+  const collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
+  return [...items].sort((a, b) => collator.compare(a.path, b.path));
 }
 
 function breadcrumbSegments(folderPath: string): { label: string; path: string }[] {
@@ -119,16 +124,9 @@ export function ProjectPreviewPanel() {
       setLoading(true);
       try {
         if (showChangedOnly) {
-          const paths = filesForPreview(selectedFolderPath, committable);
-          const synthetic: DirEntry[] = paths.map((path) => ({
-            name: path.split("/").pop() ?? path,
-            path,
-            is_dir: false,
-            item_count: 0,
-            size: 0,
-          }));
+          const paths = committableFilesInSubtree(selectedFolderPath, committable);
           if (!cancelled) {
-            setEntries(synthetic);
+            setEntries(dirEntriesFromPaths(paths));
             setSubfolders([]);
           }
         } else {
@@ -194,7 +192,9 @@ export function ProjectPreviewPanel() {
 
   const crumbs = breadcrumbSegments(selectedFolderPath);
   const sortedSubfolders = sortByName(subfolders, sortLocale);
-  const sortedEntries = sortByName(entries, sortLocale);
+  const sortedEntries = showChangedOnly
+    ? sortByPath(entries, sortLocale)
+    : sortByName(entries, sortLocale);
 
   const searchFolders = useMemo(
     () => sortByName(searchResults.filter((entry) => entry.is_dir), sortLocale),
@@ -345,16 +345,14 @@ export function ProjectPreviewPanel() {
 
             {sortedEntries.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                {showChangedOnly ? "No changed files here" : "No files in this folder"}
+                {showChangedOnly ? "No changed files" : "No files in this folder"}
               </p>
             ) : (
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                  Files
-                  {selectedFolderPath
-                    ? ` (${selectedFolderPath.split("/").pop()})`
-                    : null}
-                  {showChangedOnly ? " · changed" : null}
+                  {showChangedOnly
+                    ? `Changed files (${sortedEntries.length})`
+                    : `Files${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}`}
                 </p>
                 <ul
                   className="grid gap-2"
@@ -368,6 +366,9 @@ export function ProjectPreviewPanel() {
                         name={entry.name}
                         path={entry.path}
                         thumbScale={thumbScale}
+                        subtitle={
+                          showChangedOnly ? parentFolderPath(entry.path) || "root" : undefined
+                        }
                         selected={selectedFilePaths.includes(entry.path)}
                         vcsStatus={vcsFileStatus(entry.path, status)}
                         onSelect={(event) =>

@@ -35,7 +35,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | 3 | Сортировка | **Переключатель En-us / A-я** в toolbar (`ArrowUpDown`); Folders и Files сортируются независимо (см. §6) |
 | 4 | Мультиселект | **Только файлы**. Папки — одиночный выбор; double-click для входа |
 | 5 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
-| 6 | Changed ON | Секция **Folders скрывается**, показываются только committable files (§8) |
+| 6 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
 | 7 | Слайдер | Масштаб миниатюр **48px → 128px**, шаг **18px** (§5) |
 | 8 | Double-click файл | **Открыть в связанном приложении ОС** (default handler) через Wails (§4.4) |
 
@@ -401,13 +401,17 @@ const collator = new Intl.Collator(sortLocale, {
 | Аспект | Changed OFF | Changed ON |
 |--------|-------------|------------|
 | Секция **Folders** | Все immediate subfolders | **Скрыта целиком** (решение §1.1 #6) |
-| Секция **Files** | Все immediate files | Только **committable** files текущей папки |
-| Header Files | `Files (<folder>)` | `Files (<folder>)` (можно суффикс «· changed») |
+| Секция **Files** | Все immediate files | **Все committable** в поддереве `selectedFolderPath` (рекурсивно) |
+| Header Files | `Files (<folder>)` | `Changed files (N)` |
+| Карточка файла | имя | имя + subtitle parent folder |
+| Сортировка Files | по `name` | по полному `path` |
 | Поиск | по всему репо | по committable-файлам всего репо |
 
-Фильтр committable — см. [sidebar-project-view.md §3.2](./sidebar-project-view.md) (`committablePaths(status)`).
+Фильтр committable — см. [sidebar-project-view.md §3.2–3.3](./sidebar-project-view.md) (`committableFilesInSubtree`).
 
-При Changed ON и отсутствии committable-файлов в папке → empty state «No changed files here».
+При Changed ON и отсутствии committable-файлов в scope → empty state «No changed files».
+
+**Типичный UX:** toggle ON + root в Sidebar → все изменённые файлы репо в одной сетке → multiselect → **Create commit** в Content Info.
 
 ---
 
@@ -491,7 +495,7 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 | Папка пуста | Empty state «This folder is empty» |
 | Только подпапки (нет файлов) | Секция Folders + «No files in this folder» |
 | Только файлы (нет подпапок) | Секция Folders скрыта, Files показаны |
-| Changed ON, нет изменений | «No changed files here» |
+| Changed ON, нет изменений | «No changed files» |
 | Репозиторий не открыт | «Open a repository to preview content» |
 | Папка удалена на диске | Toast + откат на parent / root |
 | Ошибка backend | Inline error + кнопка Retry |
@@ -511,7 +515,7 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 | Смена папки во время marquee-drag | Отменить рамку |
 | Смена репо | Сброс selection, истории навигации, scale (или восстановить per-repo) |
 | Status badge: staged + unstaged одновременно | Приоритет staged; tooltip перечисляет оба |
-| Changed ON при выбранной подпапке без изменений | Files пусто → empty state; Folders скрыты |
+| Changed ON при выбранной подпапке | Preview — committable рекурсивно в поддереве; Folders скрыты |
 | Поиск + Changed ON | Результаты только committable |
 | Слайдер на Max при узкой панели | Сетка переносит на меньшее число колонок (wrap) |
 | Double-click по файлу | `workdir.open` → приложение ОС (§4.4) |
@@ -557,7 +561,7 @@ frontend/src/
 | 3 | Сортировка | Переключатель En-us / A-я в toolbar; `Intl.Collator`, Folders и Files раздельно |
 | 4 | Мультиселект | Только файлы (Shift / Ctrl / рамка); папки — single-select + double-click вход |
 | 5 | Поиск | Global по репозиторию, отдельный results view |
-| 6 | Changed ON | Folders скрыты, только committable files |
+| 6 | Changed ON | Folders скрыты; recursive committable flat list |
 | 7 | Слайдер | 48→128px, шаг 18px (6 позиций), Min-визуал ≤84, Max-визуал ≥102, per-repo persist |
 | 8 | Status badge | VCS-код (A/M/D/?), скрыт для clean; только у файлов |
 | 9 | Double-click файл | `workdir.open` — открытие в приложении по умолчанию ОС (§4.4) |

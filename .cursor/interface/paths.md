@@ -72,7 +72,7 @@ func CanonicalRelPath(path string) string {
 | Папка в tree API | `assets/References` или `''` для root |
 | Rename в History | `old/path → new/path` (оба relative, `/`) |
 
-Сегменты breadcrumb / `filesForPreview` — делить по `/`, не по `filepath.Separator`.
+Сегменты breadcrumb / `committableFilesInSubtree` — делить по `/`, не по `filepath.Separator`.
 
 ---
 

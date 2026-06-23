@@ -315,7 +315,7 @@ interface SidebarEvents {
 | Панель | `false` | `true` |
 |--------|---------|--------|
 | **Sidebar** | Полное дерево папок | Только папки с committable в поддереве |
-| **Content Preview** | Все files в выбранной папке | Только committable files в выбранной папке |
+| **Content Preview** | Все files в выбранной папке | Все committable files **рекурсивно** в поддереве выбранной папки |
 
 Сигнал: `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })`.
 
