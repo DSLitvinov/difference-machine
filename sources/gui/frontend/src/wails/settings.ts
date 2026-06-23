@@ -1,6 +1,9 @@
 import {
   GetSettings,
   PickSettingsFile,
+  PickSettingsFolder,
+  SaveSettingsEditors,
+  SaveSettingsForester,
   SaveSettingsProfile,
   SaveSettingsRepos,
 } from "../../wailsjs/go/main/App";
@@ -14,6 +17,7 @@ export interface SettingsSnapshot {
   foresterCli: string;
   blenderPath: string;
   addonPath: string;
+  editors: string[];
 }
 
 export async function fetchSettings(): Promise<SettingsSnapshot> {
@@ -28,6 +32,22 @@ export async function saveSettingsRepos(repos: string[]): Promise<void> {
   await SaveSettingsRepos(repos);
 }
 
+export async function saveSettingsEditors(editors: string[]): Promise<void> {
+  await SaveSettingsEditors(editors);
+}
+
+export async function saveSettingsForester(
+  cliPath: string,
+  blenderPath: string,
+  addonPath: string,
+): Promise<void> {
+  await SaveSettingsForester(cliPath, blenderPath, addonPath);
+}
+
 export async function pickSettingsFile(): Promise<string> {
   return PickSettingsFile();
+}
+
+export async function pickSettingsFolder(): Promise<string> {
+  return PickSettingsFolder();
 }

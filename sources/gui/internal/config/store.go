@@ -345,3 +345,131 @@ func (s *Store) BlenderPath() string {
 func (s *Store) AddonPath() string {
 	return s.Get("addons", "diffmachine_path")
 }
+
+// OrderedPathList returns path_N entries from a config section in numeric order.
+func (s *Store) OrderedPathList(section string) ([]string, error) {
+	sec := s.data[section]
+	if len(sec) == 0 {
+		return nil, nil
+	}
+
+	type item struct {
+		index int
+		path  string
+	}
+	items := make([]item, 0, len(sec))
+	for key, value := range sec {
+		if !strings.HasPrefix(key, "path_") {
+			continue
+		}
+		n, err := strconv.Atoi(strings.TrimPrefix(key, "path_"))
+		if err != nil || n < 1 {
+			continue
+		}
+		canonical, err := paths.CanonicalAbsPath(value)
+		if err != nil {
+			continue
+		}
+		items = append(items, item{index: n, path: canonical})
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].index < items[j].index })
+
+	out := make([]string, 0, len(items))
+	seen := make(map[string]struct{})
+	for _, it := range items {
+		if _, ok := seen[it.path]; ok {
+			continue
+		}
+		seen[it.path] = struct{}{}
+		out = append(out, it.path)
+	}
+	return out, nil
+}
+
+// SetOrderedPathList replaces path_N keys in a section with an ordered deduplicated list.
+func (s *Store) SetOrderedPathList(section string, pathList []string) error {
+	s.data[section] = make(map[string]string)
+	seen := make(map[string]struct{})
+	idx := 1
+	for _, path := range pathList {
+		if path == "" {
+			continue
+		}
+		canonical, err := paths.CanonicalAbsPath(path)
+		if err != nil {
+			return err
+		}
+		if _, ok := seen[canonical]; ok {
+			continue
+		}
+		seen[canonical] = struct{}{}
+		s.Set(section, fmt.Sprintf("path_%d", idx), canonical)
+		idx++
+	}
+	return s.Save()
+}
+
+// GUIEditors returns configured external editor executables.
+func (s *Store) GUIEditors() ([]string, error) {
+	return s.OrderedPathList("gui editors")
+}
+
+// SetGUIEditorsList persists [gui editors].
+func (s *Store) SetGUIEditorsList(editorPaths []string) error {
+	return s.SetOrderedPathList("gui editors", editorPaths)
+}
+
+// SetForesterPaths updates backend toolchain paths in setup.cfg.
+func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
+	if strings.TrimSpace(cliPath) == "" {
+		return fmt.Errorf("Forester CLI path is required")
+	}
+	cliCanonical, err := paths.CanonicalAbsPath(cliPath)
+	if err != nil {
+		return err
+	}
+	if info, err := os.Stat(cliCanonical); err != nil {
+		return fmt.Errorf("Forester CLI not found: %w", err)
+	} else if info.IsDir() {
+		return fmt.Errorf("Forester CLI must be a file")
+	}
+	s.Set("forester", "path", cliCanonical)
+
+	if blenderPath != "" {
+		blenderCanonical, err := paths.CanonicalAbsPath(blenderPath)
+		if err != nil {
+			return err
+		}
+		if info, err := os.Stat(blenderCanonical); err != nil {
+			return fmt.Errorf("Blender executable not found: %w", err)
+		} else if info.IsDir() {
+			return fmt.Errorf("Blender executable must be a file")
+		}
+		s.Set("blender", "path", blenderCanonical)
+	} else {
+		if sec := s.data["blender"]; sec != nil {
+			delete(sec, "path")
+		}
+	}
+
+	if addonPath != "" {
+		addonCanonical, err := paths.CanonicalAbsPath(addonPath)
+		if err != nil {
+			return err
+		}
+		info, err := os.Stat(addonCanonical)
+		if err != nil {
+			return fmt.Errorf("Blender addon path not found: %w", err)
+		}
+		if !info.IsDir() {
+			return fmt.Errorf("Blender addon path must be a directory")
+		}
+		s.Set("addons", "diffmachine_path", addonCanonical)
+	} else {
+		if sec := s.data["addons"]; sec != nil {
+			delete(sec, "diffmachine_path")
+		}
+	}
+
+	return s.Save()
+}

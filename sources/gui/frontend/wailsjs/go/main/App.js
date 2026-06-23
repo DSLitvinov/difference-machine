@@ -42,8 +42,20 @@ export function PickSettingsFile() {
   return window['go']['main']['App']['PickSettingsFile']();
 }
 
+export function PickSettingsFolder() {
+  return window['go']['main']['App']['PickSettingsFolder']();
+}
+
 export function RemoveKnownRepo(arg1) {
   return window['go']['main']['App']['RemoveKnownRepo'](arg1);
+}
+
+export function SaveSettingsEditors(arg1) {
+  return window['go']['main']['App']['SaveSettingsEditors'](arg1);
+}
+
+export function SaveSettingsForester(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveSettingsForester'](arg1, arg2, arg3);
 }
 
 export function SaveSettingsProfile(arg1, arg2) {

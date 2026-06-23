@@ -1,8 +1,10 @@
 import type { MouseEvent } from "react";
-import { File } from "lucide-react";
+import { File, Loader2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
+import { isImagePreviewPath } from "@/lib/fileKinds";
 import { isMaxThumbVisual } from "@/lib/previewScale";
 import { cn } from "@/lib/utils";
 import type { VcsFileStatus } from "@/wails/forester";
@@ -21,6 +23,7 @@ interface FilePreviewItemProps {
 
 export function FilePreviewItem({
   name,
+  path,
   selected,
   thumbScale = 48,
   subtitle,
@@ -32,6 +35,8 @@ export function FilePreviewItem({
   const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
   const maxVisual = isMaxThumbVisual(thumbScale);
   const iconSize = Math.max(16, Math.round(thumbScale * 0.5));
+  const wantsThumbnail = isImagePreviewPath(path) && !dimmed;
+  const { loading, previewUrl } = useWorkdirPreview(wantsThumbnail ? path : null, "image");
 
   return (
     <Button
@@ -50,13 +55,24 @@ export function FilePreviewItem({
       <div className="relative">
         <div
           className={cn(
-            "flex items-center justify-center rounded-md border border-border",
+            "flex items-center justify-center overflow-hidden rounded-md border border-border",
             maxVisual && "bg-muted/40",
             dimmed && "opacity-50",
           )}
           style={{ width: thumbScale, height: thumbScale }}
         >
-          <File className="text-muted-foreground" style={{ width: iconSize, height: iconSize }} />
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : previewUrl ? (
+            <img
+              src={previewUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          ) : (
+            <File className="text-muted-foreground" style={{ width: iconSize, height: iconSize }} />
+          )}
         </div>
         {badge ? (
           <Badge

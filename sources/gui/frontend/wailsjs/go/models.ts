@@ -25,6 +25,7 @@ export namespace main {
 	    foresterCli: string;
 	    blenderPath: string;
 	    addonPath: string;
+	    editors: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new SettingsSnapshot(source);
@@ -40,6 +41,7 @@ export namespace main {
 	        this.foresterCli = source["foresterCli"];
 	        this.blenderPath = source["blenderPath"];
 	        this.addonPath = source["addonPath"];
+	        this.editors = source["editors"];
 	    }
 	}
 

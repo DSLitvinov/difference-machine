@@ -48,3 +48,7 @@ export function classifyInfoPreview(path: string): InfoPreviewKind {
   if (TEXT_EXTENSIONS.has(ext)) return "text";
   return "binary";
 }
+
+export function isImagePreviewPath(path: string): boolean {
+  return IMAGE_EXTENSIONS.has(fileExtension(path));
+}

@@ -1,5 +1,6 @@
 import { FileArchive, FileCode, FileImage, Loader2 } from "lucide-react";
 
+import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
 import { cn } from "@/lib/utils";
 import type { InfoPreviewKind } from "@/lib/fileKinds";
 import type { VcsFileStatus } from "@/wails/forester";
@@ -27,17 +28,39 @@ function PreviewStub({ kind }: { kind: InfoPreviewKind }) {
 }
 
 export function InfoFilePreviewSingle({
+  path,
   vcsStatus,
   lockUser,
   kind,
-  loading,
+  loading: metadataLoading,
 }: InfoFilePreviewSingleProps) {
   const statusLabel = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
+  const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
+  const { loading: previewLoading, previewUrl, textPreview } = useWorkdirPreview(
+    dimmed ? null : path,
+    kind,
+  );
+  const loading = metadataLoading || previewLoading;
 
   return (
-    <div className="relative mx-auto flex h-[200px] w-full max-w-[312px] items-center justify-center rounded-md border border-border bg-muted/30">
+    <div className="relative mx-auto flex h-[200px] w-full max-w-[312px] items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
       {loading ? (
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      ) : previewUrl ? (
+        <img
+          src={previewUrl}
+          alt=""
+          className={cn(
+            "h-full w-full",
+            kind === "blend" ? "object-contain" : "object-cover",
+            dimmed && "opacity-50",
+          )}
+          draggable={false}
+        />
+      ) : textPreview && kind === "text" ? (
+        <pre className="max-h-full w-full overflow-auto p-3 text-left font-mono text-[11px] leading-relaxed text-foreground">
+          {textPreview}
+        </pre>
       ) : (
         <PreviewStub kind={kind} />
       )}

@@ -22,7 +22,13 @@ export function PickRepositoryFolder():Promise<string>;
 
 export function PickSettingsFile():Promise<string>;
 
+export function PickSettingsFolder():Promise<string>;
+
 export function RemoveKnownRepo(arg1:string):Promise<void>;
+
+export function SaveSettingsEditors(arg1:Array<string>):Promise<void>;
+
+export function SaveSettingsForester(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function SaveSettingsProfile(arg1:string,arg2:string):Promise<void>;
 

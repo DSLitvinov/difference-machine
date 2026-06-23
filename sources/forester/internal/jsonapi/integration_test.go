@@ -450,6 +450,35 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 	if !foundReadme {
 		t.Fatalf("search entries = %+v, want readme.txt", searchResult.Entries)
 	}
+
+	pngBytes := []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d}
+	writeFile(t, dir, "assets/preview.png", string(pngBytes))
+
+	var thumbResult struct {
+		Kind           string `json:"kind"`
+		Mime           string `json:"mime"`
+		ContentBase64  string `json:"content_base64"`
+		TextPreview    string `json:"text_preview"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"assets/preview.png"}`), &thumbResult); err != nil {
+		t.Fatalf("decode workdir.thumbnail image: %v", err)
+	}
+	if thumbResult.Kind != "image" {
+		t.Fatalf("thumbnail kind = %q, want image", thumbResult.Kind)
+	}
+	if thumbResult.ContentBase64 == "" {
+		t.Fatal("expected content_base64 for image thumbnail")
+	}
+
+	if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"readme.txt"}`), &thumbResult); err != nil {
+		t.Fatalf("decode workdir.thumbnail text: %v", err)
+	}
+	if thumbResult.Kind != "text" {
+		t.Fatalf("thumbnail kind = %q, want text", thumbResult.Kind)
+	}
+	if thumbResult.TextPreview != "hello" {
+		t.Fatalf("text_preview = %q, want hello", thumbResult.TextPreview)
+	}
 }
 
 func TestLogGetPathFilterAndRestoreFile(t *testing.T) {

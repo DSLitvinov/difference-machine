@@ -1,12 +1,21 @@
 package jsonapi
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/difference-machine/forester/internal/core"
+)
+
+const (
+	maxThumbnailBytes   = 5 * 1024 * 1024
+	maxTextPreviewBytes = 32 * 1024
+	maxTextPreviewRunes = 2000
 )
 
 func handleWorkdirTree(workPath string, args json.RawMessage) (interface{}, error) {
@@ -101,6 +110,79 @@ func handleWorkdirMetadata(workPath string, args json.RawMessage) (interface{}, 
 	})
 }
 
+func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Path string `json:"path"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	if params.Path == "" {
+		return nil, fmt.Errorf("path is required")
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		rel := canonicalRelPath(params.Path)
+		abs := filepath.Join(repoPath, filepath.FromSlash(rel))
+		info, err := os.Stat(abs)
+		if err != nil {
+			return nil, err
+		}
+		if info.IsDir() {
+			return nil, fmt.Errorf("path is a directory")
+		}
+
+		mime := guessMime(rel)
+		ext := strings.ToLower(filepath.Ext(rel))
+
+		if isImageExt(ext) {
+			if info.Size() > maxThumbnailBytes {
+				return map[string]interface{}{
+					"kind": "placeholder",
+					"mime": mime,
+				}, nil
+			}
+			raw, err := os.ReadFile(abs)
+			if err != nil {
+				return nil, err
+			}
+			return map[string]interface{}{
+				"kind":            "image",
+				"mime":            mime,
+				"content_base64":  base64.StdEncoding.EncodeToString(raw),
+			}, nil
+		}
+
+		if isTextExt(ext) && info.Size() <= maxTextPreviewBytes {
+			raw, err := os.ReadFile(abs)
+			if err != nil {
+				return nil, err
+			}
+			if !utf8.Valid(raw) {
+				return map[string]interface{}{
+					"kind": "placeholder",
+					"mime": mime,
+				}, nil
+			}
+			text := string(raw)
+			if utf8.RuneCountInString(text) > maxTextPreviewRunes {
+				runes := []rune(text)
+				text = string(runes[:maxTextPreviewRunes])
+			}
+			return map[string]interface{}{
+				"kind":         "text",
+				"mime":         mime,
+				"text_preview": text,
+			}, nil
+		}
+
+		return map[string]interface{}{
+			"kind": "placeholder",
+			"mime": mime,
+		}, nil
+	})
+}
+
 func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, error) {
 	var params struct {
 		Path string `json:"path"`
@@ -157,6 +239,24 @@ func handleWorkdirSearch(workPath string, args json.RawMessage) (interface{}, er
 			"capped":  capped,
 		}, nil
 	})
+}
+
+func isImageExt(ext string) bool {
+	switch ext {
+	case ".png", ".jpg", ".jpeg", ".gif", ".webp", ".exr", ".tiff", ".tif", ".bmp":
+		return true
+	default:
+		return false
+	}
+}
+
+func isTextExt(ext string) bool {
+	switch ext {
+	case ".txt", ".md", ".json", ".xml", ".svg", ".tsx", ".ts", ".js", ".jsx", ".go", ".py", ".rs", ".css", ".html", ".yaml", ".yml", ".ini", ".cfg", ".sh":
+		return true
+	default:
+		return false
+	}
 }
 
 func guessMime(rel string) string {

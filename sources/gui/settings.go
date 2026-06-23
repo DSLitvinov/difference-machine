@@ -19,6 +19,7 @@ type SettingsSnapshot struct {
 	ForesterCLI string   `json:"foresterCli"`
 	BlenderPath string   `json:"blenderPath"`
 	AddonPath   string   `json:"addonPath"`
+	Editors     []string `json:"editors"`
 }
 
 // GetSettings returns the current GUI configuration snapshot.
@@ -27,6 +28,10 @@ func (a *App) GetSettings() (*SettingsSnapshot, error) {
 		return nil, fmt.Errorf("config not loaded")
 	}
 	repos, err := a.cfg.KnownRepos()
+	if err != nil {
+		return nil, err
+	}
+	editors, err := a.cfg.GUIEditors()
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +44,7 @@ func (a *App) GetSettings() (*SettingsSnapshot, error) {
 		ForesterCLI: a.cfg.ForesterBinaryPath(),
 		BlenderPath: a.cfg.BlenderPath(),
 		AddonPath:   a.cfg.AddonPath(),
+		Editors:     editors,
 	}, nil
 }
 
@@ -103,6 +109,38 @@ func (a *App) SaveSettingsRepos(repoPaths []string) error {
 	return nil
 }
 
+// SaveSettingsEditors persists the external editor list.
+func (a *App) SaveSettingsEditors(editorPaths []string) error {
+	if a.cfg == nil {
+		return fmt.Errorf("config not loaded")
+	}
+	canonical := make([]string, 0, len(editorPaths))
+	for _, path := range editorPaths {
+		if path == "" {
+			continue
+		}
+		abs, err := paths.CanonicalAbsPath(path)
+		if err != nil {
+			return err
+		}
+		if info, err := os.Stat(abs); err != nil {
+			return fmt.Errorf("editor not found: %s", abs)
+		} else if info.IsDir() {
+			return fmt.Errorf("editor must be a file: %s", abs)
+		}
+		canonical = append(canonical, abs)
+	}
+	return a.cfg.SetGUIEditorsList(canonical)
+}
+
+// SaveSettingsForester persists backend toolchain paths.
+func (a *App) SaveSettingsForester(cliPath, blenderPath, addonPath string) error {
+	if a.cfg == nil {
+		return fmt.Errorf("config not loaded")
+	}
+	return a.cfg.SetForesterPaths(cliPath, blenderPath, addonPath)
+}
+
 // PickSettingsFile opens a native file picker for executables.
 func (a *App) PickSettingsFile() (string, error) {
 	if a.ctx == nil {
@@ -110,6 +148,16 @@ func (a *App) PickSettingsFile() (string, error) {
 	}
 	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Select file",
+	})
+}
+
+// PickSettingsFolder opens a native folder picker.
+func (a *App) PickSettingsFolder() (string, error) {
+	if a.ctx == nil {
+		return "", fmt.Errorf("application not ready")
+	}
+	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select folder",
 	})
 }
 

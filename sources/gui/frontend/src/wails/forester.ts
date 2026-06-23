@@ -172,6 +172,19 @@ export async function fetchWorkdirMetadata(path: string): Promise<WorkdirMetadat
   return foresterCall<WorkdirMetadata>("workdir.metadata", { path });
 }
 
+export type WorkdirThumbnailKind = "image" | "text" | "placeholder";
+
+export interface WorkdirThumbnail {
+  kind: WorkdirThumbnailKind;
+  mime: string;
+  content_base64?: string;
+  text_preview?: string;
+}
+
+export async function fetchWorkdirThumbnail(path: string): Promise<WorkdirThumbnail> {
+  return foresterCall<WorkdirThumbnail>("workdir.thumbnail", { path });
+}
+
 export async function fetchLockList(): Promise<LockEntry[]> {
   const result = await foresterCall<{ locks: LockEntry[] }>("lock.list", {});
   return result.locks ?? [];

@@ -42,6 +42,7 @@ var handlers = map[string]handlerFunc{
 	"workdir.tree":         handleWorkdirTree,
 	"workdir.entries":      handleWorkdirEntries,
 	"workdir.metadata":     handleWorkdirMetadata,
+	"workdir.thumbnail":    handleWorkdirThumbnail,
 	"workdir.open":         handleWorkdirOpen,
 	"workdir.search":       handleWorkdirSearch,
 	"diff.name_status":     handleDiffNameStatus,
