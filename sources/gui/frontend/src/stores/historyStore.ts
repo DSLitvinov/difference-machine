@@ -31,12 +31,14 @@ export const useHistoryStore = create<HistoryState>((set) => ({
   setPendingBranchTarget: (branch) => set({ pendingBranchTarget: branch }),
   restoreSelection: (repoPath, availableHashes) => {
     const saved = loadSelectedCommitHash(repoPath);
+    let hash: string | null = null;
     if (saved && availableHashes.includes(saved)) {
-      set({ selectedCommitHash: saved, selectedChangedFilePath: null });
-    } else {
-      saveSelectedCommitHash(repoPath, null);
-      set({ selectedCommitHash: null, selectedChangedFilePath: null });
+      hash = saved;
+    } else if (availableHashes.length > 0) {
+      hash = availableHashes[0]!;
     }
+    saveSelectedCommitHash(repoPath, hash);
+    set({ selectedCommitHash: hash, selectedChangedFilePath: null });
   },
   reset: () =>
     set({

@@ -59,7 +59,9 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
     if (mode === sidebarMode) return;
     useProjectStore.getState().clearFileSelection();
     if (repoPath) {
-      useHistoryStore.getState().selectCommit(repoPath, null);
+      if (sidebarMode === "history") {
+        useHistoryStore.getState().selectCommit(repoPath, null);
+      }
     } else {
       useHistoryStore.getState().reset();
     }

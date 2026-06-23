@@ -225,7 +225,7 @@
 - [x] **5.1.4** `CommitList` + `CommitCard` — [commit-card.md](./commit-card.md)
 - [x] **5.1.5** v1.0: **без** files-changed row; ⋮ menu урезанное — [decisions.md §6](./decisions.md)
 - [x] **5.1.6** `log.get` cap 100 + hint
-- [x] **5.1.7** persist `selectedCommitHash` per repo; no auto-select on enter
+- [x] **5.1.7** persist `selectedCommitHash` per repo; auto-select first commit on History enter (saved or newest)
 - [x] **5.1.8** Rail → History: скрыть Content Info
 
 ### 5.2 Content Preview — History view

@@ -51,12 +51,13 @@
 
 Вход: `onSelectionChange({ kind: 'commit', hash, branch })` из [architecture.md §3.1](./architecture.md).
 
-| Событие Sidebar | Действие Preview |
+| Событие Sidebar / Rail | Действие Preview |
 |-----------------|------------------|
-| Коммит выбран | Загрузить детали + changed files; **auto-select первый файл** (§4.1) |
+| Rail → **History** | После `log.get`: auto-select коммит (saved или первый); загрузить header + changed files; **auto-select первый файл** + diff (§4.1) |
+| Коммит выбран вручную | Загрузить детали + changed files; **auto-select первый файл** (§4.1) |
 | Selection сброшен (`kind: 'none'`) | Empty state Preview |
-| Смена `currentBranch` (checkout) | Сброс commit selection; Preview empty; после выбора нового коммита — обычный flow |
-| Rail → Project view | Preview переключается на Project layout; History state сбрасывается |
+| Смена `currentBranch` (checkout) | Сброс commit selection; после `log.get` — снова auto-select первый коммит |
+| Rail → Project view | Preview переключается на Project layout; History commit selection сбрасывается |
 
 **Поиска в History Preview нет** (в отличие от Project view).
 
@@ -65,7 +66,7 @@
 | # | Тема | Решение |
 |---|------|---------|
 | 1 | Baseline diff | **Коммит vs parent** (первый parent для merge) |
-| 2 | Триггер | Выбор коммита → header + file list; **auto-select первый файл** по пути A→Z |
+| 2 | Триггер | Вход в History / выбор коммита → header + file list; **auto-select первый файл** по пути A→Z + diff |
 | 3 | Текстовый diff | **Unified** default; toggle в [diff-view.md](./diff-view.md) |
 | 4 | Изображения | 2-up + Swipe + Overlay — [image-diff-panel.md](./image-diff-panel.md) |
 | 5 | Расширения image | `png`, `jpg`/`jpeg`, `gif`, `webp`, `bmp`, `tiff`, `exr`; **`svg` → text** |
@@ -181,11 +182,11 @@ interface HistoryPreviewState {
 
 ### 4.1 Auto-select первого файла
 
-1. Sort paths A→Z.
-2. `selectedFilePath = sorted[0]?.path ?? null`.
-3. Prefetch diff для выбранного файла.
+Срабатывает при **любом** появлении `selectedCommitHash` (вход в History, выбор коммита, restore после `log.get`):
 
-При refresh: сохранить selection если path в списке, иначе first file.
+1. Sort paths A→Z.
+2. `selectedChangedFilePath = sorted[0]?.path ?? null` (если saved path ещё в списке — оставить его).
+3. Prefetch diff для выбранного файла (текст / image / binary stub).
 
 ### 4.2 Персистентность
 

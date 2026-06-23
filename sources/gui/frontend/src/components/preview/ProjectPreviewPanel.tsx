@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { FilePreviewItem } from "@/components/preview/FilePreviewItem";
+import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
 import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar";
 import { gridMinCellSize } from "@/lib/previewScale";
+import { isEditableElement, isSelectAllShortcut } from "@/lib/keyboard";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
@@ -78,13 +79,11 @@ export function ProjectPreviewPanel() {
   const setError = useAppStore((s) => s.setError);
   const setNotice = useAppStore((s) => s.setNotice);
   const selectedFolderPath = useProjectStore((s) => s.selectedFolderPath);
-  const selectedFilePaths = useProjectStore((s) => s.selectedFilePaths);
   const navigateToFolder = useProjectStore((s) => s.navigateToFolder);
   const navigateBack = useProjectStore((s) => s.navigateBack);
   const navigateForward = useProjectStore((s) => s.navigateForward);
   const navStack = useProjectStore((s) => s.navStack);
   const navIndex = useProjectStore((s) => s.navIndex);
-  const toggleFileSelection = useProjectStore((s) => s.toggleFileSelection);
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const status = useProjectStore((s) => s.status);
@@ -94,6 +93,8 @@ export function ProjectPreviewPanel() {
   const setThumbScale = useProjectStore((s) => s.setThumbScale);
   const previewSearchQuery = useProjectStore((s) => s.previewSearchQuery);
   const setPreviewSearchQuery = useProjectStore((s) => s.setPreviewSearchQuery);
+  const selectFilePaths = useProjectStore((s) => s.selectFilePaths);
+  const clearFileSelection = useProjectStore((s) => s.clearFileSelection);
 
   const [entries, setEntries] = useState<DirEntry[]>([]);
   const [subfolders, setSubfolders] = useState<DirEntry[]>([]);
@@ -204,6 +205,27 @@ export function ProjectPreviewPanel() {
     () => sortByName(searchResults.filter((entry) => !entry.is_dir), sortLocale),
     [searchResults, sortLocale],
   );
+  const searchFilePaths = useMemo(() => searchFiles.map((f) => f.path), [searchFiles]);
+  const sortedEntryPaths = useMemo(() => sortedEntries.map((f) => f.path), [sortedEntries]);
+  const selectableFilePaths = isSearchActive ? searchFilePaths : sortedEntryPaths;
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        clearFileSelection();
+        return;
+      }
+      if (!isSelectAllShortcut(event)) return;
+      if (isEditableElement(event.target)) return;
+      if (selectableFilePaths.length === 0) return;
+
+      event.preventDefault();
+      selectFilePaths(selectableFilePaths);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [clearFileSelection, selectFilePaths, selectableFilePaths]);
 
   if (!repoPath) {
     return (
@@ -289,29 +311,14 @@ export function ProjectPreviewPanel() {
                     <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                       Files ({searchFiles.length})
                     </p>
-                    <ul
-                      className="grid gap-2"
-                      style={{
-                        gridTemplateColumns: `repeat(auto-fill, minmax(${cellMin}px, 1fr))`,
-                      }}
-                    >
-                      {searchFiles.map((entry) => (
-                        <li key={entry.path}>
-                          <FilePreviewItem
-                            name={entry.name}
-                            path={entry.path}
-                            thumbScale={thumbScale}
-                            subtitle={parentFolderPath(entry.path) || "root"}
-                            selected={selectedFilePaths.includes(entry.path)}
-                            vcsStatus={vcsFileStatus(entry.path, status)}
-                            onSelect={(event) =>
-                              toggleFileSelection(entry.path, event.metaKey || event.ctrlKey)
-                            }
-                            onOpen={() => void openFile(entry.path)}
-                          />
-                        </li>
-                      ))}
-                    </ul>
+                    <FilePreviewGrid
+                      files={searchFiles}
+                      orderedPaths={searchFilePaths}
+                      thumbScale={thumbScale}
+                      vcsStatusFor={(path) => vcsFileStatus(path, status)}
+                      subtitleFor={(entry) => parentFolderPath(entry.path) || "root"}
+                      onOpen={(path) => void openFile(path)}
+                    />
                   </div>
                 ) : null}
               </>
@@ -354,31 +361,18 @@ export function ProjectPreviewPanel() {
                     ? `Changed files (${sortedEntries.length})`
                     : `Files${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}`}
                 </p>
-                <ul
-                  className="grid gap-2"
-                  style={{
-                    gridTemplateColumns: `repeat(auto-fill, minmax(${cellMin}px, 1fr))`,
-                  }}
-                >
-                  {sortedEntries.map((entry) => (
-                    <li key={entry.path}>
-                      <FilePreviewItem
-                        name={entry.name}
-                        path={entry.path}
-                        thumbScale={thumbScale}
-                        subtitle={
-                          showChangedOnly ? parentFolderPath(entry.path) || "root" : undefined
-                        }
-                        selected={selectedFilePaths.includes(entry.path)}
-                        vcsStatus={vcsFileStatus(entry.path, status)}
-                        onSelect={(event) =>
-                          toggleFileSelection(entry.path, event.metaKey || event.ctrlKey)
-                        }
-                        onOpen={() => void openFile(entry.path)}
-                      />
-                    </li>
-                  ))}
-                </ul>
+                <FilePreviewGrid
+                  files={sortedEntries}
+                  orderedPaths={sortedEntryPaths}
+                  thumbScale={thumbScale}
+                  vcsStatusFor={(path) => vcsFileStatus(path, status)}
+                  subtitleFor={
+                    showChangedOnly
+                      ? (entry) => parentFolderPath(entry.path) || "root"
+                      : undefined
+                  }
+                  onOpen={(path) => void openFile(path)}
+                />
               </div>
             )}
           </div>

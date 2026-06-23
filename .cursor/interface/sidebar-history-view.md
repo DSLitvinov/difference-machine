@@ -247,12 +247,25 @@ interface HistoryViewState {
 }
 ```
 
-### 4.1 Инициализация
+### 4.1 Инициализация и вход в History
 
 1. Load `branch.list`.
 2. `currentBranch` = branch where `is_current === true` OR `"main"`.
 3. `log.get({ branch: currentBranch })`.
-4. Select first commit **не** автоматически — только если был saved `selectedCommitHash` и hash есть в log.
+4. **Auto-select commit** после загрузки log (§4.2):
+   - если есть сохранённый `dfm.history.selectedCommitHash` и hash в log → выбрать его;
+   - иначе → **первый коммит в списке** (новейший, верх списка);
+   - карточка коммита в Sidebar — состояние **Selected**; Content Preview загружает diff.
+
+### 4.2 Вход через Rail (Project → History)
+
+При клике **History** на Rail:
+
+1. Сброс **только** Project file selection (`PreviewSelection`).
+2. **Не** сбрасывать commit selection заранее — после `log.get` сработает §4.1.
+3. Content Preview: для выбранного коммита **auto-select первый changed file** A→Z и показать diff — [content-preview-history-view.md §4.1](./content-preview-history-view.md).
+
+При уходе **History → Project**: сброс `selectedCommitHash` (commit selection).
 
 ---
 
@@ -376,7 +389,7 @@ interface HistoryViewState {
 | Primary API | `status.get`, `workdir.tree` | `branch.list`, `log.get`, `commit.get`, `diff.*` |
 | Selection type | `ProjectViewContext` (folder) | `commit` |
 
-При переключении rail Project ↔ History: **сброс selection** (см. [architecture.md](./architecture.md) §6.10).
+При переключении rail Project ↔ History: сброс **file** selection; commit selection сбрасывается только при **уходе** из History (см. [architecture.md](./architecture.md) §6.10).
 
 ---
 
@@ -388,5 +401,5 @@ interface HistoryViewState {
 | 2 | Commit card | [commit-card.md](./commit-card.md) |
 | 3 | Head | `GitBranch` 16×16 icon + Tooltip — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
 | 4 | API extensions | `tags`, `files_added`/`files_removed` в log |
-| 5 | Auto-select commit | **Нет** (в Sidebar); Content Preview auto-select **первый файл** при выборе коммита — [content-preview-history-view.md](./content-preview-history-view.md) |
+| 5 | Auto-select commit | **Да** при входе в History / после `log.get`: saved hash или **первый** в log; Content Preview — **первый файл** A→Z — [content-preview-history-view.md §4.1](./content-preview-history-view.md) |
 | 6 | Content Preview | [content-preview-history-view.md](./content-preview-history-view.md); atoms: [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) + diff panels |

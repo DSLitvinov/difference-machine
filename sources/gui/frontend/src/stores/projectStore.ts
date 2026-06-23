@@ -12,6 +12,7 @@ import {
   saveThumbScale,
   type SortLocale,
 } from "@/lib/storage";
+import { rangePathsBetween } from "@/lib/fileSelection";
 import { useAppStore } from "@/stores/appStore";
 
 import type { FolderNode, StatusPayload } from "@/wails/forester";
@@ -36,6 +37,7 @@ function sameStatusPayload(a: StatusPayload | null, b: StatusPayload | null): bo
 interface ProjectState {
   selectedFolderPath: string;
   selectedFilePaths: string[];
+  anchorPath: string | null;
   showChangedOnly: boolean;
   expandedPaths: Record<string, boolean>;
   folderTree: FolderNode | null;
@@ -53,6 +55,12 @@ interface ProjectState {
   navigateBack: () => void;
   navigateForward: () => void;
   setSelectedFilePaths: (paths: string[]) => void;
+  selectFile: (
+    path: string,
+    orderedPaths: string[],
+    modifiers: { additive: boolean; range: boolean },
+  ) => void;
+  selectFilePaths: (paths: string[], options?: { additive?: boolean }) => void;
   toggleFileSelection: (path: string, additive: boolean) => void;
   clearFileSelection: () => void;
   setShowChangedOnly: (value: boolean) => void;
@@ -72,6 +80,7 @@ interface ProjectState {
 const initialState = {
   selectedFolderPath: "",
   selectedFilePaths: [] as string[],
+  anchorPath: null as string | null,
   showChangedOnly: false,
   expandedPaths: {} as Record<string, boolean>,
   folderTree: null as FolderNode | null,
@@ -95,7 +104,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   ...initialState,
   setSelectedFolderPath: (path) => {
     persistFolderPath(path);
-    set({ selectedFolderPath: path, selectedFilePaths: [] });
+    set({ selectedFolderPath: path, selectedFilePaths: [], anchorPath: null });
   },
   navigateToFolder: (path) => {
     const state = get();
@@ -110,6 +119,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({
       selectedFolderPath: path,
       selectedFilePaths: [],
+      anchorPath: null,
       navStack: stack,
       navIndex: stack.length - 1,
       previewSearchQuery: "",
@@ -125,6 +135,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       navIndex: nextIndex,
       selectedFolderPath: path,
       selectedFilePaths: [],
+      anchorPath: null,
       previewSearchQuery: "",
     });
   },
@@ -138,23 +149,62 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       navIndex: nextIndex,
       selectedFolderPath: path,
       selectedFilePaths: [],
+      anchorPath: null,
       previewSearchQuery: "",
     });
   },
-  setSelectedFilePaths: (paths) => set({ selectedFilePaths: paths }),
-  toggleFileSelection: (path, additive) =>
-    set((state) => {
-      if (!additive) {
-        return { selectedFilePaths: [path] };
-      }
-      const exists = state.selectedFilePaths.includes(path);
-      if (exists) {
-        const next = state.selectedFilePaths.filter((p) => p !== path);
-        return { selectedFilePaths: next };
-      }
-      return { selectedFilePaths: [...state.selectedFilePaths, path] };
+  setSelectedFilePaths: (paths) =>
+    set({
+      selectedFilePaths: paths,
+      anchorPath: paths.length === 1 ? paths[0]! : get().anchorPath,
     }),
-  clearFileSelection: () => set({ selectedFilePaths: [] }),
+  selectFile: (path, orderedPaths, modifiers) =>
+    set((state) => {
+      const { additive, range } = modifiers;
+
+      if (range) {
+        const rangePaths = rangePathsBetween(orderedPaths, state.anchorPath, path);
+        if (additive) {
+          const merged = new Set([...state.selectedFilePaths, ...rangePaths]);
+          return {
+            selectedFilePaths: orderedPaths.filter((p) => merged.has(p)),
+            anchorPath: state.anchorPath ?? orderedPaths[0] ?? path,
+          };
+        }
+        return {
+          selectedFilePaths: rangePaths,
+          anchorPath: state.anchorPath ?? orderedPaths[0] ?? path,
+        };
+      }
+
+      if (additive) {
+        const exists = state.selectedFilePaths.includes(path);
+        const next = exists
+          ? state.selectedFilePaths.filter((p) => p !== path)
+          : [...state.selectedFilePaths, path];
+        return { selectedFilePaths: next, anchorPath: path };
+      }
+
+      return { selectedFilePaths: [path], anchorPath: path };
+    }),
+  selectFilePaths: (paths, options) =>
+    set((state) => {
+      const additive = options?.additive ?? false;
+      if (additive) {
+        const merged = new Set([...state.selectedFilePaths, ...paths]);
+        return {
+          selectedFilePaths: [...merged],
+          anchorPath: paths[0] ?? state.anchorPath,
+        };
+      }
+      return {
+        selectedFilePaths: paths,
+        anchorPath: paths[0] ?? null,
+      };
+    }),
+  toggleFileSelection: (path, additive) =>
+    get().selectFile(path, [path], { additive, range: false }),
+  clearFileSelection: () => set({ selectedFilePaths: [], anchorPath: null }),
   setShowChangedOnly: (value) => {
     const repoPath = useAppStore.getState().repoPath;
     if (repoPath) saveShowChangedOnly(repoPath, value);
@@ -201,6 +251,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       sortLocale: loadSortLocale(repoPath),
       thumbScale: (savedThumb as ThumbScalePx | null) ?? DEFAULT_THUMB_SCALE,
       selectedFilePaths: [],
+      anchorPath: null,
       navStack: [folderPath],
       navIndex: 0,
       previewSearchQuery: "",

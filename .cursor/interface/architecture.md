@@ -389,10 +389,19 @@ interface SidebarEvents {
 
 ### 6.10 Переключение Project ↔ History
 
-- Сброс **PreviewSelection** и **commit selection** (`kind: 'none'`).
-- **Persist per-repo:** `selectedFolderPath`, `showChangedOnly`.
-- **Layout:** History → Content Info **скрыта**; Project → **видна** (v1 full scope).
-- History Preview: auto-select первый changed file — [content-preview-history-view.md §5.1](./content-preview-history-view.md).
+**Project → History**
+
+1. Сброс **PreviewSelection** (файлы Project view).
+2. Загрузка `log.get` для `currentBranch`.
+3. **Auto-select коммит:** saved `dfm.history.selectedCommitHash` (если в log) или **первый** в списке — [sidebar-history-view.md §4.1](./sidebar-history-view.md).
+4. Content Preview: **auto-select первый changed file** + diff — [content-preview-history-view.md §4.1](./content-preview-history-view.md).
+5. Content Info **скрыта**.
+
+**History → Project**
+
+1. Сброс `selectedCommitHash` и file selection.
+2. **Persist per-repo:** `selectedFolderPath`, `showChangedOnly`.
+3. Content Info **видна**.
 
 ---
 

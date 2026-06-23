@@ -183,9 +183,10 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 | Уровень | Поведение |
 |---------|-----------|
-| Вход в History | **Не** auto-select коммит; restore `dfm.history.selectedCommitHash` per repo |
-| Выбор коммита | Auto-select **первый changed file** A→Z |
-| Saved commit отсутствует в log | Clear selection + empty Preview |
+| Вход в History (Rail) | Auto-select коммит: saved `dfm.history.selectedCommitHash` если в log, иначе **первый** (новейший); карточка **Selected** |
+| Выбор / активация коммита | Content Preview: auto-select **первый changed file** A→Z + загрузка diff |
+| Saved commit отсутствует в log | Fallback на **первый** коммит в log; если log пуст — empty Preview |
+| Уход History → Project | Clear `selectedCommitHash` |
 
 ### 8.2 Dirty branch switch
 

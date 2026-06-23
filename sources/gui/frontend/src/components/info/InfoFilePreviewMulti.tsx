@@ -6,45 +6,27 @@ interface InfoFilePreviewMultiProps {
 
 export function InfoFilePreviewMulti({ paths }: InfoFilePreviewMultiProps) {
   const count = paths.length;
-  const showCount = count > 3 ? 3 : count;
 
   return (
-    <div className="mx-auto flex flex-col items-center gap-2">
-      <div className="relative h-[312px] w-full max-w-[312px] rounded-md border border-border bg-muted/20">
-        {showCount === 2 ? (
-          <>
-            <InfoFilePreviewTile
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-              rotation={0}
-            />
-            <InfoFilePreviewTile
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-              rotation={15}
-              style={{ marginLeft: 24, marginTop: -8 }}
-            />
-          </>
-        ) : null}
-        {showCount >= 3 ? (
-          <>
-            <InfoFilePreviewTile
-              className="absolute left-1/2 top-1/2"
-              rotation={0}
-              style={{ transform: "translate(-50%, -50%)" }}
-            />
-            <InfoFilePreviewTile
-              className="absolute left-1/2 top-1/2"
-              rotation={-15}
-              style={{ transform: "translate(calc(-50% - 40px), -50%)" }}
-            />
-            <InfoFilePreviewTile
-              className="absolute left-1/2 top-1/2"
-              rotation={15}
-              style={{ transform: "translate(calc(-50% + 40px), -50%)" }}
-            />
-          </>
-        ) : null}
+    <div className="mx-auto flex w-full max-w-[312px] flex-col items-center gap-2">
+      <div className="relative size-[312px] shrink-0 rounded-md border border-border bg-muted/20">
+        <div className="absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 p-[9px]">
+          <InfoFilePreviewTile />
+        </div>
+        <div className="absolute left-[12.62px] top-[106.62px] z-10 flex size-[156.767px] items-center justify-center">
+          <div className="-rotate-15">
+            <InfoFilePreviewTile />
+          </div>
+        </div>
+        <div className="absolute left-[140.62px] top-[106.62px] z-10 flex size-[156.767px] items-center justify-center">
+          <div className="rotate-15">
+            <InfoFilePreviewTile />
+          </div>
+        </div>
       </div>
-      <p className="text-sm text-muted-foreground">{count} files selected</p>
+      <p className="text-sm text-muted-foreground">
+        {count} {count === 1 ? "file" : "files"} selected
+      </p>
     </div>
   );
 }
