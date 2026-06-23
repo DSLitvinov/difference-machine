@@ -204,6 +204,34 @@ func handleCommitReset(workPath string, args json.RawMessage) (interface{}, erro
 	return successResult(), err
 }
 
+func handleRestoreFile(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		CommitHash string   `json:"commit_hash"`
+		Paths      []string `json:"paths"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	if params.CommitHash == "" {
+		return nil, fmt.Errorf("commit_hash is required")
+	}
+	if len(params.Paths) == 0 {
+		return nil, fmt.Errorf("paths is required")
+	}
+
+	_, err := withWorkDir(workPath, func() (interface{}, error) {
+		cmdArgs := []string{fmt.Sprintf("--source=%s", params.CommitHash)}
+		for _, p := range params.Paths {
+			cmdArgs = append(cmdArgs, canonicalRelPath(p))
+		}
+		if err := commands.Restore(cmdArgs); err != nil {
+			return nil, err
+		}
+		return successResult(), nil
+	})
+	return successResult(), err
+}
+
 func handleStatusGet(workPath string, _ json.RawMessage) (interface{}, error) {
 	return withWorkDir(workPath, func() (interface{}, error) {
 		repoPath, err := utils.FindRepositoryRoot(".")

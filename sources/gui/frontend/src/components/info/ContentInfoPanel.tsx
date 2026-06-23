@@ -11,6 +11,7 @@ import {
   metadataFromWorkdir,
   type FileMetadata,
 } from "@/components/info/InfoMetadataSection";
+import { InfoHistorySection } from "@/components/info/InfoHistorySection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { classifyInfoPreview } from "@/lib/fileKinds";
@@ -36,6 +37,7 @@ export function ContentInfoPanel() {
   const [author, setAuthor] = useState("");
   const [commitOpen, setCommitOpen] = useState(false);
   const [commitPaths, setCommitPaths] = useState<string[]>([]);
+  const [metadataKey, setMetadataKey] = useState(0);
 
   useEffect(() => {
     void fetchRepoUser()
@@ -75,7 +77,7 @@ export function ContentInfoPanel() {
     return () => {
       cancelled = true;
     };
-  }, [selectedFilePath, setError]);
+  }, [selectedFilePath, setError, metadataKey]);
 
   if (!selectedFilePath) {
     return (
@@ -121,6 +123,12 @@ export function ContentInfoPanel() {
           <label className="mb-1 block text-xs text-muted-foreground">name file</label>
           <Input value={fileName} disabled title={selectedFilePath} />
         </div>
+
+        <InfoHistorySection
+          filePath={selectedFilePath}
+          currentUser={author}
+          onRestored={() => setMetadataKey((k) => k + 1)}
+        />
 
         <InfoMetadataSection metadata={metadata} loading={loading} />
       </div>

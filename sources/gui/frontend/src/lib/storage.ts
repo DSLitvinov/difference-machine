@@ -90,3 +90,19 @@ export function saveSortLocale(repoPath: string, locale: SortLocale): void {
     // ignore
   }
 }
+
+export function loadFileHistoryBranch(repoPath: string): string | null {
+  try {
+    return localStorage.getItem(perRepoKey("dfm.info.fileHistoryBranch", repoPath));
+  } catch {
+    return null;
+  }
+}
+
+export function saveFileHistoryBranch(repoPath: string, branch: string): void {
+  try {
+    localStorage.setItem(perRepoKey("dfm.info.fileHistoryBranch", repoPath), branch);
+  } catch {
+    // ignore
+  }
+}

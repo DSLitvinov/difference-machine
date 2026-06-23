@@ -12,6 +12,7 @@ func handleLogGet(workPath string, args json.RawMessage) (interface{}, error) {
 	var params struct {
 		Branch   string `json:"branch"`
 		MaxCount int    `json:"max_count"`
+		Path     string `json:"path"`
 	}
 	_ = decodeArgs(args, &params)
 	limit := params.MaxCount
@@ -27,25 +28,21 @@ func handleLogGet(workPath string, args json.RawMessage) (interface{}, error) {
 				branchName = "main"
 			}
 		}
-		commits, err := repo.GetCommitHistory(branchName, limit)
+
+		relPath := canonicalRelPath(params.Path)
+		commits, err := filterCommitsByFile(repo, branchName, relPath, limit)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get commit history: %w", err)
 		}
 		out := make([]map[string]interface{}, 0, len(commits))
 		for _, c := range commits {
-			out = append(out, map[string]interface{}{
-				"hash":            c.Hash,
-				"parent_hash":     c.ParentHash,
-				"parent_hashes":   c.ParentHashes,
-				"tree_hash":       c.TreeHash,
-				"author":          c.Author,
-				"message":         c.Message,
-				"timestamp":       c.Timestamp,
-				"type":            c.Type,
-				"screenshot_path": c.ScreenshotPath,
-			})
+			out = append(out, commitToMap(c))
 		}
-		return map[string]interface{}{"commits": out}, nil
+		return map[string]interface{}{
+			"commits":  out,
+			"capped":   len(commits) >= limit,
+			"filtered": relPath != "",
+		}, nil
 	})
 }
 

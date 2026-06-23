@@ -429,6 +429,44 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 	}
 }
 
+func TestLogGetPathFilterAndRestoreFile(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "version-one")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"add tracked","author":"tester"}`)
+	writeFile(t, dir, "tracked.txt", "version-two")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"update tracked","author":"tester"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+		Filtered bool `json:"filtered"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{"path":"tracked.txt","max_count":10}`), &logResult); err != nil {
+		t.Fatalf("decode log.get: %v", err)
+	}
+	if !logResult.Filtered {
+		t.Fatal("filtered = false, want true")
+	}
+	if len(logResult.Commits) < 2 {
+		t.Fatalf("commits = %d, want >= 2", len(logResult.Commits))
+	}
+
+	oldestHash := logResult.Commits[len(logResult.Commits)-1].Hash
+	writeFile(t, dir, "tracked.txt", "corrupted")
+	mustOK(t, h, "restore.file", `{"commit_hash":"`+oldestHash+`","paths":["tracked.txt"]}`)
+
+	content, err := os.ReadFile(filepath.Join(dir, "tracked.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(content) != "version-one" {
+		t.Fatalf("content = %q, want version-one", string(content))
+	}
+}
+
 type folderNodeResult struct {
 	Name      string             `json:"name"`
 	Path      string             `json:"path"`

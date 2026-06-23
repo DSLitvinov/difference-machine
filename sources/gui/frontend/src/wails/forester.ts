@@ -176,3 +176,39 @@ export async function indexAddFiles(files: string[]): Promise<void> {
 export async function createCommit(message: string, author: string): Promise<void> {
   await foresterCall("commit.create", { message, author });
 }
+
+export interface CommitLogEntry {
+  hash: string;
+  message: string;
+  author: string;
+  timestamp: number;
+}
+
+export interface BranchEntry {
+  name: string;
+  is_current: boolean;
+}
+
+export async function fetchFileLog(branch: string, path: string, maxCount = 100) {
+  return foresterCall<{
+    commits: CommitLogEntry[];
+    capped: boolean;
+    filtered: boolean;
+  }>("log.get", { branch, path, max_count: maxCount });
+}
+
+export async function fetchBranchList(): Promise<BranchEntry[]> {
+  const result = await foresterCall<{ branches: BranchEntry[] }>("branch.list", {});
+  return result.branches ?? [];
+}
+
+export async function restoreFile(commitHash: string, paths: string[]): Promise<void> {
+  await foresterCall("restore.file", { commit_hash: commitHash, paths });
+}
+
+export async function compareExtract(commitHash: string): Promise<string | null> {
+  const result = await foresterCall<{ success: boolean; path?: string }>("compare.extract", {
+    commit_hash: commitHash,
+  });
+  return result.path ?? null;
+}

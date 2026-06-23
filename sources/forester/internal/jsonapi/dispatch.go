@@ -21,6 +21,7 @@ var handlers = map[string]handlerFunc{
 	"repo.switch":          handleRepoSwitch,
 	"compare.extract":      handleCompareExtract,
 	"restore.version":      handleRestoreVersion,
+	"restore.file":         handleRestoreFile,
 	"gc.run":               handleGCRun,
 	"repo.rebuild":         handleRepoRebuild,
 	"lock.list":            handleLockList,

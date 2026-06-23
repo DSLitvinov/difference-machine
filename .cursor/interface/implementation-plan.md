@@ -49,19 +49,19 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **4 — Slice 3** (частично) |
-| **Следующий шаг** | `4.1.4` InfoHistory · `1.2` diff API · Slice 4 History |
-| **Заметки** | Content Info single + metadata + lock + CreateCommitDialog |
+| **Активная фаза** | **4 — Slice 3** (завершён) / **5 — Slice 4** |
+| **Следующий шаг** | `5.1` History sidebar · `1.2` diff API |
+| **Заметки** | log.get+path, restore.file, InfoHistory Revert/Compare |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
-| 1 | Backend API | `[~]` 4/17 |
+| 1 | Backend API | `[~]` 6/17 |
 | 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
-| 4 | Slice 3 — Create commit | `[~]` 7/10 |
+| 4 | Slice 3 — Create commit | `[x]` 10/10 |
 | 5 | Slice 4 — History + diff | `[ ]` 0/17 |
 | 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
 | 7 | Сборка и smoke | `[ ]` 1/4 |
@@ -103,8 +103,8 @@
 
 ### 1.3 Log / restore
 
-- [ ] **1.3.1** `log.get` + filter `path` (file history)
-- [ ] **1.3.2** `restore.file` — single/multi path
+- [x] **1.3.1** `log.get` + filter `path` (file history)
+- [x] **1.3.2** `restore.file` — single/multi path
 
 ### 1.4 App shell (Wails, не jsonapi)
 
@@ -197,8 +197,8 @@
 - [x] **4.1.1** `InfoFilePreviewSingle` — [info-file-preview-single.md](./info-file-preview-single.md)
 - [x] **4.1.2** `InfoMetadataSection` — FS metadata, hide empty — [info-metadata-section.md](./info-metadata-section.md)
 - [x] **4.1.3** Lock badge read-only — `lock.list`
-- [ ] **4.1.4** `InfoHistorySection` — branch/commit combobox, Revert, Compare — [info-history-section.md](./info-history-section.md)
-- [ ] **4.1.5** `restore.file` + AlertDialog; `compare.extract` + toast
+- [x] **4.1.4** `InfoHistorySection` — branch/commit combobox, Revert, Compare — [info-history-section.md](./info-history-section.md)
+- [x] **4.1.5** `restore.file` + AlertDialog; `compare.extract` + toast
 
 ### 4.2 Create commit
 
