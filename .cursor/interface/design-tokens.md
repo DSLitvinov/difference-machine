@@ -156,14 +156,16 @@
 
 ### 3.3 Folder / File preview items
 
-| State | Figma | Tailwind |
-|-------|-------|----------|
-| Default | transparent | — |
-| Hover | `background/primary/light-hover` | `bg-accent rounded-md` |
+**Стек:** shadcn `Button` + `Badge` (VCS на файле). `FolderPreviewItem` — `Button variant="outline"`; `FilePreviewItem` — `Button variant="ghost"`.
+
+| State | Figma | Tailwind / shadcn |
+|-------|-------|-------------------|
+| Default | transparent | `Button variant="ghost"` / `outline` |
+| Hover | `background/primary/light-hover` | `hover:bg-accent rounded-md` |
 | Selected | `background/accent` + `border/primary/default` | `bg-accent border border-ring rounded-md` |
 | File name | `foreground/default` | `text-foreground text-xs` |
 | Folder count | `foreground/muted` | `text-muted-foreground text-xs` |
-| Status badge | `background/primary/default` + `foreground/primary/default` | `bg-primary text-primary-foreground` |
+| Status badge | `background/primary/default` + `foreground/primary/default` | `Badge` (default variant) |
 
 ### 3.4 Commit card
 
@@ -264,28 +266,43 @@ export const treeRowStateClasses = {
 
 **Компонент:** `DropdownSelector` (`sources/gui/frontend/src/components/ui/dropdown-selector.tsx`).
 
-**v1.0:** кастомный dropdown (как `RepoSelector` в Sidebar). **Не** использовать нативный `<select>` — визуально не совпадает с shell.
+**Стек:** shadcn/ui `Popover` + `Button` + `Label`. **Не** использовать нативный `<select>`.
 
-| Часть | Tailwind / поведение |
-|-------|----------------------|
-| **Trigger** | `flex w-full items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent` |
-| **Trigger label** | `min-w-0 flex-1 truncate`; полный текст в `title` |
+| Часть | shadcn / Tailwind |
+|-------|-------------------|
+| **Trigger** | `Button variant="outline"` — `w-full justify-between gap-2 font-medium` |
+| **Trigger label** | `truncate` внутри flex; полный текст в `title` |
 | **Chevron** | `ChevronDown` `h-4 w-4 text-muted-foreground` справа |
 | **Optional icon** | слева (`FolderGit2`, `GitBranch`), `text-muted-foreground` |
-| **Panel** | `absolute top-full z-50 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-background py-1 shadow-md` |
-| **Item** | `flex gap-2 px-3 py-2 text-sm hover:bg-accent`; `Check` у выбранного, иначе spacer `h-4 w-4` |
-| **Field label** | `text-xs text-muted-foreground` над trigger (Branch, Commit) |
-| **Disabled** | `disabled:opacity-50 disabled:cursor-not-allowed` на trigger |
+| **Panel** | `PopoverContent` — `max-h-56 w-[var(--radix-popover-trigger-width)] p-1` |
+| **Item** | `Button variant="ghost"` — `w-full justify-start gap-2`; `Check` у выбранного |
+| **Field label** | `Label` `text-xs text-muted-foreground` над trigger |
+| **Disabled** | `disabled` на `Button` trigger |
 
 **Специализации:**
 
 | Компонент | База | Отличие |
 |-----------|------|---------|
-| `RepoSelector` | тот же trigger/panel | footer «+ Add repository…», иконка `FolderGit2` |
+| `RepoSelector` | `Popover` + `Button` (как `DropdownSelector`) | footer «+ Add repository…», иконка `FolderGit2` |
 | `InfoHistorySection` | `DropdownSelector` | Branch + Commit; Branch — `GitBranch` icon |
-| `BranchSelector` (History Sidebar, slice 4) | `DropdownSelector` | checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md) |
+| `BranchSelector` (History Sidebar) | `DropdownSelector` | checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md) |
 
-**v1.1 (опционально):** shadcn `Popover` + `Command` для поиска в длинных списках.
+**v1.1 (опционально):** shadcn `Command` внутри `Popover` для поиска в длинных списках.
+
+### 4.6 Прочие shadcn-контролы (v1.0)
+
+| Паттерн | shadcn primitive |
+|---------|------------------|
+| Диалоги (Settings, Create commit) | `Dialog` (`@radix-ui/react-dialog`) |
+| Подтверждения (revert, dirty branch) | `ConfirmAlertDialog` → `AlertDialog` |
+| Переключатель Changed (sidebar) | `Switch` + `Label` |
+| Layout toggle (text/image diff) | `ToggleGroup` + `ToggleGroupItem` |
+| Opacity slider (image overlay) | `Slider` |
+| Commit date chip | `Badge variant="secondary"` |
+| Commit card menu | `DropdownMenu` |
+| Collapse headers (Metadata, History) | `Button variant="ghost"` |
+| Breadcrumb, sort, retry, nav tabs | `Button` |
+| Preview grid (`FilePreviewItem`, `FolderPreviewItem`) | `Button` + `Badge` (VCS) |
 
 **Commit card** — отдельный паттерн (card, не grid item):
 

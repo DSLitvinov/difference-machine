@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { ContentInfoPanel } from "@/components/info/ContentInfoPanel";
 import { HistoryPreviewPanel } from "@/components/preview/HistoryPreviewPanel";
@@ -8,10 +8,12 @@ import {
 } from "@/components/sidebar/ProjectSidebarPanel";
 import { HistorySidebarPanel } from "@/components/sidebar/HistorySidebarPanel";
 import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { ForesterErrorBanner } from "@/components/shell/ForesterErrorBanner";
 import { AppNotice } from "@/components/shell/AppNotice";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -38,6 +40,7 @@ export function AppShell() {
   const setError = useAppStore((s) => s.setError);
   const setLoading = useAppStore((s) => s.setLoading);
   const loading = useAppStore((s) => s.loading);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     void bootstrapRepositories(setRepo, setError, setLoading);
@@ -56,7 +59,7 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen min-h-0 bg-sidebar">
-      <SidebarRail />
+      <SidebarRail onSettingsClick={() => setSettingsOpen(true)} />
 
       {!sidebarCollapsed ? (
         <div
@@ -101,16 +104,19 @@ export function AppShell() {
       ) : null}
 
       {sidebarCollapsed ? (
-        <button
+        <Button
           type="button"
-          className="fixed bottom-4 left-14 z-20 rounded-md border border-border bg-background px-3 py-1 text-xs shadow-sm"
+          variant="outline"
+          size="sm"
+          className="fixed bottom-4 left-14 z-20 h-auto px-3 py-1 text-xs shadow-sm"
           onClick={() => setSidebarCollapsed(false)}
         >
           Expand sidebar
-        </button>
+        </Button>
       ) : null}
 
       <AppNotice />
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
 }

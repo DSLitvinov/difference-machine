@@ -22,15 +22,24 @@ async function refreshStatus() {
   return status;
 }
 
-async function validateSelectedFile() {
-  const { selectedFilePath } = useProjectStore.getState();
-  if (!selectedFilePath) return;
+async function validateSelectedFiles() {
+  const { selectedFilePaths, setSelectedFilePaths } = useProjectStore.getState();
+  if (selectedFilePaths.length === 0) return;
 
-  try {
-    await foresterCall("workdir.metadata", { path: selectedFilePath });
-  } catch {
-    useProjectStore.getState().setSelectedFilePath(null);
-    useAppStore.getState().setError("Selected file was removed or is no longer available");
+  const stillValid: string[] = [];
+  for (const path of selectedFilePaths) {
+    try {
+      await foresterCall("workdir.metadata", { path });
+      stillValid.push(path);
+    } catch {
+      // drop removed file
+    }
+  }
+  if (stillValid.length !== selectedFilePaths.length) {
+    setSelectedFilePaths(stillValid);
+    if (stillValid.length === 0) {
+      useAppStore.getState().setError("Selected file was removed or is no longer available");
+    }
   }
 }
 
@@ -45,7 +54,7 @@ export function useProjectStatusPolling() {
     ticking.current = true;
     try {
       await refreshStatus();
-      await validateSelectedFile();
+      await validateSelectedFiles();
     } catch (err) {
       setForesterError(err instanceof Error ? err.message : String(err));
     } finally {

@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-import { Dialog, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { shortHash } from "@/lib/format";
@@ -61,46 +67,50 @@ export function CreateCommitDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogHeader title="Create commit" onClose={() => onOpenChange(false)} />
-      <div className="space-y-4">
-        <div>
-          <p className="mb-1 text-sm text-muted-foreground">Author</p>
-          <p className="text-sm">{author || "Unknown"}</p>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create commit</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <p className="mb-1 text-sm text-muted-foreground">Author</p>
+            <p className="text-sm">{author || "Unknown"}</p>
+          </div>
+          <div>
+            <Label className="mb-1 text-muted-foreground" htmlFor="commit-subject">
+              Message
+            </Label>
+            <Input
+              id="commit-subject"
+              placeholder="Write commit..."
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              disabled={submitting}
+            />
+          </div>
+          <div>
+            <Label className="mb-1 text-muted-foreground" htmlFor="commit-body">
+              Description
+            </Label>
+            <Textarea
+              id="commit-body"
+              placeholder="Description..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              disabled={submitting}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Create
+            </Button>
+          </div>
         </div>
-        <div>
-          <label className="mb-1 block text-sm text-muted-foreground" htmlFor="commit-subject">
-            Message
-          </label>
-          <Input
-            id="commit-subject"
-            placeholder="Write commit..."
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            disabled={submitting}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm text-muted-foreground" htmlFor="commit-body">
-            Description
-          </label>
-          <Textarea
-            id="commit-body"
-            placeholder="Description..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            disabled={submitting}
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
-          </Button>
-          <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Create
-          </Button>
-        </div>
-      </div>
+      </DialogContent>
     </Dialog>
   );
 }

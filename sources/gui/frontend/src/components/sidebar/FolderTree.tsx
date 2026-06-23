@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useProjectStore } from "@/stores/projectStore";
 import type { FolderNode } from "@/wails/forester";
@@ -35,11 +36,12 @@ export function FolderTreeRow({
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="ghost"
         className={cn(
-          "flex w-full items-center gap-1 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-          isSelected ? "bg-accent text-secondary-foreground" : "hover:bg-accent",
+          "h-auto w-full justify-start gap-1 rounded-md px-2 py-1.5 text-left text-sm font-normal",
+          isSelected ? "bg-accent text-secondary-foreground" : "",
         )}
         style={{ paddingLeft: `${depth * 12 + 8}px` }}
         onClick={() => onSelect(node.path)}
@@ -63,7 +65,7 @@ export function FolderTreeRow({
         <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate">{node.name}</span>
         <span className="text-xs font-semibold text-muted-foreground">{node.item_count}</span>
-      </button>
+      </Button>
       {expanded
         ? node.children.map((child) => (
             <FolderTreeBranch
@@ -169,18 +171,19 @@ export function FolderTree({ onFolderSelect }: FolderTreeProps) {
   return (
     <div className="flex flex-col gap-0.5 p-2">
       {rootVisible ? (
-        <button
+        <Button
           type="button"
+          variant="ghost"
           className={cn(
-            "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
-            selectedFolderPath === "" ? "bg-accent" : "hover:bg-accent",
+            "h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-normal",
+            selectedFolderPath === "" ? "bg-accent" : "",
           )}
           onClick={() => handleSelect("")}
         >
           <Folder className="h-4 w-4 text-muted-foreground" />
           <span className="flex-1 truncate">{folderTree.name}</span>
           <span className="text-xs font-semibold text-muted-foreground">{folderTree.item_count}</span>
-        </button>
+        </Button>
       ) : null}
       {folderTree.children.map((child) => (
         <FolderTreeBranch

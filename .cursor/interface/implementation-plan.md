@@ -49,9 +49,9 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **5 — Slice 4** (завершён) / **6 — Slice 5** |
-| **Следующий шаг** | `6.1` multiselect · `6.2` Settings dialog |
-| **Заметки** | History diff complete: resize, split text, image diff, blend screenshot |
+| **Активная фаза** | **6 — Slice 5** (завершён) / **7 — Сборка** |
+| **Следующий шаг** | `7.4` smoke checklist · `7.2` Windows build |
+| **Заметки** | Settings dialog, multiselect, mode-switch reset, commit keyboard nav |
 
 ### Прогресс v1.0
 
@@ -63,7 +63,7 @@
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
-| 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
+| 6 | Slice 5 — Polish + Settings | `[x]` 8/9 |
 | 7 | Сборка и smoke | `[ ]` 1/4 |
 
 ---
@@ -246,23 +246,23 @@
 
 ### 6.1 Multiselect + Info multi
 
-- [ ] **6.1.1** Ctrl/Cmd toggle multiselect — [decisions.md §5](./decisions.md)
-- [ ] **6.1.2** `InfoFilePreviewMulti` + tiles — [info-file-preview-multi.md](./info-file-preview-multi.md)
-- [ ] **6.1.3** History section скрыта при multiselect
+- [x] **6.1.1** Ctrl/Cmd toggle multiselect — [decisions.md §5](./decisions.md)
+- [x] **6.1.2** `InfoFilePreviewMulti` + tiles — [info-file-preview-multi.md](./info-file-preview-multi.md)
+- [x] **6.1.3** History section скрыта при multiselect
 
 ### 6.2 Settings
 
-- [ ] **6.2.1** `SettingsDialog` — large modal — [settings-dialog.md](./settings-dialog.md)
-- [ ] **6.2.2** Tab Profile — author name
-- [ ] **6.2.3** Tab Repositories — add/remove list
-- [ ] **6.2.4** Tab Forester — read-only paths
-- [ ] **6.2.5** `[—]` Appearance / External editors → v1.1
+- [x] **6.2.1** `SettingsDialog` — large modal — [settings-dialog.md](./settings-dialog.md)
+- [x] **6.2.2** Tab Profile — author name
+- [x] **6.2.3** Tab Repositories — add/remove list
+- [x] **6.2.4** Tab Forester — read-only paths
+- [—] **6.2.5** `[—]` Appearance / External editors → v1.1
 
 ### 6.3 Доработки
 
-- [ ] **6.3.1** History ↔ Project mode switch — сброс selection по [architecture.md §3.1](./architecture.md)
-- [ ] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — пройти чеклист
-- [ ] **6.3.3** Keyboard a11y на commit list (roving tabindex)
+- [x] **6.3.1** History ↔ Project mode switch — сброс selection по [architecture.md §3.1](./architecture.md)
+- [~] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — пройти чеклист
+- [x] **6.3.3** Keyboard a11y на commit list (roving tabindex)
 
 **Проверка:** multiselect → multi Info; Settings save author; resize persist после restart.
 
@@ -317,4 +317,4 @@
 | Дата | Фаза | Сделано | Следующий шаг |
 |------|------|---------|---------------|
 | 2025-06-23 | 0 + 2 | Wails bootstrap, pkg/jsonapi, shell, OpenRepo, Rail | `workdir.tree` или RepoSelector dropdown |
-| 2025-06-23 | 3–4 | Slice 2–3 GUI; `DropdownSelector` канон в design-tokens §4.5 | Slice 4 History sidebar |
+| 2025-06-23 | 5–6 | Slice 4 History+diff; Slice 5 Settings+multiselect | Smoke / Windows build |

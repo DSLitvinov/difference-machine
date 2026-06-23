@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, GitBranch, Loader2 } from "lucide-react";
 
-import { AlertDialog } from "@/components/ui/alert-dialog";
+import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DropdownSelector } from "@/components/ui/dropdown-selector";
 import { formatTimestamp, shortHash } from "@/lib/format";
@@ -174,14 +174,15 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
 
   return (
     <section className="border-t border-border pt-3">
-      <button
+      <Button
         type="button"
-        className="mb-2 flex w-full items-center justify-between text-sm font-semibold"
+        variant="ghost"
+        className="mb-2 h-auto w-full justify-between px-0 py-0 text-sm font-semibold hover:bg-transparent"
         onClick={() => setCollapsed((v) => !v)}
       >
         <span>History</span>
         {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-      </button>
+      </Button>
 
       {!collapsed ? (
         <div className="space-y-3">
@@ -229,7 +230,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
         </div>
       ) : null}
 
-      <AlertDialog
+      <ConfirmAlertDialog
         open={revertOpen}
         title="Revert file"
         description={`Overwrite file in working directory with version from commit ${shortHash(selectedCommit)}?`}

@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, ChevronDown, FolderGit2, Plus } from "lucide-react";
 
-import { basename } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { basename, cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import {
@@ -11,31 +14,28 @@ import {
   pickRepositoryFolder,
 } from "@/wails/bridge";
 
-export function RepoSelector() {
+interface RepoSelectorProps {
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
   const repoPath = useAppStore((s) => s.repoPath);
   const repoName = useAppStore((s) => s.repoName);
-  const currentBranch = useAppStore((s) => s.currentBranch);
   const setRepo = useAppStore((s) => s.setRepo);
   const setError = useAppStore((s) => s.setError);
   const setLoading = useAppStore((s) => s.setLoading);
 
   const [open, setOpen] = useState(false);
   const [repos, setRepos] = useState<string[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     void fetchKnownRepos().then(setRepos).catch(() => setRepos([]));
   }, [repoPath]);
 
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    onOpenChange?.(next);
+  };
 
   const switchRepo = async (path: string) => {
     try {
@@ -48,7 +48,7 @@ export function RepoSelector() {
         typeof state.status.current_branch === "string" ? state.status.current_branch : null,
       );
       await loadProjectData();
-      setOpen(false);
+      handleOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -69,7 +69,7 @@ export function RepoSelector() {
         typeof state.status.current_branch === "string" ? state.status.current_branch : null,
       );
       await loadProjectData();
-      setOpen(false);
+      handleOpenChange(false);
       const list = await fetchKnownRepos();
       setRepos(list);
     } catch (err) {
@@ -80,32 +80,41 @@ export function RepoSelector() {
   };
 
   return (
-    <div ref={containerRef} className="relative space-y-1">
-      <button
-        type="button"
-        className="flex w-full items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-left text-sm font-medium hover:bg-accent"
-        title={repoPath ?? undefined}
-        onClick={() => setOpen((v) => !v)}
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-between gap-2 bg-background font-medium"
+          title={repoPath ?? undefined}
+        >
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            <FolderGit2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">{repoName ?? "Repository"}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={4}
+        className="z-50 w-[var(--radix-popover-trigger-width)] p-1"
+        onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <FolderGit2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1 truncate">{repoName ?? "Repository"}</span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-      </button>
-
-      {currentBranch ? (
-        <p className="px-1 text-xs text-muted-foreground">Branch: {currentBranch}</p>
-      ) : null}
-
-      {open ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-border bg-background py-1 shadow-md">
+        <div className="max-h-56 overflow-auto">
           {repos.length === 0 ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">No repositories yet</p>
           ) : (
             repos.map((path) => (
-              <button
+              <Button
                 key={path}
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                variant="ghost"
+                className={cn(
+                  "h-auto w-full justify-start gap-2 px-3 py-2 font-normal",
+                  repoPath === path && "bg-accent",
+                )}
+                title={path}
                 onClick={() => void switchRepo(path)}
               >
                 {repoPath === path ? (
@@ -113,23 +122,22 @@ export function RepoSelector() {
                 ) : (
                   <span className="h-4 w-4 shrink-0" />
                 )}
-                <span className="truncate" title={path}>
-                  {basename(path)}
-                </span>
-              </button>
+                <span className="truncate">{basename(path)}</span>
+              </Button>
             ))
           )}
-          <div className="my-1 border-t border-border" />
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
-            onClick={() => void handleAdd()}
-          >
-            <Plus className="h-4 w-4" />
-            Add repository…
-          </button>
         </div>
-      ) : null}
-    </div>
+        <Separator className="my-1" />
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
+          onClick={() => void handleAdd()}
+        >
+          <Plus className="h-4 w-4" />
+          Add repository…
+        </Button>
+      </PopoverContent>
+    </Popover>
   );
 }

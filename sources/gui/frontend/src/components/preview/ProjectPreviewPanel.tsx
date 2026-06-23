@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 
 import { FilePreviewItem } from "@/components/preview/FilePreviewItem";
@@ -65,9 +66,9 @@ export function ProjectPreviewPanel() {
   const repoPath = useAppStore((s) => s.repoPath);
   const setError = useAppStore((s) => s.setError);
   const selectedFolderPath = useProjectStore((s) => s.selectedFolderPath);
-  const selectedFilePath = useProjectStore((s) => s.selectedFilePath);
+  const selectedFilePaths = useProjectStore((s) => s.selectedFilePaths);
   const setSelectedFolderPath = useProjectStore((s) => s.setSelectedFolderPath);
-  const setSelectedFilePath = useProjectStore((s) => s.setSelectedFilePath);
+  const toggleFileSelection = useProjectStore((s) => s.toggleFileSelection);
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const status = useProjectStore((s) => s.status);
@@ -151,13 +152,15 @@ export function ProjectPreviewPanel() {
             {crumbs.map((segment, index) => (
               <span key={segment.path || "root"} className="flex items-center gap-1">
                 {index > 0 ? <ChevronRight className="h-3 w-3" /> : null}
-                <button
+                <Button
                   type="button"
-                  className="hover:text-foreground"
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto px-1 py-0 text-muted-foreground hover:text-foreground"
                   onClick={() => openFolder(segment.path)}
                 >
                   {segment.label}
-                </button>
+                </Button>
               </span>
             ))}
             {showChangedOnly ? <span className="ml-2 text-xs">· changed only</span> : null}
@@ -197,9 +200,14 @@ export function ProjectPreviewPanel() {
                     <FilePreviewItem
                       name={entry.name}
                       path={entry.path}
-                      selected={selectedFilePath === entry.path}
+                      selected={selectedFilePaths.includes(entry.path)}
                       vcsStatus={vcsFileStatus(entry.path, status)}
-                      onSelect={() => setSelectedFilePath(entry.path)}
+                      onSelect={(event) =>
+                        toggleFileSelection(
+                          entry.path,
+                          event.metaKey || event.ctrlKey,
+                        )
+                      }
                       onOpen={() => void openFile(entry.path)}
                     />
                   </li>

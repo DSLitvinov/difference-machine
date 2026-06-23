@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Check, ChevronDown } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 export interface DropdownOption {
@@ -29,51 +32,45 @@ export function DropdownSelector({
   onChange,
 }: DropdownSelectorProps) {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const selected = options.find((option) => option.value === value);
 
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, []);
-
   return (
-    <div ref={containerRef} className="relative">
+    <div>
       {label ? (
-        <label className="mb-1 block text-xs text-muted-foreground">{label}</label>
+        <Label className="mb-1 block text-xs font-normal text-muted-foreground">{label}</Label>
       ) : null}
-      <button
-        type="button"
-        disabled={disabled}
-        className={cn(
-          "flex w-full items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-left text-sm font-medium hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50",
-        )}
-        title={selected?.title ?? selected?.label}
-        onClick={() => !disabled && setOpen((v) => !v)}
-      >
-        {icon ? <span className="shrink-0 text-muted-foreground">{icon}</span> : null}
-        <span className="min-w-0 flex-1 truncate">
-          {selected?.label ?? placeholder}
-        </span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-      </button>
-
-      {open && !disabled ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-background py-1 shadow-md">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            className="w-full justify-between gap-2 bg-background font-medium"
+            title={selected?.title ?? selected?.label}
+          >
+            <span className="flex min-w-0 flex-1 items-center gap-2">
+              {icon ? <span className="shrink-0 text-muted-foreground">{icon}</span> : null}
+              <span className="truncate">{selected?.label ?? placeholder}</span>
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="max-h-56 w-[var(--radix-popover-trigger-width)] overflow-auto p-1"
+          align="start"
+        >
           {options.length === 0 ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">{placeholder}</p>
           ) : (
             options.map((option) => (
-              <button
+              <Button
                 key={option.value}
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
+                variant="ghost"
+                className={cn(
+                  "h-auto w-full justify-start gap-2 px-3 py-2 font-normal",
+                  value === option.value && "bg-accent",
+                )}
                 title={option.title ?? option.label}
                 onClick={() => {
                   onChange(option.value);
@@ -86,11 +83,11 @@ export function DropdownSelector({
                   <span className="h-4 w-4 shrink-0" />
                 )}
                 <span className="truncate">{option.label}</span>
-              </button>
+              </Button>
             ))
           )}
-        </div>
-      ) : null}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

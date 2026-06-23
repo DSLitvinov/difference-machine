@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import type { HistoryImageLayout } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
@@ -125,14 +127,14 @@ function ImageDiffOverlay({
         ) : null}
       </Checkerboard>
       <div className="flex shrink-0 items-center gap-3 border-t border-border px-4 py-2">
-        <span className="text-xs text-muted-foreground">Opacity</span>
-        <input
-          type="range"
+        <Label className="text-xs font-normal text-muted-foreground">Opacity</Label>
+        <Slider
           min={0}
           max={100}
-          value={opacity}
+          step={1}
+          value={[opacity]}
           className="flex-1"
-          onChange={(e) => setOpacity(Number(e.target.value))}
+          onValueChange={([value]) => setOpacity(value)}
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { AlertDialog } from "@/components/ui/alert-dialog";
+import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
 import { dirtyWorktreeSummary } from "@/lib/worktreeDirty";
 import type { StatusPayload } from "@/wails/forester";
 
@@ -23,7 +23,7 @@ export function DirtyBranchSwitchDialog({
   const description = ["You have uncommitted changes:", ...lines].join("\n");
 
   return (
-    <AlertDialog
+    <ConfirmAlertDialog
       open={open}
       title={`Switch branch to "${targetBranch}"?`}
       description={description}

@@ -16,6 +16,32 @@ export namespace main {
 	        this.status = source["status"];
 	    }
 	}
+	export class SettingsSnapshot {
+	    userName: string;
+	    language: string;
+	    repos: string[];
+	    currentRepo: string;
+	    configPath: string;
+	    foresterCli: string;
+	    blenderPath: string;
+	    addonPath: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SettingsSnapshot(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userName = source["userName"];
+	        this.language = source["language"];
+	        this.repos = source["repos"];
+	        this.currentRepo = source["currentRepo"];
+	        this.configPath = source["configPath"];
+	        this.foresterCli = source["foresterCli"];
+	        this.blenderPath = source["blenderPath"];
+	        this.addonPath = source["addonPath"];
+	    }
+	}
 
 }
 

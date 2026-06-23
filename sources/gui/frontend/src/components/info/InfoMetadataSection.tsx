@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { formatFileSize, formatTimestamp } from "@/lib/format";
@@ -32,14 +33,15 @@ export function InfoMetadataSection({ metadata, loading }: InfoMetadataSectionPr
 
   return (
     <section className="border-t border-border pt-3">
-      <button
+      <Button
         type="button"
-        className="mb-2 flex w-full items-center justify-between text-sm font-semibold"
+        variant="ghost"
+        className="mb-2 h-auto w-full justify-between px-0 py-0 text-sm font-semibold hover:bg-transparent"
         onClick={() => setCollapsed((v) => !v)}
       >
         <span>Metadata</span>
         {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-      </button>
+      </Button>
       {!collapsed ? (
         <div className="space-y-2">
           {loading ? (

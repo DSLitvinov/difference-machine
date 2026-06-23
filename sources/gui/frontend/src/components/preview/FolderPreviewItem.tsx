@@ -1,6 +1,6 @@
 import { Folder } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface FolderPreviewItemProps {
   name: string;
@@ -9,16 +9,15 @@ interface FolderPreviewItemProps {
 
 export function FolderPreviewItem({ name, onOpen }: FolderPreviewItemProps) {
   return (
-    <button
+    <Button
       type="button"
-      className={cn(
-        "flex w-full flex-col items-center gap-2 rounded-md border border-border p-3 text-center text-sm transition-colors hover:bg-accent",
-      )}
+      variant="outline"
+      className="h-auto w-full flex-col gap-2 rounded-md p-3 text-center text-sm font-normal hover:bg-accent"
       onClick={onOpen}
       onDoubleClick={onOpen}
     >
       <Folder className="h-8 w-8 text-muted-foreground" />
       <span className="line-clamp-2 w-full break-all">{name}</span>
-    </button>
+    </Button>
   );
 }

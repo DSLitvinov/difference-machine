@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 import { CommitCard, CommitCardSkeleton } from "@/components/sidebar/CommitCard";
 import type { CommitLogEntry } from "@/wails/forester";
 
@@ -18,6 +20,31 @@ export function CommitList({
   capped,
   onSelect,
 }: CommitListProps) {
+  const [focusIndex, setFocusIndex] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedHash) {
+      const index = commits.findIndex((c) => c.hash === selectedHash);
+      if (index >= 0) setFocusIndex(index);
+    }
+  }, [commits, selectedHash]);
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (commits.length === 0) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setFocusIndex((i) => Math.min(commits.length - 1, i + 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setFocusIndex((i) => Math.max(0, i - 1));
+    } else if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      const commit = commits[focusIndex];
+      if (commit) onSelect(commit.hash);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-2 p-2">
@@ -38,15 +65,24 @@ export function CommitList({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
-        {commits.map((commit) => (
-          <CommitCard
-            key={commit.hash}
-            commit={commit}
-            selected={selectedHash === commit.hash}
-            isHead={headHash === commit.hash}
-            onSelect={() => onSelect(commit.hash)}
-          />
+      <div
+        ref={listRef}
+        className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2 outline-none"
+        tabIndex={0}
+        role="listbox"
+        aria-activedescendant={commits[focusIndex] ? `commit-${commits[focusIndex]!.hash}` : undefined}
+        onKeyDown={handleKeyDown}
+      >
+        {commits.map((commit, index) => (
+          <div key={commit.hash} id={`commit-${commit.hash}`} role="option" aria-selected={selectedHash === commit.hash}>
+            <CommitCard
+              commit={commit}
+              selected={selectedHash === commit.hash}
+              focused={focusIndex === index}
+              isHead={headHash === commit.hash}
+              onSelect={() => onSelect(commit.hash)}
+            />
+          </div>
         ))}
       </div>
       {capped ? (

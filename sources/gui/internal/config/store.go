@@ -301,3 +301,47 @@ func (s *Store) SetUserName(name string) error {
 	s.Set("user", "name", strings.TrimSpace(name))
 	return s.Save()
 }
+
+// SetKnownReposList replaces [repo] with an ordered deduplicated list.
+func (s *Store) SetKnownReposList(repoPaths []string) error {
+	s.data["repo"] = make(map[string]string)
+	seen := make(map[string]struct{})
+	idx := 1
+	for _, repoPath := range repoPaths {
+		canonical, err := paths.CanonicalAbsPath(repoPath)
+		if err != nil {
+			return err
+		}
+		if _, ok := seen[canonical]; ok {
+			continue
+		}
+		seen[canonical] = struct{}{}
+		s.Set("repo", fmt.Sprintf("path_%d", idx), canonical)
+		idx++
+	}
+	return s.Save()
+}
+
+// Language returns [gui].language or "en".
+func (s *Store) Language() string {
+	if lang := s.Get("gui", "language"); lang != "" {
+		return lang
+	}
+	return "en"
+}
+
+// SetLanguage updates [gui].language.
+func (s *Store) SetLanguage(lang string) error {
+	s.Set("gui", "language", strings.TrimSpace(lang))
+	return s.Save()
+}
+
+// BlenderPath returns [blender].path.
+func (s *Store) BlenderPath() string {
+	return s.Get("blender", "path")
+}
+
+// AddonPath returns [addons].diffmachine_path.
+func (s *Store) AddonPath() string {
+	return s.Get("addons", "diffmachine_path")
+}

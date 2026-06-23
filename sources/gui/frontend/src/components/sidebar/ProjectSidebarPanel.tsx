@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { GitBranch, Loader2, Plus } from "lucide-react";
 
 import { FolderTree } from "@/components/sidebar/FolderTree";
 import { RepoSelector } from "@/components/sidebar/RepoSelector";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
@@ -65,6 +66,7 @@ export function ProjectSidebarPanel() {
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const setShowChangedOnly = useProjectStore((s) => s.setShowChangedOnly);
   const setSelectedFolderPath = useProjectStore((s) => s.setSelectedFolderPath);
+  const [repoMenuOpen, setRepoMenuOpen] = useState(false);
 
   useEffect(() => {
     if (repoPath && sidebarMode === "project") {
@@ -83,31 +85,21 @@ export function ProjectSidebarPanel() {
     <div className="flex h-full min-h-0 flex-col bg-background">
       <header className="flex items-center justify-between border-b border-border px-4 py-3">
         <h1 className="text-base font-semibold">Project view</h1>
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-          <span>Changed</span>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={showChangedOnly}
-            className={cn(
-              "relative h-5 w-9 rounded-full transition-colors",
-              showChangedOnly ? "bg-primary" : "bg-input",
-            )}
-            onClick={() => setShowChangedOnly(!showChangedOnly)}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 block h-4 w-4 rounded-full bg-background shadow transition-transform",
-                showChangedOnly ? "translate-x-4" : "translate-x-0.5",
-              )}
-            />
-          </button>
-        </label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="changed-only" className="text-sm font-normal text-muted-foreground">
+            Changed
+          </Label>
+          <Switch
+            id="changed-only"
+            checked={showChangedOnly}
+            onCheckedChange={setShowChangedOnly}
+          />
+        </div>
       </header>
 
-      <div className="space-y-3 border-b border-border p-3">
-        <RepoSelector />
-        {currentBranch ? (
+      <div className="relative z-20 space-y-3 border-b border-border p-3">
+        <RepoSelector onOpenChange={setRepoMenuOpen} />
+        {currentBranch && !repoMenuOpen ? (
           <p className="flex items-center gap-1 px-1 text-xs text-muted-foreground">
             <GitBranch className="h-3 w-3" />
             {currentBranch}

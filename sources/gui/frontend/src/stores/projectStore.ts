@@ -16,7 +16,7 @@ import { committablePaths } from "@/wails/forester";
 
 interface ProjectState {
   selectedFolderPath: string;
-  selectedFilePath: string | null;
+  selectedFilePaths: string[];
   showChangedOnly: boolean;
   expandedPaths: Record<string, boolean>;
   folderTree: FolderNode | null;
@@ -25,7 +25,9 @@ interface ProjectState {
   sortLocale: SortLocale;
   treeLoading: boolean;
   setSelectedFolderPath: (path: string) => void;
-  setSelectedFilePath: (path: string | null) => void;
+  setSelectedFilePaths: (paths: string[]) => void;
+  toggleFileSelection: (path: string, additive: boolean) => void;
+  clearFileSelection: () => void;
   setShowChangedOnly: (value: boolean) => void;
   toggleExpanded: (path: string) => void;
   setFolderTree: (tree: FolderNode | null) => void;
@@ -39,7 +41,7 @@ interface ProjectState {
 
 const initialState = {
   selectedFolderPath: "",
-  selectedFilePath: null as string | null,
+  selectedFilePaths: [] as string[],
   showChangedOnly: false,
   expandedPaths: {} as Record<string, boolean>,
   folderTree: null as FolderNode | null,
@@ -54,9 +56,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setSelectedFolderPath: (path) => {
     const repoPath = useAppStore.getState().repoPath;
     if (repoPath) saveSelectedFolderPath(repoPath, path);
-    set({ selectedFolderPath: path, selectedFilePath: null });
+    set({ selectedFolderPath: path, selectedFilePaths: [] });
   },
-  setSelectedFilePath: (path) => set({ selectedFilePath: path }),
+  setSelectedFilePaths: (paths) => set({ selectedFilePaths: paths }),
+  toggleFileSelection: (path, additive) =>
+    set((state) => {
+      if (!additive) {
+        return { selectedFilePaths: [path] };
+      }
+      const exists = state.selectedFilePaths.includes(path);
+      if (exists) {
+        const next = state.selectedFilePaths.filter((p) => p !== path);
+        return { selectedFilePaths: next };
+      }
+      return { selectedFilePaths: [...state.selectedFilePaths, path] };
+    }),
+  clearFileSelection: () => set({ selectedFilePaths: [] }),
   setShowChangedOnly: (value) => {
     const repoPath = useAppStore.getState().repoPath;
     if (repoPath) saveShowChangedOnly(repoPath, value);
@@ -88,7 +103,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       selectedFolderPath: loadSelectedFolderPath(repoPath),
       showChangedOnly: loadShowChangedOnly(repoPath),
       sortLocale: loadSortLocale(repoPath),
-      selectedFilePath: null,
+      selectedFilePaths: [],
     }),
   setTreeLoading: (treeLoading) => set({ treeLoading }),
   reset: () => set({ ...initialState }),

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DiffFileEntry } from "@/wails/forester";
 
@@ -21,11 +22,12 @@ interface ChangedFileItemProps {
 
 export function ChangedFileItem({ file, selected, onSelect }: ChangedFileItemProps) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       className={cn(
-        "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors",
-        selected ? "bg-accent" : "hover:bg-accent/60",
+        "h-auto w-full justify-start gap-2 rounded-none px-3 py-2 text-left text-sm font-normal",
+        selected ? "bg-accent" : "",
       )}
       title={STATUS_LABELS[file.status]}
       onClick={onSelect}
@@ -39,7 +41,7 @@ export function ChangedFileItem({ file, selected, onSelect }: ChangedFileItemPro
         {file.status}
       </span>
       <span className="min-w-0 flex-1 truncate">{file.path}</span>
-    </button>
+    </Button>
   );
 }
 

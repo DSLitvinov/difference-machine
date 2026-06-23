@@ -26,6 +26,10 @@ export function GetRepoUser() {
   return window['go']['main']['App']['GetRepoUser']();
 }
 
+export function GetSettings() {
+  return window['go']['main']['App']['GetSettings']();
+}
+
 export function OpenRepo(arg1) {
   return window['go']['main']['App']['OpenRepo'](arg1);
 }
@@ -34,8 +38,20 @@ export function PickRepositoryFolder() {
   return window['go']['main']['App']['PickRepositoryFolder']();
 }
 
+export function PickSettingsFile() {
+  return window['go']['main']['App']['PickSettingsFile']();
+}
+
 export function RemoveKnownRepo(arg1) {
   return window['go']['main']['App']['RemoveKnownRepo'](arg1);
+}
+
+export function SaveSettingsProfile(arg1, arg2) {
+  return window['go']['main']['App']['SaveSettingsProfile'](arg1, arg2);
+}
+
+export function SaveSettingsRepos(arg1) {
+  return window['go']['main']['App']['SaveSettingsRepos'](arg1);
 }
 
 export function SetRepoUser(arg1) {

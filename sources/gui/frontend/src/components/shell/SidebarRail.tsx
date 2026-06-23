@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode } from "react";
 import {
   FolderGit2,
   GalleryVerticalEnd,
@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAppStore, type SidebarMode } from "@/stores/appStore";
+import { useHistoryStore } from "@/stores/historyStore";
+import { useProjectStore } from "@/stores/projectStore";
 
 interface SidebarRailProps {
   onSettingsClick?: () => void;
@@ -46,9 +48,19 @@ function RailButton({
 
 export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
   const sidebarMode = useAppStore((s) => s.sidebarMode);
+  const repoPath = useAppStore((s) => s.repoPath);
   const setSidebarMode = useAppStore((s) => s.setSidebarMode);
 
-  const setMode = (mode: SidebarMode) => setSidebarMode(mode);
+  const switchMode = (mode: SidebarMode) => {
+    if (mode === sidebarMode) return;
+    useProjectStore.getState().clearFileSelection();
+    if (repoPath) {
+      useHistoryStore.getState().selectCommit(repoPath, null);
+    } else {
+      useHistoryStore.getState().reset();
+    }
+    setSidebarMode(mode);
+  };
 
   return (
     <aside className="flex h-full w-12 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
@@ -59,14 +71,14 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
         <RailButton
           active={sidebarMode === "project"}
           label="Project view"
-          onClick={() => setMode("project")}
+          onClick={() => switchMode("project")}
         >
           <FolderGit2 className="h-4 w-4" />
         </RailButton>
         <RailButton
           active={sidebarMode === "history"}
           label="History"
-          onClick={() => setMode("history")}
+          onClick={() => switchMode("history")}
         >
           <GitFork className="h-4 w-4" />
         </RailButton>

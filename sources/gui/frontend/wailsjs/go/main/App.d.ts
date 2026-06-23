@@ -14,10 +14,18 @@ export function GetKnownRepos():Promise<Array<string>>;
 
 export function GetRepoUser():Promise<string>;
 
+export function GetSettings():Promise<main.SettingsSnapshot>;
+
 export function OpenRepo(arg1:string):Promise<main.RepoState>;
 
 export function PickRepositoryFolder():Promise<string>;
 
+export function PickSettingsFile():Promise<string>;
+
 export function RemoveKnownRepo(arg1:string):Promise<void>;
+
+export function SaveSettingsProfile(arg1:string,arg2:string):Promise<void>;
+
+export function SaveSettingsRepos(arg1:Array<string>):Promise<void>;
 
 export function SetRepoUser(arg1:string):Promise<void>;
