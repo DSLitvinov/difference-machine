@@ -1,7 +1,11 @@
-import { FileImage, FileX, FileWarning } from "lucide-react";
-
 import { classifyHistoryDiff } from "@/lib/fileKinds";
+import { basename } from "@/lib/utils";
+import { BinaryDiffStub } from "@/components/preview/BinaryDiffStub";
+import { DeletedDiffStub } from "@/components/preview/DeletedDiffStub";
+import { ImageDiffPanel } from "@/components/preview/ImageDiffPanel";
+import { LayoutToggle } from "@/components/preview/LayoutToggle";
 import { TextDiffPanel } from "@/components/preview/TextDiffPanel";
+import type { HistoryImageLayout, HistoryTextLayout } from "@/lib/storage";
 import type { DiffFileEntry } from "@/wails/forester";
 
 interface DiffViewProps {
@@ -10,59 +14,108 @@ interface DiffViewProps {
   isBinary: boolean;
   loading: boolean;
   error: string | null;
+  textLayout: HistoryTextLayout;
+  imageLayout: HistoryImageLayout;
+  beforeImageUrl?: string | null;
+  afterImageUrl?: string | null;
+  imageLoading: boolean;
+  imageError: string | null;
+  screenshotUrl?: string | null;
+  screenshotLoading?: boolean;
+  onTextLayoutChange: (layout: HistoryTextLayout) => void;
+  onImageLayoutChange: (layout: HistoryImageLayout) => void;
+  onRetryText: () => void;
+  onRetryImage: () => void;
+  onOpenBinary: () => Promise<void>;
 }
 
-function DeletedDiffStub({ path }: { path: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
-      <FileX className="h-12 w-12 text-muted-foreground" />
-      <p className="text-sm font-medium text-foreground">File was deleted</p>
-      <p className="max-w-full truncate font-mono text-sm text-muted-foreground">{path}</p>
-      <p className="text-sm text-muted-foreground">This file no longer exists in this commit</p>
-    </div>
-  );
-}
-
-function BinaryDiffStub({ path }: { path: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
-      <FileWarning className="h-12 w-12 text-muted-foreground" />
-      <p className="text-sm font-medium text-foreground">This binary file cannot be displayed</p>
-      <p className="max-w-full truncate font-mono text-sm text-muted-foreground">{path}</p>
-      <p className="text-sm text-muted-foreground">Open in external application to view</p>
-    </div>
-  );
-}
-
-function ImageDiffStub({ path }: { path: string }) {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
-      <FileImage className="h-12 w-12 text-muted-foreground" />
-      <p className="text-sm font-medium text-foreground">Image preview</p>
-      <p className="max-w-full truncate font-mono text-sm text-muted-foreground">{path}</p>
-      <p className="text-sm text-muted-foreground">Image diff panel — coming soon</p>
-    </div>
-  );
-}
-
-export function DiffView({ file, diffContent, isBinary, loading, error }: DiffViewProps) {
+export function DiffView({
+  file,
+  diffContent,
+  isBinary,
+  loading,
+  error,
+  textLayout,
+  imageLayout,
+  beforeImageUrl,
+  afterImageUrl,
+  imageLoading,
+  imageError,
+  screenshotUrl,
+  screenshotLoading,
+  onTextLayoutChange,
+  onImageLayoutChange,
+  onRetryText,
+  onRetryImage,
+  onOpenBinary,
+}: DiffViewProps) {
   if (!file) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Select a changed file to view the diff
+        Select a file to view changes
       </div>
     );
   }
 
   const kind = classifyHistoryDiff(file.status, file.path, isBinary);
-  switch (kind) {
-    case "deleted":
-      return <DeletedDiffStub path={file.path} />;
-    case "binary":
-      return <BinaryDiffStub path={file.path} />;
-    case "image":
-      return <ImageDiffStub path={file.path} />;
-    default:
-      return <TextDiffPanel content={diffContent} loading={loading} error={error} />;
-  }
+  const showTextToolbar = kind === "text";
+  const showImageToolbar = kind === "image";
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      {showTextToolbar || showImageToolbar ? (
+        <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
+          <span className="min-w-0 flex-1 truncate text-sm font-medium" title={file.path}>
+            {basename(file.path)}
+          </span>
+          {showTextToolbar ? (
+            <LayoutToggle
+              value={textLayout}
+              options={[
+                { value: "unified", label: "Unified" },
+                { value: "split", label: "Split" },
+              ]}
+              onChange={onTextLayoutChange}
+            />
+          ) : null}
+          {showImageToolbar ? (
+            <LayoutToggle
+              value={imageLayout}
+              options={[
+                { value: "split", label: "Split" },
+                { value: "overlay", label: "Overlay" },
+              ]}
+              onChange={onImageLayoutChange}
+            />
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {kind === "deleted" ? <DeletedDiffStub path={file.path} /> : null}
+        {kind === "binary" ? (
+          <BinaryDiffStub
+            path={file.path}
+            screenshotUrl={screenshotUrl}
+            screenshotLoading={screenshotLoading}
+            onOpen={onOpenBinary}
+          />
+        ) : null}
+        {kind === "image" ? (
+          <ImageDiffPanel
+            beforeUrl={beforeImageUrl}
+            afterUrl={afterImageUrl}
+            status={file.status}
+            layout={imageLayout}
+            loading={imageLoading}
+            error={imageError}
+            onRetry={onRetryImage}
+          />
+        ) : null}
+        {kind === "text" ? (
+          <TextDiffPanel content={diffContent} layout={textLayout} loading={loading} error={error} />
+        ) : null}
+      </div>
+    </div>
+  );
 }

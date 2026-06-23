@@ -251,6 +251,36 @@ export async function switchBranch(target: string, autoStash = false): Promise<v
   await foresterCall("repo.switch", { target, auto_stash: autoStash });
 }
 
+export interface CommitDetail extends CommitLogEntry {
+  screenshot_path?: string;
+  screenshot_base64?: string;
+}
+
+export async function fetchCommit(hash: string): Promise<CommitDetail> {
+  return foresterCall<CommitDetail>("commit.get", { hash });
+}
+
+export async function fetchBlob(commit: string, path: string) {
+  return foresterCall<{ content_base64: string; mime: string; size: number }>("blob.get", {
+    commit,
+    path,
+  });
+}
+
+export function base64ToObjectUrl(base64: string, mime: string): string {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return URL.createObjectURL(new Blob([bytes], { type: mime || "application/octet-stream" }));
+}
+
+export async function openCommitFile(commitHash: string, filePath: string): Promise<void> {
+  await compareExtract(commitHash);
+  await foresterCall("workdir.open", { path: `.DFM/tmp_review/${filePath}` });
+}
+
 export async function fetchBranchList(): Promise<BranchEntry[]> {
   const result = await foresterCall<{ branches: BranchEntry[] }>("branch.list", {});
   return result.branches ?? [];

@@ -1,16 +1,33 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ChangedFilesList } from "@/components/preview/ChangedFilesList";
 import { DiffView } from "@/components/preview/DiffView";
 import { PreviewCommitHeader } from "@/components/preview/PreviewCommitHeader";
+import { useResizableWidth } from "@/hooks/useResizableWidth";
+import { classifyHistoryDiff, fileExtension } from "@/lib/fileKinds";
+import {
+  loadHistoryFilesPanelWidth,
+  loadHistoryImageLayout,
+  loadHistoryTextLayout,
+  saveHistoryFilesPanelWidth,
+  saveHistoryImageLayout,
+  saveHistoryTextLayout,
+  type HistoryImageLayout,
+  type HistoryTextLayout,
+} from "@/lib/storage";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import {
+  base64ToObjectUrl,
+  fetchBlob,
   fetchBranchLog,
+  fetchCommit,
   fetchDiffNameStatus,
   fetchDiffStat,
   fetchDiffText,
   fetchStatus,
+  firstParentHash,
+  openCommitFile,
   type CommitLogEntry,
   type DiffFileEntry,
 } from "@/wails/forester";
@@ -22,6 +39,7 @@ function sortFiles(files: DiffFileEntry[]): DiffFileEntry[] {
 export function HistoryPreviewPanel() {
   const repoPath = useAppStore((s) => s.repoPath);
   const setNotice = useAppStore((s) => s.setNotice);
+  const setError = useAppStore((s) => s.setError);
   const selectedCommitHash = useHistoryStore((s) => s.selectedCommitHash);
   const selectedChangedFilePath = useHistoryStore((s) => s.selectedChangedFilePath);
   const setSelectedChangedFilePath = useHistoryStore((s) => s.setSelectedChangedFilePath);
@@ -40,6 +58,41 @@ export function HistoryPreviewPanel() {
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [loadingDiff, setLoadingDiff] = useState(false);
   const [diffError, setDiffError] = useState<string | null>(null);
+  const [textLayout, setTextLayout] = useState<HistoryTextLayout>("unified");
+  const [imageLayout, setImageLayout] = useState<HistoryImageLayout>("split");
+  const [beforeImageUrl, setBeforeImageUrl] = useState<string | null>(null);
+  const [afterImageUrl, setAfterImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
+  const [screenshotLoading, setScreenshotLoading] = useState(false);
+  const textDiffGeneration = useRef(0);
+  const imageDiffGeneration = useRef(0);
+  const screenshotGeneration = useRef(0);
+
+  const savedWidth = repoPath ? loadHistoryFilesPanelWidth(repoPath) : null;
+  const { width: filesPanelWidth, containerRef, startDrag, resetWidth } = useResizableWidth({
+    defaultWidth: savedWidth ?? 373,
+    onWidthChange: (next) => {
+      if (repoPath) saveHistoryFilesPanelWidth(repoPath, next);
+    },
+  });
+
+  useEffect(() => {
+    if (!repoPath) return;
+    setTextLayout(loadHistoryTextLayout(repoPath));
+    setImageLayout(loadHistoryImageLayout(repoPath));
+  }, [repoPath]);
+
+  const handleTextLayoutChange = (layout: HistoryTextLayout) => {
+    setTextLayout(layout);
+    if (repoPath) saveHistoryTextLayout(repoPath, layout);
+  };
+
+  const handleImageLayoutChange = (layout: HistoryImageLayout) => {
+    setImageLayout(layout);
+    if (repoPath) saveHistoryImageLayout(repoPath, layout);
+  };
 
   useEffect(() => {
     if (!repoPath || !selectedCommitHash) {
@@ -107,13 +160,92 @@ export function HistoryPreviewPanel() {
     [files, selectedChangedFilePath],
   );
 
+  const selectedKind = useMemo(() => {
+    if (!selectedFile) return null;
+    return classifyHistoryDiff(selectedFile.status, selectedFile.path, isBinary);
+  }, [selectedFile, isBinary]);
+
+  const loadTextDiff = useCallback(async () => {
+    if (!selectedCommitHash || !commit || !selectedChangedFilePath || !selectedFile) return;
+    const generation = ++textDiffGeneration.current;
+    setLoadingDiff(true);
+    setDiffError(null);
+    try {
+      const result = await fetchDiffText(selectedCommitHash, commit, selectedChangedFilePath);
+      if (generation !== textDiffGeneration.current) return;
+      if (result.is_binary) {
+        setIsBinary(true);
+        setDiffContent("");
+      } else {
+        setIsBinary(false);
+        setDiffContent(result.content ?? "");
+      }
+    } catch (err) {
+      if (generation !== textDiffGeneration.current) return;
+      const message = err instanceof Error ? err.message : String(err);
+      setDiffError(message === "file_too_large" ? "File too large to display" : message);
+      setDiffContent("");
+    } finally {
+      if (generation === textDiffGeneration.current) setLoadingDiff(false);
+    }
+  }, [selectedCommitHash, commit, selectedChangedFilePath, selectedFile]);
+
+  const loadImageDiff = useCallback(async () => {
+    if (!selectedCommitHash || !commit || !selectedFile) return;
+    const generation = ++imageDiffGeneration.current;
+    setImageLoading(true);
+    setImageError(null);
+
+    try {
+      const parent = firstParentHash(commit);
+      let before: string | null = null;
+      if (selectedFile.status !== "A" && parent) {
+        const blob = await fetchBlob(parent, selectedFile.path);
+        if (generation !== imageDiffGeneration.current) return;
+        before = base64ToObjectUrl(blob.content_base64, blob.mime);
+      }
+      const afterBlob = await fetchBlob(selectedCommitHash, selectedFile.path);
+      if (generation !== imageDiffGeneration.current) {
+        if (before) URL.revokeObjectURL(before);
+        return;
+      }
+      const after = base64ToObjectUrl(afterBlob.content_base64, afterBlob.mime);
+      setBeforeImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return before;
+      });
+      setAfterImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return after;
+      });
+    } catch (err) {
+      if (generation !== imageDiffGeneration.current) return;
+      setImageError(err instanceof Error ? err.message : String(err));
+      setBeforeImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      setAfterImageUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    } finally {
+      if (generation === imageDiffGeneration.current) setImageLoading(false);
+    }
+  }, [selectedCommitHash, commit, selectedFile]);
+
   useEffect(() => {
-    if (!selectedCommitHash || !commit || !selectedChangedFilePath || !selectedFile) {
+    if (!selectedFile || !commit || !selectedCommitHash) {
       setDiffContent("");
       setDiffError(null);
       setIsBinary(false);
+      setBeforeImageUrl(null);
+      setAfterImageUrl(null);
+      setImageError(null);
+      setScreenshotUrl(null);
       return;
     }
+
     if (selectedFile.status === "D") {
       setDiffContent("");
       setDiffError(null);
@@ -121,35 +253,73 @@ export function HistoryPreviewPanel() {
       return;
     }
 
-    let cancelled = false;
-    const loadDiff = async () => {
-      setLoadingDiff(true);
+    const extKind = classifyHistoryDiff(selectedFile.status, selectedFile.path, false);
+    if (extKind === "image") {
+      setIsBinary(false);
+      setDiffContent("");
       setDiffError(null);
-      try {
-        const result = await fetchDiffText(selectedCommitHash, commit, selectedChangedFilePath);
-        if (cancelled) return;
-        if (result.is_binary) {
-          setIsBinary(true);
-          setDiffContent("");
+      void loadImageDiff();
+      return;
+    }
+
+    if (extKind === "binary") {
+      setIsBinary(true);
+      setDiffContent("");
+      setDiffError(null);
+      return;
+    }
+
+    setIsBinary(false);
+    void loadTextDiff();
+  }, [selectedFile, commit, selectedCommitHash, loadImageDiff, loadTextDiff]);
+
+  useEffect(() => {
+    if (!selectedCommitHash || !selectedFile || fileExtension(selectedFile.path) !== "blend") {
+      setScreenshotUrl(null);
+      setScreenshotLoading(false);
+      return;
+    }
+
+    const generation = ++screenshotGeneration.current;
+    setScreenshotLoading(true);
+
+    void fetchCommit(selectedCommitHash)
+      .then((detail) => {
+        if (generation !== screenshotGeneration.current) return;
+        if (detail.screenshot_base64) {
+          const next = base64ToObjectUrl(detail.screenshot_base64, "image/png");
+          setScreenshotUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return next;
+          });
         } else {
-          setIsBinary(false);
-          setDiffContent(result.content ?? "");
+          setScreenshotUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+          });
         }
-      } catch (err) {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : String(err);
-          setDiffError(message === "file_too_large" ? "File too large to display" : message);
-          setDiffContent("");
+      })
+      .catch(() => {
+        if (generation === screenshotGeneration.current) {
+          setScreenshotUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+          });
         }
-      } finally {
-        if (!cancelled) setLoadingDiff(false);
-      }
-    };
-    void loadDiff();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCommitHash, commit, selectedChangedFilePath, selectedFile]);
+      })
+      .finally(() => {
+        if (generation === screenshotGeneration.current) setScreenshotLoading(false);
+      });
+  }, [selectedCommitHash, selectedFile]);
+
+  const handleOpenBinary = async () => {
+    if (!selectedCommitHash || !selectedChangedFilePath) return;
+    try {
+      await openCommitFile(selectedCommitHash, selectedChangedFilePath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
 
   if (!repoPath) {
     return (
@@ -176,20 +346,40 @@ export function HistoryPreviewPanel() {
         stats={stats}
         onCopy={() => setNotice("Copied commit hash")}
       />
-      <div className="flex min-h-0 flex-1">
+      <div ref={containerRef} className="flex min-h-0 flex-1">
         <ChangedFilesList
           files={files}
           selectedPath={selectedChangedFilePath}
           loading={loadingFiles}
+          width={filesPanelWidth}
           onSelect={setSelectedChangedFilePath}
+        />
+        <div
+          className="relative w-1 shrink-0 cursor-col-resize bg-border hover:bg-ring"
+          title="Drag to resize; double-click to reset"
+          onMouseDown={startDrag}
+          onDoubleClick={resetWidth}
         />
         <div className="min-w-0 flex-1">
           <DiffView
             file={selectedFile}
             diffContent={diffContent}
             isBinary={isBinary}
-            loading={loadingDiff}
+            loading={loadingDiff && selectedKind === "text"}
             error={diffError}
+            textLayout={textLayout}
+            imageLayout={imageLayout}
+            beforeImageUrl={beforeImageUrl}
+            afterImageUrl={afterImageUrl}
+            imageLoading={imageLoading && selectedKind === "image"}
+            imageError={imageError}
+            screenshotUrl={screenshotUrl}
+            screenshotLoading={screenshotLoading}
+            onTextLayoutChange={handleTextLayoutChange}
+            onImageLayoutChange={handleImageLayoutChange}
+            onRetryText={() => void loadTextDiff()}
+            onRetryImage={() => void loadImageDiff()}
+            onOpenBinary={handleOpenBinary}
           />
         </div>
       </div>

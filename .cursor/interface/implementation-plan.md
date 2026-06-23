@@ -49,9 +49,9 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **5 — Slice 4** (ядро готово) |
-| **Следующий шаг** | `5.2.2` resizable files column · `5.2.5` Split diff · `5.2.6–7` image/blend panels |
-| **Заметки** | diff API + History sidebar/preview wired; image/split/resizable — stubs |
+| **Активная фаза** | **5 — Slice 4** (завершён) / **6 — Slice 5** |
+| **Следующий шаг** | `6.1` multiselect · `6.2` Settings dialog |
+| **Заметки** | History diff complete: resize, split text, image diff, blend screenshot |
 
 ### Прогресс v1.0
 
@@ -62,7 +62,7 @@
 | 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
-| 5 | Slice 4 — History + diff | `[~]` 13/17 |
+| 5 | Slice 4 — History + diff | `[x]` 17/17 |
 | 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
 | 7 | Сборка и smoke | `[ ]` 1/4 |
 
@@ -114,7 +114,7 @@
 - [ ] **1.4.4** `SetCurrentRepoPath` — atomic write `setup.cfg`
 - [ ] **1.4.5** `GetRepoUser` / `SetRepoUser` — `[user].name`
 - [ ] **1.4.6** `settings.get` / `settings.save` (partial cfg)
-- [ ] **1.4.7** (optional) `commit.get` + `screenshot_base64` для `.blend` stub
+- [~] **1.4.7** (optional) `commit.get` + `screenshot_base64` для `.blend` stub
 
 **Проверка:** `go test ./internal/jsonapi/...` зелёный; ручной вызов новых методов из тестового handler.
 
@@ -229,12 +229,12 @@
 ### 5.2 Content Preview — History view
 
 - [x] **5.2.1** `PreviewCommitHeader` + `diff.stat` — [preview-commit-header.md](./preview-commit-header.md)
-- [~] **5.2.2** Changed files list — resizable ~373px — [history-changed-file-item.md](./history-changed-file-item.md)
+- [x] **5.2.2** Changed files list — resizable ~373px — [history-changed-file-item.md](./history-changed-file-item.md)
 - [x] **5.2.3** Auto-select first file A→Z on commit select
 - [x] **5.2.4** `DiffView` routing — [diff-view.md](./diff-view.md)
-- [~] **5.2.5** `TextDiffPanel` — Unified default, Split client-side — [text-diff-panel.md](./text-diff-panel.md)
-- [~] **5.2.6** `ImageDiffPanel` — Split / Overlay — [image-diff-panel.md](./image-diff-panel.md)
-- [~] **5.2.7** `BinaryDiffStub` — `.blend` screenshot — [binary-diff-stub.md](./binary-diff-stub.md)
+- [x] **5.2.5** `TextDiffPanel` — Unified default, Split client-side — [text-diff-panel.md](./text-diff-panel.md)
+- [x] **5.2.6** `ImageDiffPanel` — Split / Overlay — [image-diff-panel.md](./image-diff-panel.md)
+- [x] **5.2.7** `BinaryDiffStub` — `.blend` screenshot — [binary-diff-stub.md](./binary-diff-stub.md)
 - [x] **5.2.8** `DeletedDiffStub` — [deleted-diff-stub.md](./deleted-diff-stub.md)
 - [x] **5.2.9** Abort stale diff requests; `file_too_large` stub
 

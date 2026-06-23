@@ -47,12 +47,22 @@ interface ChangedFilesListProps {
   files: DiffFileEntry[];
   selectedPath: string | null;
   loading: boolean;
+  width: number;
   onSelect: (path: string) => void;
 }
 
-export function ChangedFilesList({ files, selectedPath, loading, onSelect }: ChangedFilesListProps) {
+export function ChangedFilesList({
+  files,
+  selectedPath,
+  loading,
+  width,
+  onSelect,
+}: ChangedFilesListProps) {
   return (
-    <div className="flex h-full min-h-0 w-[373px] shrink-0 flex-col border-r border-border bg-background">
+    <div
+      className="flex h-full min-h-0 shrink-0 flex-col border-r border-border bg-background"
+      style={{ width, minWidth: width, maxWidth: width }}
+    >
       <div className="shrink-0 bg-accent px-3 py-2 text-sm font-medium text-foreground">
         {loading ? "Loading…" : `${files.length} files changed`}
       </div>

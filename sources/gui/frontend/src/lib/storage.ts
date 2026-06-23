@@ -127,3 +127,63 @@ export function saveSelectedCommitHash(repoPath: string, hash: string | null): v
     // ignore
   }
 }
+
+const HISTORY_FILES_PANEL_WIDTH = "dfm.history.filesPanelWidth";
+const HISTORY_TEXT_LAYOUT = "dfm.history.textLayout";
+const HISTORY_IMAGE_LAYOUT = "dfm.history.imageLayout";
+
+export function loadHistoryFilesPanelWidth(repoPath: string): number | null {
+  try {
+    const raw = localStorage.getItem(perRepoKey(HISTORY_FILES_PANEL_WIDTH, repoPath));
+    if (!raw) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveHistoryFilesPanelWidth(repoPath: string, width: number): void {
+  try {
+    localStorage.setItem(perRepoKey(HISTORY_FILES_PANEL_WIDTH, repoPath), String(Math.round(width)));
+  } catch {
+    // ignore
+  }
+}
+
+export type HistoryTextLayout = "unified" | "split";
+export type HistoryImageLayout = "split" | "overlay";
+
+export function loadHistoryTextLayout(repoPath: string): HistoryTextLayout {
+  try {
+    return localStorage.getItem(perRepoKey(HISTORY_TEXT_LAYOUT, repoPath)) === "split" ? "split" : "unified";
+  } catch {
+    return "unified";
+  }
+}
+
+export function saveHistoryTextLayout(repoPath: string, layout: HistoryTextLayout): void {
+  try {
+    localStorage.setItem(perRepoKey(HISTORY_TEXT_LAYOUT, repoPath), layout);
+  } catch {
+    // ignore
+  }
+}
+
+export function loadHistoryImageLayout(repoPath: string): HistoryImageLayout {
+  try {
+    return localStorage.getItem(perRepoKey(HISTORY_IMAGE_LAYOUT, repoPath)) === "overlay"
+      ? "overlay"
+      : "split";
+  } catch {
+    return "split";
+  }
+}
+
+export function saveHistoryImageLayout(repoPath: string, layout: HistoryImageLayout): void {
+  try {
+    localStorage.setItem(perRepoKey(HISTORY_IMAGE_LAYOUT, repoPath), layout);
+  } catch {
+    // ignore
+  }
+}

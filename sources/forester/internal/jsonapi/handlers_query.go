@@ -1,8 +1,11 @@
 package jsonapi
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/difference-machine/forester/internal/core"
 	"github.com/difference-machine/forester/internal/utils"
@@ -209,12 +212,12 @@ func handleCommitGet(workPath string, args json.RawMessage) (interface{}, error)
 		return nil, fmt.Errorf("hash is required")
 	}
 
-	return withRepo(workPath, func(repo *core.Repository, _ string) (interface{}, error) {
+	return withRepo(workPath, func(repo *core.Repository, repoPath string) (interface{}, error) {
 		commit, err := repo.GetCommit(params.Hash)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get commit: %w", err)
 		}
-		return map[string]interface{}{
+		result := map[string]interface{}{
 			"hash":            commit.Hash,
 			"parent_hash":     commit.ParentHash,
 			"parent_hashes":   commit.ParentHashes,
@@ -224,6 +227,32 @@ func handleCommitGet(workPath string, args json.RawMessage) (interface{}, error)
 			"timestamp":       commit.Timestamp,
 			"type":            commit.Type,
 			"screenshot_path": commit.ScreenshotPath,
-		}, nil
+		}
+		if b64, err := readScreenshotBase64(repoPath, commit.ScreenshotPath); err == nil && b64 != "" {
+			result["screenshot_base64"] = b64
+		}
+		return result, nil
 	})
+}
+
+func readScreenshotBase64(repoPath, screenshotPath string) (string, error) {
+	if screenshotPath == "" {
+		return "", nil
+	}
+	abs := screenshotPath
+	if !filepath.IsAbs(abs) {
+		abs = filepath.Join(repoPath, filepath.FromSlash(screenshotPath))
+	}
+	info, err := os.Stat(abs)
+	if err != nil || info.IsDir() {
+		return "", err
+	}
+	if info.Size() > maxDiffBlobBytes {
+		return "", fmt.Errorf("screenshot_too_large")
+	}
+	raw, err := os.ReadFile(abs)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(raw), nil
 }
