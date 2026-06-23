@@ -41,6 +41,7 @@ interface ProjectState {
   folderTree: FolderNode | null;
   status: StatusPayload | null;
   committable: string[];
+  previewGeneration: number;
   sortLocale: SortLocale;
   thumbScale: ThumbScalePx;
   navStack: string[];
@@ -59,6 +60,7 @@ interface ProjectState {
   setFolderTree: (tree: FolderNode | null) => void;
   mergeFolderChildren: (path: string, children: FolderNode[]) => void;
   setStatus: (status: StatusPayload | null) => void;
+  bumpPreviewGeneration: () => void;
   setSortLocale: (locale: SortLocale) => void;
   setThumbScale: (px: ThumbScalePx) => void;
   setPreviewSearchQuery: (query: string) => void;
@@ -75,6 +77,7 @@ const initialState = {
   folderTree: null as FolderNode | null,
   status: null as StatusPayload | null,
   committable: [] as string[],
+  previewGeneration: 0,
   sortLocale: "en-US" as SortLocale,
   thumbScale: DEFAULT_THUMB_SCALE,
   navStack: [""] as string[],
@@ -174,8 +177,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (sameStatusPayload(state.status, status) && sameStringArrays(state.committable, committable)) {
         return state;
       }
-      return { status, committable };
+      return { status, committable, previewGeneration: state.previewGeneration + 1 };
     }),
+  bumpPreviewGeneration: () =>
+    set((state) => ({ previewGeneration: state.previewGeneration + 1 })),
   setSortLocale: (locale) => {
     const repoPath = useAppStore.getState().repoPath;
     if (repoPath) saveSortLocale(repoPath, locale);

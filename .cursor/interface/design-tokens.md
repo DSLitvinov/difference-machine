@@ -195,8 +195,10 @@
 | Selected file row | `background/primary/default` | `bg-primary text-primary-foreground` |
 | File row hover | `background/accent` | `hover:bg-accent` |
 | Diff toolbar border | `border/default` | `border-border` |
-| Diff added line | — | `bg-emerald-50 text-emerald-900` (или diff theme) |
-| Diff removed line | — | `bg-red-50 text-red-900` |
+| Diff added line | — | `bg-emerald-500/15 dark:bg-emerald-950/50` |
+| Diff added word | — | `bg-emerald-500/45 dark:bg-emerald-600/55` |
+| Diff removed line | — | `bg-red-500/15 dark:bg-red-950/50` |
+| Diff removed word | — | `bg-red-500/45 dark:bg-red-600/55` |
 | Stub / empty text | `foreground/muted` | `text-muted-foreground` |
 | Binary stub open button | `background/primary/default` + `foreground/primary/default` | `Button variant="default"` |
 | Blend screenshot preview | `border/default` + image | `border border-border rounded-md object-contain max-w-[320px]` |

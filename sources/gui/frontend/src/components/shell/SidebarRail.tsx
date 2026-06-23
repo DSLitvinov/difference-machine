@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { userDisplayInitials } from "@/lib/userInitials";
 import { cn } from "@/lib/utils";
 import { useAppStore, type SidebarMode } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -49,7 +50,10 @@ function RailButton({
 export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
   const sidebarMode = useAppStore((s) => s.sidebarMode);
   const repoPath = useAppStore((s) => s.repoPath);
+  const userName = useAppStore((s) => s.userName);
   const setSidebarMode = useAppStore((s) => s.setSidebarMode);
+  const avatarLabel = userName.trim() || "User";
+  const avatarInitials = userDisplayInitials(userName);
 
   const switchMode = (mode: SidebarMode) => {
     if (mode === sidebarMode) return;
@@ -92,9 +96,10 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
         </RailButton>
         <div
           className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground"
-          title="User"
+          title={avatarLabel}
+          aria-label={avatarLabel}
         >
-          U
+          {avatarInitials}
         </div>
       </div>
     </aside>

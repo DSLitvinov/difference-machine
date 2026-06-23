@@ -137,7 +137,10 @@ export function ContentInfoPanel() {
         <InfoHistorySection
           filePath={selectedFilePath!}
           currentUser={author}
-          onRestored={() => setMetadataKey((k) => k + 1)}
+          onRestored={() => {
+            setMetadataKey((k) => k + 1);
+            useProjectStore.getState().bumpPreviewGeneration();
+          }}
         />
 
         <InfoMetadataSection metadata={metadata} loading={loading} />

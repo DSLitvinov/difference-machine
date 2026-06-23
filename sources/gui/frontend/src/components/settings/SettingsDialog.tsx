@@ -37,6 +37,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const setRepo = useAppStore((s) => s.setRepo);
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
+  const setUserNameInStore = useAppStore((s) => s.setUserName);
   const repoPath = useAppStore((s) => s.repoPath);
 
   const [tab, setTab] = useState<SettingsTab>("profile");
@@ -62,6 +63,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         const data = await fetchSettings();
         if (cancelled) return;
         setUserName(data.userName ?? "");
+        setUserNameInStore(data.userName ?? "");
         setRepos(data.repos ?? []);
         setEditors(data.editors ?? []);
         setForesterCli(data.foresterCli ?? "");
@@ -84,12 +86,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     return () => {
       cancelled = true;
     };
-  }, [open, setError]);
+  }, [open, setError, setUserNameInStore]);
 
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
       await saveSettingsProfile(userName, "en");
+      setUserNameInStore(userName);
       setNotice("Profile saved");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

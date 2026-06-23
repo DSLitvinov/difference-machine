@@ -1,6 +1,12 @@
 import { useMemo, useRef, useEffect } from "react";
 
-import { parseUnifiedDiff, toSplitColumns } from "@/lib/parseUnifiedDiff";
+import {
+  buildSplitDisplayRows,
+  buildUnifiedDisplayRows,
+  type SplitDisplayRow,
+  type UnifiedDisplayRow,
+} from "@/lib/parseUnifiedDiff";
+import type { TextSegment } from "@/lib/intralineDiff";
 import type { HistoryTextLayout } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
@@ -11,58 +17,117 @@ interface TextDiffPanelProps {
   error: string | null;
 }
 
-function diffLineClass(line: string, kind: "unified" | "left" | "right"): string {
-  if (line.startsWith("@@") || line.startsWith("---") || line.startsWith("+++")) {
-    return "text-muted-foreground";
-  }
-  if (kind === "unified") {
-    if (line.startsWith("+")) return "bg-emerald-50 text-emerald-900";
-    if (line.startsWith("-")) return "bg-red-50 text-red-900";
-    return "";
-  }
-  if (kind === "left" && line !== "") return "bg-red-50 text-red-900";
-  if (kind === "right" && line !== "") return "bg-emerald-50 text-emerald-900";
+function lineBgClass(kind: "context" | "add" | "del" | "empty"): string {
+  if (kind === "add") return "bg-emerald-500/15 dark:bg-emerald-950/50";
+  if (kind === "del") return "bg-red-500/15 dark:bg-red-950/50";
   return "";
 }
 
-function DiffColumn({
-  lines,
-  kind,
-  scrollRef,
-  onScroll,
+function highlightClass(kind: "add" | "del"): string {
+  if (kind === "add") return "bg-emerald-500/45 dark:bg-emerald-600/55";
+  return "bg-red-500/45 dark:bg-red-600/55";
+}
+
+function SegmentText({
+  segments,
+  highlightKind,
 }: {
-  lines: string[];
-  kind: "unified" | "left" | "right";
-  scrollRef?: React.RefObject<HTMLDivElement>;
-  onScroll?: () => void;
+  segments: TextSegment[];
+  highlightKind?: "add" | "del";
 }) {
   return (
-    <div
-      ref={scrollRef}
-      className="h-full overflow-auto bg-background p-3 font-mono text-xs"
-      onScroll={onScroll}
-    >
-      {lines.map((line, index) => (
-        <div
-          key={`${index}-${line.slice(0, 12)}`}
-          className={cn("whitespace-pre-wrap px-1", diffLineClass(line, kind))}
+    <>
+      {segments.map((segment, index) => (
+        <span
+          key={index}
+          className={cn(segment.highlight && highlightKind ? highlightClass(highlightKind) : undefined)}
         >
-          {line || " "}
-        </div>
+          {segment.text}
+        </span>
       ))}
+    </>
+  );
+}
+
+function LineNumberCell({ value }: { value: number | null }) {
+  return (
+    <span className="inline-block w-9 shrink-0 select-none pr-2 text-right tabular-nums text-muted-foreground">
+      {value != null && value > 0 ? value : ""}
+    </span>
+  );
+}
+
+function UnifiedDiffRow({ row }: { row: UnifiedDisplayRow }) {
+  if (row.type === "hunk") {
+    return (
+      <div className="bg-muted/40 px-3 py-0.5 font-mono text-xs text-muted-foreground">{row.header}</div>
+    );
+  }
+
+  const bg = lineBgClass(row.kind);
+
+  return (
+    <div className={cn("flex min-w-0 font-mono text-xs leading-5", bg)}>
+      <div className={cn("sticky left-0 z-[1] flex shrink-0 border-r border-border/60 px-2", bg)}>
+        <LineNumberCell value={row.oldLine} />
+        <LineNumberCell value={row.newLine} />
+      </div>
+      <div className="min-w-0 flex-1 whitespace-pre px-2 py-px">
+        <span className="select-none text-muted-foreground">{row.prefix}</span>
+        <SegmentText
+          segments={row.segments}
+          highlightKind={row.kind === "context" ? undefined : row.kind}
+        />
+      </div>
     </div>
   );
 }
+
+function SplitRowSide({
+  lineNum,
+  kind,
+  segments,
+  highlightKind,
+  align,
+}: {
+  lineNum: number | null;
+  kind: "context" | "add" | "del" | "empty";
+  segments: TextSegment[];
+  highlightKind?: "add" | "del";
+  align: "left" | "right";
+}) {
+  const bg = lineBgClass(kind);
+
+  return (
+    <div className={cn("flex min-w-0 flex-1 font-mono text-xs leading-5", bg)}>
+      <div
+        className={cn(
+          "sticky z-[1] shrink-0 border-border/60 px-2",
+          bg,
+          align === "left" ? "left-0 border-r" : "right-0 border-l",
+        )}
+      >
+        <LineNumberCell value={lineNum} />
+      </div>
+      <div className="min-w-0 flex-1 whitespace-pre px-2 py-px">
+        {kind === "empty" ? (
+          " "
+        ) : (
+          <SegmentText segments={segments} highlightKind={highlightKind} />
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanelProps) {
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
   const syncing = useRef(false);
 
-  const split = useMemo(() => {
-    if (layout !== "split" || !content) return null;
-    return toSplitColumns(parseUnifiedDiff(content));
-  }, [content, layout]);
+  const unifiedRows = useMemo(() => buildUnifiedDisplayRows(content), [content]);
+  const splitRows = useMemo(() => buildSplitDisplayRows(content), [content]);
 
   useEffect(() => {
     const left = leftRef.current;
@@ -105,25 +170,136 @@ export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanel
     );
   }
 
-  if (layout === "split" && split) {
+  if (layout === "split") {
     return (
       <div className="grid h-full min-h-0 grid-cols-2">
-        <div className="min-h-0 border-r border-border">
-          <p className="border-b border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+        <div className="flex min-h-0 flex-col border-r border-border">
+          <p className="shrink-0 border-b border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
             Parent
           </p>
-          <DiffColumn lines={split.left} kind="left" scrollRef={leftRef} />
+          <div ref={leftRef} className="min-h-0 flex-1 overflow-auto bg-background">
+            <div className="grid grid-cols-1">
+              {splitRows.map((row, index) => {
+                if (row.type === "hunk") {
+                  return (
+                    <div
+                      key={`hunk-${index}`}
+                      className="bg-muted/40 px-3 py-0.5 font-mono text-xs text-muted-foreground"
+                    >
+                      {row.header}
+                    </div>
+                  );
+                }
+                if (row.type === "context") {
+                  return (
+                    <SplitRowSide
+                      key={`ctx-${index}`}
+                      lineNum={row.oldLine}
+                      kind="context"
+                      segments={row.segments}
+                      align="left"
+                    />
+                  );
+                }
+                if (row.type === "modified") {
+                  return (
+                    <SplitRowSide
+                      key={`mod-${index}`}
+                      lineNum={row.oldLine}
+                      kind="del"
+                      segments={row.oldSegments}
+                      highlightKind="del"
+                      align="left"
+                    />
+                  );
+                }
+                if (row.type === "deleted") {
+                  return (
+                    <SplitRowSide
+                      key={`del-${index}`}
+                      lineNum={row.oldLine}
+                      kind="del"
+                      segments={row.segments}
+                      highlightKind="del"
+                      align="left"
+                    />
+                  );
+                }
+                return (
+                  <SplitRowSide lineNum={null} kind="empty" segments={[]} align="left" key={`add-pad-${index}`} />
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <div className="min-h-0">
-          <p className="border-b border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+        <div className="flex min-h-0 flex-col">
+          <p className="shrink-0 border-b border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
             Commit
           </p>
-          <DiffColumn lines={split.right} kind="right" scrollRef={rightRef} />
+          <div ref={rightRef} className="min-h-0 flex-1 overflow-auto bg-background">
+            <div className="grid grid-cols-1">
+              {splitRows.map((row, index) => {
+                if (row.type === "hunk") {
+                  return (
+                    <div
+                      key={`hunk-r-${index}`}
+                      className="bg-muted/40 px-3 py-0.5 font-mono text-xs text-muted-foreground"
+                    >
+                      {row.header}
+                    </div>
+                  );
+                }
+                if (row.type === "context") {
+                  return (
+                    <SplitRowSide
+                      key={`ctx-r-${index}`}
+                      lineNum={row.newLine}
+                      kind="context"
+                      segments={row.segments}
+                      align="right"
+                    />
+                  );
+                }
+                if (row.type === "modified") {
+                  return (
+                    <SplitRowSide
+                      key={`mod-r-${index}`}
+                      lineNum={row.newLine}
+                      kind="add"
+                      segments={row.newSegments}
+                      highlightKind="add"
+                      align="right"
+                    />
+                  );
+                }
+                if (row.type === "added") {
+                  return (
+                    <SplitRowSide
+                      key={`add-${index}`}
+                      lineNum={row.newLine}
+                      kind="add"
+                      segments={row.segments}
+                      highlightKind="add"
+                      align="right"
+                    />
+                  );
+                }
+                return (
+                  <SplitRowSide lineNum={null} kind="empty" segments={[]} align="right" key={`del-pad-${index}`} />
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  const lines = content.split("\n");
-  return <DiffColumn lines={lines} kind="unified" />;
+  return (
+    <div className="h-full overflow-auto bg-background">
+      {unifiedRows.map((row, index) => (
+        <UnifiedDiffRow key={`unified-${index}`} row={row} />
+      ))}
+    </div>
+  );
 }

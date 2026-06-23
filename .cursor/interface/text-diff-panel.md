@@ -19,25 +19,29 @@
 
 ### 2.1 Unified (default)
 
-Одна прокручиваемая колонка:
+Одна прокручиваемая колонка в стиле **GitHub Desktop**:
 
 ```
+┌────┬────┬──────────────────────────────┐
+│  1 │  1 │  context line                │
+│  2 │    │ -removed (word highlight)  │
+│    │  2 │ +added   (word highlight)  │
+└────┴────┴──────────────────────────────┘
 @@ -10,3 +10,4 @@
- context line
--removed line
-+added line
- context line
 ```
 
-| Line kind | Prefix | Style |
-|-----------|--------|-------|
-| context | space | default bg |
-| add | `+` | `bg-emerald-50 text-emerald-900` |
-| del | `−` | `bg-red-50 text-red-900` |
-| hunk header | `@@` | `text-muted-foreground font-mono` |
+| Element | Style |
+|---------|-------|
+| Gutter | две колонки номеров (old \| new), `tabular-nums`, `text-muted-foreground` |
+| context | нейтральный фон |
+| add | `+` prefix, зелёный фон строки + ярче изменённые слова |
+| del | `−` prefix, красный фон строки + ярче изменённые слова |
+| hunk header | `@@ … @@`, `bg-muted/40`, без `---` / `+++` |
+| Font | `font-mono text-xs`, `whitespace-pre` |
 
-- Font: `font-mono text-xs` или `text-sm`.
-- `ScrollArea` vertical.
+**Intraline diff:** как GitHub Desktop — `relativeChanges` на уровне символов; только когда в блоке подряд идущих `+`/`-` строк их количество совпадает.
+
+**Context lines:** API отдаёт unified diff с 3 строками контекста вокруг изменений (как `git diff -U3`).
 
 ### 2.2 Split
 
@@ -45,11 +49,13 @@
 
 | Column | Header | Content |
 |--------|--------|---------|
-| Left | `Parent` muted label | deleted + context from old |
-| Right | `Commit` muted label | added + context from new |
+| Left | `Parent` muted label | deleted + context; intraline highlight на del |
+| Right | `Commit` muted label | added + context; intraline highlight на add |
 
 - Разделитель: `border-r border-border`.
-- Пустая сторона для pure add/delete hunks — placeholder lines или blank.
+- Пустая сторона для pure add/delete — blank line с выравниванием по высоте.
+- Изменённые строки (равное число `+` и `-` подряд) — **одна строка** Modified: old слева, new справа.
+- Номера строк — одна колонка на панель.
 
 ---
 
@@ -84,10 +90,10 @@ interface DiffHunk {
 | Too large | warning banner + «Show anyway» / truncated preview |
 | Error | делегируется родителю `DiffView` |
 
-### 4.1 Syntax highlight
+### 4.1 Syntax highlight / intraline
 
-**v1:** plain monospace, без подсветки.  
-**v1.1:** optional highlight по расширению.
+**v1:** plain monospace + **word-level intraline diff** на соседних `-`/`+` (как GitHub Desktop).  
+**v1.1:** optional syntax highlight по расширению.
 
 ---
 

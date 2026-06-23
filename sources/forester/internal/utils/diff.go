@@ -161,6 +161,111 @@ func ComputeDiff(content1, content2 string) []DiffLine {
 	return BuildDiffFromLCS(lines1, lines2, dp)
 }
 
+const unifiedContextLines = 3
+
+func buildHunkRanges(diffLines []DiffLine, context int) [][2]int {
+	n := len(diffLines)
+	if n == 0 {
+		return nil
+	}
+
+	inHunk := make([]bool, n)
+	for i, line := range diffLines {
+		if line.Type == DiffLineUnchanged {
+			continue
+		}
+		start := i - context
+		if start < 0 {
+			start = 0
+		}
+		end := i + context
+		if end >= n {
+			end = n - 1
+		}
+		for j := start; j <= end; j++ {
+			inHunk[j] = true
+		}
+	}
+
+	var ranges [][2]int
+	i := 0
+	for i < n {
+		if !inHunk[i] {
+			i++
+			continue
+		}
+		start := i
+		for i < n && inHunk[i] {
+			i++
+		}
+		ranges = append(ranges, [2]int{start, i - 1})
+	}
+	return ranges
+}
+
+func emitUnifiedHunk(result *strings.Builder, hunkLines []DiffLine) {
+	if len(hunkLines) == 0 {
+		return
+	}
+
+	oldStart := -1
+	newStart := -1
+	oldCount := 0
+	newCount := 0
+
+	for _, line := range hunkLines {
+		switch line.Type {
+		case DiffLineUnchanged:
+			if oldStart < 0 && line.OldLineNumber >= 0 {
+				oldStart = line.OldLineNumber
+			}
+			if newStart < 0 && line.NewLineNumber >= 0 {
+				newStart = line.NewLineNumber
+			}
+			oldCount++
+			newCount++
+		case DiffLineRemoved:
+			if oldStart < 0 && line.OldLineNumber >= 0 {
+				oldStart = line.OldLineNumber
+			}
+			oldCount++
+		case DiffLineAdded:
+			if newStart < 0 && line.NewLineNumber >= 0 {
+				newStart = line.NewLineNumber
+			}
+			newCount++
+		}
+	}
+
+	if oldStart < 0 {
+		oldStart = 0
+	}
+	if newStart < 0 {
+		newStart = 0
+	}
+
+	oldHeaderStart := oldStart + 1
+	newHeaderStart := newStart + 1
+	if oldCount == 0 {
+		oldHeaderStart = 0
+	}
+	if newCount == 0 {
+		newHeaderStart = 0
+	}
+
+	result.WriteString(fmt.Sprintf("@@ -%d,%d +%d,%d @@\n", oldHeaderStart, oldCount, newHeaderStart, newCount))
+	for _, line := range hunkLines {
+		switch line.Type {
+		case DiffLineUnchanged:
+			result.WriteString(fmt.Sprintf(" %s\n", line.Content))
+		case DiffLineRemoved:
+			result.WriteString(fmt.Sprintf("-%s\n", line.Content))
+		case DiffLineAdded:
+			result.WriteString(fmt.Sprintf("+%s\n", line.Content))
+		}
+	}
+}
+
 // FormatUnifiedDiff formats diff as unified diff format
 func FormatUnifiedDiff(file1, file2 string, diffLines []DiffLine) string {
 	var result strings.Builder
@@ -168,44 +273,8 @@ func FormatUnifiedDiff(file1, file2 string, diffLines []DiffLine) string {
 	result.WriteString(fmt.Sprintf("--- %s\n", file1))
 	result.WriteString(fmt.Sprintf("+++ %s\n", file2))
 
-	oldStart := -1
-	newStart := -1
-	oldCount := 0
-	newCount := 0
-
-	for _, line := range diffLines {
-		if line.Type == DiffLineUnchanged {
-			if oldStart >= 0 {
-				// Output previous hunk
-				result.WriteString(fmt.Sprintf("@@ -%d,%d +%d,%d @@\n", oldStart+1, oldCount, newStart+1, newCount))
-				oldStart = -1
-				newStart = -1
-				oldCount = 0
-				newCount = 0
-			}
-		} else {
-			if oldStart < 0 {
-				// Start new hunk
-				if line.OldLineNumber >= 0 {
-					oldStart = line.OldLineNumber
-				}
-				if line.NewLineNumber >= 0 {
-					newStart = line.NewLineNumber
-				}
-			}
-
-			if line.Type == DiffLineRemoved {
-				result.WriteString(fmt.Sprintf("-%s\n", line.Content))
-				oldCount++
-			} else if line.Type == DiffLineAdded {
-				result.WriteString(fmt.Sprintf("+%s\n", line.Content))
-				newCount++
-			}
-		}
-	}
-
-	if oldStart >= 0 {
-		result.WriteString(fmt.Sprintf("@@ -%d,%d +%d,%d @@\n", oldStart+1, oldCount, newStart+1, newCount))
+	for _, span := range buildHunkRanges(diffLines, unifiedContextLines) {
+		emitUnifiedHunk(&result, diffLines[span[0]:span[1]+1])
 	}
 
 	return result.String()
