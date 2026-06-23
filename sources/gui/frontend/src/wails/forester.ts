@@ -145,3 +145,34 @@ export async function fetchWorkdirEntries(path = "", offset = 0, limit = 200) {
 export async function fetchStatus(): Promise<StatusPayload> {
   return foresterCall<StatusPayload>("status.get", {});
 }
+
+export interface WorkdirMetadata {
+  path: string;
+  size: number;
+  modified: number;
+  mime: string;
+  is_dir: boolean;
+}
+
+export interface LockEntry {
+  file_path: string;
+  user: string;
+  branch: string;
+}
+
+export async function fetchWorkdirMetadata(path: string): Promise<WorkdirMetadata> {
+  return foresterCall<WorkdirMetadata>("workdir.metadata", { path });
+}
+
+export async function fetchLockList(): Promise<LockEntry[]> {
+  const result = await foresterCall<{ locks: LockEntry[] }>("lock.list", {});
+  return result.locks ?? [];
+}
+
+export async function indexAddFiles(files: string[]): Promise<void> {
+  await foresterCall("index.add", { files });
+}
+
+export async function createCommit(message: string, author: string): Promise<void> {
+  await foresterCall("commit.create", { message, author });
+}

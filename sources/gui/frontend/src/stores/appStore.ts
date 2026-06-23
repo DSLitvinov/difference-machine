@@ -18,12 +18,14 @@ interface AppState {
   loading: boolean;
   error: string | null;
   foresterError: string | null;
+  notice: string | null;
   setSidebarMode: (mode: SidebarMode) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setRepo: (repoPath: string | null, repoName: string | null, currentBranch?: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setForesterError: (error: string | null) => void;
+  setNotice: (notice: string | null) => void;
   clearRepo: () => void;
 }
 
@@ -36,6 +38,7 @@ export const useAppStore = create<AppState>((set) => ({
   loading: false,
   error: null,
   foresterError: null,
+  notice: null,
   setSidebarMode: (mode) => {
     saveSidebarMode(mode);
     set({ sidebarMode: mode });
@@ -49,6 +52,7 @@ export const useAppStore = create<AppState>((set) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setForesterError: (foresterError) => set({ foresterError }),
+  setNotice: (notice) => set({ notice }),
   clearRepo: () =>
     set({
       repoPath: null,

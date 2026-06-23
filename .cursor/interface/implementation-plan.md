@@ -49,9 +49,9 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **3 — Slice 2** (частично) |
-| **Следующий шаг** | Slice 3 — Content Info single file · `1.2` diff API |
-| **Заметки** | polling, error banner, Content Info stub, localStorage prefs, sort toolbar |
+| **Активная фаза** | **4 — Slice 3** (частично) |
+| **Следующий шаг** | `4.1.4` InfoHistory · `1.2` diff API · Slice 4 History |
+| **Заметки** | Content Info single + metadata + lock + CreateCommitDialog |
 
 ### Прогресс v1.0
 
@@ -61,7 +61,7 @@
 | 1 | Backend API | `[~]` 4/17 |
 | 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
-| 4 | Slice 3 — Create commit | `[ ]` 0/6 |
+| 4 | Slice 3 — Create commit | `[~]` 7/10 |
 | 5 | Slice 4 — History + diff | `[ ]` 0/17 |
 | 6 | Slice 5 — Polish + Settings | `[ ]` 0/9 |
 | 7 | Сборка и smoke | `[ ]` 1/4 |
@@ -194,18 +194,18 @@
 
 ### 4.1 Content Info — single file
 
-- [ ] **4.1.1** `InfoFilePreviewSingle` — [info-file-preview-single.md](./info-file-preview-single.md)
-- [ ] **4.1.2** `InfoMetadataSection` — FS metadata, hide empty — [info-metadata-section.md](./info-metadata-section.md)
-- [ ] **4.1.3** Lock badge read-only — `lock.list`
+- [x] **4.1.1** `InfoFilePreviewSingle` — [info-file-preview-single.md](./info-file-preview-single.md)
+- [x] **4.1.2** `InfoMetadataSection` — FS metadata, hide empty — [info-metadata-section.md](./info-metadata-section.md)
+- [x] **4.1.3** Lock badge read-only — `lock.list`
 - [ ] **4.1.4** `InfoHistorySection` — branch/commit combobox, Revert, Compare — [info-history-section.md](./info-history-section.md)
 - [ ] **4.1.5** `restore.file` + AlertDialog; `compare.extract` + toast
 
 ### 4.2 Create commit
 
-- [ ] **4.2.1** Footer button → pre-step `index.add` (selected committable only)
-- [ ] **4.2.2** `CreateCommitDialog` — [create-commit-dialog.md](./create-commit-dialog.md)
-- [ ] **4.2.3** Author read-only from `setup.cfg`
-- [ ] **4.2.4** Success → toast, refresh status; остаться в Project view
+- [x] **4.2.1** Footer button → pre-step `index.add` (selected committable only)
+- [x] **4.2.2** `CreateCommitDialog` — [create-commit-dialog.md](./create-commit-dialog.md)
+- [x] **4.2.3** Author read-only from `setup.cfg`
+- [x] **4.2.4** Success → toast, refresh status; остаться в Project view
 
 **Проверка:** select file → metadata; create commit из selection; hook error → toast.
 

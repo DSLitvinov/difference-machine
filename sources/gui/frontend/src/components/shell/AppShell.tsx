@@ -7,6 +7,7 @@ import {
 } from "@/components/sidebar/ProjectSidebarPanel";
 import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
 import { ForesterErrorBanner } from "@/components/shell/ForesterErrorBanner";
+import { AppNotice } from "@/components/shell/AppNotice";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
 import { cn } from "@/lib/utils";
@@ -99,6 +100,8 @@ export function AppShell() {
           Expand sidebar
         </button>
       ) : null}
+
+      <AppNotice />
     </div>
   );
 }

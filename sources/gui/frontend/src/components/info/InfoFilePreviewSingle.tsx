@@ -1,0 +1,63 @@
+import { FileArchive, FileCode, FileImage, Loader2 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import type { InfoPreviewKind } from "@/lib/fileKinds";
+import type { VcsFileStatus } from "@/wails/forester";
+import { vcsBadgeLabel } from "@/wails/forester";
+
+interface InfoFilePreviewSingleProps {
+  path: string;
+  vcsStatus: VcsFileStatus | null;
+  lockUser: string | null;
+  kind: InfoPreviewKind;
+  loading?: boolean;
+}
+
+function PreviewStub({ kind }: { kind: InfoPreviewKind }) {
+  if (kind === "image") {
+    return <FileImage className="h-12 w-12 text-muted-foreground" />;
+  }
+  if (kind === "text") {
+    return <FileCode className="h-12 w-12 text-muted-foreground" />;
+  }
+  if (kind === "blend") {
+    return <FileArchive className="h-12 w-12 text-muted-foreground" />;
+  }
+  return <FileArchive className="h-12 w-12 text-muted-foreground" />;
+}
+
+export function InfoFilePreviewSingle({
+  vcsStatus,
+  lockUser,
+  kind,
+  loading,
+}: InfoFilePreviewSingleProps) {
+  const statusLabel = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
+
+  return (
+    <div className="relative mx-auto flex h-[200px] w-full max-w-[312px] items-center justify-center rounded-md border border-border bg-muted/30">
+      {loading ? (
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      ) : (
+        <PreviewStub kind={kind} />
+      )}
+      {statusLabel ? (
+        <span
+          className={cn(
+            "absolute bottom-2 left-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground",
+          )}
+        >
+          {statusLabel}
+        </span>
+      ) : null}
+      {lockUser ? (
+        <span
+          className="absolute bottom-2 right-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+          title={`Locked by ${lockUser}`}
+        >
+          lock
+        </span>
+      ) : null}
+    </div>
+  );
+}

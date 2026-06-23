@@ -2,6 +2,7 @@ import {
   AddKnownRepo,
   GetCurrentRepoPath,
   GetKnownRepos,
+  GetRepoUser,
   OpenRepo,
   PickRepositoryFolder,
 } from "../../wailsjs/go/main/App";
@@ -54,6 +55,10 @@ export async function addRepository(path: string) {
 
 export async function pickRepositoryFolder(): Promise<string> {
   return PickRepositoryFolder();
+}
+
+export async function fetchRepoUser(): Promise<string> {
+  return GetRepoUser();
 }
 
 export function branchFromStatus(status: Record<string, unknown>): string | null {
