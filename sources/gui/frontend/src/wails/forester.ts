@@ -100,7 +100,7 @@ export function vcsBadgeLabel(status: VcsFileStatus): string {
 }
 
 export async function openWorkdirFile(path: string): Promise<void> {
-  await foresterCall("workdir.open", { path });
+  await openWorkdirPath(path);
 }
 
 export function committablePaths(status: StatusPayload): string[] {
@@ -318,4 +318,15 @@ export async function compareExtract(commitHash: string): Promise<string | null>
     commit_hash: commitHash,
   });
   return result.path ?? null;
+}
+
+export async function compareCleanup(commitHash: string): Promise<void> {
+  await foresterCall("compare.extract", {
+    commit_hash: commitHash,
+    cleanup: true,
+  });
+}
+
+export async function openWorkdirPath(path: string): Promise<void> {
+  await foresterCall("workdir.open", { path });
 }

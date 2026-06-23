@@ -51,7 +51,7 @@ Two buttons `flex gap-2`, equal width:
 | Button | Variant | Action |
 |--------|---------|--------|
 | **Revert** | `secondary` / accent bg | §4.1 |
-| **Compare** | `outline` | §4.2 |
+| **Compare** | `outline` toggle | §4.2 — ON: extract + open folder; OFF: cleanup |
 
 ---
 
@@ -67,12 +67,14 @@ Two buttons `flex gap-2`, equal width:
 
 Maps to CLI: `restore --source=<commit> <file>`
 
-### 4.2 Compare
+### 4.2 Compare (toggle)
 
 1. Require `historyCommit` selected
-2. `compare.extract({ commit_hash })` → whole commit to `.DFM/tmp_review`
-3. Success **toast**: «Extracted to .DFM/tmp_review» (show path)
-4. **Не** открывать Blender автоматически
+2. **ON:** `compare.extract({ commit_hash })` → whole commit to `.DFM/tmp_review`; `workdir.open` on tmp folder (Finder / file manager)
+3. **OFF:** `compare.extract({ commit_hash, cleanup: true })` → удалить `.DFM/tmp_review`
+4. Toggle визуально «включён» (`pressed`) пока compare активен
+5. При смене файла, branch или commit — auto cleanup + toggle off
+6. При unmount секции — cleanup если compare был активен
 
 ---
 

@@ -207,12 +207,8 @@ func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, erro
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
 		rel := canonicalRelPath(params.Path)
 		abs := filepath.Join(repoPath, filepath.FromSlash(rel))
-		info, err := os.Stat(abs)
-		if err != nil {
+		if _, err := os.Stat(abs); err != nil {
 			return nil, err
-		}
-		if info.IsDir() {
-			return nil, fmt.Errorf("path is a directory")
 		}
 		if err := openWithOSDefault(abs); err != nil {
 			return nil, fmt.Errorf("workdir.open: %w", err)

@@ -1,19 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, GitBranch, Loader2 } from "lucide-react";
 
 import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DropdownSelector } from "@/components/ui/dropdown-selector";
+import { Toggle } from "@/components/ui/toggle";
 import { formatTimestamp, shortHash } from "@/lib/format";
 import { loadFileHistoryBranch, saveFileHistoryBranch } from "@/lib/storage";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
+  compareCleanup,
   compareExtract,
   fetchBranchList,
   fetchFileLog,
   fetchLockList,
   fetchStatus,
+  openWorkdirPath,
   restoreFile,
   type CommitLogEntry,
 } from "@/wails/forester";
@@ -23,6 +26,8 @@ interface InfoHistorySectionProps {
   currentUser: string;
   onRestored: () => void;
 }
+
+const TMP_REVIEW_PATH = ".DFM/tmp_review";
 
 function commitLabel(entry: CommitLogEntry): string {
   const subject = entry.message.split("\n")[0]?.trim() || "(no message)";
@@ -45,6 +50,41 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
   const [loading, setLoading] = useState(false);
   const [acting, setActing] = useState(false);
   const [revertOpen, setRevertOpen] = useState(false);
+  const [compareActive, setCompareActive] = useState(false);
+  const [compareCommit, setCompareCommit] = useState<string | null>(null);
+  const compareCommitRef = useRef<string | null>(null);
+
+  const stopCompare = useCallback(async (commitHash: string | null) => {
+    if (!commitHash) {
+      setCompareActive(false);
+      setCompareCommit(null);
+      compareCommitRef.current = null;
+      return;
+    }
+    await compareCleanup(commitHash);
+    setCompareActive(false);
+    setCompareCommit(null);
+    compareCommitRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    compareCommitRef.current = compareCommit;
+  }, [compareCommit]);
+
+  useEffect(() => {
+    return () => {
+      const hash = compareCommitRef.current;
+      if (hash) {
+        void compareCleanup(hash);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const hash = compareCommitRef.current;
+    if (!hash) return;
+    void stopCompare(hash);
+  }, [filePath, stopCompare]);
 
   useEffect(() => {
     if (!repoPath) return;
@@ -108,10 +148,23 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
     };
   }, [branch, filePath, setError, setNotice]);
 
+  useEffect(() => {
+    if (compareActive && compareCommit && selectedCommit !== compareCommit) {
+      void stopCompare(compareCommit);
+    }
+  }, [selectedCommit, compareActive, compareCommit, stopCompare]);
+
   const handleBranchChange = (value: string) => {
     setBranch(value);
     if (repoPath) saveFileHistoryBranch(repoPath, value);
     setSelectedCommit("");
+    if (compareCommitRef.current) {
+      void stopCompare(compareCommitRef.current);
+    }
+  };
+
+  const handleCommitChange = (value: string) => {
+    setSelectedCommit(value);
   };
 
   const checkLockBeforeRevert = async (): Promise<boolean> => {
@@ -143,14 +196,30 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
     }
   };
 
-  const handleCompare = async () => {
+  const handleCompareToggle = async (pressed: boolean) => {
     if (!selectedCommit) return;
+    if (pressed && compareActive) return;
+
     setActing(true);
     setError(null);
     try {
-      const path = await compareExtract(selectedCommit);
-      setNotice(path ? `Extracted to ${path}` : "Extracted to .DFM/tmp_review");
+      if (pressed) {
+        if (compareCommit && compareCommit !== selectedCommit) {
+          await stopCompare(compareCommit);
+        }
+        const path = await compareExtract(selectedCommit);
+        await openWorkdirPath(TMP_REVIEW_PATH);
+        setCompareActive(true);
+        setCompareCommit(selectedCommit);
+        setNotice(path ? `Compare opened: ${path}` : `Compare opened: ${TMP_REVIEW_PATH}`);
+        return;
+      }
+
+      await stopCompare(compareCommit ?? selectedCommit);
     } catch (err) {
+      setCompareActive(false);
+      setCompareCommit(null);
+      compareCommitRef.current = null;
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setActing(false);
@@ -202,7 +271,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
             options={commitOptions}
             placeholder={loading ? "Loading…" : "No commits for this file"}
             disabled={loading || commits.length === 0}
-            onChange={setSelectedCommit}
+            onChange={handleCommitChange}
           />
 
           <div className="flex gap-2">
@@ -217,15 +286,16 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
             >
               Revert
             </Button>
-            <Button
+            <Toggle
               variant="outline"
-              className="flex-1"
+              className="h-9 flex-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground hover:data-[state=on]:bg-primary hover:data-[state=on]:text-primary-foreground"
+              pressed={compareActive}
               disabled={!selectedCommit || acting}
-              onClick={() => void handleCompare()}
+              onPressedChange={(pressed) => void handleCompareToggle(pressed)}
             >
               {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Compare
-            </Button>
+            </Toggle>
           </div>
         </div>
       ) : null}
