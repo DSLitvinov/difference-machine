@@ -146,6 +146,24 @@ path_2 = "/Users/me/My Projects/scene-b"
 
 [forester]
 path = /opt/DiffMachine/bin/forester
+
+[blender]
+path = /Applications/Blender.app/Contents/MacOS/Blender
+
+[addons]
+diffmachine_path = /opt/DiffMachine/addons/blender/difference_machine
+
+[gui]
+theme = light
+font = inter
+language = en
+
+[gui editors]
+path_1 = /Applications/Blender.app/Contents/MacOS/Blender
+path_2 = /usr/local/bin/code
+
+[user]
+name = Artist
 ```
 
 ### 9.2 Windows
@@ -166,7 +184,19 @@ path = C:\DiffMachine\bin\forester.exe
 
 ---
 
-## 10. `localStorage` (per-repo prefs)
+## 10. `localStorage` (GUI prefs)
+
+| Key | Значение | Документ |
+|-----|----------|----------|
+| `dfm.gui.theme` | `light` \| `dark` \| `system` | [settings-dialog.md §4.3](./settings-dialog.md) |
+| `dfm.gui.font` | `inter` | [settings-dialog.md §4.1](./settings-dialog.md) |
+| `dfm.sidebar.showChangedOnly::<repoKey>` | per-repo | §11 ниже |
+
+`repoKey` = канонический abs ([§3](./paths.md#3-канонизация-путей)).
+
+---
+
+## 11. `localStorage` (per-repo prefs)
 
 Ключи вида `dfm.sidebar.showChangedOnly::<repoKey>`.
 
@@ -174,7 +204,7 @@ path = C:\DiffMachine\bin\forester.exe
 
 ---
 
-## 11. Corner cases
+## 12. Corner cases
 
 | Ситуация | Поведение |
 |----------|-----------|
@@ -188,7 +218,7 @@ path = C:\DiffMachine\bin\forester.exe
 
 ---
 
-## 12. Решения (закрытые)
+## 13. Решения (закрытые)
 
 | # | Тема | Решение |
 |---|------|---------|

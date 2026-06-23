@@ -15,7 +15,7 @@
 | Paths (macOS / Windows) | [paths.md](./paths.md) |
 | Panel resize (3 columns) | [panel-layout.md](./panel-layout.md) |
 
-**Стек:** Wails + React + shadcn/ui (theme **Zinc**, mode **light**).
+**Стек:** Wails + React + shadcn/ui (theme **Zinc**; mode **light** default, **dark** via Settings → [settings-dialog.md §4](./settings-dialog.md)).
 
 ---
 
@@ -188,6 +188,21 @@
 | Status badge R | info | `bg-blue-600 text-white` |
 | Image diff handle | `border/primary/default` | `border-ring bg-background` |
 | Resize divider | `border/default` | `bg-border` |
+
+### 3.8 Dark mode (Appearance)
+
+При `theme = dark` (`class="dark"` на `<html>`) — те же семантические классы; значения из shadcn Zinc dark palette.
+
+| Элемент | Light | Dark (ориентир) |
+|---------|-------|-----------------|
+| `bg-background` | `#ffffff` | `#09090b` |
+| `bg-sidebar` / shell | `#fafafa` | `#18181b` |
+| `bg-accent` | `#f4f4f5` | `#27272a` |
+| `text-muted-foreground` | `#71717a` | `#a1a1aa` |
+| Diff added line | `bg-emerald-50` | `bg-emerald-950/40` |
+| Diff removed line | `bg-red-50` | `bg-red-950/40` |
+
+Полный набор — сгенерировать `globals.css` через shadcn dark theme. Настройка: [settings-dialog.md §4](./settings-dialog.md).
 
 ### 3.6 Content Info
 

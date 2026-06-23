@@ -77,7 +77,7 @@ name = Artist
 
 ## 3. UI (Repo selector)
 
-Компонент: `RepoSelector` в [sidebar-project-view.md §2.2](./sidebar-project-view.md).
+Компонент: `RepoSelector` в [sidebar-project-view.md §2.2](./sidebar-project-view.md). Полное управление списком (add/remove/edit) — [settings-dialog.md §4](./settings-dialog.md).
 
 ```
 ┌─────────────────────────────────────┐
@@ -127,6 +127,7 @@ name = Artist
 | `GetCurrentRepoPath()` | `string` из `[current repo] path` или `""` |
 | `SetCurrentRepoPath(path)` | Канонизировать → обновить `[current repo]` |
 | `AddKnownRepo(path)` | Dedupe `SamePath` → append `path_N` + `SetCurrentRepoPath` |
+| `RemoveKnownRepo(path)` | Remove `path_N` from `[repo]`; fix `[current repo]` if needed — [settings-dialog.md §4](./settings-dialog.md) |
 | `OpenRepo(path)` | `CanonicalAbsPath` → валидация `.DFM` / `status.get` → app state + `[current repo]` |
 
 `OpenRepo` вызывается из startup, dropdown и Add repository.
@@ -148,7 +149,7 @@ name = Artist
 | Concurrent edit cfg (CLI + GUI) | v1.1: re-read-merge; v1: last-write-wins |
 | Только `[repo]`, нет `[current repo]` | Старт: empty state; выбрать из dropdown |
 | UNC / пробелы / mixed slashes | [paths.md §11](./paths.md) |
-| Удаление репо из списка | **v2** — не в v1 |
+| Удаление репо из списка | [settings-dialog.md §4](./settings-dialog.md) — Trash + Save list |
 
 ---
 

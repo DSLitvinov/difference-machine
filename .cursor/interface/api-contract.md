@@ -206,8 +206,9 @@ type DirEntry struct {
 
 | Wails | Источник |
 |-------|----------|
-| `GetKnownRepos` / `AddKnownRepo` / `OpenRepo` | `~/.dfm/setup.cfg` — [multi-repo.md](./multi-repo.md) |
-| `GetRepoUser` / `SetRepoUser` | `setup.cfg` `[user].name` — [settings-dialog.md](./settings-dialog.md) |
+| `GetKnownRepos` / `AddKnownRepo` / `RemoveKnownRepo` / `OpenRepo` | `~/.dfm/setup.cfg` — [multi-repo.md](./multi-repo.md) · [settings-dialog.md §4](./settings-dialog.md) |
+| `GetRepoUser` / `SetRepoUser` | `setup.cfg` `[user]` — [settings-dialog.md §3](./settings-dialog.md) |
+| `settings.get` / `settings.save` | full / partial `setup.cfg` — [settings-dialog.md §8](./settings-dialog.md) |
 
 ---
 
