@@ -1,12 +1,15 @@
 import { create } from "zustand";
 
+import { DEFAULT_THUMB_SCALE, type ThumbScalePx } from "@/lib/previewScale";
 import {
   loadShowChangedOnly,
   loadSortLocale,
   loadSelectedFolderPath,
+  loadThumbScale,
   saveSelectedFolderPath,
   saveShowChangedOnly,
   saveSortLocale,
+  saveThumbScale,
   type SortLocale,
 } from "@/lib/storage";
 import { useAppStore } from "@/stores/appStore";
@@ -23,8 +26,15 @@ interface ProjectState {
   status: StatusPayload | null;
   committable: string[];
   sortLocale: SortLocale;
+  thumbScale: ThumbScalePx;
+  navStack: string[];
+  navIndex: number;
+  previewSearchQuery: string;
   treeLoading: boolean;
   setSelectedFolderPath: (path: string) => void;
+  navigateToFolder: (path: string) => void;
+  navigateBack: () => void;
+  navigateForward: () => void;
   setSelectedFilePaths: (paths: string[]) => void;
   toggleFileSelection: (path: string, additive: boolean) => void;
   clearFileSelection: () => void;
@@ -34,6 +44,8 @@ interface ProjectState {
   mergeFolderChildren: (path: string, children: FolderNode[]) => void;
   setStatus: (status: StatusPayload | null) => void;
   setSortLocale: (locale: SortLocale) => void;
+  setThumbScale: (px: ThumbScalePx) => void;
+  setPreviewSearchQuery: (query: string) => void;
   restoreRepoPrefs: (repoPath: string) => void;
   setTreeLoading: (loading: boolean) => void;
   reset: () => void;
@@ -48,15 +60,67 @@ const initialState = {
   status: null as StatusPayload | null,
   committable: [] as string[],
   sortLocale: "en-US" as SortLocale,
+  thumbScale: DEFAULT_THUMB_SCALE,
+  navStack: [""] as string[],
+  navIndex: 0,
+  previewSearchQuery: "",
   treeLoading: false,
 };
+
+function persistFolderPath(path: string) {
+  const repoPath = useAppStore.getState().repoPath;
+  if (repoPath) saveSelectedFolderPath(repoPath, path);
+}
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
   ...initialState,
   setSelectedFolderPath: (path) => {
-    const repoPath = useAppStore.getState().repoPath;
-    if (repoPath) saveSelectedFolderPath(repoPath, path);
+    persistFolderPath(path);
     set({ selectedFolderPath: path, selectedFilePaths: [] });
+  },
+  navigateToFolder: (path) => {
+    const state = get();
+    if (state.selectedFolderPath === path && state.previewSearchQuery === "") {
+      return;
+    }
+    const stack = state.navStack.slice(0, state.navIndex + 1);
+    if (stack[stack.length - 1] !== path) {
+      stack.push(path);
+    }
+    persistFolderPath(path);
+    set({
+      selectedFolderPath: path,
+      selectedFilePaths: [],
+      navStack: stack,
+      navIndex: stack.length - 1,
+      previewSearchQuery: "",
+    });
+  },
+  navigateBack: () => {
+    const state = get();
+    if (state.navIndex <= 0) return;
+    const nextIndex = state.navIndex - 1;
+    const path = state.navStack[nextIndex] ?? "";
+    persistFolderPath(path);
+    set({
+      navIndex: nextIndex,
+      selectedFolderPath: path,
+      selectedFilePaths: [],
+      previewSearchQuery: "",
+    });
+  },
+  navigateForward: () => {
+    const state = get();
+    if (state.navIndex >= state.navStack.length - 1) return;
+    const nextIndex = state.navIndex + 1;
+    const path = state.navStack[nextIndex] ?? "";
+    persistFolderPath(path);
+    set({
+      navIndex: nextIndex,
+      selectedFolderPath: path,
+      selectedFilePaths: [],
+      previewSearchQuery: "",
+    });
   },
   setSelectedFilePaths: (paths) => set({ selectedFilePaths: paths }),
   toggleFileSelection: (path, additive) =>
@@ -98,13 +162,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (repoPath) saveSortLocale(repoPath, locale);
     set({ sortLocale: locale });
   },
-  restoreRepoPrefs: (repoPath) =>
+  setThumbScale: (px) => {
+    const repoPath = useAppStore.getState().repoPath;
+    if (repoPath) saveThumbScale(repoPath, px);
+    set({ thumbScale: px });
+  },
+  setPreviewSearchQuery: (query) => set({ previewSearchQuery: query }),
+  restoreRepoPrefs: (repoPath) => {
+    const folderPath = loadSelectedFolderPath(repoPath);
+    const savedThumb = loadThumbScale(repoPath);
     set({
-      selectedFolderPath: loadSelectedFolderPath(repoPath),
+      selectedFolderPath: folderPath,
       showChangedOnly: loadShowChangedOnly(repoPath),
       sortLocale: loadSortLocale(repoPath),
+      thumbScale: (savedThumb as ThumbScalePx | null) ?? DEFAULT_THUMB_SCALE,
       selectedFilePaths: [],
-    }),
+      navStack: [folderPath],
+      navIndex: 0,
+      previewSearchQuery: "",
+    });
+  },
   setTreeLoading: (treeLoading) => set({ treeLoading }),
   reset: () => set({ ...initialState }),
 }));

@@ -129,6 +129,36 @@ func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, erro
 	})
 }
 
+func handleWorkdirSearch(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Query string `json:"query"`
+		Limit int    `json:"limit"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	limit := params.Limit
+	if limit <= 0 {
+		limit = 200
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
+		entries, capped, err := scanner.search(params.Query, limit)
+		if err != nil {
+			return nil, fmt.Errorf("workdir.search: %w", err)
+		}
+		if entries == nil {
+			entries = []dirEntry{}
+		}
+		return map[string]interface{}{
+			"entries": entries,
+			"total":   len(entries),
+			"capped":  capped,
+		}, nil
+	})
+}
+
 func guessMime(rel string) string {
 	lower := rel
 	if idx := len(rel) - 1; idx >= 0 {

@@ -65,7 +65,7 @@ export function ProjectSidebarPanel() {
 
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const setShowChangedOnly = useProjectStore((s) => s.setShowChangedOnly);
-  const setSelectedFolderPath = useProjectStore((s) => s.setSelectedFolderPath);
+  const navigateToFolder = useProjectStore((s) => s.navigateToFolder);
   const [repoMenuOpen, setRepoMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -116,7 +116,7 @@ export function ProjectSidebarPanel() {
         <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase text-muted-foreground">Folders</p>
         <FolderTree
           onFolderSelect={(path) => {
-            setSelectedFolderPath(path);
+            navigateToFolder(path);
           }}
         />
       </div>

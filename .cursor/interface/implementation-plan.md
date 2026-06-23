@@ -50,15 +50,15 @@
 |------|----------|
 | **Последнее обновление** | 2025-06-23 |
 | **Активная фаза** | **7 — Сборка и smoke** |
-| **Следующий шаг** | `7.4` smoke checklist · `3.2.1` toolbar (back/forward, search, slider) |
-| **Заметки** | 3-panel resize + persist; shadcn dropdown fixes |
+| **Следующий шаг** | `7.4` smoke checklist · `6.3.2` corner cases |
+| **Заметки** | Project toolbar: back/forward, search, thumb slider; `workdir.search` API |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
-| 1 | Backend API | `[~]` 10/17 |
+| 1 | Backend API | `[~]` 11/17 |
 | 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
@@ -91,7 +91,7 @@
 - [x] **1.1.2** `workdir.entries` — pagination `{ path, offset, limit }`
 - [x] **1.1.3** `workdir.metadata` — stat + mime
 - [x] **1.1.4** `workdir.open` — OS default app (macOS / Windows)
-- [ ] **1.1.5** `workdir.search` — global search по репо
+- [x] **1.1.5** `workdir.search` — global search по репо
 - [ ] **1.1.6** `workdir.thumbnail` — placeholder (icon по mime)
 
 ### 1.2 Diff / blob
@@ -165,7 +165,7 @@
 
 ### 3.2 Content Preview — Project view
 
-- [~] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
+- [x] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
 - [x] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
 - [x] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 - [x] **3.2.4** VCS badges из `status.get` only
@@ -319,3 +319,4 @@
 | 2025-06-23 | 0 + 2 | Wails bootstrap, pkg/jsonapi, shell, OpenRepo, Rail | `workdir.tree` или RepoSelector dropdown |
 | 2025-06-23 | 5–6 | Slice 4 History+diff; Slice 5 Settings+multiselect | Smoke / Windows build |
 | 2025-06-23 | 7 | shadcn migration; 3-panel resize + persist | Smoke checklist · toolbar polish |
+| 2025-06-23 | 3 + 7 | Project toolbar; `workdir.search` API | Smoke checklist |

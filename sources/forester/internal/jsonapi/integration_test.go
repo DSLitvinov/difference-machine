@@ -427,6 +427,29 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 	if !openResult["success"] {
 		t.Fatalf("workdir.open success = %v, want true", openResult["success"])
 	}
+
+	var searchResult struct {
+		Entries []struct {
+			Path  string `json:"path"`
+			IsDir bool   `json:"is_dir"`
+		} `json:"entries"`
+		Total int `json:"total"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.search", `{"query":"readme","limit":50}`), &searchResult); err != nil {
+		t.Fatalf("decode workdir.search: %v", err)
+	}
+	if searchResult.Total < 1 {
+		t.Fatalf("search total = %d, want >= 1", searchResult.Total)
+	}
+	foundReadme := false
+	for _, entry := range searchResult.Entries {
+		if entry.Path == "readme.txt" {
+			foundReadme = true
+		}
+	}
+	if !foundReadme {
+		t.Fatalf("search entries = %+v, want readme.txt", searchResult.Entries)
+	}
 }
 
 func TestLogGetPathFilterAndRestoreFile(t *testing.T) {

@@ -91,6 +91,25 @@ export function saveSortLocale(repoPath: string, locale: SortLocale): void {
   }
 }
 
+export function loadThumbScale(repoPath: string): number | null {
+  try {
+    const raw = localStorage.getItem(perRepoKey("dfm.preview.thumbScale", repoPath));
+    if (!raw) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveThumbScale(repoPath: string, px: number): void {
+  try {
+    localStorage.setItem(perRepoKey("dfm.preview.thumbScale", repoPath), String(px));
+  } catch {
+    // ignore
+  }
+}
+
 export function loadFileHistoryBranch(repoPath: string): string | null {
   try {
     return localStorage.getItem(perRepoKey("dfm.info.fileHistoryBranch", repoPath));

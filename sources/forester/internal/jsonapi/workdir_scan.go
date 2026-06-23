@@ -258,3 +258,74 @@ func (s *workdirScanner) treeNode(rel string, depth int) (folderNode, error) {
 		Children:  children,
 	}, nil
 }
+
+func (s *workdirScanner) search(query string, limit int) ([]dirEntry, bool, error) {
+	query = strings.ToLower(strings.TrimSpace(query))
+	if query == "" {
+		return []dirEntry{}, false, nil
+	}
+	if limit <= 0 {
+		limit = 200
+	}
+
+	results := make([]dirEntry, 0, limit)
+	capped := false
+	err := filepath.Walk(s.repoPath, func(path string, fi os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if len(results) >= limit {
+			capped = true
+			return filepath.SkipAll
+		}
+
+		relPath, err := filepath.Rel(s.repoPath, path)
+		if err != nil {
+			return err
+		}
+		relPath = filepath.ToSlash(relPath)
+		if relPath == "." {
+			return nil
+		}
+
+		isDir := fi.IsDir()
+		if s.shouldSkipName(fi.Name(), relPath, isDir) {
+			if isDir {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if !strings.Contains(strings.ToLower(fi.Name()), query) {
+			return nil
+		}
+
+		item := dirEntry{
+			Name:  fi.Name(),
+			Path:  relPath,
+			IsDir: isDir,
+		}
+		if isDir {
+			count, err := s.countFilesRecursive(relPath)
+			if err != nil {
+				return err
+			}
+			item.ItemCount = count
+		} else {
+			item.Size = fi.Size()
+		}
+		results = append(results, item)
+		return nil
+	})
+	if err != nil {
+		return nil, false, err
+	}
+
+	sort.Slice(results, func(i, j int) bool {
+		if results[i].IsDir != results[j].IsDir {
+			return results[i].IsDir
+		}
+		return strings.ToLower(results[i].Name) < strings.ToLower(results[j].Name)
+	})
+	return results, capped, nil
+}

@@ -4,10 +4,19 @@ import { Button } from "@/components/ui/button";
 
 interface FolderPreviewItemProps {
   name: string;
+  thumbScale?: number;
+  subtitle?: string;
   onOpen: () => void;
 }
 
-export function FolderPreviewItem({ name, onOpen }: FolderPreviewItemProps) {
+export function FolderPreviewItem({
+  name,
+  thumbScale = 48,
+  subtitle,
+  onOpen,
+}: FolderPreviewItemProps) {
+  const iconSize = Math.max(20, Math.round(thumbScale * 0.65));
+
   return (
     <Button
       type="button"
@@ -16,8 +25,15 @@ export function FolderPreviewItem({ name, onOpen }: FolderPreviewItemProps) {
       onClick={onOpen}
       onDoubleClick={onOpen}
     >
-      <Folder className="h-8 w-8 text-muted-foreground" />
-      <span className="line-clamp-2 w-full break-all">{name}</span>
+      <Folder className="text-muted-foreground" style={{ width: iconSize, height: iconSize }} />
+      <span className="line-clamp-2 w-full break-all" title={name}>
+        {name}
+      </span>
+      {subtitle ? (
+        <span className="line-clamp-1 w-full text-[10px] text-muted-foreground" title={subtitle}>
+          {subtitle}
+        </span>
+      ) : null}
     </Button>
   );
 }

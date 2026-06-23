@@ -142,6 +142,14 @@ export async function fetchWorkdirEntries(path = "", offset = 0, limit = 200) {
   }>("workdir.entries", { path, offset, limit });
 }
 
+export async function fetchWorkdirSearch(query: string, limit = 200) {
+  return foresterCall<{
+    entries: DirEntry[];
+    total: number;
+    capped: boolean;
+  }>("workdir.search", { query, limit });
+}
+
 export async function fetchStatus(): Promise<StatusPayload> {
   return foresterCall<StatusPayload>("status.get", {});
 }

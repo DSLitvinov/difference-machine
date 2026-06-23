@@ -150,10 +150,8 @@ export function FolderTree({ onFolderSelect }: FolderTreeProps) {
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const treeLoading = useProjectStore((s) => s.treeLoading);
-  const setSelectedFolderPath = useProjectStore((s) => s.setSelectedFolderPath);
 
   const handleSelect = (path: string) => {
-    setSelectedFolderPath(path);
     onFolderSelect(path);
   };
 
