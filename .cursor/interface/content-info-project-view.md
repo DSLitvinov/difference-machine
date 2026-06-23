@@ -56,7 +56,7 @@
 | # | Тема | Решение |
 |---|------|---------|
 | 1 | Ширина | Default **354px**; resizable — [panel-layout.md](./panel-layout.md): min **354px**, max `W − 334 − 747` |
-| 2 | Preview types | text → stub; binary → другая stub; image → preview; blend → `workdir.thumbnail` или stub |
+| 2 | Preview types | text → stub; binary → другая stub; image → preview; blend → `workdir.thumbnail` (Blender OS cache / embedded PNG) или stub — [api-contract.md §4.3.2](./api-contract.md) |
 | 3 | Badges | status = VCS; lock = Forester lock (`lock.list`) |
 | 4 | File name row | **Read-only**, `disabled` Input |
 | 5 | Metadata v1 | FS only; пустые поля **скрывать** |
@@ -234,7 +234,7 @@ Display + tooltips UTF-8.
 | JSON method | Назначение |
 |-------------|------------|
 | `workdir.metadata` | FS stat + mime |
-| `workdir.thumbnail` | Preview image/blend |
+| `workdir.thumbnail` | Preview image / `.blend` — [api-contract.md §4.3](./api-contract.md) |
 | `lock.list` | Lock badge; check before `restore.file` |
 | `log.get` + `path` | History commit picker |
 | `compare.extract` | History Compare |

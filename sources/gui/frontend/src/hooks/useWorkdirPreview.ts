@@ -21,20 +21,26 @@ export type { WorkdirPreviewState };
 
 export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "image"): WorkdirPreviewState {
   const repoPath = useAppStore((s) => s.repoPath);
-  const cacheKey = path ? previewCacheKey(repoPath, path) : null;
-  const [revision, setRevision] = useState(0);
+  const cacheKey = path && repoPath ? previewCacheKey(repoPath, path) : null;
+  const [preview, setPreview] = useState<WorkdirPreviewState>(initialState);
 
   useEffect(() => {
-    if (!cacheKey) return;
-    return subscribePreview(cacheKey, () => setRevision((n) => n + 1));
+    if (!cacheKey) {
+      setPreview(initialState);
+      return;
+    }
+
+    setPreview(getCachedPreview(cacheKey));
+    return subscribePreview(cacheKey, () => {
+      setPreview(getCachedPreview(cacheKey));
+    });
   }, [cacheKey]);
 
   useEffect(() => {
-    if (!cacheKey || !path) return;
+    if (!cacheKey || !path || !repoPath) return;
     void ensurePreviewLoaded(cacheKey, path, kind);
-  }, [cacheKey, path, kind]);
+  }, [cacheKey, path, kind, repoPath]);
 
   if (!cacheKey) return initialState;
-  void revision;
-  return getCachedPreview(cacheKey);
+  return preview;
 }

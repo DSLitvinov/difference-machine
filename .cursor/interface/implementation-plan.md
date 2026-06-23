@@ -92,7 +92,7 @@
 - [x] **1.1.3** `workdir.metadata` — stat + mime
 - [x] **1.1.4** `workdir.open` — OS default app (macOS / Windows)
 - [x] **1.1.5** `workdir.search` — global search по репо
-- [ ] **1.1.6** `workdir.thumbnail` — placeholder (icon по mime)
+- [x] **1.1.6** `workdir.thumbnail` — images, text snippet, `.blend` (OS cache + embedded) — [api-contract.md §4.3](./api-contract.md)
 
 ### 1.2 Diff / blob
 
@@ -285,7 +285,7 @@
 
 - [—] Fully expanded folder tree + virtual scroll
 - [—] Marquee + Shift-range multiselect
-- [—] Real thumbnails
+- [x] Real thumbnails (images + `.blend` workdir cache)
 - [—] Dark theme + Appearance tab
 - [—] External editors tab
 - [—] `diff.stat` на commit cards

@@ -31,6 +31,7 @@
 - [ ] **Cancel** в dialog → error `not a Forester repository`
 - [ ] Project: дерево папок, drill-down в Preview, клик по файлу
 - [ ] Content Info показывает metadata; VCS badge на файле (если changed)
+- [ ] `.blend` с превью из Blender → thumbnail в grid и Info (не stub)
 
 ### 3. Create commit
 

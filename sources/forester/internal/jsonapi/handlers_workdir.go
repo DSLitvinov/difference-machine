@@ -153,6 +153,16 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 			}, nil
 		}
 
+		if ext == ".blend" {
+			if thumb, err := loadBlendThumbnail(abs); err == nil && len(thumb) > 0 {
+				return map[string]interface{}{
+					"kind":           "image",
+					"mime":           "image/png",
+					"content_base64": base64.StdEncoding.EncodeToString(thumb),
+				}, nil
+			}
+		}
+
 		if isTextExt(ext) && info.Size() <= maxTextPreviewBytes {
 			raw, err := os.ReadFile(abs)
 			if err != nil {

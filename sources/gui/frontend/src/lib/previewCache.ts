@@ -97,14 +97,15 @@ export async function ensurePreviewLoaded(
   }
 
   const existing = cache.get(key);
-  if (existing && !existing.loading && !existing.failed) {
+  if (existing?.previewUrl || existing?.textPreview) {
     touchCacheKey(key, existing);
     return;
   }
-
-  const pending = inflight.get(key);
-  if (pending) {
-    await pending;
+  if (existing?.loading) {
+    const pending = inflight.get(key);
+    if (pending) {
+      await pending;
+    }
     return;
   }
 

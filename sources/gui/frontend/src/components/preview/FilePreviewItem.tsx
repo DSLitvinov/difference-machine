@@ -4,7 +4,7 @@ import { File } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
-import { isImagePreviewPath } from "@/lib/fileKinds";
+import { fileExtension, isThumbnailPreviewPath } from "@/lib/fileKinds";
 import { isMaxThumbVisual } from "@/lib/previewScale";
 import { cn } from "@/lib/utils";
 import type { VcsFileStatus } from "@/wails/forester";
@@ -35,8 +35,9 @@ export function FilePreviewItem({
   const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
   const maxVisual = isMaxThumbVisual(thumbScale);
   const iconSize = Math.max(16, Math.round(thumbScale * 0.5));
-  const wantsThumbnail = isImagePreviewPath(path) && !dimmed;
-  const { previewUrl } = useWorkdirPreview(wantsThumbnail ? path : null, "image");
+  const wantsThumbnail = isThumbnailPreviewPath(path) && !dimmed;
+  const previewKind = fileExtension(path) === "blend" ? "blend" : "image";
+  const { previewUrl } = useWorkdirPreview(wantsThumbnail ? path : null, previewKind);
 
   return (
     <Button
@@ -65,7 +66,10 @@ export function FilePreviewItem({
             <img
               src={previewUrl}
               alt=""
-              className="h-full w-full object-cover"
+              className={cn(
+                "h-full w-full",
+                previewKind === "blend" ? "object-contain" : "object-cover",
+              )}
               draggable={false}
             />
           ) : (

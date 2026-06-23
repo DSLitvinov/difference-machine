@@ -436,7 +436,7 @@ sources/gui/frontend/src/
 | Фаза | Scope |
 |------|-------|
 | **v1.0 (ship)** | Shell · multi-repo · resize · Project (lazy tree) · History + diff · Info single-file · Create commit · dirty dialog · commit card (урезанное ⋮) |
-| **v1.1 (polish)** | Fully expanded tree · virtual scroll · thumbnails · multiselect (Shift/marquee) · dark theme · commit card stats + full ⋮ · Settings (Appearance, External editors) |
+| **v1.1 (polish)** | Fully expanded tree · virtual scroll · multiselect (Shift/marquee) · dark theme · commit card stats + full ⋮ · Settings (Appearance, External editors) |
 | **v2** | Fs watcher · rename `R` · detached HEAD · **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
 
 **Порядок:** [decisions.md §4](./decisions.md) · backend ([api-contract.md §7](./api-contract.md)) → UI slices.

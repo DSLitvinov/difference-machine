@@ -187,7 +187,7 @@ Content Info History — commit combobox.
 | `workdir.entries` | Preview: immediate subfolders + files папки; **v1.0:** pagination |
 | `workdir.search` | Global search по репо |
 | `workdir.metadata` | Content Info: stat + mime |
-| `workdir.thumbnail` | Preview / Info thumbnails (v1: placeholder ok) |
+| `workdir.thumbnail` | Preview / Info thumbnails — images, text snippet, `.blend` (OS cache + embedded) |
 | `workdir.open` | Double-click → OS default app |
 
 ### 4.1 `workdir.tree`
@@ -224,6 +224,64 @@ type DirEntry struct {
 ```
 
 Default `limit`: 200.
+
+### 4.3 `workdir.thumbnail`
+
+```json
+{ "path": "assets/scene.blend" }
+```
+
+**Request:** repo-relative `path` (forward slashes).
+
+**Response** — discriminated union по `kind`:
+
+| `kind` | Поля | Когда |
+|--------|------|-------|
+| `image` | `mime`, `content_base64` | Raster image или успешный `.blend` preview (PNG) |
+| `text` | `mime`, `text_preview` | Текстовый файл ≤ 32 KB UTF-8 (обрезка ~2000 runes) |
+| `placeholder` | `mime` | Неподдерживаемый тип, слишком большой файл, нет превью |
+
+Лимит `content_base64`: **5 MB** decoded (как `blob.get`).
+
+#### 4.3.1 Raster images
+
+Расширения: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.exr`, `.tiff`, `.tif`, `.bmp`.
+
+- Файл ≤ 5 MB → `kind: "image"`, raw bytes в base64.
+- Файл > 5 MB → `kind: "placeholder"`.
+
+#### 4.3.2 `.blend` — Blender thumbnails (cross-platform)
+
+Blender сохраняет превью по [Freedesktop Thumbnail Managing Standard](https://specifications.freedesktop.org/thumbnail-spec/latest-single/). Backend **не рендерит** Blender — только читает уже существующие кэши и встроенное превью в файле.
+
+**Lookup order:**
+
+1. **OS thumbnail cache** — PNG `{md5(uri)}.png` в `large/`, затем `normal/`:
+   - **Windows / macOS:** `%USERPROFILE%\.thumbnails\` / `~/.thumbnails/`
+   - **Linux:** `$XDG_CACHE_HOME/thumbnails/` или `~/.cache/thumbnails/`; fallback `~/.thumbnails/`
+2. **Embedded preview** — блок `TEST` в `.blend` (поддержка gzip; без zstd → skip)
+
+**URI для MD5** (как `uri_from_filepath` в `blender/imbuf/intern/thumbs.cc`):
+
+| OS | Формат |
+|----|--------|
+| Unix | `file://` + absolute path (`file:///home/user/scene.blend`) |
+| Windows | `file:///` + `C:/...` (drive letter **uppercase**, `\` → `/`) |
+| UNC | `file://server/share/...` |
+
+URI экранируется glib-правилом `UNSAFE_PATH` (пробелы → `%20`, `/` в path не экранируется). MD5 считается от **escaped URI string**, не от содержимого файла.
+
+Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (если доступен); на Windows — uppercase drive letter.
+
+Успех → `kind: "image"`, `mime: "image/png"`, `content_base64`.
+
+**UI:** [file-preview-item.md](./file-preview-item.md) (`object-cover` / `object-contain` для blend) · [info-file-preview-single.md](./info-file-preview-single.md) (`object-contain`).
+
+**Нет превью:** `kind: "placeholder"` — stub icon в grid и Info.
+
+**Предусловие:** файл сохранён в Blender с включённым «Save Preview Images»; иначе кэш пуст и embedded `TEST` может отсутствовать.
+
+Реализация: `sources/forester/internal/jsonapi/blend_thumbnail.go`.
 
 ---
 

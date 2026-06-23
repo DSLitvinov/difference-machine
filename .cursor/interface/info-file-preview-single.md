@@ -59,8 +59,13 @@ function classifyInfoPreview(ext: string): InfoPreviewKind {
 
 ### 2.3 Blend
 
-- Success: image fill frame `object-contain`, checkerboard if alpha
-- Fail: blend-specific stub (cube/icon)
+- API: `workdir.thumbnail` → `kind: "image"` (PNG) или `placeholder` — см. [api-contract.md §4.3.2](./api-contract.md).
+- Источники (backend, без запуска Blender):
+  1. OS cache: `~/.thumbnails/{large,normal}/` (Win/macOS) или `$XDG_CACHE_HOME/thumbnails/` (Linux)
+  2. Embedded `TEST` chunk в `.blend` (fallback)
+- Success: `<img>` `object-contain`, checkerboard if alpha
+- Fail: blend-specific stub (`FileArchive` icon)
+- **Не путать** с History diff screenshot (`commit.get`) — [decisions.md §7.8](./decisions.md)
 
 ### 2.4 Loading / error
 

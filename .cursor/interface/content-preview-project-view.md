@@ -475,11 +475,11 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 |-------------|------------|
 | `workdir.entries` | Immediate папки + файлы текущей папки |
 | `workdir.search` | Global search |
-| `workdir.thumbnail` | Миниатюра (v1: placeholder ok) |
+| `workdir.thumbnail` | Миниатюра — images, text snippet, `.blend` ([api-contract.md §4.3](./api-contract.md)) |
 | `workdir.open` | Double-click → ОС (§4.4) |
 | `status.get` | VCS badges |
 - Exclude `.DFM`, `.dfmignore`, no symlink follow.
-- Миниатюры: поддерживаемые форматы (png/jpg/exr-preview/blend-preview) — рендер/извлечение; иначе generic file-icon placeholder.
+- Миниатюры: raster images (direct read); `.blend` — Blender OS cache + embedded preview; text — snippet; иначе generic file-icon placeholder.
 
 ---
 

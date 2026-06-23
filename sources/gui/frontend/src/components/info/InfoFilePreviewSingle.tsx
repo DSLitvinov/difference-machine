@@ -40,9 +40,7 @@ export function InfoFilePreviewSingle({
 
   return (
     <div className="relative mx-auto flex h-[200px] w-full max-w-[312px] items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
-      {metadataLoading ? (
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      ) : previewUrl ? (
+      {previewUrl ? (
         <img
           src={previewUrl}
           alt=""
@@ -53,6 +51,8 @@ export function InfoFilePreviewSingle({
           )}
           draggable={false}
         />
+      ) : metadataLoading ? (
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       ) : textPreview && kind === "text" ? (
         <pre className="max-h-full w-full overflow-auto p-3 text-left font-mono text-[11px] leading-relaxed text-foreground">
           {textPreview}

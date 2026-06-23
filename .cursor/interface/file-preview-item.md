@@ -41,11 +41,16 @@ Thumbnail + имя файла + optional VCS status badge. Поддержива�
 
 | Тип файла | Min | Max |
 |-----------|-----|-----|
-| Image | scaled cover | scaled cover |
-| 3D / blend / unknown | placeholder border box | placeholder + dot grid pattern (Figma Max) |
+| Image | scaled `object-cover` | scaled `object-cover` |
+| `.blend` | PNG from `workdir.thumbnail`, `object-contain` | то же |
+| 3D / unknown | placeholder border box | placeholder + dot grid pattern (Figma Max) |
 | Loading | `Skeleton` square | то же |
 
-Thumbnail генерируется async через `workdir.thumbnail` ([api-contract.md](./api-contract.md); v1 может быть placeholder).
+Thumbnail async через `workdir.thumbnail` ([api-contract.md §4.3](./api-contract.md)).
+
+**Загрузка thumbnail в grid:** `isThumbnailPreviewPath` — raster images + `.blend` (`useWorkdirPreview`).
+
+**Blend:** превью появляется после сохранения файла в Blender (кэш ОС или embedded preview). Нет превью → generic file icon.
 
 ### 2.2 Status badge
 

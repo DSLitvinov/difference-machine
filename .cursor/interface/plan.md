@@ -60,7 +60,7 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 
 **MVP v1.0 (ship):** Shell + multi-repo + 3-panel resize · Sidebar (Project lazy tree + History) · Content Preview (Project + History diff) · Content Info (Project, single-file core) · Create commit · dirty branch dialog. **Branch UX:** GitHub Desktop — `currentBranch`; dropdown в History = checkout on select ([sidebar-history-view.md §2.6](./sidebar-history-view.md)).
 
-**v1.1 (polish):** multiselect (Shift/marquee), virtual scroll, thumbnails, dark theme, commit card stats + full ⋮ menu, fully expanded tree, Settings (Appearance + External editors).
+**v1.1 (polish):** multiselect (Shift/marquee), virtual scroll, dark theme, commit card stats + full ⋮ menu, fully expanded tree, Settings (Appearance + External editors). Thumbnails (images + `.blend`) — v1.0+.
 
 **v2:** [merge-dialog.md](./merge-dialog.md), fs watcher, tree collapse, rename `R`, detached HEAD.
 

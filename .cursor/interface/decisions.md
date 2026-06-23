@@ -56,7 +56,7 @@ Forester CLI — **не bundle** в v1.0; путь из `~/.dfm/setup.cfg` `[for
 | [merge-dialog.md](./merge-dialog.md) | **v2** | API `merge.*` в api-contract §2.2 |
 | Marquee multiselect | v1.1 | [content-preview-project-view.md §9.3](./content-preview-project-view.md) |
 | Virtual scroll (Preview grid) | v1.1 | Пагинация API в v1.0 |
-| Real `workdir.thumbnail` | v1.1 | Placeholder по mime |
+| Real `workdir.thumbnail` | **v1.0+** | Images + `.blend` (OS cache + embedded); остальные типы — placeholder |
 | External editors (Settings tab) | v1.1 | `workdir.open` + OS default |
 | Init repository wizard | v1.1 | Toast + hint `forester init` |
 | Dark theme | v1.1 | Light only в v1.0 |
@@ -167,6 +167,13 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 - Источник: `commit.get.screenshot_path` (один на коммит).
 - Wails: Go читает PNG с диска → `screenshot_base64` в ответе `commit.get` или отдельный shell method v1.0.
 - Нет скриншота → generic [binary-diff-stub.md](./binary-diff-stub.md).
+
+### 7.9 Workdir thumbnail для `.blend`
+
+- **Не** запускать Blender из GUI для grid/Info preview.
+- Источник: кэш Blender в папках thumbnails ОС ([api-contract.md §4.3.2](./api-contract.md)), затем embedded `TEST` chunk в `.blend`.
+- Пути кэша по платформе совпадают с `get_thumb_dir` в Blender (`~/.thumbnails` на Win/macOS; `$XDG_CACHE_HOME/thumbnails` на Linux).
+- History diff для `.blend` — по-прежнему `commit.get` screenshot ([§7.8](#78-screenshot-для-blend)), не `workdir.thumbnail`.
 
 ---
 

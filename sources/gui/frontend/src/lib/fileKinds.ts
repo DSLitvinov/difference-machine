@@ -52,3 +52,9 @@ export function classifyInfoPreview(path: string): InfoPreviewKind {
 export function isImagePreviewPath(path: string): boolean {
   return IMAGE_EXTENSIONS.has(fileExtension(path));
 }
+
+/** Paths that should load workdir.thumbnail previews in the file grid. */
+export function isThumbnailPreviewPath(path: string): boolean {
+  const ext = fileExtension(path);
+  return IMAGE_EXTENSIONS.has(ext) || ext === "blend";
+}
