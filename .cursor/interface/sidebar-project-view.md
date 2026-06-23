@@ -59,7 +59,8 @@ Toggle **Changed** одновременно:
 Спека multi-repo: [multi-repo.md](./multi-repo.md).
 
 - Иконка `FolderGit2`, текст = `basename(repoPath)`.
-- **Dropdown:** список из `[repo]` в `setup.cfg` ([paths.md §2](./paths.md)); галочка у текущего.
+- **Dropdown:** канон [design-tokens.md §4.5](./design-tokens.md) — кастомный trigger + panel (как `DropdownSelector`); **не** нативный `<select>`.
+- Список из `[repo]` в `setup.cfg` ([paths.md §2](./paths.md)); галочка `Check` у текущего.
 - **+ Add repository…** — native folder picker; добавить в `[repo]` (`path_N`) и открыть.
 - Фон: `bg-background` (white) + border.
 - При запуске: авто-open из `[current repo] path` (см. [multi-repo.md §3](./multi-repo.md)).
@@ -296,7 +297,7 @@ sequenceDiagram
 |-----------|-------|
 | `ProjectViewPanel` | Container |
 | `ProjectHeader` | Title + Changed switch |
-| `RepoSelector` | Dropdown |
+| `RepoSelector` | `DropdownSelector` pattern + Add repository footer — [design-tokens.md §4.5](./design-tokens.md) |
 | `FolderTree` | Virtualized flat list from expanded tree |
 | `FolderTreeRow` | indent, icon, name, count, selected |
 

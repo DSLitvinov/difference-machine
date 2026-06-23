@@ -260,6 +260,33 @@ export const treeRowStateClasses = {
 } as const
 ```
 
+### 4.5 Dropdown selector — канон v1.0
+
+**Компонент:** `DropdownSelector` (`sources/gui/frontend/src/components/ui/dropdown-selector.tsx`).
+
+**v1.0:** кастомный dropdown (как `RepoSelector` в Sidebar). **Не** использовать нативный `<select>` — визуально не совпадает с shell.
+
+| Часть | Tailwind / поведение |
+|-------|----------------------|
+| **Trigger** | `flex w-full items-center gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-accent` |
+| **Trigger label** | `min-w-0 flex-1 truncate`; полный текст в `title` |
+| **Chevron** | `ChevronDown` `h-4 w-4 text-muted-foreground` справа |
+| **Optional icon** | слева (`FolderGit2`, `GitBranch`), `text-muted-foreground` |
+| **Panel** | `absolute top-full z-50 mt-1 max-h-56 overflow-auto rounded-md border border-border bg-background py-1 shadow-md` |
+| **Item** | `flex gap-2 px-3 py-2 text-sm hover:bg-accent`; `Check` у выбранного, иначе spacer `h-4 w-4` |
+| **Field label** | `text-xs text-muted-foreground` над trigger (Branch, Commit) |
+| **Disabled** | `disabled:opacity-50 disabled:cursor-not-allowed` на trigger |
+
+**Специализации:**
+
+| Компонент | База | Отличие |
+|-----------|------|---------|
+| `RepoSelector` | тот же trigger/panel | footer «+ Add repository…», иконка `FolderGit2` |
+| `InfoHistorySection` | `DropdownSelector` | Branch + Commit; Branch — `GitBranch` icon |
+| `BranchSelector` (History Sidebar, slice 4) | `DropdownSelector` | checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md) |
+
+**v1.1 (опционально):** shadcn `Popover` + `Command` для поиска в длинных списках.
+
 **Commit card** — отдельный паттерн (card, не grid item):
 
 ```tsx
@@ -290,6 +317,7 @@ export const commitCardStateClasses = {
 - [image-diff-panel.md](./image-diff-panel.md)
 - [binary-diff-stub.md](./binary-diff-stub.md)
 - [deleted-diff-stub.md](./deleted-diff-stub.md)
+- [info-history-section.md](./info-history-section.md)
 - [content-info-project-view.md](./content-info-project-view.md)
 - [folder-preview-item.md](./folder-preview-item.md)
 - [file-preview-item.md](./file-preview-item.md)

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, ChevronUp, GitBranch, Loader2 } from "lucide-react";
 
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { DropdownSelector } from "@/components/ui/dropdown-selector";
 import { formatTimestamp, shortHash } from "@/lib/format";
 import { loadFileHistoryBranch, saveFileHistoryBranch } from "@/lib/storage";
 import { useAppStore } from "@/stores/appStore";
@@ -156,6 +157,21 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
     }
   };
 
+  const branchOptions = useMemo(
+    () => branches.map((name) => ({ value: name, label: name })),
+    [branches],
+  );
+
+  const commitOptions = useMemo(
+    () =>
+      commits.map((entry) => ({
+        value: entry.hash,
+        label: commitLabel(entry),
+        title: `${commitLabel(entry)} · ${formatTimestamp(entry.timestamp)}`,
+      })),
+    [commits],
+  );
+
   return (
     <section className="border-t border-border pt-3">
       <button
@@ -169,53 +185,24 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
 
       {!collapsed ? (
         <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs text-muted-foreground" htmlFor="history-branch">
-              Branch
-            </label>
-            <select
-              id="history-branch"
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={branch}
-              onChange={(e) => handleBranchChange(e.target.value)}
-              disabled={loading || branches.length === 0}
-            >
-              {branches.length === 0 ? (
-                <option value="">No branches</option>
-              ) : (
-                branches.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+          <DropdownSelector
+            label="Branch"
+            value={branch}
+            options={branchOptions}
+            placeholder="Select branch…"
+            disabled={loading || branches.length === 0}
+            icon={<GitBranch className="h-4 w-4" />}
+            onChange={handleBranchChange}
+          />
 
-          <div>
-            <label className="mb-1 block text-xs text-muted-foreground" htmlFor="history-commit">
-              Commit
-            </label>
-            <select
-              id="history-commit"
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={selectedCommit}
-              onChange={(e) => setSelectedCommit(e.target.value)}
-              disabled={loading || commits.length === 0}
-            >
-              {commits.length === 0 ? (
-                <option value="">
-                  {loading ? "Loading…" : "No commits for this file"}
-                </option>
-              ) : (
-                commits.map((entry) => (
-                  <option key={entry.hash} value={entry.hash}>
-                    {commitLabel(entry)} · {formatTimestamp(entry.timestamp)}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+          <DropdownSelector
+            label="Commit"
+            value={selectedCommit}
+            options={commitOptions}
+            placeholder={loading ? "Loading…" : "No commits for this file"}
+            disabled={loading || commits.length === 0}
+            onChange={setSelectedCommit}
+          />
 
           <div className="flex gap-2">
             <Button

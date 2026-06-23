@@ -77,7 +77,7 @@ name = Artist
 
 ## 3. UI (Repo selector)
 
-Компонент: `RepoSelector` в [sidebar-project-view.md §2.2](./sidebar-project-view.md). Полное управление списком (add/remove/edit) — [settings-dialog.md §4](./settings-dialog.md).
+Компонент: `RepoSelector` в [sidebar-project-view.md §2.2](./sidebar-project-view.md). Визуал dropdown — [design-tokens.md §4.5](./design-tokens.md). Полное управление списком (add/remove/edit) — [settings-dialog.md §4](./settings-dialog.md).
 
 ```
 ┌─────────────────────────────────────┐

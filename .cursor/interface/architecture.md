@@ -156,7 +156,7 @@ onSettingsClick={() => setSettingsOpen(true)}
 |----|------------------|
 | Rail buttons | `Button` variant `ghost` / `secondary` |
 | Settings | `Button ghost` + `Settings` icon → `Dialog` |
-| Dropdowns | `DropdownMenu` или `Popover` + `Command` |
+| Dropdowns | v1.0: `DropdownSelector` / `RepoSelector` — [design-tokens.md §4.5](./design-tokens.md); v1.1: `Popover` + `Command` |
 | Search | `Input` |
 | Changed toggle | `Switch` + `Label` |
 | Folder tree rows | `FolderTreeRow` + virtual scroll |

@@ -317,3 +317,4 @@
 | Дата | Фаза | Сделано | Следующий шаг |
 |------|------|---------|---------------|
 | 2025-06-23 | 0 + 2 | Wails bootstrap, pkg/jsonapi, shell, OpenRepo, Rail | `workdir.tree` или RepoSelector dropdown |
+| 2025-06-23 | 3–4 | Slice 2–3 GUI; `DropdownSelector` канон в design-tokens §4.5 | Slice 4 History sidebar |

@@ -54,7 +54,7 @@
 ### 2.2 Branch selector
 
 - Icon `GitBranch`, label = **`currentBranch`** (ветка рабочей копии и History log).
-- Dropdown — см. §2.6 (GitHub Desktop: checkout on select).
+- Dropdown — канон [design-tokens.md §4.5](./design-tokens.md) (`DropdownSelector`); см. §2.6 (GitHub Desktop: checkout on select).
 - Фон: `bg-background` (white) + border.
 - Общий компонент `BranchSelector` — тот же UX, что в [architecture.md §2.3](./architecture.md); в History он в context slot Sidebar.
 
@@ -153,7 +153,7 @@ You have uncommitted changes:
 
 #### File history (исключение)
 
-В **Content Info → History** ([info-history-section.md](./info-history-section.md)) combobox ветки **только фильтрует** `log.get`+`path` для выбранного файла — **не** вызывает `repo.switch`. Это не противоречит GHD-модели глобального branch selector.
+В **Content Info → History** ([info-history-section.md](./info-history-section.md)) branch picker **только фильтрует** `log.get`+`path` для выбранного файла — **не** вызывает `repo.switch`. Визуал — тот же `DropdownSelector`, что в Sidebar ([design-tokens.md §4.5](./design-tokens.md)). Это не противоречит GHD-модели глобального branch selector.
 
 ### 2.3 Search
 
@@ -350,7 +350,7 @@ interface HistoryViewState {
 |-----------|----------------|
 | `HistoryViewPanel` | Orchestration |
 | `HistoryHeader` | Title |
-| `BranchSelector` | Dropdown + checkout flow §2.6 |
+| `BranchSelector` | `DropdownSelector` pattern + checkout flow §2.6 — [design-tokens.md §4.5](./design-tokens.md) |
 | `CommitSearch` | Controlled Input |
 | `CommitList` | `ScrollArea`, gap `space-2`, padding `px-2` |
 | `CommitCard` | Card layout §2.4; states Default/Hover/Selected |

@@ -8,7 +8,7 @@
 
 **Figma:** single [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041)
 
-**Связанные документы:** [content-info-project-view.md](./content-info-project-view.md)
+**Связанные документы:** [content-info-project-view.md](./content-info-project-view.md) · [design-tokens.md §4.5](./design-tokens.md)
 
 ---
 
@@ -20,20 +20,27 @@ Collapsible; default **expanded**. Title `History` + chevron.
 
 ## 2. Controls
 
-### 2.1 Branch combobox
+Dropdowns — канон [design-tokens.md §4.5](./design-tokens.md) (`DropdownSelector`). **Не** нативный `<select>`.
 
-- `Combobox` / `Popover` + `Command`
+### 2.1 Branch picker
+
+- Компонент: `DropdownSelector` + иконка `GitBranch`
+- Label поля: `Branch` (`text-xs text-muted-foreground`)
 - Options: **all branches** from `branch.list` (v1)
-- Placeholder: `Select branch...`
-- Default: `currentBranch` or saved `dfm.info.fileHistoryBranch`
+- Placeholder: `Select branch…`
+- Default: `currentBranch` or saved `dfm.info.fileHistoryBranch` ([paths.md §10](./paths.md))
 - **Read-only filter** — меняет только `log.get`+`path` для файла; **не** вызывает `repo.switch` (в отличие от History `BranchSelector` — [sidebar-history-view.md §2.6](./sidebar-history-view.md))
 
-### 2.2 Commit combobox
+### 2.2 Commit picker
 
+- Компонент: `DropdownSelector` (без иконки)
+- Label поля: `Commit`
 - Source: **`log.get`** with `{ branch, path: filePath, max_count }` — commits where file blob changed
-- Placeholder: `Select commit...`
-- Item label: short hash + truncated message + relative date
-- Default: latest commit in filtered log
+- Placeholder: `No commits for this file` / `Loading…`
+- **Trigger label:** `{shortHash} · {truncated subject}` (truncate в кнопке)
+- **Tooltip (`title`):** полная строка + `formatTimestamp`
+- Default: latest commit in filtered log (первый в списке)
+- При `capped: true` от API — toast «Showing latest 100 commits for this file»
 
 ---
 
@@ -73,25 +80,20 @@ Maps to CLI: `restore --source=<commit> <file>`
 
 | Control | Disabled when |
 |---------|---------------|
-| Commit combobox | no file log entries |
+| Branch picker | loading branches / empty list |
+| Commit picker | loading / no file log entries |
 | Revert | no commit selected |
 | Compare | no commit selected |
 
 ---
 
-## 6. Props
+## 6. Props (implementation)
 
 ```ts
 interface InfoHistorySectionProps {
   filePath: string
-  branch: string | null
-  commitHash: string | null
-  fileLog: FileLogEntry[]
-  onBranchChange: (b: string) => void
-  onCommitChange: (h: string) => void
-  onRevert: () => void
-  onCompare: () => void
-  loading?: boolean
+  currentUser: string          // for lock check vs lock.list
+  onRestored: () => void       // refresh metadata after revert
 }
 ```
 
@@ -106,5 +108,6 @@ interface InfoHistorySectionProps {
 | Revert + file deleted on disk | restore recreates from commit blob |
 | Revert + foreign lock | toast; no API call |
 | Compare + concurrent extract | last wins; toast |
-| Branch switch | reload `log.get`; clear commit selection |
+| Branch change | reload `log.get`; reset commit to latest in new list |
 | User cancels dialog | no-op |
+| Click outside dropdown | close panel (mousedown on document) |

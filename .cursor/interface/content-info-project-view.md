@@ -75,7 +75,7 @@
 │  [312×312 preview + badges] │
 │  [name file]  Name  (disabled)│
 │  ▼ History                    │
-│    Branch / Commit combobox   │
+│    Branch / Commit pickers    │  ← DropdownSelector — [design-tokens.md §4.5](./design-tokens.md)
 │    [Revert]  [Compare]        │
 │  ─────────────────────────    │
 │  ▼ Metadata                   │
@@ -176,7 +176,7 @@ interface ContentInfoState {
 | Key | Value |
 |-----|-------|
 | `dfm.info.panelWidth` | number |
-| `dfm.info.fileHistoryBranch` | per-repo string; file History combobox filter (not global branch) |
+| `dfm.info.fileHistoryBranch` | per-repo string; file History branch picker filter (not global branch) |
 | `dfm.info.historyCollapsed` | boolean |
 | `dfm.info.metadataCollapsed` | boolean |
 
@@ -236,7 +236,7 @@ Display + tooltips UTF-8.
 | `workdir.metadata` | FS stat + mime |
 | `workdir.thumbnail` | Preview image/blend |
 | `lock.list` | Lock badge; check before `restore.file` |
-| `log.get` + `path` | History commit combobox |
+| `log.get` + `path` | History commit picker |
 | `compare.extract` | History Compare |
 | `restore.file` | History Revert (`restore --source=`) |
 | `index.add` | Create commit pre-step |
