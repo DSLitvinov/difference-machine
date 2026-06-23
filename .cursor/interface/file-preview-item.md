@@ -45,7 +45,7 @@ Thumbnail + имя файла + optional VCS status badge. Поддержива�
 | 3D / blend / unknown | placeholder border box | placeholder + dot grid pattern (Figma Max) |
 | Loading | `Skeleton` square | то же |
 
-Thumbnail генерируется async через Wails (`GetFileThumbnail` — **новый** API, v1 может быть placeholder).
+Thumbnail генерируется async через `workdir.thumbnail` ([api-contract.md](./api-contract.md); v1 может быть placeholder).
 
 ### 2.2 Status badge
 
@@ -125,7 +125,7 @@ stateDiagram-v2
 | **Ctrl/Cmd+Click** | Toggle файл в selection set; не снимать остальные |
 | **Shift+Click** | Range-select от `anchorIndex` до текущего в **отсортированном flat list файлов** (только секция Files) |
 | **Click empty area** | Clear selection |
-| **Double-click** | Открыть в **приложении по умолчанию ОС** (`OpenWithDefaultApp`, §4.4 в [content-preview-project-view.md](./content-preview-project-view.md)) |
+| **Double-click** | Открыть в **приложении по умолчанию ОС** (`workdir.open`, §4.4 в [content-preview-project-view.md](./content-preview-project-view.md)) |
 | **Enter** (фокус на item) | = double-click |
 | **Marquee** | См. [content-preview.md](./content-preview.md) §6 |
 
@@ -226,7 +226,7 @@ interface FilePreviewItemProps {
   scale: 'min' | 'max'
   index: number
   onSelect: (e: React.MouseEvent) => void
-  onDoubleClick: () => void   // → OpenWithDefaultApp
+  onDoubleClick: () => void   // → workdir.open
 }
 ```
 

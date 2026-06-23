@@ -8,7 +8,7 @@
 
 **Стек:** Wails + React + shadcn/ui
 
-**Связанные документы:** [architecture.md](./architecture.md) · [content-preview-project-view.md](./content-preview-project-view.md) · [file-preview-item.md](./file-preview-item.md)
+**Связанные документы:** [architecture.md](./architecture.md) · [api-contract.md](./api-contract.md) · [content-preview-project-view.md](./content-preview-project-view.md) · [file-preview-item.md](./file-preview-item.md)
 
 **Atom specs:**
 
@@ -56,7 +56,7 @@
 | # | Тема | Решение |
 |---|------|---------|
 | 1 | Ширина | Default **354px**; resizable — [panel-layout.md](./panel-layout.md): min **354px**, max `W − 334 − 747` |
-| 2 | Preview types | text → stub; binary → другая stub; image → preview; blend → `GetThumbnail` или stub |
+| 2 | Preview types | text → stub; binary → другая stub; image → preview; blend → `workdir.thumbnail` или stub |
 | 3 | Badges | status = VCS; lock = Forester lock (`lock.list`) |
 | 4 | File name row | **Read-only**, `disabled` Input |
 | 5 | Metadata v1 | FS only; пустые поля **скрывать** |
@@ -210,7 +210,12 @@ No API call.
 
 ### 6.7 Create commit: nothing to stage
 
-Toast «Selected files are already committed»; dialog не открывать или disable button.
+Фильтр через `committablePaths(status.get)` — [api-contract.md §2.1](./api-contract.md).
+
+| Case | UI |
+|------|-----|
+| `toStage.length === 0` | Toast «Selected files are already committed»; dialog не открывать |
+| `toStage.length < selectedPaths.length` | Toast «N of M files will be committed»; stage только `toStage` via `index.add` |
 
 ### 6.8 Rail → History
 
@@ -222,33 +227,30 @@ Display + tooltips UTF-8.
 
 ---
 
-## 7. Wails backend
+## 7. Backend API
 
-| Метод Wails | JSON API | Назначение |
-|-------------|----------|------------|
-| `GetFileMetadata(repoPath, fileRel)` | **новый** `file.metadata` | FS stat + mime |
-| `GetFileThumbnail(repoPath, fileRel, size)` | **новый** | Preview image/blend |
-| `GetFileLock(repoPath, branch, fileRel)` | `lock.list` filter | Lock badge |
-| `GetFileLog(repoPath, branch, fileRel)` | **новый** `file.log` | Commits touching file |
-| `CompareExtract(repoPath, commitHash)` | `compare.extract` | History Compare |
-| `RestoreFileFromCommit(repoPath, commitHash, paths[])` | **новый** `restore.file` | History Revert |
-| `StageFiles(repoPath, paths[])` | `add` / index | Before commit |
-| `CreateCommit(repoPath, message, author)` | `commit.create` | Dialog submit |
-| `GetRepoUser(repoPath)` | config `[user].name` | Dialog author |
+Канон: [api-contract.md](./api-contract.md).
 
-### 7.1 `file.log` (предлагаемый)
+| JSON method | Назначение |
+|-------------|------------|
+| `workdir.metadata` | FS stat + mime |
+| `workdir.thumbnail` | Preview image/blend |
+| `lock.list` | Lock badge; check before `restore.file` |
+| `log.get` + `path` | History commit combobox |
+| `compare.extract` | History Compare |
+| `restore.file` | History Revert (`restore --source=`) |
+| `index.add` | Create commit pre-step |
+| `commit.create` | Dialog submit |
+| `status.get` | Committable filter для Create commit |
+
+### 7.1 `log.get` + `path`
 
 ```json
-{
-  "file_path": "assets/scene.blend",
-  "branch": "main",
-  "commits": [
-    { "hash": "abc…", "message": "Update scene", "timestamp": 1710000000, "author": "Name" }
-  ]
-}
+{ "branch": "main", "max_count": 500, "path": "assets/scene.blend" }
+→ { "commits": [{ "hash", "message", "timestamp", "author" }] }
 ```
 
-Walk branch log; include commit if file path changed in tree vs parent.
+Коммиты, где blob файла изменился (parent vs commit tree).
 
 ---
 

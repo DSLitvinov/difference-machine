@@ -55,7 +55,7 @@
 
 ## 3. Данные
 
-Источник: `GetCommitFileDiff` → `commit.diff` (см. [content-preview-history-view.md §6](./content-preview-history-view.md)).
+Источник: `diff.text` ([api-contract.md §3.3](./api-contract.md), [content-preview-history-view.md §5](./content-preview-history-view.md)).
 
 ```ts
 interface TextDiffResult {

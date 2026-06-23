@@ -5,7 +5,7 @@
 
 **Цвета:** [design-tokens.md](./design-tokens.md)
 
----
+**API:** [api-contract.md](./api-contract.md)
 
 ## 1. Назначение
 
@@ -184,23 +184,20 @@ sequenceDiagram
   participant W as Wails Go
   participant F as Forester jsonapi
 
-  UI->>W: ListBranches(repoPath)
+  UI->>W: ForesterCall branch.list
   W->>F: branch.list
   F-->>W: branches[]
   W-->>UI: branches
 
   UI->>UI: historyBranch ||= current from is_current
 
-  UI->>W: GetLog(repoPath, historyBranch, maxCount)
+  UI->>W: ForesterCall log.get
   W->>F: log.get
   W-->>UI: commits[]
 
-  UI->>W: EnrichCommits(stats, tags)
-  Note over W: commit.stats / tags — batch или lazy per card
+  Note over UI: client filter by search; stats from log fields or diff.stat lazy
 
-  Note over UI: client filter by search
-
-  UI->>W: GetCommit(repoPath, hash) [on select, optional]
+  UI->>W: ForesterCall commit.get [on select, optional]
   W->>F: commit.get
 ```
 
@@ -382,8 +379,8 @@ interface HistoryViewState {
 | Header extra | Changed Switch | — |
 | Context dropdown | Repo name | Branch name |
 | List content | Folders / changed files | Commits |
-| Primary API | `status.get`, `ListWorkdirFolders` | `branch.list`, `log.get` |
-| Selection type | `folder` / `file` | `commit` |
+| Primary API | `status.get`, `workdir.tree` | `branch.list`, `log.get`, `commit.get`, `diff.*` |
+| Selection type | `ProjectViewContext` (folder) | `commit` |
 
 При переключении rail Project ↔ History: **сброс selection** (см. [architecture.md](./architecture.md) §6.10).
 

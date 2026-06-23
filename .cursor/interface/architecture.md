@@ -5,7 +5,7 @@
 **Стек:** Wails (Go backend) + React + shadcn/ui  
 **Дизайн:** [design-tokens.md](./design-tokens.md) (канон цветов и item states) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
 
-**Канон типов и API:** `PreviewSelection` — §3.1; `item_count` — §4.2; пути — [paths.md](./paths.md); multi-repo — [multi-repo.md](./multi-repo.md); resize — [panel-layout.md](./panel-layout.md).
+**Канон:** события §3.1 · API [api-contract.md](./api-contract.md) · пути [paths.md](./paths.md) · multi-repo [multi-repo.md](./multi-repo.md) · resize [panel-layout.md](./panel-layout.md)
 
 ---
 
@@ -156,7 +156,7 @@ interface SidebarState {
   // Project view — folders only
   showChangedOnly: boolean
   selectedFolderPath: string | null   // relative; '' = repo root
-  folderTree: FolderTreeNode | null   // from ListWorkdirTree
+  folderTree: FolderTreeNode | null   // from workdir.tree
 
   // History view
   historyBranch: string | null        // browse log only; see sidebar-history-view §2.5
@@ -172,38 +172,39 @@ interface SidebarState {
 
 ### 3.1 События наружу (контракт с Preview / Info)
 
-Sidebar **не** рендерит preview. При изменении selection эмитит:
+Полная таблица: [api-contract.md §6](./api-contract.md).
 
 ```ts
-// Emitted by Sidebar only
-type SidebarSelection =
+// History: выбор коммита в Sidebar
+type SidebarCommitSelection =
   | { kind: 'none' }
-  | { kind: 'folder'; path: string }
   | { kind: 'commit'; hash: string; branch: string }
 
-// File selection — Content Preview (not Sidebar). **Canonical type** — единственное определение в репозитории.
+// Project: папка + Changed — единственный канал (нет kind: 'folder')
+interface ProjectViewContext {
+  selectedFolderPath: string   // '' = repo root
+  showChangedOnly: boolean
+}
+
+// File selection — Content Preview only
 type PreviewSelection =
   | { kind: 'none' }
   | { kind: 'files'; paths: string[]; primary: string }
 
-// `primary` — anchor для Shift-range и «главный» файл в UI.
-// Single-file layout (Content Info, History): `paths.length === 1` → path = `primary`.
-// Multi layout: `paths.length > 1`.
-
 interface SidebarEvents {
-  onSelectionChange(selection: SidebarSelection): void
+  /** History only */
+  onSelectionChange(selection: SidebarCommitSelection): void
   onModeChange(mode: SidebarMode): void
-  /** Project view: folder + Changed toggle → drives Preview file list */
+  /** Project: folder + Changed toggle */
   onProjectViewContextChange(ctx: ProjectViewContext): void
-}
-
-interface ProjectViewContext {
-  selectedFolderPath: string   // '' = repo root (files at repository root)
-  showChangedOnly: boolean     // true → Preview shows committable files only
 }
 ```
 
-`VcsFileStatus` вычисляется из `status.get` (см. §5).
+| Правило | Поведение |
+|---------|-----------|
+| Смена `selectedFolderPath` | `PreviewSelection → { kind: 'none' }` |
+| Rail Project ↔ History | сброс commit + file selection; **сохранить** folder/branch/changed prefs |
+| VCS badges / committable | только `status.get` — [api-contract.md §2.1](./api-contract.md) |
 
 ### 3.2 Персистентность
 
@@ -226,38 +227,18 @@ interface ProjectViewContext {
 
 ---
 
-## 4. Wails backend (контракт для Sidebar)
+## 4. Backend API
 
-Sidebar вызывает Go-методы (обёртка над `internal/jsonapi`):
+**Канон:** [api-contract.md](./api-contract.md). Wails — thin wrapper `ForesterCall(repoPath, method, args)`.
 
-| Метод Wails | JSON API | Назначение |
-|-------------|----------|------------|
-| `GetKnownRepos()` | **новый** | Список путей из `setup.cfg` `[repo]` |
-| `GetCurrentRepoPath()` | **новый** | `[current repo] path` |
-| `AddKnownRepo(path)` | **новый** | Append `path_N` + set current |
-| `OpenRepo(path)` | **новый** | Валидация + load repo context |
-| `GetStatus(repoPath)` | `status.get` | Ветка, HEAD, списки changed/untracked |
-| `ListBranches(repoPath)` | `branch.list` | Dropdown веток (History) |
-| `GetLog(repoPath, branch, maxCount)` | `log.get` | Commits; расширить: `tags`, `files_added`, `files_removed` |
-| `GetCommit(repoPath, hash)` | `commit.get` | Детали коммита (Info) |
-| `GetCommitFileStats(repoPath, hash)` | **новый** `commit.stats` | Files Changed если не в log |
-| `ListTags(repoPath)` | **новый** | Tag Badge fallback |
-| `ListWorkdirTree(repoPath)` | **новый** | Folder tree (folders only, recursive **file** counts) |
-| `ListWorkdirFiles(repoPath, folder)` | **новый** | Для **Content Preview**, не Sidebar |
-| `OpenWithDefaultApp(repoPath, fileRel)` | **новый** | Double-click в Preview (Project): открыть workdir-файл в ОС |
-| `GetCommitChangedFiles(repoPath, hash)` | **новый** `commit.files` | History Preview: список A/M/D/R |
-| `GetCommitFileDiff(repoPath, hash, filePath)` | **новый** `commit.diff` | History Preview: text diff |
-| `GetCommitFileBlob(repoPath, hash, filePath)` | **новый** `commit.blob` | History Preview: image before/after |
-| `OpenCommitFileWithDefaultApp(repoPath, hash, filePath)` | **новый** | History Preview: binary stub → temp blob + OS open |
-| `GetCommitScreenshot(repoPath, hash)` | **новый** `commit.screenshot` | History Preview: `.blend` binary stub preview |
-| `GetFileMetadata(repoPath, fileRel)` | **новый** `file.metadata` | Content Info metadata |
-| `GetFileThumbnail(repoPath, fileRel, size)` | **новый** | Content Info + Preview thumbnails |
-| `GetFileLog(repoPath, branch, fileRel)` | **новый** `file.log` | Content Info History |
-| `RestoreFileFromCommit(repoPath, hash, paths[])` | **новый** `restore.file` | Content Info Revert |
-| `CompareExtract(repoPath, hash)` | `compare.extract` | Content Info Compare |
-| `StageFiles(repoPath, paths[])` | `add` | Before create commit |
+Краткая сводка:
 
-> `status.get` возвращает **плоские** списки путей, не иерархию. Для Project view (список папок) нужен отдельный метод на Go: обход FS + агрегация + учёт `.dfmignore` и скрытия `.DFM/`.
+| Группа | Методы |
+|--------|--------|
+| **VCS (есть)** | `status.get`, `index.add`, `commit.create`, `commit.get`, `log.get`, `branch.list`, `compare.extract`, `restore.version`, `commit.revert`, `commit.reset`, `lock.list` |
+| **VCS (новые)** | `diff.name_status`, `diff.text`, `diff.stat`, `blob.get`, `restore.file`; `log.get` + `path` |
+| **Workdir** | `workdir.tree`, `workdir.entries`, `workdir.search`, `workdir.metadata`, `workdir.thumbnail`, `workdir.open` |
+| **Shell** | `OpenRepo`, `GetKnownRepos`, … — [multi-repo.md](./multi-repo.md) |
 
 ### 4.1 Формат `status.get` (уже есть)
 
@@ -274,7 +255,7 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 }
 ```
 
-### 4.2 `ListWorkdirTree` (Project view)
+### 4.2 `workdir.tree` (Project view)
 
 ```json
 {
@@ -292,7 +273,7 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 }
 ```
 
-`item_count` — **recursive file count** в поддереве папки (все файлы в этой папке и во вложенных подпапках; **сами папки не считаются**). **Одинаковая семантика везде:** `ListWorkdirTree`, `ListWorkdirEntries` (`DirEntry` для папок), `FolderPreviewItem` count label. Узлы дерева — **только папки**; файлы в JSON дерева не возвращаются. Дерево отдаётся полностью; UI раскрывает все узлы сразу.
+`item_count` — **recursive file count** в поддереве папки. **Одинаковая семантика везде:** `workdir.tree`, `workdir.entries` (`DirEntry` для папок), `FolderPreviewItem`. Узлы дерева — **только папки**; файлы в JSON дерева не возвращаются.
 
 ---
 
@@ -335,7 +316,7 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 
 ### 6.2 Путь не является Forester repo
 
-- `GetStatus` → error `not a Forester repository`.
+- `status.get` → error `not a Forester repository`.
 - Показать inline error в header + toast; не падать.
 
 ### 6.3 Repo root недоступен
@@ -374,15 +355,15 @@ Sidebar вызывает Go-методы (обёртка над `internal/jsonap
 
 ### 6.9 Collapse
 
-- `collapsed === true` → только rail (48px) или полностью скрыть (product decision: **v1 = только rail**).
-- Selection сохраняется.
+- `collapsed === true` → Sidebar column **48px** (только Rail). Min окна в collapse: см. [panel-layout.md §5](./panel-layout.md).
+- Folder/commit context **сохраняется**.
 
 ### 6.10 Переключение Project ↔ History
 
-- Selection **сбрасывается** (`kind: 'none'`), чтобы Preview не показывал несовместимый контекст.
-- **Layout:** History → Content Info **скрыта**, Preview на всю ширину; Project → Content Info снова доступна (v2).
-- History Preview: при выборе коммита — auto-select первый changed file (см. [content-preview-history-view.md §5.1](./content-preview-history-view.md)).
-- Альтернатива (если понадобится): запоминать last selection per mode — **не в v1**.
+- Сброс **PreviewSelection** и **commit selection** (`kind: 'none'`).
+- **Persist per-repo:** `selectedFolderPath`, `historyBranch`, `showChangedOnly`.
+- **Layout:** History → Content Info **скрыта**; Project → **видна** (v1 full scope).
+- History Preview: auto-select первый changed file — [content-preview-history-view.md §5.1](./content-preview-history-view.md).
 
 ---
 
@@ -420,14 +401,19 @@ frontend/src/
 
 | Фаза | Scope |
 |------|-------|
-| **v1** | Sidebar + Content Preview Project view (grid, multiselect, search, slider) |
-| **v1.1** | Content Info, thumbnails, virtual scroll polish, changed-count badge on folders |
-| **v2** | Content Preview History (diff), tree collapse, context menus, fs watcher |
+| **v1 (MVP)** | Full GUI: Sidebar (Project + History) · Preview (Project + History diff) · Content Info · multi-repo · 3-panel resize · commit card ⋮ (full menu) |
+| **v1 polish** | Thumbnails, virtual scroll, `+N` multiselect badge, changed-count on folders |
+| **v2** | Tree collapse, fs watcher, rename `R` in diff, remove repo from list |
+
+**Порядок:** backend (`api-contract.md` §7) → shell → panels.
+
+**Окно:** enforce min size — [panel-layout.md §5](./panel-layout.md) (1435px Project / 1081px History).
 
 ---
 
 ## 9. Связанные документы
 
+- [api-contract.md](./api-contract.md) — JSON API + UI events
 - [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)
 - [panel-layout.md](./panel-layout.md) — resize Sidebar / Preview / Info
 - [multi-repo.md](./multi-repo.md) — multi-repo (`~/.dfm/setup.cfg`)

@@ -196,7 +196,8 @@ Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-код�
   2. Double-click по `FolderItem` в Preview.
   3. Back/Forward кнопки.
   4. Клик по сегменту breadcrumbs.
-- При **любом** изменении из Preview (пп. 2–4): синхронизировать выделение узла в дереве Sidebar (scroll-to + highlight). Sidebar и Preview всегда показывают одну и ту же «текущую папку».
+- При **любом** изменении `previewFolderPath` → **`PreviewSelection = { kind: 'none' }`** ([api-contract.md §6](./api-contract.md)).
+- При изменении из Preview (пп. 2–4): синхронизировать выделение узла в дереве Sidebar (scroll-to + highlight).
 
 ### 4.2 История навигации (back/forward)
 
@@ -238,7 +239,7 @@ sequenceDiagram
   participant OS as OS default app
 
   UI->>UI: double-click / Enter
-  UI->>W: OpenWithDefaultApp(repoPath, fileRel)
+  UI->>W: ForesterCall workdir.open
   W->>W: resolve abs path, validate exists
   W->>OS: launch default handler
   OS-->>UI: (async) app opens file
@@ -252,20 +253,14 @@ sequenceDiagram
 - При успехе: без модального UI; опционально toast «Opened in …» (v1.1).
 - Selection **не сбрасывается** после открытия.
 
-#### Wails API
+#### JSON API
 
-```go
-// Opens file with the OS default application for its type.
-// Returns error if file missing, path escapes repo, or OS launch fails.
-func (a *App) OpenWithDefaultApp(repoPath, fileRel string) error
-```
-
-Frontend:
+`workdir.open` — [api-contract.md §2.3](./api-contract.md). `EvalSymlinks` перед launch — [paths.md §3](./paths.md).
 
 ```ts
 async function onFileDoubleClick(filePath: string) {
   try {
-    await OpenWithDefaultApp(repoPath, filePath)
+    await foresterCall(repoPath, 'workdir.open', { path: filePath })
   } catch (e) {
     toast.error(formatOpenError(e)) // e.g. "No application found for .blend"
   }
@@ -279,7 +274,7 @@ async function onFileDoubleClick(filePath: string) {
 | Файл удалён с диска (`deleted` / `staged-deleted`) | Toast «File not found»; не вызывать ОС |
 | Нет ассоциированного приложения | Toast с текстом ошибки ОС |
 | Нет прав на чтение | Toast «Permission denied» |
-| Симлинк | Открыть **целевой** файл (`EvalSymlinks`); если broken — toast |
+| Симлинк | `EvalSymlinks` перед open — [paths.md §3](./paths.md); broken → toast |
 | Путь вне repo (path traversal) | Backend reject до вызова ОС |
 | Double-click во время marquee-drag | Игнорировать |
 | Результаты поиска | То же поведение — открыть файл по `path` |
@@ -367,7 +362,7 @@ const collator = new Intl.Collator(sortLocale, {
 - Ввод (debounce ~200мс) → переход в **results view** вместо обычной folder-сетки.
 - Очистка поля / `Esc` → возврат к содержимому `previewFolderPath`.
 - Match: substring по имени (case-insensitive, locale-aware), по папкам **и** файлам.
-- Backend: `SearchWorkdir(repoPath, query)` (§10) — обход дерева с учётом `.dfmignore` / `.DFM`.
+- Backend: `workdir.search` (§10) — обход дерева с учётом `.dfmignore` / `.DFM`.
 
 ### 7.2 Results view
 
@@ -472,31 +467,17 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 
 ---
 
-## 10. Backend API (Wails)
+## 10. Backend API
 
-| Метод | Назначение |
-|-------|------------|
-| `ListWorkdirEntries(repoPath, folderRel)` | Immediate папки + файлы текущей папки |
-| `SearchWorkdir(repoPath, query)` | Global search по дереву (folders + files) |
-| `GetThumbnail(repoPath, fileRel, size)` | Миниатюра для thumbnail (lazy, cache) |
-| `OpenWithDefaultApp(repoPath, fileRel)` | Double-click: открыть файл в приложении по умолчанию ОС (§4.4) |
-| `GetStatus(repoPath)` | VCS-статусы для badge (уже есть, `status.get`) |
+Канон: [api-contract.md](./api-contract.md).
 
-```go
-type DirEntry struct {
-    Name      string `json:"name"`
-    Path      string `json:"path"`       // relative — paths.md §4
-    IsDir     bool   `json:"is_dir"`
-    ItemCount int    `json:"item_count"` // recursive file count — architecture.md §4.2
-    Size      int64  `json:"size"`       // для файлов
-    VcsStatus string `json:"vcs_status,omitempty"` // A/M/D/?/empty
-}
-
-func (a *App) ListWorkdirEntries(repoPath, folderRel string) ([]DirEntry, error)
-func (a *App) SearchWorkdir(repoPath, query string) ([]DirEntry, error)
-```
-
-- `item_count` для папки: **recursive file count** — [architecture.md §4.2](./architecture.md). Label «N Files» / «1 File» на `FolderPreviewItem`.
+| JSON method | Назначение |
+|-------------|------------|
+| `workdir.entries` | Immediate папки + файлы текущей папки |
+| `workdir.search` | Global search |
+| `workdir.thumbnail` | Миниатюра (v1: placeholder ok) |
+| `workdir.open` | Double-click → ОС (§4.4) |
+| `status.get` | VCS badges |
 - Exclude `.DFM`, `.dfmignore`, no symlink follow.
 - Миниатюры: поддерживаемые форматы (png/jpg/exr-preview/blend-preview) — рендер/извлечение; иначе generic file-icon placeholder.
 
@@ -533,7 +514,7 @@ func (a *App) SearchWorkdir(repoPath, query string) ([]DirEntry, error)
 | Changed ON при выбранной подпапке без изменений | Files пусто → empty state; Folders скрыты |
 | Поиск + Changed ON | Результаты только committable |
 | Слайдер на Max при узкой панели | Сетка переносит на меньшее число колонок (wrap) |
-| Double-click по файлу | `OpenWithDefaultApp` → приложение ОС (§4.4) |
+| Double-click по файлу | `workdir.open` → приложение ОС (§4.4) |
 | Нет приложения для расширения | Toast с ошибкой от ОС |
 | Файл deleted в VCS, отсутствует на диске | Toast «File not found»; open не вызывается |
 
@@ -562,7 +543,7 @@ frontend/src/
   state/
     previewStore.ts                 # previewFolderPath, navHistory, selection, scale, search
   wails/
-    workdir.ts                      # ListWorkdirEntries / SearchWorkdir / GetThumbnail / OpenWithDefaultApp
+    forester.ts                    # ForesterCall — api-contract.md
 ```
 
 ---
@@ -579,4 +560,4 @@ frontend/src/
 | 6 | Changed ON | Folders скрыты, только committable files |
 | 7 | Слайдер | 48→128px, шаг 18px (6 позиций), Min-визуал ≤84, Max-визуал ≥102, per-repo persist |
 | 8 | Status badge | VCS-код (A/M/D/?), скрыт для clean; только у файлов |
-| 9 | Double-click файл | `OpenWithDefaultApp` — открытие в приложении по умолчанию ОС (§4.4) |
+| 9 | Double-click файл | `workdir.open` — открытие в приложении по умолчанию ОС (§4.4) |

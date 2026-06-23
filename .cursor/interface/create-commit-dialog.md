@@ -4,6 +4,8 @@
 
 **Figma:** [`4037:1076`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1076)
 
+**API:** [api-contract.md](./api-contract.md) — `index.add`, `commit.create`, `status.get`
+
 **Связанные документы:** [content-info-project-view.md](./content-info-project-view.md)
 
 ---
@@ -12,7 +14,15 @@
 
 **Create commit** button в footer Content Info → `Dialog` open.
 
-Pre-step: `StageFiles(repoPath, selectedPaths)` — stage **only selected files**.
+Pre-step:
+
+```ts
+const committable = committablePaths(status) // sidebar-project-view §3.2
+const toStage = selectedPaths.filter(p => committable.includes(p))
+if (toStage.length === 0) { toast; return }
+if (toStage.length < selectedPaths.length) { toast «N of M files will be committed» }
+await index.add({ files: toStage })
+```
 
 ---
 
@@ -23,7 +33,7 @@ Pre-step: `StageFiles(repoPath, selectedPaths)` — stage **only selected files*
 | 1 | Title | `text-lg font-semibold` — `Create commit` |
 | 2 | Close | `X` icon top-right |
 | 3 | Author label | `text-sm text-muted-foreground` — `Author` |
-| 4 | Author value | read-only text below label — from `GetRepoUser` / config `[user].name` |
+| 4 | Author value | read-only text below label — from `setup.cfg` `[user].name` |
 | 5 | Message | `Input` placeholder `Write commit...` — **subject** (required) |
 | 6 | Description | `Textarea` placeholder `Description...` — optional body |
 | 7 | Cancel | `Button variant="outline"` |
@@ -51,13 +61,11 @@ sequenceDiagram
   participant W as Wails
   participant F as Forester
 
-  UI->>W: StageFiles(selectedPaths)
-  W->>F: add / index
-  UI->>W: CreateCommit(message, author)
-  W->>F: commit.create
+  UI->>W: index.add({ files: toStage })
+  UI->>W: commit.create({ message, author })
   F-->>UI: hash
   UI->>UI: close dialog, toast success
-  UI->>UI: refresh status + Preview badges
+  UI->>UI: refresh status.get + Preview badges
 ```
 
 ---
@@ -68,7 +76,7 @@ sequenceDiagram
 |------|-------|
 | Subject empty | disable Create / inline «Message required» |
 | Subject only whitespace | treat as empty |
-| No selected files | don't open dialog |
+| No committable in selection | don't open dialog (§1) |
 | `commit.create` fail | toast + keep dialog open |
 
 ---
@@ -77,7 +85,7 @@ sequenceDiagram
 
 | State | UI |
 |-------|-----|
-| Open | form empty or preserve draft v1.1 |
+| Open | form empty |
 | Submitting | Create disabled + spinner |
 | Success | close + toast «Commit {shortHash} created» |
 
@@ -101,8 +109,9 @@ interface CreateCommitDialogProps {
 
 | Case | Поведение |
 |------|-----------|
-| Multiselect 5 files | stage all 5 |
-| File already staged | idempotent stage |
+| Multiselect 5 files | stage committable subset only |
+| File already staged | `index.add` idempotent |
+| Staged deletion in selection | included in committable |
 | Partial stage fail | toast which files failed; abort commit |
 | Empty author in config | show «Unknown» + warn in toast |
 | ESC / Cancel | close without commit |

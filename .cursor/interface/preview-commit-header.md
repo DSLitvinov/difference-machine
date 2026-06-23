@@ -13,7 +13,7 @@
 
 ## 1. Назначение
 
-Показывает контекст выбранного коммита: merge/Head, title, author, hash, stats changed files. Данные из `GetCommit` + `commit.files` / log stats.
+Показывает контекст выбранного коммита: merge/Head, title, author, hash, stats. Данные из `commit.get` + `diff.stat` / `diff.name_status` ([api-contract.md](./api-contract.md)).
 
 ---
 

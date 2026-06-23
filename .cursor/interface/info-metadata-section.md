@@ -20,7 +20,7 @@
 
 ## 2. Single file rows
 
-Источник v1: **filesystem** (`file.metadata` API).
+Источник v1: **filesystem** (`workdir.metadata` — [api-contract.md](./api-contract.md)).
 
 | Row | Source | Show when |
 |-----|--------|-----------|

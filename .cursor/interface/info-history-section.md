@@ -4,6 +4,8 @@
 
 **Видимость:** только при **single file** selection (`PreviewSelection.paths.length === 1`). При multiselect (`paths.length > 1`) секция **не рендерится**.
 
+**API:** [api-contract.md](./api-contract.md) — `log.get`+`path`, `restore.file`, `compare.extract`, `lock.list`
+
 **Figma:** single [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041)
 
 **Связанные документы:** [content-info-project-view.md](./content-info-project-view.md)
@@ -21,16 +23,16 @@ Collapsible; default **expanded**. Title `History` + chevron.
 ### 2.1 Branch combobox
 
 - `Combobox` / `Popover` + `Command`
-- Options: branches where file exists in tip tree **или** all branches (v1: **all branches** from `branch.list`)
+- Options: **all branches** from `branch.list` (v1)
 - Placeholder: `Select branch...`
 - Default: `currentBranch` or saved `dfm.info.historyBranch`
 
 ### 2.2 Commit combobox
 
-- Source: **`file.log`** for `(branch, filePath)` — only commits that **touched this file**
+- Source: **`log.get`** with `{ branch, path: filePath, max_count }` — commits where file blob changed
 - Placeholder: `Select commit...`
 - Item label: short hash + truncated message + relative date
-- Default: latest commit in file log
+- Default: latest commit in filtered log
 
 ---
 
@@ -50,20 +52,19 @@ Two buttons `flex gap-2`, equal width:
 ### 4.1 Revert
 
 1. Require `historyCommit` selected
-2. `AlertDialog`: «Overwrite file in working directory with version from commit {shortHash}?»
-3. On confirm: `RestoreFileFromCommit(repoPath, commitHash, [filePath])`
-4. Success toast; refresh Preview + Metadata + status
+2. `lock.list` — block if **another user's** lock on file; allow **own** lock
+3. `AlertDialog`: «Overwrite file in working directory with version from commit {shortHash}?»
+4. On confirm: `restore.file({ commit_hash, paths: [filePath] })`
+5. Success toast; refresh `status.get` + Preview + Metadata
 
 Maps to CLI: `restore --source=<commit> <file>`
 
 ### 4.2 Compare
 
 1. Require `historyCommit` selected
-2. `CompareExtract(repoPath, commitHash)` → `compare.extract`
+2. `compare.extract({ commit_hash })` → whole commit to `.DFM/tmp_review`
 3. Success **toast**: «Extracted to .DFM/tmp_review» (show path)
 4. **Не** открывать Blender автоматически
-
-Extracts **whole commit** to tmp_review (existing Forester behavior).
 
 ---
 
@@ -102,6 +103,7 @@ interface InfoHistorySectionProps {
 | Multiselect (2+ files) | секция **не монтируется** (`paths.length > 1`) |
 | File never committed | empty commit list; actions disabled |
 | Revert + file deleted on disk | restore recreates from commit blob |
+| Revert + foreign lock | toast; no API call |
 | Compare + concurrent extract | last wins; toast |
-| Branch switch | reload file log; clear commit selection |
+| Branch switch | reload `log.get`; clear commit selection |
 | User cancels dialog | no-op |

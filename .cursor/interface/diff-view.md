@@ -61,7 +61,7 @@ function classifyDiffKind(file: ChangedFile, ext: string, isBinary?: boolean): D
 
 **Image extensions:** `png`, `jpg`, `jpeg`, `gif`, `webp`, `bmp`, `tiff`, `exr`.  
 **`svg`:** всегда `text`.  
-**Приоритет API:** `commit.diff.is_binary` перекрывает эвристику по расширению.
+**Приоритет API:** `diff.text` → `is_binary` перекрывает эвристику по расширению.
 
 ### 3.1 Маршрутизация
 

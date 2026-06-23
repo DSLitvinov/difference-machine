@@ -21,7 +21,7 @@
 
 ## 2. Данные
 
-`GetCommitFileBlob(repoPath, parentHash, path)` + `GetCommitFileBlob(repoPath, commitHash, path)`.
+`blob.get` ×2: parent hash + commit hash ([api-contract.md §3.4](./api-contract.md)).
 
 ```ts
 interface ImageDiffPanelProps {

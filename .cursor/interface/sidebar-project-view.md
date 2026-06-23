@@ -16,7 +16,7 @@ Sidebar показывает **только папки** в виде **полн�
 | **Sidebar (Project view)** | Дерево папок + count badge |
 | **Content Preview** | Файлы выбранной папки, preview, diff |
 
-Выбор папки в Sidebar → `{ kind: 'folder', path }` (`path: ''` = **корень репо**) → Content Preview загружает файлы этой папки.
+Выбор папки в Sidebar → `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` (`path: ''` = **корень репо**). См. [api-contract.md §6](./api-contract.md).
 
 Toggle **Changed** одновременно:
 1. Фильтрует дерево папок в Sidebar (только ветки с изменениями).
@@ -104,7 +104,7 @@ Toggle **Changed** одновременно:
 При большом числе папок (>500 nodes):
 
 - Обязательна **`@tanstack/react-virtual`** на flat list (DFS flatten expanded tree).
-- Backend: один вызов `ListWorkdirTree` при open repo + invalidate on refresh.
+- Backend: один вызов `workdir.tree` при open repo + invalidate on refresh.
 - Skeleton при первой загрузке.
 
 ### 2.4 Цвета (List Container)
@@ -180,7 +180,7 @@ onProjectViewContextChange(ctx: ProjectViewContext): void
 
 | `showChangedOnly` | Файлы в Preview для `selectedFolderPath` |
 |-------------------|------------------------------------------|
-| `false` | Все immediate files в папке (`ListWorkdirFiles`) |
+| `false` | Все immediate files в папке (`workdir.entries`) |
 | `true` | Только committable files **в этой папке** (immediate children, path under folder) |
 
 Фильтр Preview при `showChangedOnly = true`:
@@ -241,14 +241,14 @@ sequenceDiagram
   participant PV as Content Preview
   participant W as Wails Go
 
-  SB->>W: ListWorkdirTree(repoPath)
-  SB->>W: GetStatus(repoPath)
+  SB->>W: workdir.tree
+  SB->>W: status.get
 
   SB->>App: onProjectViewContextChange
   Note over App: folderPath + showChangedOnly
 
   alt showChangedOnly OFF
-    PV->>W: ListWorkdirFiles(folderPath)
+    PV->>W: workdir.entries(folderPath)
   else showChangedOnly ON
     PV->>App: committable from status
     PV->>PV: filesForPreview(folderPath)
@@ -291,31 +291,27 @@ sequenceDiagram
 
 ## 7. Backend API
 
-### 7.1 `ListWorkdirTree`
+### 7.1 `workdir.tree`
+
+JSON API: [api-contract.md §4.1](./api-contract.md).
 
 ```go
 type FolderTreeNode struct {
     Name      string           `json:"name"`
     Path      string           `json:"path"`
-    ItemCount int              `json:"item_count"` // recursive file count — см. architecture.md §4.2
+    ItemCount int              `json:"item_count"` // recursive file count
     Children  []FolderTreeNode `json:"children"`
 }
-
-func (a *App) ListWorkdirTree(repoPath string) (*FolderTreeNode, error)
 ```
 
 - Корень: synthetic node `path: ""`, `name` = repo basename или `"."`.
 - **Только директории** в `children`; файлы не возвращаются.
-- `item_count` — recursive **file count** (папки не считаются). Семантика: [architecture.md §4.2](./architecture.md).
+- `item_count` — recursive **file count**. Семантика: [architecture.md §4.2](./architecture.md).
 - Exclude `.DFM`, `.dfmignore`, no symlink follow.
 
-### 7.2 `ListWorkdirFiles` (для Content Preview, не Sidebar)
+### 7.2 Preview entries
 
-```go
-func (a *App) ListWorkdirFiles(repoPath, folderRel string) ([]FileEntry, error)
-```
-
-Immediate children files only — вызывается из Preview при `folder` selection.
+`workdir.entries(repoPath, folderRel)` — immediate children (folders + files) для Content Preview. См. [api-contract.md §4.2](./api-contract.md).
 
 ---
 

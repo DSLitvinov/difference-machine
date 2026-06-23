@@ -11,7 +11,7 @@
 | Уровень | Примеры | Разделитель | Где |
 |---------|---------|-------------|-----|
 | **Relative** (внутри репо) | `assets/scene.blend`, `src/app.tsx` | **всегда `/`** | JSON API, VCS (`status.get`), UI списков, `PreviewSelection`, tree `path` |
-| **Absolute** (ФС / cfg) | `/Users/me/proj`, `C:\Projects\repo` | **нативный ОС** | `repoPath`, `setup.cfg`, `OpenWithDefaultApp`, `os.Stat` |
+| **Absolute** (ФС / cfg) | `/Users/me/proj`, `C:\Projects\repo` | **нативный ОС** | `repoPath`, `setup.cfg`, `workdir.open`, `os.Stat` |
 
 Forester backend уже нормализует relative через `filepath.ToSlash` — GUI **не** конвертирует их в `\` на Windows.
 
@@ -48,7 +48,8 @@ func CanonicalAbsPath(path string) (string, error) {
 | Пробелы | INI в кавычках: `path = "C:\My Projects\repo"` |
 | Чтение из cfg | Trim + unquote → `CanonicalAbsPath` перед `os.Stat` |
 | Dedupe (`AddKnownRepo`) | `SamePath(a, b)` — см. §5 |
-| Symlinks | v1: **не** `EvalSymlinks`; v1.1 optional |
+| Symlinks (repo/cfg) | `filepath.Clean` + `Abs` — **без** `EvalSymlinks` |
+| Symlinks (open in OS) | `EvalSymlinks` только перед `open` / `ShellExecute` / `xdg-open` |
 
 **Не** хранить relative пути репозиториев в `[current repo]` / `[repo]`.
 
@@ -101,7 +102,7 @@ func SamePath(a, b string) bool {
 |----------|-----|
 | Join repo + relative file | `filepath.Join(repoRoot, filepath.FromSlash(fileRel))` |
 | Проверка «внутри репо» | `filepath.Rel(repoRoot, absTarget)` — ошибка или `..` prefix → reject |
-| Открытие в ОС | abs path нативный; см. §7 |
+| Open in OS | native abs; symlinks: `EvalSymlinks` before launch (§3) |
 
 ---
 

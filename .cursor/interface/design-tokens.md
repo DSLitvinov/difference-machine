@@ -9,7 +9,7 @@
 | Тема | Документ |
 |------|----------|
 | Цвета, состояния hover/selected | **этот файл** §3–§4 |
-| `PreviewSelection`, sidebar events | [architecture.md §3.1](./architecture.md) |
+| JSON API, UI events | [api-contract.md](./api-contract.md) |
 | `item_count` (recursive files) | [architecture.md §4.2](./architecture.md) |
 | Multi-repo, `setup.cfg` | [multi-repo.md](./multi-repo.md) |
 | Paths (macOS / Windows) | [paths.md](./paths.md) |
@@ -236,7 +236,7 @@ export const commitCardStateClasses = {
 
 - [architecture.md](./architecture.md) — layout + §2.4 цвета Sidebar
 - [panel-layout.md](./panel-layout.md)
-- [paths.md](./paths.md)
+- [api-contract.md](./api-contract.md)
 - [multi-repo.md](./multi-repo.md)
 - [sidebar-project-view.md](./sidebar-project-view.md)
 - [sidebar-history-view.md](./sidebar-history-view.md)

@@ -41,10 +41,10 @@ function classifyInfoPreview(ext: string): InfoPreviewKind {
 
 | Kind | Content |
 |------|---------|
-| **image** | `<img>` `object-cover`, from `GetFileThumbnail` / direct read |
+| **image** | `<img>` `object-cover`, from `workdir.thumbnail` / direct read |
 | **text** | **Text stub** — placeholder icon (generic document); **SVG иллюстрация позже** |
 | **binary** | **Binary stub** — другая иконка (`FileQuestion` / archive) |
-| **blend** | `GetThumbnail` workdir blend preview **или** blend stub если нет thumb |
+| **blend** | `workdir.thumbnail` blend preview **или** blend stub если нет thumb |
 
 ### 2.1 Text stub (v1)
 

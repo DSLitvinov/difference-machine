@@ -77,8 +77,8 @@
 
 | Поле | Источник |
 |------|----------|
-| `screenshot_path` | `commit.get` / `log.get` → `.DFM/screenshots/{commit_hash}.png` |
-| Загрузка | `GetCommitScreenshot(repoPath, commitHash)` → bytes или file URL |
+| `screenshot_path` | `commit.get` → field `screenshot_path` |
+| Загрузка preview | `blob.get` или read path from `screenshot_path` on disk |
 
 Скриншот создаётся Blender addon при коммите (viewport capture). См. Forester `Commit.ScreenshotPath`.
 
@@ -165,7 +165,7 @@ interface BinaryDiffStubProps {
 }
 ```
 
-Родитель (`DiffView`) загружает скриншот при `isBlendPath(path)` через `GetCommitScreenshot`.
+Родитель (`DiffView`) загружает скриншот при `isBlendPath(path)` из `commit.get.screenshot_path`.
 
 ---
 

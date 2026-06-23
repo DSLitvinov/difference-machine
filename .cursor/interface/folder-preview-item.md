@@ -39,7 +39,7 @@
 
 - Формат: `{n} File` / `{n} Files` (i18n plural).
 - Семантика: **recursive file count** — см. [architecture.md §4.2](./architecture.md) (только файлы; папки не считаются).
-- Источник: поле `item_count` из `ListWorkdirEntries` / `DirEntry`.
+- Источник: поле `item_count` из `workdir.entries` / `DirEntry`.
 
 ---
 
@@ -121,7 +121,7 @@ interface FolderPreviewItemData {
 | Поле | Источник |
 |------|----------|
 | `name` | basename `path` |
-| `path` | `ListWorkdirFiles` / tree child |
+| `path` | `workdir.entries` / tree child |
 | `fileCount` | `item_count` из backend — recursive files ([architecture.md §4.2](./architecture.md)) |
 
 ---

@@ -99,7 +99,7 @@ function clamp(width: number, min: number, max: number): number {
 - Hit area: **4px** (визуально `w-px bg-border` + расширенная зона).
 - Double-click на H1/H2 — **v1.1** (reset to defaults); в v1 не обязательно.
 - Курсор: `col-resize`.
-- Sidebar **collapse** (Rail + PanelLeft): отдельно от resize — сворачивает всю левую колонку до Rail-only или 0 (см. [architecture.md §2.3](./architecture.md)); при collapse resize H1 скрыт.
+- Sidebar **collapse** → колонка **48px** (только Rail); H1 скрыт; saved `sidebarWidth` восстанавливается при expand.
 
 ---
 
@@ -121,8 +121,10 @@ function clamp(width: number, min: number, max: number): number {
 
 | Ситуация | Поведение |
 |----------|-----------|
-| `W < 1435` (Project) | Clamp все панели к min; при невозможности — **горизонтальный scroll** на shell или **min window size 1435×…** (product: prefer **enforce min window 1435px** в v1) |
-| `W < 1081` (History) | Аналогично: min window **1081px** или scroll |
+| `W < 1435` (Project) | **Enforce** min window 1435×… (Wails `SetMinSize`) |
+| `W < 1081` (History) | **Enforce** min window 1081×… |
+| Sidebar collapsed (Project) | min `W`: **48 + 747 + 354 = 1149** |
+| Sidebar collapsed (History) | min `W`: **48 + 747 = 795** |
 | Resize окна ОС | Пересчитать max; clamp сохранённые ширины; Preview забирает delta |
 | History mode | Info panel width не меняется в layout, только в persisted state |
 | Sidebar collapsed | Preview + Info делят `W − railCollapsedWidth` (v1: collapsed = только Rail 48px) |
@@ -147,3 +149,5 @@ function clamp(width: number, min: number, max: number): number {
 | 4 | Max | Вычисляется из `W` и min соседних панелей |
 | 5 | Handles | Два: Sidebar\|Preview, Preview\|Info |
 | 6 | History | Info скрыта; bounds §2.2 |
+| 7 | Min window | **Enforce** (Wails `SetMinSize`) |
+| 8 | Collapse | 48px Rail; min W см. §5 |

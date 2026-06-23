@@ -176,7 +176,7 @@ function parseCommitMessage(message: string) {
 |------|----------|
 | base | `log.get` |
 | `tags` | extend `log.get` or `tag.list` |
-| `files_*` | extend `log.get` or `commit.stats` |
+| `files_*` | `diff.stat` or lazy `diff.name_status` — [api-contract.md](./api-contract.md) |
 
 ---
 

@@ -127,7 +127,7 @@ name = Artist
 | `GetCurrentRepoPath()` | `string` из `[current repo] path` или `""` |
 | `SetCurrentRepoPath(path)` | Канонизировать → обновить `[current repo]` |
 | `AddKnownRepo(path)` | Dedupe `SamePath` → append `path_N` + `SetCurrentRepoPath` |
-| `OpenRepo(path)` | `CanonicalAbsPath` → валидация `.DFM` / `GetStatus` → app state + `[current repo]` |
+| `OpenRepo(path)` | `CanonicalAbsPath` → валидация `.DFM` / `status.get` → app state + `[current repo]` |
 
 `OpenRepo` вызывается из startup, dropdown и Add repository.
 

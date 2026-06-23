@@ -197,50 +197,38 @@ interface HistoryPreviewState {
 
 ---
 
-## 5. Wails backend
+## 5. Backend API
 
-| Метод Wails | JSON API | Назначение |
-|-------------|----------|------------|
-| `GetCommit(repoPath, hash)` | `commit.get` | Header |
-| `GetCommitChangedFiles(repoPath, hash)` | **новый** `commit.files` | Список A/M/D/R |
-| `GetCommitFileDiff(repoPath, hash, filePath)` | **новый** `commit.diff` | Text diff |
-| `GetCommitFileBlob(repoPath, hash, filePath)` | **новый** `commit.blob` | Image blobs |
-| `OpenCommitFileWithDefaultApp(repoPath, hash, filePath)` | **новый** | Binary stub |
-| `GetCommitScreenshot(repoPath, hash)` | **новый** `commit.screenshot` | `.blend` preview в binary stub (`.DFM/screenshots/{hash}.png`) |
-| `GetCommitParents(repoPath, hash)` | `commit.get` | Parent baseline |
+Канон: [api-contract.md](./api-contract.md) §3.
 
-### 5.1 `commit.files`
+| JSON method | Назначение |
+|-------------|------------|
+| `commit.get` | Header (`screenshot_path` для `.blend`) |
+| `diff.name_status` | Changed files list (A/M/D; R — когда backend добавит rename) |
+| `diff.text` | Text diff panel |
+| `diff.stat` | Optional stats в header / commit card |
+| `blob.get` | Image diff, binary temp file |
+| `workdir.open` | Binary stub → OS (из temp blob) |
 
-```json
-{
-  "hash": "abc123…",
-  "parent_hash": "def456…",
-  "files": [
-    { "status": "added", "path": "assets/new.png" },
-    { "status": "modified", "path": "src/app.tsx" },
-    { "status": "deleted", "path": "old/data.bin" },
-    { "status": "renamed", "path": "new/name.txt", "old_path": "old/name.txt" }
-  ]
-}
-```
-
-### 5.2 `commit.diff`
+### 5.1 `diff.name_status`
 
 ```json
-{
-  "path": "src/app.tsx",
-  "is_binary": false,
-  "is_too_large": false,
-  "unified": "@@ …",
-  "hunks": [{ "old_start": 1, "old_lines": 3, "new_start": 1, "new_lines": 4, "lines": [] }]
-}
+{ "from": "<first_parent_hash>", "to": "<commit_hash>" }
+→ { "files": [{ "status": "A|M|D", "path": "relative/path" }] }
 ```
 
-`is_binary: true` → [binary-diff-stub.md](./binary-diff-stub.md).
+CLI: `diff <from> <to> --name-status`. UI map: `A→added`, `M→modified`, `D→deleted`.
+
+### 5.2 `diff.text`
+
+```json
+{ "from": "...", "to": "...", "path": "src/app.tsx", "unified": true }
+→ { "content": "...", "format": "unified", "is_binary": false }
+```
 
 ### 5.3 Merge commits
 
-Baseline = **first parent**. Merge icon в [preview-commit-header.md](./preview-commit-header.md).
+Baseline = **first parent** (`from` = `parent_hashes[0]`). Merge icon в [preview-commit-header.md](./preview-commit-header.md).
 
 ---
 
@@ -321,7 +309,7 @@ state/
 |---|-------------|--------------|
 | Триггер | Папка в Sidebar | Коммит в Sidebar |
 | Layout | Toolbar + grid | Header + files + diff |
-| Content Info | Visible (v2) | **Hidden** |
+| Content Info | **Visible** (Project) | **Hidden** |
 | Search | Global | **Нет** |
 | File open | Double-click workdir | Binary stub button |
 | Selection | Multiselect | Single |
