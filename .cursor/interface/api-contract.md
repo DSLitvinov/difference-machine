@@ -217,7 +217,7 @@ type DirEntry struct {
 | Событие | Когда |
 |---------|-------|
 | `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` | Клик папки Sidebar, drill-down Preview, toggle Changed |
-| `onSelectionChange({ kind: 'commit', hash, branch })` | Выбор коммита в History |
+| `onSelectionChange({ kind: 'commit', hash, branch })` | Выбор коммита в History; `branch` = `currentBranch` |
 | `onSelectionChange({ kind: 'none' })` | Сброс commit selection |
 | `onPreviewSelectionChange(PreviewSelection)` | File multiselect в Preview |
 
@@ -225,7 +225,7 @@ type DirEntry struct {
 
 При смене `selectedFolderPath` → `PreviewSelection = { kind: 'none' }`.
 
-При смене rail Project ↔ History → сброс Preview/commit selection; **persist** `selectedFolderPath`, `historyBranch`, `showChangedOnly` per repo.
+При смене rail Project ↔ History → сброс Preview/commit selection; **persist** `selectedFolderPath`, `showChangedOnly` per repo. `currentBranch` — из `branch.list` (`is_current`), не из localStorage.
 
 ---
 

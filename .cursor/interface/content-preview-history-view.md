@@ -55,7 +55,7 @@
 |-----------------|------------------|
 | Коммит выбран | Загрузить детали + changed files; **auto-select первый файл** (§4.1) |
 | Selection сброшен (`kind: 'none'`) | Empty state Preview |
-| Смена `historyBranch` без смены коммита | Не менять Preview, пока hash в новом log |
+| Смена `currentBranch` (checkout) | Сброс commit selection; Preview empty; после выбора нового коммита — обычный flow |
 | Rail → Project view | Preview переключается на Project layout; History state сбрасывается |
 
 **Поиска в History Preview нет** (в отличие от Project view).

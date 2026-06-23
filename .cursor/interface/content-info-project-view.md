@@ -158,7 +158,7 @@ interface ContentInfoState {
   fileMetadata: FileMetadata | null
   fileLock: LockInfo | null
   fileHistory: FileHistoryEntry[] // file log
-  historyBranch: string | null
+  fileHistoryBranch: string | null  // read-only filter for log.get+path; not checkout
   historyCommit: string | null
 
   previewUrl: string | null       // image / blend thumbnail object URL
@@ -176,7 +176,7 @@ interface ContentInfoState {
 | Key | Value |
 |-----|-------|
 | `dfm.info.panelWidth` | number |
-| `dfm.info.historyBranch` | per-repo string |
+| `dfm.info.fileHistoryBranch` | per-repo string; file History combobox filter (not global branch) |
 | `dfm.info.historyCollapsed` | boolean |
 | `dfm.info.metadataCollapsed` | boolean |
 

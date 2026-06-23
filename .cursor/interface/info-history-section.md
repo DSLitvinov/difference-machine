@@ -25,7 +25,8 @@ Collapsible; default **expanded**. Title `History` + chevron.
 - `Combobox` / `Popover` + `Command`
 - Options: **all branches** from `branch.list` (v1)
 - Placeholder: `Select branch...`
-- Default: `currentBranch` or saved `dfm.info.historyBranch`
+- Default: `currentBranch` or saved `dfm.info.fileHistoryBranch`
+- **Read-only filter** — меняет только `log.get`+`path` для файла; **не** вызывает `repo.switch` (в отличие от History `BranchSelector` — [sidebar-history-view.md §2.6](./sidebar-history-view.md))
 
 ### 2.2 Commit combobox
 

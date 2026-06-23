@@ -41,7 +41,7 @@
 | # | Элемент | Spec | Условие | Данные |
 |---|---------|------|---------|--------|
 | 1 | Merge icon | `GitMerge` 16×16 | `parent_hashes.length > 1` | merge commit |
-| 2 | Head indicator | `GitBranch` 16×16 + `Tooltip` | `hash ===` tip `historyBranch` | «Branch tip (HEAD)» — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
+| 2 | Head indicator | `GitBranch` 16×16 + `Tooltip` | `hash ===` tip `currentBranch` | «Branch tip (HEAD)» — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
 | 3 | Title | `text-base font-semibold truncate flex-1` | всегда | первая строка `message` |
 | 4 | Author | `text-sm text-foreground` | всегда | `commit.author` |
 | 5 | Short hash | `text-xs font-mono text-muted-foreground` | всегда | 7–8 символов |
@@ -83,7 +83,7 @@
 ```ts
 interface PreviewCommitHeaderProps {
   commit: CommitDetail | null
-  historyBranch: string
+  currentBranch: string
   filesChangedCount: number
   filesAdded: number
   filesRemoved: number

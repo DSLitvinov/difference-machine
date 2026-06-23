@@ -11,9 +11,11 @@
 
 ## 1. Назначение
 
-Пользователь выбирает **ветку**, просматривает **линейный список коммитов**, фильтрует поиском и выбирает коммит для просмотра в Content Preview / Info.
+Пользователь переключает **текущую ветку** (как GitHub Desktop), просматривает **линейный список коммитов** этой ветки, фильтрует поиском и выбирает коммит для просмотра в Content Preview.
 
-**Не в scope v1 Sidebar:** checkout (`repo.switch`), создание/удаление веток — только навигация и selection. **Merge** — v2: [merge-dialog.md](./merge-dialog.md).
+**UX-ориентир:** GitHub Desktop — branch dropdown = checkout; History log всегда для **текущей** ветки (`currentBranch`).
+
+**Не в scope v1 Sidebar:** создание/удаление веток. **Merge** — v2: [merge-dialog.md](./merge-dialog.md).
 
 ---
 
@@ -49,11 +51,12 @@
 
 ### 2.2 Branch selector
 
-- Icon `GitBranch`, label = имя **просматриваемой** ветки (`historyBranch`).
-- Dropdown — см. §2.6 (browse vs checkout).
+- Icon `GitBranch`, label = **`currentBranch`** (ветка рабочей копии и History log).
+- Dropdown — см. §2.6 (GitHub Desktop: checkout on select).
 - Фон: `bg-background` (white) + border.
+- Общий компонент `BranchSelector` — тот же UX, что в [architecture.md §2.3](./architecture.md); в History он в context slot Sidebar.
 
-**Важно:** `historyBranch` (что смотрим в log) и `currentBranch` (на какой ветке рабочая копия) — **разные поля**. Они совпадают после checkout, но могут расходиться при «browse without checkout».
+**Важно:** отдельного поля `historyBranch` **нет**. `log.get({ branch: currentBranch })`. Исключение: **file history** в Content Info ([info-history-section.md](./info-history-section.md)) — read-only filter ветки для `log.get`+`path`, без checkout.
 
 ### 2.3 Commit list (scroll area)
 
@@ -73,48 +76,26 @@
 | Search input | `background/default` | `bg-background border-input` |
 | Commit card Default | `background/default` | `bg-background border-border` |
 
-### 2.6 Branch selector: browse vs checkout
+### 2.6 Branch selector (GitHub Desktop model)
 
-В Git-клиентах два разных намерения:
+**Модель v1:** выбор ветки в dropdown **сразу переключает рабочую копию** (как **Current Branch** в GitHub Desktop). Отдельного «browse log без checkout» в History Sidebar **нет**.
 
-| Намерение | Пример | Меняет рабочую капию? |
-|-----------|--------|------------------------|
-| **Browse** | «Покажи коммиты `feature/ui`» | Нет |
-| **Checkout** | «Переключи проект на `feature/ui`» | Да (`forester switch`) |
-
-#### Рекомендуемая модель для v1
-
-**Dropdown = только browse.** Выбор ветки в списке:
-
-1. Устанавливает `historyBranch`.
-2. Загружает `log.get` для этой ветки.
-3. **Не** вызывает `repo.switch`.
-4. Индикатор в dropdown: `is_current` → иконка/check «это текущая ветка WC».
-
-**Checkout — отдельное явное действие**, чтобы не перезаписать несохранённые изменения случайным кликом.
-
-#### Где делать checkout
-
-| Место | UX |
-|-------|-----|
-| **Строка ветки в dropdown** | Secondary action: иконка `GitBranch` + «Checkout» справа, или submenu |
-| **Контекстное меню** | Right-click на ветке в dropdown → «Checkout branch» |
-| **Кнопка в header** (v1.1) | Если `historyBranch !== currentBranch` → outlined button «Checkout this branch» |
-
-#### Flow checkout
+#### Flow при выборе ветки X
 
 ```mermaid
 flowchart TD
-  A[User: Checkout branch X] --> B{status.get: dirty?}
-  B -->|clean| C[repo.switch X]
-  B -->|dirty| D[Dialog: Stash / Discard / Cancel]
-  D -->|Stash| E[stash.save + switch -a]
-  D -->|Discard| F[Dialog confirm + switch]
-  D -->|Cancel| G[Abort]
-  C --> H[Refresh status + branches + log]
-  E --> H
-  F --> H
-  H --> I[currentBranch = X, historyBranch = X]
+  A[User selects branch X in dropdown] --> B{X === currentBranch?}
+  B -->|yes| C[No-op + optional toast]
+  B -->|no| D{status.get: dirty?}
+  D -->|clean| E[repo.switch target X]
+  D -->|dirty| F[Dirty-tree dialog]
+  F -->|Cancel| G[Abort — dropdown reverts to currentBranch]
+  F -->|Stash and switch| H[repo.switch auto_stash true]
+  F -->|Try anyway| I[repo.switch without stash]
+  I -->|error| J[Toast Forester error — stay on currentBranch]
+  E --> K[Refresh branches status log Project tree]
+  H --> K
+  K --> L[currentBranch = X clear commit selection reload log.get]
 ```
 
 **Dirty** = любой непустой массив в `status.get` (staged/unstaged/untracked) или merge in progress.
@@ -128,41 +109,47 @@ You have uncommitted changes:
 • 3 modified
 • 1 untracked
 
-[ Cancel ]  [ Stash & switch ]  [ Switch anyway ]
+[ Cancel ]  [ Stash & switch ]
 ```
 
-- **Stash & switch** → `repo.switch` с `auto_stash: true` (Forester `-a`).
-- **Switch anyway** → обычный `repo.switch` (может fail — показать error от Forester).
-- После успеха: обновить Project view + History; `historyBranch` = новая current.
+| Кнопка | API | Примечание |
+|--------|-----|------------|
+| **Cancel** | — | Dropdown возвращает label к `currentBranch` |
+| **Stash & switch** | `repo.switch({ target, auto_stash: true })` | Forester `-a` |
+| **Discard & switch** | v1.1 | Требует `workdir.discard` / reset index — API пока нет |
 
-#### Когда browse без checkout полезен
+**Try anyway** (обычный `repo.switch` без stash): Forester **отклоняет** switch при dirty — не показывать как primary action в v1; при необходимости v1.1 — отдельная кнопка с toast ошибки.
 
-- Сравнить историю `main` и `feature`, оставаясь на feature.
-- Посмотреть коммиты релизной ветки, не переключая рабочую копию.
-- Code review: листать чужую ветку.
+После успешного switch:
+
+1. `currentBranch = X`
+2. `log.get({ branch: X })` — новый список коммитов
+3. Сброс `selectedCommitHash` → Preview empty
+4. Refresh Project view (`status.get`, `workdir.tree`)
 
 #### Визуальные индикаторы
 
 | Состояние | UI |
 |-----------|-----|
-| `historyBranch === currentBranch` | Branch label normal; check в dropdown |
-| `historyBranch !== currentBranch` | Muted subtitle под selector: «Viewing · not checked out» или dot badge |
-| Merge in progress | Banner над list: «Merge in progress» + **Review merge** → [merge-dialog.md](./merge-dialog.md); checkout disabled |
+| Текущая ветка | Label = `currentBranch`; checkmark у активной строки в dropdown |
+| Merge in progress | Banner над list: «Merge in progress» + **Review merge** → [merge-dialog.md](./merge-dialog.md); branch switch disabled |
 | Detached HEAD (v2) | «(detached)» в label |
+| Switch in progress | Dropdown disabled + spinner |
 
-#### Corner cases checkout
+#### Corner cases
 
 | Ситуация | Поведение |
 |----------|-----------|
-| Checkout на ту же ветку | No-op + toast «Already on branch X» |
-| Checkout при merge in progress | Block; suggest `merge --continue` / `--abort` |
-| Switch fail (Forester error) | Toast + не менять `currentBranch` |
-| После checkout log другой ветки | Опционально: auto-set `historyBranch = currentBranch` (настраиваемо) |
-| User browsed branch B, then checkout B | `historyBranch` уже B — без скачка списка |
+| Select та же ветка | No-op; optional toast «Already on branch X» |
+| Switch при merge in progress | Block; suggest merge continue/abort (v2) |
+| Switch fail (Forester error) | Toast; `currentBranch` и dropdown **не** менять |
+| Быстрая смена веток | Cancel stale `log.get`; skeleton на list |
+| CLI switch извне | Refresh `branch.list`; обновить label и log |
+| Единственная ветка | Dropdown кликабелен (future: create branch) |
 
-#### Альтернатива (не рекомендуется для v1)
+#### File history (исключение)
 
-**Dropdown сразу делает checkout** — как в простых GUI. Минус: каждый просмотр log другой ветки перезаписывает WC; нужен confirm на каждый клик → раздражает. Имеет смысл только если History = «список веток проекта», а не «просмотр истории».
+В **Content Info → History** ([info-history-section.md](./info-history-section.md)) combobox ветки **только фильтрует** `log.get`+`path` для выбранного файла — **не** вызывает `repo.switch`. Это не противоречит GHD-модели глобального branch selector.
 
 ### 2.3 Search
 
@@ -191,9 +178,9 @@ sequenceDiagram
   F-->>W: branches[]
   W-->>UI: branches
 
-  UI->>UI: historyBranch ||= current from is_current
+  UI->>UI: currentBranch from is_current or branch.list
 
-  UI->>W: ForesterCall log.get
+  UI->>W: ForesterCall log.get branch currentBranch
   W->>F: log.get
   W-->>UI: commits[]
 
@@ -244,23 +231,24 @@ Default `max_count`: 100. Поля `tags`, `files_added`, `files_removed` — **
 ```ts
 interface HistoryViewState {
   branches: Branch[]
-  historyBranch: string
+  // currentBranch — shared SidebarState (architecture.md §3)
   commits: Commit[]
   filteredCommits: Commit[]
   searchQuery: string
   selectedCommitHash: string | null
   loadingBranches: boolean
   loadingLog: boolean
+  switchingBranch: boolean
   error: string | null
 }
 ```
 
 ### 4.1 Инициализация
 
-1. Load branches.
-2. `historyBranch` = saved per-repo OR branch where `is_current === true` OR `"main"`.
-3. Load log for `historyBranch`.
-4. Select first commit **не** автоматически (избегаем лишних preview loads) — только если был saved selection.
+1. Load `branch.list`.
+2. `currentBranch` = branch where `is_current === true` OR `"main"`.
+3. `log.get({ branch: currentBranch })`.
+4. Select first commit **не** автоматически — только если был saved `selectedCommitHash` и hash есть в log.
 
 ---
 
@@ -277,9 +265,9 @@ interface HistoryViewState {
 - Log → `commits: []`.
 - Empty: «No commits on this branch».
 
-### 5.3 `historyBranch` удалена извне
+### 5.3 `currentBranch` отсутствует в branch.list
 
-- После refresh branch отсутствует в list.
+- После refresh имя не найдено (ветка удалена извне).
 - Fallback на `is_current` branch + toast.
 
 ### 5.4 Detached HEAD
@@ -358,7 +346,7 @@ interface HistoryViewState {
 |-----------|----------------|
 | `HistoryViewPanel` | Orchestration |
 | `HistoryHeader` | Title |
-| `BranchSelector` | Dropdown + load branches |
+| `BranchSelector` | Dropdown + checkout flow §2.6 |
 | `CommitSearch` | Controlled Input |
 | `CommitList` | `ScrollArea`, gap `space-2`, padding `px-2` |
 | `CommitCard` | Card layout §2.4; states Default/Hover/Selected |
@@ -379,7 +367,7 @@ interface HistoryViewState {
 |---|-------------|--------------|
 | Rail icon active | `FolderGit2` | `GitFork` |
 | Header extra | Changed Switch | — |
-| Context dropdown | Repo name | Branch name |
+| Context dropdown | Repo name | `currentBranch` (checkout on select) |
 | List content | Folders / changed files | Commits |
 | Primary API | `status.get`, `workdir.tree` | `branch.list`, `log.get`, `commit.get`, `diff.*` |
 | Selection type | `ProjectViewContext` (folder) | `commit` |
@@ -392,7 +380,7 @@ interface HistoryViewState {
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Branch dropdown | **Browse log only** — `historyBranch` + `log.get`; checkout отдельно (§2.5) |
+| 1 | Branch dropdown | **GitHub Desktop** — checkout on select; log = `currentBranch` (§2.6) |
 | 2 | Commit card | [commit-card.md](./commit-card.md) |
 | 3 | Head | `GitBranch` 16×16 icon + Tooltip — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
 | 4 | API extensions | `tags`, `files_added`/`files_removed` в log |

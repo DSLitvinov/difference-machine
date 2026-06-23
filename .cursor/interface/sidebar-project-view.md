@@ -62,6 +62,8 @@ Toggle **Changed** одновременно:
 - Фон: `bg-background` (white) + border.
 - При запуске: авто-open из `[current repo] path` (см. [multi-repo.md §3](./multi-repo.md)).
 
+**Текущая ветка (read-only):** под repo selector — `GitBranch` + `currentBranch` (`text-xs text-muted-foreground`). Checkout только из History `BranchSelector` ([sidebar-history-view.md §2.6](./sidebar-history-view.md)); в Project mode ветка не переключается.
+
 ### 2.3 Дерево папок (v1) — **зафиксировано**
 
 **Решения:**

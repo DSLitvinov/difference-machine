@@ -191,6 +191,8 @@ path = C:\DiffMachine\bin\forester.exe
 | `dfm.gui.theme` | `light` \| `dark` \| `system` | [settings-dialog.md §4.3](./settings-dialog.md) |
 | `dfm.gui.font` | `inter` | [settings-dialog.md §4.1](./settings-dialog.md) |
 | `dfm.sidebar.showChangedOnly::<repoKey>` | per-repo | §11 ниже |
+| `dfm.sidebar.selectedFolderPath::<repoKey>` | per-repo | [architecture.md §3.2](./architecture.md) |
+| `dfm.info.fileHistoryBranch::<repoKey>` | per-repo | [content-info-project-view.md §5.1](./content-info-project-view.md) |
 
 `repoKey` = канонический abs ([§3](./paths.md#3-канонизация-путей)).
 
@@ -227,3 +229,4 @@ path = C:\DiffMachine\bin\forester.exe
 | 3 | Config file | `UserHomeDir()/.dfm/setup.cfg` |
 | 4 | Dedupe repos | `SamePath` (case-insensitive на Windows) |
 | 5 | FS join | `FromSlash(rel)` + `Join(repoRoot, …)` |
+| 6 | Global branch | `currentBranch` only; no `historyBranch` in localStorage |

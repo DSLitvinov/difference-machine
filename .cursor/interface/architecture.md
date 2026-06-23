@@ -27,6 +27,8 @@ Item specs: [folder-preview-item.md](./folder-preview-item.md) · [file-preview-
 
 **Content Info (Project view):** [content-info-project-view.md](./content-info-project-view.md) — preview, metadata, history (single file only), create commit. Atoms: [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md). **Скрыта в History mode**.
 
+**UX веток (GitHub Desktop):** одно поле `currentBranch` в state. History Sidebar: branch dropdown = `repo.switch` on select ([sidebar-history-view.md §2.6](./sidebar-history-view.md)). Log коммитов всегда для `currentBranch`. File History в Content Info — отдельный read-only filter ветки ([info-history-section.md](./info-history-section.md)).
+
 ---
 
 ## 2. Компоновка
@@ -111,8 +113,8 @@ onSettingsClick={() => setSettingsOpen(true)}
 
 1. **Header** — заголовок режима (`Project view` / `History`).
 2. **Context selector** — dropdown:
-   - Project view → имя репозитория (basename root path).
-   - History → текущая выбранная ветка.
+   - Project view → имя репозитория (basename root path); read-only label **`currentBranch`** под repo name (muted, `text-xs`) — без checkout из Project mode в v1.
+   - History → **`BranchSelector`**: `currentBranch`, checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md).
 3. **Mode-specific controls** — см. дочерние документы.
 4. **Scrollable list** — папки / коммиты (белый фон Container, §2.5).
 5. **Collapse control** — кнопка `PanelLeft` на правом краю; сворачивает всю Sidebar (состояние в `ui.sidebarCollapsed`).
@@ -183,7 +185,6 @@ interface SidebarState {
   folderTree: FolderTreeNode | null   // from workdir.tree
 
   // History view
-  historyBranch: string | null        // browse log only; see sidebar-history-view §2.5
   commitSearchQuery: string
   selectedCommitHash: string | null
 
@@ -227,7 +228,8 @@ interface SidebarEvents {
 | Правило | Поведение |
 |---------|-----------|
 | Смена `selectedFolderPath` | `PreviewSelection → { kind: 'none' }` |
-| Rail Project ↔ History | сброс commit + file selection; **сохранить** folder/branch/changed prefs |
+| Rail Project ↔ History | сброс commit + file selection; **сохранить** `selectedFolderPath`, `showChangedOnly`; `currentBranch` из `branch.list` |
+| Смена ветки (checkout) | `repo.switch` → обновить `currentBranch`, log, Project status; сброс commit selection |
 | VCS badges / committable | только `status.get` — [api-contract.md §2.1](./api-contract.md) |
 
 ### 3.2 Персистентность
@@ -243,7 +245,6 @@ interface SidebarEvents {
 | `localStorage` `dfm.sidebar.mode` | `project` \| `history` |
 | per-repo `dfm.sidebar.showChangedOnly` | boolean |
 | per-repo `dfm.sidebar.selectedFolderPath` | string (`''` = root) |
-| per-repo `dfm.sidebar.historyBranch` | string |
 
 Полная спека multi-repo: [multi-repo.md](./multi-repo.md). Пути: [paths.md](./paths.md). Resize: [panel-layout.md](./panel-layout.md).
 
@@ -361,7 +362,7 @@ interface SidebarEvents {
 ### 6.6 Смена ветки извне (CLI / Blender)
 
 - После refresh: обновить `currentBranch`, `headCommit`.
-- History: если `historyBranch` была current — обновить log.
+- History: перезагрузить `log.get` для `currentBranch`.
 - Project: пересчитать changed lists.
 
 ### 6.7 Пустой репозиторий (нет коммитов)
@@ -385,7 +386,7 @@ interface SidebarEvents {
 ### 6.10 Переключение Project ↔ History
 
 - Сброс **PreviewSelection** и **commit selection** (`kind: 'none'`).
-- **Persist per-repo:** `selectedFolderPath`, `historyBranch`, `showChangedOnly`.
+- **Persist per-repo:** `selectedFolderPath`, `showChangedOnly`.
 - **Layout:** History → Content Info **скрыта**; Project → **видна** (v1 full scope).
 - History Preview: auto-select первый changed file — [content-preview-history-view.md §5.1](./content-preview-history-view.md).
 
@@ -428,7 +429,7 @@ frontend/src/
 |------|-------|
 | **v1 (MVP)** | Full GUI: Sidebar (Project + History) · Preview (Project + History diff) · Content Info · multi-repo · 3-panel resize · commit card ⋮ (full menu) |
 | **v1 polish** | Thumbnails, virtual scroll, `+N` multiselect badge, changed-count on folders |
-| **v2** | Tree collapse, fs watcher, rename `R` in diff, remove repo from list, **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
+| **v2** | Tree collapse, fs watcher, rename `R` in diff, **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
 
 **Порядок:** backend (`api-contract.md` §7) → shell → panels.
 

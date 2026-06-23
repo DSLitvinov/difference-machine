@@ -42,7 +42,7 @@
 | # | Элемент | Size | Условие | Данные |
 |---|---------|------|---------|--------|
 | 1 | **Merge Icon** | 16×16 `GitMerge` | `parent_hashes.length > 1` | merge commit |
-| 2 | **Head indicator** | 16×16 `GitBranch` icon | `hash ===` tip `historyBranch` | tooltip: «Branch tip (HEAD)» — **icon only**, без pill |
+| 2 | **Head indicator** | 16×16 `GitBranch` icon | `hash ===` tip `currentBranch` | tooltip: «Branch tip (HEAD)» — **icon only**, без pill |
 | 3 | **Title** | `text-sm font-semibold` | всегда | первая строка `message` |
 | 4 | **⋮** | 16×16 `MoreVertical` | всегда | context menu §6 |
 
