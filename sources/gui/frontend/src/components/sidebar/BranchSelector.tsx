@@ -1,29 +1,107 @@
-import { GitBranch } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, GitBranch, Plus } from "lucide-react";
 
-import { DropdownSelector } from "@/components/ui/dropdown-selector";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface BranchSelectorProps {
   branches: string[];
   currentBranch: string;
   disabled?: boolean;
   onSelect: (branch: string) => void;
+  onCreateClick?: () => void;
 }
 
-export function BranchSelector({ branches, currentBranch, disabled, onSelect }: BranchSelectorProps) {
-  const options = branches.map((name) => ({
-    value: name,
-    label: name,
-    title: name,
-  }));
+export function BranchSelector({
+  branches,
+  currentBranch,
+  disabled,
+  onSelect,
+  onCreateClick,
+}: BranchSelectorProps) {
+  const [open, setOpen] = useState(false);
+  const label = currentBranch || "No branches";
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+  };
+
+  const handleSelect = (branch: string) => {
+    onSelect(branch);
+    handleOpenChange(false);
+  };
+
+  const handleCreateClick = () => {
+    handleOpenChange(false);
+    onCreateClick?.();
+  };
 
   return (
-    <DropdownSelector
-      value={currentBranch}
-      options={options}
-      placeholder="No branches"
-      disabled={disabled || branches.length === 0}
-      icon={<GitBranch className="h-4 w-4" />}
-      onChange={onSelect}
-    />
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className="w-full justify-between gap-2 bg-background font-medium"
+          title={currentBranch || undefined}
+        >
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            <GitBranch className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">{label}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={4}
+        className="z-50 w-[var(--radix-popover-trigger-width)] p-1"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <div className="max-h-56 overflow-auto">
+          {branches.length === 0 ? (
+            <p className="px-3 py-2 text-xs text-muted-foreground">No branches</p>
+          ) : (
+            branches.map((branch) => (
+              <Button
+                key={branch}
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "h-auto w-full justify-start gap-2 px-3 py-2 font-normal",
+                  currentBranch === branch && "bg-accent",
+                )}
+                title={branch}
+                onClick={() => handleSelect(branch)}
+              >
+                {currentBranch === branch ? (
+                  <Check className="h-4 w-4 shrink-0" />
+                ) : (
+                  <span className="h-4 w-4 shrink-0" />
+                )}
+                <span className="truncate">{branch}</span>
+              </Button>
+            ))
+          )}
+        </div>
+        {onCreateClick ? (
+          <>
+            <Separator className="my-1" />
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
+              onClick={handleCreateClick}
+            >
+              <Plus className="h-4 w-4" />
+              Create new branch…
+            </Button>
+          </>
+        ) : null}
+      </PopoverContent>
+    </Popover>
   );
 }

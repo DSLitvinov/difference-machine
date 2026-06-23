@@ -17,7 +17,7 @@
 
 **UX-ориентир:** GitHub Desktop — branch dropdown = checkout; History log всегда для **текущей** ветки (`currentBranch`).
 
-**Не в scope v1 Sidebar:** создание/удаление веток. **Merge** — v2: [merge-dialog.md](./merge-dialog.md).
+**Не в scope v1 Sidebar:** удаление веток. **Создание ветки** — dropdown + [create-branch-dialog.md](./create-branch-dialog.md). **Merge** — v2: [merge-dialog.md](./merge-dialog.md).
 
 ---
 
@@ -54,9 +54,10 @@
 ### 2.2 Branch selector
 
 - Icon `GitBranch`, label = **`currentBranch`** (ветка рабочей копии и History log).
-- Dropdown — канон [design-tokens.md §4.5](./design-tokens.md) (`DropdownSelector`); см. §2.6 (GitHub Desktop: checkout on select).
+- Dropdown — `Popover` + список веток (checkmark у текущей); паттерн как `RepoSelector` в Project view.
+- Footer: `Separator` + **Create new branch…** (`Plus`) → [create-branch-dialog.md](./create-branch-dialog.md).
 - Фон: `bg-background` (white) + border.
-- Общий компонент `BranchSelector` — тот же UX, что в [architecture.md §2.3](./architecture.md); в History он в context slot Sidebar.
+- Общий компонент `BranchSelector` — в History он в context slot Sidebar; checkout on select — §2.6.
 
 **Важно:** отдельного поля `historyBranch` **нет**. `log.get({ branch: currentBranch })`. Исключение: **file history** в Content Info ([info-history-section.md](./info-history-section.md)) — read-only filter ветки для `log.get`+`path`, без checkout.
 
@@ -149,7 +150,9 @@ You have uncommitted changes:
 | Switch fail (Forester error) | Toast; `currentBranch` и dropdown **не** менять |
 | Быстрая смена веток | Cancel stale `log.get`; skeleton на list |
 | CLI switch извне | Refresh `branch.list`; обновить label и log |
-| Единственная ветка | Dropdown кликабелен (future: create branch) |
+| Единственная ветка | Dropdown кликабелен; **Create new branch…** доступен |
+| Create branch | Dialog → `branch.create`; refresh list; **не** checkout |
+| Duplicate / invalid name | Error toast; dialog остаётся open |
 
 #### File history (исключение)
 
@@ -353,7 +356,15 @@ interface HistoryViewState {
 
 ### 5.15 Branch selector: только одна ветка
 
-- Dropdown всё равно кликабелен (для future create branch).
+- Dropdown кликабелен; **Create new branch…** в footer (§2.2).
+
+### 5.16 Create branch
+
+- Триггер: **Create new branch…** в dropdown.
+- Dialog: [create-branch-dialog.md](./create-branch-dialog.md).
+- API: `branch.create({ name })` — tip = HEAD `currentBranch`.
+- Успех: toast + refresh `branch.list`; **не** switch на новую ветку.
+- Checkout новой ветки — отдельный выбор в dropdown (§2.6, dirty dialog при необходимости).
 
 ---
 
@@ -363,7 +374,8 @@ interface HistoryViewState {
 |-----------|----------------|
 | `HistoryViewPanel` | Orchestration |
 | `HistoryHeader` | Title |
-| `BranchSelector` | `DropdownSelector` pattern + checkout flow §2.6 — [design-tokens.md §4.5](./design-tokens.md) |
+| `BranchSelector` | Popover + branch list + **Create new branch…**; checkout flow §2.6 |
+| `CreateBranchDialog` | [create-branch-dialog.md](./create-branch-dialog.md) |
 | `CommitSearch` | Controlled Input |
 | `CommitList` | `ScrollArea`, gap `space-2`, padding `px-2` |
 | `CommitCard` | Card layout §2.4; states Default/Hover/Selected |
@@ -397,7 +409,7 @@ interface HistoryViewState {
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Branch dropdown | **GitHub Desktop** — checkout on select; log = `currentBranch` (§2.6) |
+| 1 | Branch dropdown | **GitHub Desktop** — checkout on select; log = `currentBranch` (§2.6); create — §2.2 / [create-branch-dialog.md](./create-branch-dialog.md) |
 | 2 | Commit card | [commit-card.md](./commit-card.md) |
 | 3 | Head | `GitBranch` 16×16 icon + Tooltip — **icon only**, без pill ([design-tokens.md §3.4](./design-tokens.md)) |
 | 4 | API extensions | `tags`, `files_added`/`files_removed` в log |

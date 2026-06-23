@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 
 import { BranchSelector } from "@/components/sidebar/BranchSelector";
 import { CommitList } from "@/components/sidebar/CommitList";
+import { CreateBranchDialog } from "@/components/sidebar/CreateBranchDialog";
 import { DirtyBranchSwitchDialog } from "@/components/sidebar/DirtyBranchSwitchDialog";
 import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
 import { Input } from "@/components/ui/input";
@@ -44,6 +45,7 @@ export function HistorySidebarPanel() {
   const [switchingBranch, setSwitchingBranch] = useState(false);
   const [dirtyDialogOpen, setDirtyDialogOpen] = useState(false);
   const [dirtyStatus, setDirtyStatus] = useState<StatusPayload | null>(null);
+  const [createBranchDialogOpen, setCreateBranchDialogOpen] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
@@ -172,6 +174,7 @@ export function HistorySidebarPanel() {
           currentBranch={currentBranch ?? branches[0] ?? ""}
           disabled={switchingBranch}
           onSelect={(target) => void handleBranchSelect(target)}
+          onCreateClick={() => setCreateBranchDialogOpen(true)}
         />
         <Input
           value={searchQuery}
@@ -212,6 +215,14 @@ export function HistorySidebarPanel() {
             void performSwitch(pendingBranchTarget, true);
           }
         }}
+      />
+
+      <CreateBranchDialog
+        open={createBranchDialogOpen}
+        onOpenChange={setCreateBranchDialogOpen}
+        onCreated={loadBranches}
+        onError={setError}
+        onNotice={setNotice}
       />
     </div>
   );

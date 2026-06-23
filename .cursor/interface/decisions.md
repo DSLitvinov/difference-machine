@@ -25,7 +25,7 @@
 | Shell | Rail, 3-panel resize, multi-repo, min window |
 | Project | Sidebar folder tree (lazy), Preview grid, Info **single file** |
 | History | Branch switch, commit list, diff (text / image / binary stub) |
-| Dialogs | Create commit, dirty branch switch |
+| Dialogs | Create commit, create branch, dirty branch switch |
 | Commit card | Select + **урезанное** ⋮ menu (§6) |
 | Backend | Новые `jsonapi` обёртки — [api-contract.md §7](./api-contract.md) |
 | Settings | Profile (author), Repositories, Forester (read-only paths) |
@@ -61,7 +61,8 @@ Forester CLI — **не bundle** в v1.0; путь из `~/.dfm/setup.cfg` `[for
 | Init repository wizard | v1.1 | Toast + hint `forester init` |
 | Dark theme | v1.1 | Light only в v1.0 |
 | Detached HEAD indicator | v2 | |
-| Branch create / delete (GUI) | v2 | CLI / Blender |
+| Branch create (GUI) | v1.0 | History dropdown — [create-branch-dialog.md](./create-branch-dialog.md) |
+| Branch delete (GUI) | v2 | CLI / Blender |
 | `commit.reset` submenu | v1.1 | Destructive |
 | Commit card destructive ⋮ | v1.1 | Revert, Restore version, Compare |
 | `diff.stat` на каждой commit card | v1.1 | Строка stats скрыта в v1.0 |

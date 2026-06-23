@@ -274,6 +274,10 @@ export async function switchBranch(target: string, autoStash = false): Promise<v
   await foresterCall("repo.switch", { target, auto_stash: autoStash });
 }
 
+export async function createBranch(name: string, commitHash = ""): Promise<void> {
+  await foresterCall("branch.create", { name, commit_hash: commitHash });
+}
+
 export interface CommitDetail extends CommitLogEntry {
   screenshot_path?: string;
   screenshot_base64?: string;
