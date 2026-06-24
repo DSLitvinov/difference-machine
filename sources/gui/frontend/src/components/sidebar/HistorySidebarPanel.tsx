@@ -106,6 +106,11 @@ export function HistorySidebarPanel() {
     };
   }, [repoPath, sidebarMode, currentBranch, loadBranches, loadLog, setError]);
 
+  const handleAfterCommitAction = useCallback(async () => {
+    await loadLog();
+    await loadProjectData();
+  }, [loadLog]);
+
   const filteredCommits = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase();
     if (!q) return commits;
@@ -200,6 +205,7 @@ export function HistorySidebarPanel() {
           capped={logCapped}
           emptyLabel={headHash ? "No commits on this branch" : "No commits yet"}
           onSelect={(hash) => selectCommit(repoPath, hash)}
+          onAfterCommitAction={() => void handleAfterCommitAction()}
         />
       </div>
 

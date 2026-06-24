@@ -11,6 +11,7 @@ interface CommitListProps {
   capped: boolean;
   emptyLabel?: string;
   onSelect: (hash: string) => void;
+  onAfterCommitAction?: () => void | Promise<void>;
 }
 
 export function CommitList({
@@ -21,6 +22,7 @@ export function CommitList({
   capped,
   emptyLabel = "No commits on this branch",
   onSelect,
+  onAfterCommitAction,
 }: CommitListProps) {
   const [focusIndex, setFocusIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
@@ -83,6 +85,7 @@ export function CommitList({
               focused={focusIndex === index}
               isHead={headHash === commit.hash}
               onSelect={() => onSelect(commit.hash)}
+              onAfterAction={onAfterCommitAction}
             />
           </div>
         ))}

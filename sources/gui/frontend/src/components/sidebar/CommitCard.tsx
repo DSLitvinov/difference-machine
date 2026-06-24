@@ -1,15 +1,9 @@
 import { useState } from "react";
-import { Copy, GitBranch, GitMerge, MoreVertical } from "lucide-react";
+import { GitBranch, GitMerge } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { CommitCardMenu } from "@/components/sidebar/CommitCardMenu";
 import { CommitCardStats } from "@/components/sidebar/CommitCardStats";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { parseCommitMessage } from "@/lib/commitMessage";
 import { formatRelativeTime } from "@/lib/relativeTime";
 import { cn } from "@/lib/utils";
@@ -21,6 +15,7 @@ interface CommitCardProps {
   focused?: boolean;
   isHead: boolean;
   onSelect: () => void;
+  onAfterAction?: () => void | Promise<void>;
 }
 
 function commitCardStateClasses(selected: boolean, hovered: boolean, focused: boolean): string {
@@ -31,19 +26,17 @@ function commitCardStateClasses(selected: boolean, hovered: boolean, focused: bo
   return "border-border bg-background";
 }
 
-export function CommitCard({ commit, selected, focused = false, isHead, onSelect }: CommitCardProps) {
+export function CommitCard({
+  commit,
+  selected,
+  focused = false,
+  isHead,
+  onSelect,
+  onAfterAction,
+}: CommitCardProps) {
   const [hovered, setHovered] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const { title, description } = parseCommitMessage(commit.message);
   const isMerge = (commit.parent_hashes?.length ?? 0) > 1;
-
-  const copyText = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // ignore
-    }
-  };
 
   return (
     <div
@@ -88,49 +81,12 @@ export function CommitCard({ commit, selected, focused = false, isHead, onSelect
       </div>
 
       <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground"
-              aria-label="Commit actions"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[10rem]">
-            <DropdownMenuItem
-              onClick={() => {
-                onSelect();
-                setMenuOpen(false);
-              }}
-            >
-              View in Preview
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="gap-2"
-              onClick={() => {
-                void copyText(commit.hash);
-                setMenuOpen(false);
-              }}
-            >
-              <Copy className="h-3.5 w-3.5" />
-              Copy hash
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="gap-2"
-              onClick={() => {
-                void copyText(commit.message);
-                setMenuOpen(false);
-              }}
-            >
-              <Copy className="h-3.5 w-3.5" />
-              Copy message
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <CommitCardMenu
+          commit={commit}
+          isHead={isHead}
+          onSelect={onSelect}
+          onAfterAction={onAfterAction}
+        />
       </div>
     </div>
   );

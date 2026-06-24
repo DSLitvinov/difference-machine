@@ -317,6 +317,14 @@ export async function restoreFile(commitHash: string, paths: string[]): Promise<
   await foresterCall("restore.file", { commit_hash: commitHash, paths });
 }
 
+export async function restoreVersion(commitHash: string): Promise<void> {
+  await foresterCall("restore.version", { commit_hash: commitHash });
+}
+
+export async function revertCommit(commitHash: string): Promise<void> {
+  await foresterCall("commit.revert", { commit_hash: commitHash });
+}
+
 export async function compareExtract(commitHash: string): Promise<string | null> {
   const result = await foresterCall<{ success: boolean; path?: string }>("compare.extract", {
     commit_hash: commitHash,
