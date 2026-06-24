@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
 import { fileExtension, isThumbnailPreviewPath } from "@/lib/fileKinds";
 import { isMaxThumbVisual } from "@/lib/previewScale";
+import { vcsStatusBadgeClass } from "@/lib/vcsBadge";
 import { cn } from "@/lib/utils";
 import type { VcsFileStatus } from "@/wails/forester";
 import { vcsBadgeLabel } from "@/wails/forester";
@@ -78,8 +79,10 @@ export function FilePreviewItem({
         </div>
         {badge ? (
           <Badge
+            variant="outline"
             className={cn(
-              "absolute h-[22px] min-w-[22px] justify-center rounded-full px-1.5 text-xs font-semibold",
+              "absolute border-transparent h-[22px] min-w-[22px] justify-center rounded-full px-1.5 text-xs font-semibold hover:bg-inherit",
+              vcsStatusBadgeClass(vcsStatus!),
               maxVisual ? "bottom-0 left-1/2 -translate-x-1/2" : "-bottom-1 -left-1",
             )}
             title={vcsStatus ?? undefined}

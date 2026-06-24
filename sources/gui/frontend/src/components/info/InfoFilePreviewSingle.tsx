@@ -2,6 +2,7 @@ import { FileArchive, FileCode, FileImage, Loader2 } from "lucide-react";
 
 import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
 import { cn } from "@/lib/utils";
+import { vcsStatusBadgeClass } from "@/lib/vcsBadge";
 import type { InfoPreviewKind } from "@/lib/fileKinds";
 import type { VcsFileStatus } from "@/wails/forester";
 import { vcsBadgeLabel } from "@/wails/forester";
@@ -60,11 +61,13 @@ export function InfoFilePreviewSingle({
       ) : (
         <PreviewStub kind={kind} />
       )}
-      {statusLabel ? (
+      {statusLabel && vcsStatus ? (
         <span
           className={cn(
-            "absolute bottom-2 left-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground",
+            "absolute bottom-2 left-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
+            vcsStatusBadgeClass(vcsStatus),
           )}
+          title={vcsStatus}
         >
           {statusLabel}
         </span>

@@ -1,12 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { diffStatusBadgeClass } from "@/lib/vcsBadge";
 import { cn } from "@/lib/utils";
 import type { DiffFileEntry } from "@/wails/forester";
-
-const STATUS_STYLES: Record<DiffFileEntry["status"], string> = {
-  A: "bg-emerald-600 text-white",
-  M: "bg-amber-500 text-white",
-  D: "bg-destructive text-destructive-foreground",
-};
 
 const STATUS_LABELS: Record<DiffFileEntry["status"], string> = {
   A: "Added",
@@ -35,7 +30,7 @@ export function ChangedFileItem({ file, selected, onSelect }: ChangedFileItemPro
       <span
         className={cn(
           "flex h-5 min-w-[20px] items-center justify-center rounded px-1 text-xs font-semibold",
-          STATUS_STYLES[file.status],
+          diffStatusBadgeClass(file.status),
         )}
       >
         {file.status}
