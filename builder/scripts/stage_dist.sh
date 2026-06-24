@@ -79,22 +79,39 @@ fi
 GUI_MANIFEST_ENTRY=""
 if [ "${BUILD_GUI}" = true ] && [ -d "${STAGING_GUI}" ]; then
     echo ""
-    echo "=== Copy GUI app (macOS) ==="
-    shopt -s nullglob
-    GUI_APPS=("${STAGING_GUI}"/*.app)
-    shopt -u nullglob
-    if [ "${#GUI_APPS[@]}" -gt 0 ]; then
-        mkdir -p "${DFM_DIST}/apps"
-        for app in "${GUI_APPS[@]}"; do
-            app_name="$(basename "${app}")"
-            rm -rf "${DFM_DIST}/apps/${app_name}"
-            cp -R "${app}" "${DFM_DIST}/apps/${app_name}"
-            echo -e "${GREEN}✓ apps/${app_name}${NC}"
-            GUI_MANIFEST_ENTRY="\"gui_app\": \"apps/${app_name}\""
-        done
-    else
-        echo -e "${YELLOW}⚠ BUILD_GUI=true but no .app in ${STAGING_GUI}${NC}"
-    fi
+    echo "=== Copy GUI (${CURRENT_OS}) ==="
+    mkdir -p "${DFM_DIST}/apps"
+
+    case "${CURRENT_OS}" in
+        macos)
+            shopt -s nullglob
+            GUI_APPS=("${STAGING_GUI}"/*.app)
+            shopt -u nullglob
+            if [ "${#GUI_APPS[@]}" -gt 0 ]; then
+                for app in "${GUI_APPS[@]}"; do
+                    app_name="$(basename "${app}")"
+                    rm -rf "${DFM_DIST}/apps/${app_name}"
+                    cp -R "${app}" "${DFM_DIST}/apps/${app_name}"
+                    echo -e "${GREEN}✓ apps/${app_name}${NC}"
+                    GUI_MANIFEST_ENTRY="\"gui_app\": \"apps/${app_name}\""
+                done
+            else
+                echo -e "${YELLOW}⚠ BUILD_GUI=true but no .app in ${STAGING_GUI}${NC}"
+            fi
+            ;;
+        linux|windows)
+            if [ -f "${STAGING_GUI}/${GUI_STAGE_NAME}" ]; then
+                cp "${STAGING_GUI}/${GUI_STAGE_NAME}" "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
+                if [ "${CURRENT_OS}" = "linux" ]; then
+                    chmod +x "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
+                fi
+                echo -e "${GREEN}✓ apps/${GUI_STAGE_NAME}${NC}"
+                GUI_MANIFEST_ENTRY="\"gui_app\": \"apps/${GUI_STAGE_NAME}\""
+            else
+                echo -e "${YELLOW}⚠ BUILD_GUI=true but ${GUI_STAGE_NAME} not found in ${STAGING_GUI}${NC}"
+            fi
+            ;;
+    esac
 elif [ "${BUILD_GUI}" = true ]; then
     echo -e "${YELLOW}⚠ BUILD_GUI=true but staging GUI not found: ${STAGING_GUI}${NC}"
 fi
@@ -153,9 +170,11 @@ Layout:
   bin/     Forester CLI
   lib/     Forester API native library
   addons/  Blender addon (API embedded in addons/blender/difference_machine/api/)
-  apps/    Difference Machine GUI .app (macOS, when built with --gui)
+  apps/    Difference Machine GUI (macOS .app, Linux binary, Windows .exe when built with --gui)
 
 macOS release DMG: ./builder/build.sh --dmg → builder/dist/DifferenceMachine-<version>-macos.dmg
+Linux release:     ./builder/build.sh --tar → builder/dist/DifferenceMachine-<version>-linux.tar.gz
+Windows release:   ./builder/build.sh --zip → builder/dist/DifferenceMachine-<version>-windows.zip
 
 Developer setup (manual):
   1. Add bin/ to PATH, or run bin/forester directly.

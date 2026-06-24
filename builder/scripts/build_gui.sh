@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build Wails GUI for macOS → builder/.staging/gui/*.app
+# Build Wails GUI → builder/.staging/gui/ (macOS .app, Linux binary, Windows .exe)
 
 set -euo pipefail
 
@@ -9,10 +9,11 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/detect_platform.sh
 . "${SCRIPT_DIR}/lib/detect_platform.sh"
 # shellcheck source=lib/setup_dev_path.sh
 . "${SCRIPT_DIR}/lib/setup_dev_path.sh"
+# shellcheck source=lib/wails_toolchain.sh
+. "${SCRIPT_DIR}/lib/wails_toolchain.sh"
 
 detect_platform
 setup_dev_path
@@ -21,11 +22,9 @@ BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
 GUI_DIR="${PROJECT_ROOT}/sources/gui"
 STAGING_GUI="${BUILDER_DIR}/.staging/gui"
-INSTALL_WAILS="${INSTALL_WAILS:-true}"
-WAILS_PACKAGE="${WAILS_PACKAGE:-github.com/wailsapp/wails/v2/cmd/wails@latest}"
 
-if [ "${CURRENT_OS}" != "macos" ]; then
-    echo -e "${RED}GUI build is supported on macOS only (current: ${CURRENT_OS}).${NC}" >&2
+if [ "${CURRENT_OS}" = "unknown" ]; then
+    echo -e "${RED}Unsupported platform for GUI build.${NC}" >&2
     exit 1
 fi
 
@@ -35,59 +34,19 @@ if [ ! -d "${GUI_DIR}" ]; then
 fi
 
 echo "=========================================="
-echo "  Build GUI (Wails, macOS)"
+echo "  Build GUI (Wails, ${CURRENT_OS})"
 echo "=========================================="
 echo "Sources: ${GUI_DIR}"
 echo ""
 
-setup_dev_path
-
 echo "=== Toolchain checks ==="
-require_command go "Install Go 1.22+: brew install go" || exit 1
-require_command node "Install Node.js 20+ LTS: brew install node" || exit 1
-require_command npm "npm should ship with Node.js" || exit 1
-
-GO_VERSION="$(go version)"
-echo -e "${GREEN}✓ Go: ${GO_VERSION}${NC}"
-echo -e "${GREEN}✓ Node: $(node --version)${NC}"
-echo -e "${GREEN}✓ npm: $(npm --version)${NC}"
-
-if ! xcode-select -p >/dev/null 2>&1; then
-    echo -e "${RED}Xcode Command Line Tools are required.${NC}" >&2
-    echo "Run: xcode-select --install" >&2
-    exit 1
-fi
-echo -e "${GREEN}✓ Xcode Command Line Tools${NC}"
-
-if ! command -v wails >/dev/null 2>&1; then
-    if [ "${INSTALL_WAILS}" = true ]; then
-        echo -e "${YELLOW}Wails CLI not found — installing via go install...${NC}"
-        go install "${WAILS_PACKAGE}"
-        setup_dev_path
-    fi
-fi
-
-if ! command -v wails >/dev/null 2>&1; then
-    echo -e "${RED}Wails CLI not found in PATH.${NC}" >&2
-    echo "Ensure \$(go env GOPATH)/bin is on PATH, or run:" >&2
-    echo "  go install ${WAILS_PACKAGE}" >&2
-    exit 1
-fi
+check_wails_go_node || exit 1
+check_wails_platform_deps || exit 1
+ensure_wails_cli || exit 1
 
 echo -e "${GREEN}✓ Wails: $(wails version 2>/dev/null | head -1 || wails --version 2>/dev/null || echo wails)${NC}"
-
-if command -v wails >/dev/null 2>&1; then
-    echo ""
-    echo "=== wails doctor (summary) ==="
-    if ! wails doctor 2>&1 | tail -20; then
-        echo -e "${YELLOW}⚠ wails doctor reported issues (continuing build)${NC}"
-    fi
-fi
-
-echo ""
-echo "=== wails build ==="
-cd "${GUI_DIR}"
-wails build
+run_wails_doctor_summary
+run_wails_build "${GUI_DIR}"
 
 BUILD_BIN="${GUI_DIR}/build/bin"
 if [ ! -d "${BUILD_BIN}" ]; then
@@ -95,24 +54,43 @@ if [ ! -d "${BUILD_BIN}" ]; then
     exit 1
 fi
 
-shopt -s nullglob
-APP_BUNDLES=("${BUILD_BIN}"/*.app)
-shopt -u nullglob
-
-if [ "${#APP_BUNDLES[@]}" -eq 0 ]; then
-    echo -e "${RED}No .app bundle in ${BUILD_BIN}${NC}" >&2
-    exit 1
-fi
-
-APP_SRC="${APP_BUNDLES[0]}"
-GUI_APP_NAME="Difference Machine.app"
-
 echo ""
-echo "=== Stage GUI app ==="
+echo "=== Stage GUI ==="
 rm -rf "${STAGING_GUI}"
 mkdir -p "${STAGING_GUI}"
-cp -R "${APP_SRC}" "${STAGING_GUI}/${GUI_APP_NAME}"
 
-echo -e "${GREEN}✓ ${STAGING_GUI}/${GUI_APP_NAME}${NC}"
+case "${CURRENT_OS}" in
+    macos)
+        shopt -s nullglob
+        APP_BUNDLES=("${BUILD_BIN}"/*.app)
+        shopt -u nullglob
+
+        if [ "${#APP_BUNDLES[@]}" -eq 0 ]; then
+            echo -e "${RED}No .app bundle in ${BUILD_BIN}${NC}" >&2
+            exit 1
+        fi
+
+        cp -R "${APP_BUNDLES[0]}" "${STAGING_GUI}/${GUI_STAGE_NAME}"
+        ;;
+    linux)
+        GUI_BIN="${BUILD_BIN}/${GUI_WAILS_OUTPUT}"
+        if [ ! -f "${GUI_BIN}" ]; then
+            echo -e "${RED}GUI binary not found: ${GUI_BIN}${NC}" >&2
+            exit 1
+        fi
+        cp "${GUI_BIN}" "${STAGING_GUI}/${GUI_STAGE_NAME}"
+        chmod +x "${STAGING_GUI}/${GUI_STAGE_NAME}"
+        ;;
+    windows)
+        GUI_EXE="${BUILD_BIN}/${GUI_WAILS_OUTPUT}.exe"
+        if [ ! -f "${GUI_EXE}" ]; then
+            echo -e "${RED}GUI executable not found: ${GUI_EXE}${NC}" >&2
+            exit 1
+        fi
+        cp "${GUI_EXE}" "${STAGING_GUI}/${GUI_STAGE_NAME}"
+        ;;
+esac
+
+echo -e "${GREEN}✓ ${STAGING_GUI}/${GUI_STAGE_NAME}${NC}"
 echo ""
 echo -e "${GREEN}GUI build complete.${NC}"

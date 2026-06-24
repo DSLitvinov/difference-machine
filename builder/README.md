@@ -1,6 +1,6 @@
 # Difference Machine — Build
 
-Scripts build Forester CLI, native API, Blender addon, optional Wails GUI, and a **macOS `.dmg` installer**.
+Scripts build Forester CLI, native API, Blender addon, optional Wails GUI, and platform **release archives** (macOS `.dmg`, Linux `.tar.gz`, Windows `.zip`).
 
 ---
 
@@ -18,6 +18,8 @@ Output (default): `~/dfm_distr`
 
 ```bash
 ./builder/build.sh --dmg
+# or platform-neutral:
+./builder/build.sh --release
 ```
 
 Produces:
@@ -25,7 +27,31 @@ Produces:
 - `~/dfm_distr` — dev payload (bin, lib, apps, addons)
 - `builder/dist/DifferenceMachine-<version>-macos.dmg`
 
-DMG contents:
+### Linux release tar.gz
+
+```bash
+./builder/build.sh --tar
+# or: ./builder/build.sh --release
+```
+
+Produces:
+
+- `~/dfm_distr`
+- `builder/dist/DifferenceMachine-<version>-linux.tar.gz`
+
+### Windows release zip
+
+```bash
+./builder/build.sh --zip
+# or: ./builder/build.sh --release
+```
+
+Produces:
+
+- `~/dfm_distr`
+- `builder/dist/DifferenceMachine-<version>-windows.zip`
+
+### macOS DMG layout
 
 ```
 README.txt
@@ -63,7 +89,7 @@ DFM_DIST=/tmp/dfm_test ./builder/build.sh --dmg
 dfm_distr/
 ├── bin/                 Forester CLI
 ├── lib/                 Native API (libforester.so / .dylib / forester.dll)
-├── apps/                Difference Machine.app (macOS, --gui / --dmg)
+├── apps/                GUI (macOS .app, Linux binary, Windows .exe with --gui)
 ├── addons/
 │   └── blender/
 │       └── difference_machine/
@@ -83,11 +109,13 @@ Build runs **only for the current OS**. Cross-compilation is not supported.
 | Step | Script | Notes |
 |------|--------|-------|
 | 1 | `scripts/build_forester.sh` | CLI + c-shared API → staging |
-| 2 | `scripts/build_gui.sh` | Optional; macOS Wails → `Difference Machine.app` |
+| 2 | `scripts/build_gui.sh` | Optional; Wails GUI → staging |
 | 3 | `scripts/stage_dist.sh` | Assemble `DFM_DIST` |
 | 3b | `scripts/write_setup_cfg.sh` | Optional dev `~/.dfm/setup.cfg` |
-| 3c | `scripts/package_macos_dmg.sh` | `--dmg`: `Forester.app` + DMG |
-| 4 | `scripts/clean_build.sh` | Remove staging (keeps `dfm_distr` and `builder/dist/*.dmg`) |
+| 3c | `scripts/package_macos_dmg.sh` | `--dmg` / `--release` (macOS) |
+| 3d | `scripts/package_linux_tar.sh` | `--tar` / `--release` (Linux) |
+| 3e | `scripts/package_windows_zip.sh` | `--zip` / `--release` (Windows) |
+| 4 | `scripts/clean_build.sh` | Remove staging (keeps `dfm_distr` and `builder/dist/*`) |
 
 ---
 
@@ -113,7 +141,10 @@ ln -sf "/Applications/Difference Machine/addons/blender/difference_machine" \
 
 - **Go 1.22+**
 - **C compiler** (Forester API library)
-- **GUI / DMG (macOS):** Node.js 20+, Wails v2 CLI, Xcode Command Line Tools
+- **GUI:** Node.js 20+, Wails v2 CLI
+- **macOS GUI / DMG:** Xcode Command Line Tools
+- **Linux GUI / tar:** `build-essential`, `libgtk-3-dev`, WebKitGTK 4.0 or 4.1 dev, `pkg-config`
+- **Windows GUI / zip:** WebView2, MinGW-w64 or MSVC, `zip` (MSYS2)
 
 ---
 
@@ -121,8 +152,10 @@ ln -sf "/Applications/Difference Machine/addons/blender/difference_machine" \
 
 | Path | Description |
 |------|-------------|
-| `build.sh` | Main entry (`--gui`, `--dmg`, `--write-local-config`) |
-| `scripts/package_macos_dmg.sh` | Assemble install folder + `hdiutil` DMG |
+| `build.sh` | Main entry (`--gui`, `--dmg`, `--tar`, `--zip`, `--release`, `--write-local-config`) |
+| `scripts/package_macos_dmg.sh` | macOS install folder + `hdiutil` DMG |
+| `scripts/package_linux_tar.sh` | Linux portable folder + `.tar.gz` |
+| `scripts/package_windows_zip.sh` | Windows portable folder + `.zip` |
 | `scripts/wrap_forester_app.sh` | `Forester.app` from `bin/forester` + API dylib |
 | `scripts/lib/macos_app_bundle.sh` | Minimal `.app` bundle helper |
 | `scripts/build_forester.sh` | CLI + API |
@@ -140,8 +173,22 @@ ln -sf "/Applications/Difference Machine/addons/blender/difference_machine" \
 
 ## CI
 
+macOS:
+
 ```bash
 DFM_DIST="${PWD}/builder/dist/dfm_distr" ./builder/build.sh --dmg
 ```
 
-Artifact: `builder/dist/DifferenceMachine-*-macos.dmg`
+Linux:
+
+```bash
+DFM_DIST="${PWD}/builder/dist/dfm_distr" ./builder/build.sh --tar
+```
+
+Windows (Git Bash / MSYS2):
+
+```bash
+DFM_DIST="${PWD}/builder/dist/dfm_distr" ./builder/build.sh --zip
+```
+
+Artifacts: `builder/dist/DifferenceMachine-*-{macos,linux,windows}.*`

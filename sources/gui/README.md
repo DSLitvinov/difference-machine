@@ -16,10 +16,12 @@ From the project root (recommended):
 
 ```bash
 ./builder/build.sh --gui
-# Output: ~/dfm_distr/apps/Difference Machine.app
+# Output: ~/dfm_distr/apps/ (platform-specific GUI artifact)
 
-./builder/build.sh --dmg
-# Output: builder/dist/DifferenceMachine-<version>-macos.dmg
+./builder/build.sh --release
+# macOS: builder/dist/DifferenceMachine-<version>-macos.dmg
+# Linux: builder/dist/DifferenceMachine-<version>-linux.tar.gz
+# Windows: builder/dist/DifferenceMachine-<version>-windows.zip
 ```
 
 Native menu spec: [.cursor/interface/application-menu.md](../../.cursor/interface/application-menu.md)
@@ -29,7 +31,7 @@ Or directly in this folder (ensure Wails is on PATH):
 ```bash
 export PATH="$PATH:$(go env GOPATH)/bin"
 wails build
-# Output: build/bin/*.app (macOS)
+# Output: build/bin/*.app (macOS), build/bin/difference-machine (Linux), build/bin/difference-machine.exe (Windows)
 ```
 
 ## Layout
