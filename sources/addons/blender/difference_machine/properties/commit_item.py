@@ -30,7 +30,7 @@ class DFBranchItem(bpy.types.PropertyGroup):
     last_commit_hash: StringProperty(name="Last Commit Hash")
     last_commit_message: StringProperty(name="Last Commit Message")
     is_current: BoolProperty(name="Current", default=False)
-    branch_index: IntProperty(name="Branch Index", default=-1)  # Index in database list (not displayed in UI)
+    branch_index: IntProperty(name="Branch Index", default=-1)  # Index in branch list (not displayed in UI)
     parent_branch: StringProperty(name="Parent Branch", default="")  # Name of parent branch (branch this was created from)
 
 

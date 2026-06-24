@@ -106,12 +106,12 @@ ForesterCommit* ForesterGetCommit(const char* repoPath, const char* hash);
 ForesterBranchList* ForesterGetBranches(const char* repoPath);
 ```
 
-### Сравнение, восстановление версии, GC и rebuild
+### Сравнение, восстановление версии, GC и scan
 ```c
 ForesterPathResult* ForesterCompareExtract(const char* repoPath, const char* commitHash, int cleanup, const char* editorPath);
 ForesterResult* ForesterRestoreVersion(const char* repoPath, const char* commitHash);  /* full overwrite of working dir to match commit */
 ForesterGcResult* ForesterGC(const char* repoPath, int dryRun, int reflogExpireDays);
-ForesterRebuildResult* ForesterRebuild(const char* repoPath);
+ForesterRebuildResult* ForesterRebuild(const char* repoPath);  /* scan object store */
 ```
 
 ### Локи

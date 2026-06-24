@@ -15,8 +15,9 @@ import {
 import { rangePathsBetween } from "@/lib/fileSelection";
 import { useAppStore } from "@/stores/appStore";
 
+import { collectFolderPaths } from "@/lib/flattenFolderTree";
 import type { FolderNode, StatusPayload } from "@/wails/forester";
-import { committablePaths } from "@/wails/forester";
+import { committablePaths, fetchWorkdirTree } from "@/wails/forester";
 
 function sameStringArrays(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -65,6 +66,8 @@ interface ProjectState {
   clearFileSelection: () => void;
   setShowChangedOnly: (value: boolean) => void;
   toggleExpanded: (path: string) => void;
+  expandAllFolders: () => Promise<void>;
+  collapseAllFolders: () => void;
   setFolderTree: (tree: FolderNode | null) => void;
   mergeFolderChildren: (path: string, children: FolderNode[]) => void;
   setStatus: (status: StatusPayload | null) => void;
@@ -214,6 +217,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set((s) => ({
       expandedPaths: { ...s.expandedPaths, [path]: !s.expandedPaths[path] },
     })),
+  expandAllFolders: async () => {
+    set({ treeLoading: true });
+    try {
+      const tree = await fetchWorkdirTree("", 64);
+      const expandedPaths: Record<string, boolean> = {};
+      for (const path of collectFolderPaths(tree)) {
+        expandedPaths[path] = true;
+      }
+      set({ folderTree: tree, expandedPaths });
+    } finally {
+      set({ treeLoading: false });
+    }
+  },
+  collapseAllFolders: () => set({ expandedPaths: {} }),
   setFolderTree: (tree) => set({ folderTree: tree }),
   mergeFolderChildren: (path, children) => {
     const tree = get().folderTree;

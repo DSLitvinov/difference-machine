@@ -13,7 +13,7 @@ import (
 )
 
 // Commit creates a commit from the staging area (index).
-// It stores the commit in both the database and object storage,
+// It stores the commit in object storage,
 // updates the branch HEAD, and executes pre/post-commit hooks.
 //
 // Usage: forester commit "message" [--author "author"] [--tag "tag"] [-a] [--amend] [--no-edit]

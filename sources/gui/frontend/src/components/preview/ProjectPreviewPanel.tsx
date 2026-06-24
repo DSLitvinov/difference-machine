@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
@@ -8,27 +8,16 @@ import { gridMinCellSize } from "@/lib/previewScale";
 import { isEditableElement, isSelectAllShortcut } from "@/lib/keyboard";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
+import { useWorkdirFolderEntries } from "@/hooks/useWorkdirFolderEntries";
+import type { SortLocale } from "@/lib/storage";
 import {
-  committableFilesInSubtree,
   fetchStatus,
-  fetchWorkdirEntries,
   fetchWorkdirSearch,
   fetchWorkdirTree,
   openWorkdirFile,
   vcsFileStatus,
   type DirEntry,
 } from "@/wails/forester";
-import type { SortLocale } from "@/lib/storage";
-
-function dirEntriesFromPaths(paths: string[]): DirEntry[] {
-  return paths.map((path) => ({
-    name: path.split("/").pop() ?? path,
-    path,
-    is_dir: false,
-    item_count: 0,
-    size: 0,
-  }));
-}
 
 function sortByPath<T extends { path: string }>(items: T[], locale: SortLocale): T[] {
   const collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
@@ -96,13 +85,11 @@ export function ProjectPreviewPanel() {
   const selectFilePaths = useProjectStore((s) => s.selectFilePaths);
   const clearFileSelection = useProjectStore((s) => s.clearFileSelection);
 
-  const [entries, setEntries] = useState<DirEntry[]>([]);
-  const [subfolders, setSubfolders] = useState<DirEntry[]>([]);
   const [searchResults, setSearchResults] = useState<DirEntry[]>([]);
   const [searchCapped, setSearchCapped] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(previewSearchQuery);
+  const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(previewSearchQuery), 200);
@@ -112,40 +99,31 @@ export function ProjectPreviewPanel() {
   const isSearchActive = debouncedSearch.trim().length > 0;
   const cellMin = gridMinCellSize(thumbScale);
 
+  const {
+    entries,
+    subfolders,
+    total: entriesTotal,
+    hasMore: entriesHasMore,
+    loading,
+    loadingMore,
+    loadMore,
+  } = useWorkdirFolderEntries({
+    folderPath: selectedFolderPath,
+    enabled: Boolean(repoPath) && !isSearchActive,
+    showChangedOnly,
+    committable,
+  });
+
+  const handleNearEnd = useCallback(() => {
+    void loadMore();
+  }, [loadMore]);
+
   useEffect(() => {
-    if (!repoPath || isSearchActive) {
-      if (!isSearchActive) {
-        setSearchResults([]);
-        setSearchCapped(false);
-      }
-      return;
+    if (!isSearchActive) {
+      setSearchResults([]);
+      setSearchCapped(false);
     }
-    let cancelled = false;
-    const load = async () => {
-      setLoading(true);
-      try {
-        if (showChangedOnly) {
-          const paths = committableFilesInSubtree(selectedFolderPath, committable);
-          if (!cancelled) {
-            setEntries(dirEntriesFromPaths(paths));
-            setSubfolders([]);
-          }
-        } else {
-          const result = await fetchWorkdirEntries(selectedFolderPath, 0, 200);
-          if (!cancelled) {
-            setEntries(result.entries.filter((e) => !e.is_dir));
-            setSubfolders(result.entries.filter((e) => e.is_dir));
-          }
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [repoPath, selectedFolderPath, showChangedOnly, committable, isSearchActive]);
+  }, [isSearchActive]);
 
   useEffect(() => {
     if (!repoPath || !isSearchActive) {
@@ -255,7 +233,7 @@ export function ProjectPreviewPanel() {
         onThumbScaleChange={setThumbScale}
       />
 
-      <div className="flex-1 overflow-auto px-4 py-3">
+      <div ref={setScrollElement} className="flex-1 overflow-auto px-4 py-3">
         {isSearchActive ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-2">
@@ -315,6 +293,7 @@ export function ProjectPreviewPanel() {
                       files={searchFiles}
                       orderedPaths={searchFilePaths}
                       thumbScale={thumbScale}
+                      scrollElement={scrollElement}
                       vcsStatusFor={(path) => vcsFileStatus(path, status)}
                       subtitleFor={(entry) => parentFolderPath(entry.path) || "root"}
                       onOpen={(path) => void openFile(path)}
@@ -359,12 +338,22 @@ export function ProjectPreviewPanel() {
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                   {showChangedOnly
                     ? `Changed files (${sortedEntries.length})`
-                    : `Files${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}`}
+                    : `Files${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}${
+                        entriesTotal > sortedEntries.length
+                          ? ` — showing ${sortedEntries.length} of ${entriesTotal}`
+                          : ""
+                      }`}
                 </p>
+                {entriesHasMore && !showChangedOnly ? (
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    {loadingMore ? "Loading more files…" : "Scroll down to load more files"}
+                  </p>
+                ) : null}
                 <FilePreviewGrid
                   files={sortedEntries}
                   orderedPaths={sortedEntryPaths}
                   thumbScale={thumbScale}
+                  scrollElement={scrollElement}
                   vcsStatusFor={(path) => vcsFileStatus(path, status)}
                   subtitleFor={
                     showChangedOnly
@@ -372,6 +361,7 @@ export function ProjectPreviewPanel() {
                       : undefined
                   }
                   onOpen={(path) => void openFile(path)}
+                  onNearEnd={entriesHasMore ? handleNearEnd : undefined}
                 />
               </div>
             )}

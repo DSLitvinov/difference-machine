@@ -108,7 +108,7 @@ Commands:
   stash        Stash changes
   clean        Remove untracked files
   gc           Garbage collection
-  rebuild      Rebuild object database
+  rebuild      Scan object store and report statistics
   reflog       Reflog
   show         Show commit or object
   rm           Remove from index

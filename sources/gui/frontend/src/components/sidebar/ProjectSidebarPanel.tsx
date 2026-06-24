@@ -63,7 +63,11 @@ export function ProjectSidebarPanel() {
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const setShowChangedOnly = useProjectStore((s) => s.setShowChangedOnly);
   const navigateToFolder = useProjectStore((s) => s.navigateToFolder);
+  const expandAllFolders = useProjectStore((s) => s.expandAllFolders);
+  const collapseAllFolders = useProjectStore((s) => s.collapseAllFolders);
+  const treeLoading = useProjectStore((s) => s.treeLoading);
   const [repoMenuOpen, setRepoMenuOpen] = useState(false);
+  const [treeScrollElement, setTreeScrollElement] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     if (repoPath && sidebarMode === "project") {
@@ -79,8 +83,8 @@ export function ProjectSidebarPanel() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
+    <div className="flex h-full min-h-0 flex-col">
+      <header className="flex shrink-0 items-center justify-between border-b border-sidebar-border px-4 py-3">
         <h1 className="text-base font-semibold">Project view</h1>
         <div className="flex items-center gap-2">
           <Label htmlFor="changed-only" className="text-sm font-normal text-muted-foreground">
@@ -94,7 +98,7 @@ export function ProjectSidebarPanel() {
         </div>
       </header>
 
-      <div className="relative z-20 space-y-3 border-b border-border p-3">
+      <div className="relative z-20 shrink-0 space-y-3 border-b border-sidebar-border p-3">
         <RepoSelector onOpenChange={setRepoMenuOpen} />
         {currentBranch && !repoMenuOpen ? (
           <p className="flex items-center gap-1 px-1 text-xs text-muted-foreground">
@@ -104,9 +108,33 @@ export function ProjectSidebarPanel() {
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
-        <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase text-muted-foreground">Folders</p>
+      <div ref={setTreeScrollElement} className="min-h-0 flex-1 overflow-auto bg-background">
+        <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-3">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Folders</p>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[10px] font-medium"
+              disabled={treeLoading}
+              onClick={() => void expandAllFolders()}
+            >
+              Expand all
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[10px] font-medium"
+              onClick={collapseAllFolders}
+            >
+              Collapse
+            </Button>
+          </div>
+        </div>
         <FolderTree
+          scrollElement={treeScrollElement}
           onFolderSelect={(path) => {
             navigateToFolder(path);
           }}

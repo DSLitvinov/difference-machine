@@ -1,5 +1,5 @@
 """
-Operators for garbage collection and database maintenance using Forester API.
+Operators for garbage collection and repository maintenance using Forester API.
 """
 
 import bpy
@@ -50,11 +50,11 @@ class DF_OT_garbage_collect(Operator):
         return {'FINISHED'}
 
 
-class DF_OT_rebuild_database(Operator):
-    """Rebuild database from storage."""
-    bl_idname = "df.rebuild_database"
-    bl_label = "Rebuild Database"
-    bl_description = "Rebuild database from storage (use if database is corrupted)"
+class DF_OT_verify_repository(Operator):
+    """Scan object store and report repository statistics."""
+    bl_idname = "df.verify_repository"
+    bl_label = "Verify Repository"
+    bl_description = "Scan object store and report commit/tree/blob counts"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -66,12 +66,11 @@ class DF_OT_rebuild_database(Operator):
         api = get_api()
         success, stats, error = api.rebuild(repo_path)
         if not success:
-            self.report({'ERROR'}, f"Failed to rebuild database: {error}")
+            self.report({'ERROR'}, f"Failed to verify repository: {error}")
             return {'CANCELLED'}
 
         msg = (
-            f"Rebuild complete: commits {stats.get('commits_found', 0)} "
-            f"(rebuilt {stats.get('commits_rebuilt', 0)}), "
+            f"Scan complete: commits {stats.get('commits_found', 0)}, "
             f"trees {stats.get('trees_found', 0)}, "
             f"blobs {stats.get('blobs_found', 0)}"
         )
@@ -83,7 +82,7 @@ def register():
     from ..utils.registration import register_classes
     classes_to_register = [
         DF_OT_garbage_collect,
-        DF_OT_rebuild_database,
+        DF_OT_verify_repository,
     ]
     register_classes(classes_to_register)
 
@@ -91,7 +90,7 @@ def register():
 def unregister():
     from ..utils.registration import unregister_classes
     classes_to_unregister = [
-        DF_OT_rebuild_database,
+        DF_OT_verify_repository,
         DF_OT_garbage_collect,
     ]
     unregister_classes(classes_to_unregister)

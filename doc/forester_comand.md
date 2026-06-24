@@ -309,7 +309,7 @@ Rules:
 
 rebuild
 ~~~~~~~
-Rebuild database from storage.
+Scan object store and report statistics.
 
 Syntax:
 - `forester rebuild`
@@ -590,6 +590,8 @@ Errors:
 
 rebuild
 ~~~~~~~
+Scan object store and report statistics.
+
 Examples:
 - `forester rebuild`
 Errors:

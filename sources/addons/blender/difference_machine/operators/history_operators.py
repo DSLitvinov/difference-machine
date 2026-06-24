@@ -41,15 +41,8 @@ class DF_OT_refresh_history(Operator):
         success, commits, error_msg = api.log(repo_path, branch=branch_to_query, limit=100)
 
         if not success:
-            if error_msg and ("reflog" in error_msg.lower() or "no such table" in error_msg.lower()):
-                self.report(
-                    {'WARNING'},
-                    "Database schema is outdated. Please rebuild database in Forester.",
-                )
-                commits = []
-            else:
-                self.report({'ERROR'}, f"Failed to load history: {error_msg}")
-                return {'CANCELLED'}
+            self.report({'ERROR'}, f"Failed to load history: {error_msg}")
+            return {'CANCELLED'}
 
         current_head = None
         success_status, status_data, _ = api.status(repo_path)

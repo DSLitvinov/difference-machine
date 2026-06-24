@@ -355,7 +355,7 @@ class ForesterAPIWrapper:
         return False, None, "Forester API not available"
 
     def rebuild(self, repo_path: Path) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
-        """Rebuild database from storage."""
+        """Scan object store and report repository statistics (repo.rebuild API)."""
         if self._use_api and self._api_instance:
             try:
                 result = self._api_instance.rebuild(str(repo_path))
@@ -440,7 +440,7 @@ class ForesterAPIWrapper:
         tags: Optional[List[str]] = None,
         metadata: Optional[Dict[str, str]] = None,
     ) -> Tuple[bool, Optional[str]]:
-        """Add an object to the database."""
+        """Add an object to the commit manifest."""
         if self._use_api and self._api_instance:
             try:
                 result = self._api_instance.add_object(
@@ -470,7 +470,7 @@ class ForesterAPIWrapper:
         file_path: str,
         object_name: str,
     ) -> Tuple[bool, Optional[Dict[str, Any]], Optional[str]]:
-        """Get an object from the database."""
+        """Get an object from the commit manifest."""
         if self._use_api and self._api_instance:
             try:
                 obj = self._api_instance.get_object(
@@ -568,7 +568,7 @@ class ForesterAPIWrapper:
         file_path: str,
         object_name: str,
     ) -> Tuple[bool, Optional[str]]:
-        """Delete an object from the database."""
+        """Delete an object from the commit manifest."""
         if self._use_api and self._api_instance:
             try:
                 result = self._api_instance.delete_object(

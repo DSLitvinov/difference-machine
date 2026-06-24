@@ -231,7 +231,7 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 | 2 | Try anyway в flowchart `sidebar-history-view` | Удалено из flowchart | §8.2 |
 | 3 | v1 full scope vs v1 polish | **v1.0 + v1.1** | §1 |
 | 4 | `objects.by_file` vs `object.list_by_file` | **`object.list_by_file`** | §7.1 |
-| 5 | Index в БД (`business-rules.md`) vs JSON | GUI использует **`status.get`** only | — |
+| 5 | Index metadata storage | **JSON** `.DFM/index` (SQLite removed) | — |
 | 6 | Fully expanded tree vs performance | **Lazy v1.0** | §5 |
 
 ---

@@ -50,8 +50,8 @@
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
 | **Активная фаза** | **8 — v1.1 polish** |
-| **Следующий шаг** | **8.3** Virtual scroll / expanded tree — [decisions.md §7.5](./decisions.md) |
-| **Заметки** | 8.1 stats done; Windows/Linux build отложены |
+| **Следующий шаг** | **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) |
+| **Заметки** | 8.3 virtual scroll done; Windows/Linux build отложены |
 
 ### Прогресс v1.0
 
@@ -65,7 +65,7 @@
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
 | 6 | Slice 5 — Polish + Settings | `[x]` 9/9 |
 | 7 | Сборка и smoke (macOS) | `[x]` 2/4 |
-| 8 | v1.1 polish | `[~]` 6/9 |
+| 8 | v1.1 polish | `[~]` 8/9 |
 
 ---
 
@@ -298,8 +298,8 @@
 
 ### 8.3 Project Preview UX
 
-- [ ] **8.3.1** Virtual scroll для file grid — [decisions.md §7.5](./decisions.md)
-- [ ] **8.3.2** Fully expanded folder tree (опционально vs lazy)
+- [x] **8.3.1** Virtual scroll для file grid — [decisions.md §7.5](./decisions.md)
+- [x] **8.3.2** Fully expanded folder tree (Expand all / lazy по умолчанию)
 
 ### 8.4 Прочее v1.1
 
@@ -326,7 +326,7 @@
 - [x] Create branch (GUI)
 - [ ] `diff.stat` на commit cards → **8.1** `[x]`
 - [ ] Commit card full ⋮ menu → **8.2** `[x]`
-- [ ] Virtual scroll + expanded tree → **8.3**
+- [x] Virtual scroll + expanded tree → **8.3** `[x]`
 - [—] Init repository wizard
 - [—] Linux build + QA
 

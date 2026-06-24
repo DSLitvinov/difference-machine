@@ -3,9 +3,9 @@
 ## Стек технологий
 
 ### Backend (Forester CLI)
-- **Язык программирования**: Go 1.21+
-- **База данных**: SQLite3 (через CGO)
-- **Сборка**: Статический бинарник без внешних зависимостей
+- **Язык программирования**: Go 1.22+
+- **Метаданные**: файлы в `.DFM/` (refs, index, manifests, reviews, locks, stash, reflog)
+- **Сборка**: Статический бинарник без внешних Go-зависимостей
 - **Платформы**: Linux, macOS, Windows (кросс-компиляция)
 
 ### Blender Addon
@@ -47,8 +47,13 @@ difference-machine/
 │   │   │   ├── compare.go
 │   │   │   └── rebuild.go
 │   │   ├── core/                      # Ядро системы
-│   │   │   ├── database.go            # SQLite3 операции
 │   │   │   ├── storage.go             # Хранилище объектов
+│   │   │   ├── refs.go                # Ветки, теги, HEAD
+│   │   │   ├── index.go               # Staging area
+│   │   │   ├── manifest_store.go      # Метаданные Blender-объектов
+│   │   │   ├── review_store.go        # Review комментарии
+│   │   │   ├── stash_store.go         # Stash
+│   │   │   ├── reflog.go              # Reflog
 │   │   │   ├── hashing.go             # Хеширование (SHA256)
 │   │   │   ├── compression.go         # Сжатие данных
 │   │   │   ├── index.go               # Индекс файлов (staging area)
@@ -138,17 +143,19 @@ difference-machine/
 ```
 project/
 ├── .DFM/                              # Служебная директория Forester
-│   ├── database.db                    # SQLite база данных метаданных
-│   ├── objects/                       # Хранилище объектов
-│   │   ├── blobs/sha256/              # Бинарные объекты (по хешам)
-│   │   ├── commits/sha256/            # Коммиты (по хешам)
-│   │   └── trees/sha256/               # Деревья файлов (по хешам)
-│   └── refs/                          # Ссылки
-│       ├── heads/                     # Ветки
-│       │   ├── main
-│       │   └── feature-branch
-│       ├── tags/                       # Теги
-│       └── HEAD                        # Текущая ветка
+│   ├── objects/                       # Хранилище объектов (commits, trees, blobs)
+│   │   ├── blobs/sha256/
+│   │   ├── commits/sha256/
+│   │   └── trees/sha256/
+│   ├── refs/                          # Ссылки (ветки, теги)
+│   │   ├── heads/
+│   │   └── tags/
+│   ├── index                          # Staging area (JSON)
+│   ├── manifests/                     # Метаданные Blender-объектов
+│   ├── reviews/                       # Review комментарии и approvals
+│   ├── locks/                         # Блокировки файлов
+│   ├── stash/                         # Stash
+│   └── logs/refs/heads/               # Reflog
 ├── .dfmignore                         # Файлы для игнорирования (опционально)
 └── [файлы проекта]                     # Ваши файлы проекта
 ```
@@ -156,9 +163,7 @@ project/
 ## Ключевые зависимости
 
 ### Forester CLI (Go)
-- **github.com/mattn/go-sqlite3 v1.14.17** — драйвер SQLite3 для Go (через CGO)
-- **Стандартная библиотека Go** — все остальное использует только stdlib:
-  - `database/sql` — работа с БД
+- **Стандартная библиотека Go** — единственная зависимость (`go.mod` без сторонних модулей):
   - `crypto/sha256` — хеширование
   - `compress/gzip` — сжатие
   - `encoding/json` — сериализация
@@ -167,9 +172,8 @@ project/
 
 
 ### Системные зависимости
-- **Go 1.21+** — компилятор Go
-- **SQLite3** — библиотека и заголовочные файлы (для CGO)
-- **GCC/C компилятор** — для CGO (обычно встроен)
+- **Go 1.22+** — компилятор Go
+- **C compiler** (опционально) — для сборки native API library
 - **Blender 4.5.0+** — для аддона (Python 3.10+ встроен в Blender)
 
 
@@ -192,21 +196,15 @@ project/
 - `forester log --json` — история коммитов (JSON)
 
 
-### 4. SQLite3 ↔ Forester Core
-**Тип**: Встроенная БД через CGO
+### 4. Файловые метаданные ↔ Forester Core
+**Тип**: JSON и текстовые файлы в `.DFM/`
 
 **Использование**:
-- Хранение метаданных репозитория
-- Индекс файлов (staging area)
-- Ссылки на коммиты (ветки, теги, HEAD)
-- Reflog (журнал операций)
-- Блокировки файлов
-- Review комментарии
-
-**Особенности**:
-- WAL mode для лучшей производительности
-- Foreign keys для целостности данных
-- Транзакции для атомарности операций
+- Refs (ветки, теги, HEAD) — `.DFM/refs/`
+- Staging index — `.DFM/index`
+- Reflog — `.DFM/logs/refs/heads/`
+- Blender object manifests — `.DFM/manifests/`
+- Locks, reviews, stash — отдельные JSON-файлы
 
 
 ### 5. Файловая система ↔ Forester Storage
@@ -219,7 +217,7 @@ project/
 - Поддержка типов: blobs, commits, trees
 
 **Индекс (staging area)**:
-- Хранится в SQLite БД
+- Хранится в `.DFM/index` (JSON)
 - Отслеживает файлы, готовые к коммиту
 - Двухэтапный процесс: `add` → `commit`
 

@@ -1151,7 +1151,7 @@ class ForesterAPI:
         return {"success": False, "error": error}
 
     def rebuild(self, repo_path: str) -> Dict[str, Any]:
-        """Rebuild database from storage."""
+        """Scan object store and report repository statistics (repo.rebuild API)."""
         result_ptr = self.lib.ForesterRebuild(repo_path.encode('utf-8'))
         if not result_ptr:
             return {"success": False, "error": "Function returned NULL"}
@@ -1260,7 +1260,7 @@ class ForesterAPI:
         tags: Optional[List[str]] = None,
         metadata: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
-        """Add an object to the database."""
+        """Add an object to the commit manifest."""
         object_data_json = json.dumps(object_data or {})
         tags_json = json.dumps(tags or [])
         metadata_json = json.dumps(metadata or {})
@@ -1295,7 +1295,7 @@ class ForesterAPI:
         file_path: str,
         object_name: str,
     ) -> Optional[Dict[str, Any]]:
-        """Get an object from the database."""
+        """Get an object from the commit manifest."""
         obj_ptr = self.lib.ForesterGetObject(
             repo_path.encode('utf-8'),
             commit_hash.encode('utf-8'),

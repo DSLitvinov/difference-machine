@@ -204,28 +204,27 @@ class DifferenceMachinePreferences(AddonPreferences):
             box.label(text="Save Blender file to enable", icon='INFO')
             box.label(text="garbage collection tools", icon='INFO')
 
-        # Database maintenance
+        # Repository maintenance
         box = layout.box()
-        box.label(text="Database Maintenance", icon='TOOL_SETTINGS')
+        box.label(text="Repository Maintenance", icon='TOOL_SETTINGS')
 
         if repo_exists:
             row = box.row()
             row.scale_y = 1.5
             try:
-                row.operator("df.rebuild_database", text="Rebuild Database", icon='FILE_REFRESH')
+                row.operator("df.verify_repository", text="Verify Repository", icon='FILE_REFRESH')
             except (AttributeError, KeyError, RuntimeError) as e:
-                logger.debug("Rebuild database operator not available: %s", e)
+                logger.debug("Verify repository operator not available: %s", e)
                 row.enabled = False
-                row.label(text="Rebuild Database (operator not available)", icon='ERROR')
+                row.label(text="Verify Repository (operator not available)", icon='ERROR')
             except Exception as e:
-                logger.warning("Unexpected error accessing rebuild database operator: %s", e)
+                logger.warning("Unexpected error accessing verify repository operator: %s", e)
                 row.enabled = False
-                row.label(text="Rebuild Database (operator not available)", icon='ERROR')
-            box.label(text="Rebuild database from storage", icon='INFO')
-            box.label(text="(Use if database is corrupted)", icon='INFO')
+                row.label(text="Verify Repository (operator not available)", icon='ERROR')
+            box.label(text="Scan object store and report counts", icon='INFO')
         else:
             box.label(text="Save Blender file to enable", icon='INFO')
-            box.label(text="database maintenance tools", icon='INFO')
+            box.label(text="repository maintenance tools", icon='INFO')
 
 
 def register():

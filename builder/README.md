@@ -98,7 +98,7 @@ export PATH="$HOME/dfm_distr/bin:$PATH"
 ## Requirements
 
 - **Go 1.21+** (Forester CLI and API)
-- **C compiler** (optional, for CGO/SQLite in Forester)
+- **C compiler** (optional, for native Forester API library)
 - Platform build only on matching OS (Linux on Linux, macOS on macOS, Windows on Windows)
 
 ---

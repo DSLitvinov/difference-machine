@@ -52,16 +52,7 @@ if [ "${GO_MAJOR}" -lt 1 ] || ([ "${GO_MAJOR}" -eq 1 ] && [ "${GO_MINOR}" -lt 21
     exit 1
 fi
 
-# Check SQLite3 (for CGO)
-if ! pkg-config --exists sqlite3 2>/dev/null; then
-    echo "⚠ SQLite3 не найден через pkg-config"
-    echo "  macOS обычно имеет встроенный SQLite3"
-    echo "  Или установите через Homebrew: brew install sqlite"
-else
-    echo "✓ SQLite3 найден"
-fi
-
-# Check C compiler (for CGO)
+# Check C compiler (for native API library builds)
 if ! command -v clang &> /dev/null && ! command -v gcc &> /dev/null; then
     echo "⚠ Компилятор C не найден (нужен для CGO)"
     echo "  Установите Xcode Command Line Tools:"

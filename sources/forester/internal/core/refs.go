@@ -9,7 +9,7 @@ import (
 )
 
 // Refs manages Git-like refs (branches, tags, HEAD) stored in the filesystem.
-// Refs provide a lightweight way to reference commits without storing them in the database.
+// Refs provide a lightweight way to reference commits via the filesystem.
 type Refs struct {
 	repoPath string
 }

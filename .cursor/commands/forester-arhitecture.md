@@ -5,30 +5,28 @@ Forester - это гибридная система контроля верси�
 ## Общая архитектура
 
 Forester использует гибридную архитектуру хранения данных:
-- **SQLite база данных** - для метаданных (коммиты, ветки, теги, блокировки, комментарии)
-- **Файловая система** - для хранения объектов (blobs, trees, commits) в формате content-addressable storage
-- **Refs (файловая система)** - для хранения ссылок на коммиты (ветки, теги, HEAD)
+- **Object store** — commits, trees, blobs (content-addressable storage)
+- **Файловые метаданные** — refs, index, manifests, reviews, locks, stash, reflog (JSON/текст в `.DFM/`)
 
 ### Структура репозитория
 
 ```
 .DFM/
-├── database.db          # SQLite база данных с метаданными
 ├── objects/             # Content-addressable storage
-│   ├── blobs/sha256/    # Сжатые файлы (blobs)
-│   ├── trees/sha256/    # Деревья файлов (JSON)
-│   └── commits/sha256/   # Коммиты (JSON)
+│   ├── blobs/sha256/
+│   ├── trees/sha256/
+│   └── commits/sha256/
 ├── refs/                # Ссылки на коммиты
 │   ├── heads/           # Ветки
 │   └── tags/            # Теги
 ├── HEAD                 # Текущая ветка
 ├── index                # Staging area (JSON)
+├── manifests/           # Метаданные Blender-объектов
+├── reviews/             # Review комментарии и approvals
+├── locks/               # Блокировки файлов
+├── stash/               # Stash
 ├── hooks/               # Git-подобные хуки
-│   ├── pre-commit
-│   ├── post-commit
-│   ├── pre-checkout
-│   └── post-checkout
-├── logs/                # Логи операций
+├── logs/refs/heads/     # Reflog
 └── config               # Конфигурация репозитория
 ```
 
@@ -52,100 +50,20 @@ Content-addressable storage для объектов (blobs, trees, commits). И�
 - Сжатие blobs для экономии места
 - Валидация хешей для предотвращения path traversal
 
-### 2. Database (SQLite)
+### 2. Metadata stores (filesystem)
 
-**Файл:** `internal/core/database.go`
+Метаданные хранятся в файлах под `.DFM/`. См. [database.md](./database.md).
 
-SQLite база данных для хранения метаданных. Использует WAL (Write-Ahead Logging) режим для лучшей производительности.
-
-**Таблицы:**
-
-1. **commits** - коммиты
-   - `hash` (PRIMARY KEY) - SHA-256 хеш коммита
-   - `parent_hash` - хеш первого родительского коммита (для обратной совместимости)
-   - `tree_hash` - хеш дерева файлов
-   - `author` - автор коммита
-   - `message` - сообщение коммита
-   - `timestamp` - время создания
-   - `type` - тип коммита (CommitTypeProject)
-   - `screenshot_path` - путь к скриншоту (опционально)
-
-10. **commit_parents** - множественные родители коммитов (для merge commits)
-   - `commit_hash` (PRIMARY KEY часть) - хеш коммита
-   - `parent_hash` (PRIMARY KEY часть) - хеш родительского коммита
-   - `parent_order` (PRIMARY KEY часть) - порядок родителя (0, 1, 2...)
-   - FOREIGN KEY на commits(hash) и commits(parent_hash)
-
-2. **branches** - ветки
-   - `name` (PRIMARY KEY) - имя ветки
-   - `commit_hash` - хеш HEAD коммита ветки
-   - `created_at` - время создания
-
-3. **tags** - теги
-   - `name` (PRIMARY KEY) - имя тега
-   - `commit_hash` - хеш коммита
-   - `author` - автор тега
-   - `message` - сообщение тега
-   - `created_at` - время создания
-
-4. **stashes** - стэши
-   - `hash` (PRIMARY KEY) - хеш стэша
-   - `message` - сообщение
-   - `tree_hash` - хеш дерева файлов
-   - `created_at` - время создания
-
-5. **locks** - блокировки файлов
-   - `file_path` (PRIMARY KEY часть) - путь к файлу
-   - `user` (PRIMARY KEY часть) - пользователь
-   - `branch` (PRIMARY KEY часть) - ветка
-   - `lock_type` - тип блокировки (exclusive/shared)
-   - `created_at` - время создания
-   - `expires_at` - время истечения (0 = никогда)
-
-6. **comments** - комментарии для review
-   - `id` (PRIMARY KEY AUTOINCREMENT)
-   - `asset_type` - тип ассета (mesh, blob, commit)
-   - `asset_id` - ID ассета
-   - `author` - автор комментария
-   - `content` - содержимое комментария
-   - `x`, `y` - координаты для 3D контента
-   - `created_at` - время создания
-   - `resolved` - разрешен ли комментарий
-
-7. **approvals** - одобрения для review
-   - `id` (PRIMARY KEY AUTOINCREMENT)
-   - `asset_type` - тип ассета
-   - `asset_id` - ID ассета
-   - `author` - автор одобрения
-   - `status` - статус (pending, approved, rejected)
-   - `comment` - комментарий
-   - `created_at` - время создания
-   - UNIQUE(asset_type, asset_id, author)
-
-8. **blobs** - метаданные blobs
-   - `hash` (PRIMARY KEY) - хеш blob
-   - `path` - путь к файлу
-   - `stored_at` - время сохранения
-
-9. **reflog** - журнал изменений ссылок
-   - `id` (PRIMARY KEY AUTOINCREMENT)
-   - `commit_hash` - хеш коммита
-   - `ref_name` - имя ссылки
-   - `ref_type` - тип ссылки (HEAD, branch, tag)
-   - `old_value` - старое значение
-   - `new_value` - новое значение
-   - `operation` - операция (create, update, delete)
-   - `timestamp` - время операции
-
-**Индексы:**
-- `idx_commits_parent` - для быстрого поиска дочерних коммитов
-- `idx_commits_tree` - для поиска по дереву
-- `idx_branches_commit` - для поиска веток по коммиту
-- `idx_tags_commit` - для поиска тегов по коммиту
-- `idx_locks_file`, `idx_locks_branch` - для поиска блокировок
-- `idx_comments_asset`, `idx_approvals_asset` - для поиска комментариев/одобрений
-- `idx_reflog_commit`, `idx_reflog_ref`, `idx_reflog_timestamp` - для поиска в reflog
-- `idx_commit_parents_commit`, `idx_commit_parents_parent` - для поиска родителей коммитов
+| Данные | Расположение | Файл кода |
+|--------|--------------|-----------|
+| Commits, trees, blobs | `.DFM/objects/` | `storage.go` |
+| Ветки, теги, HEAD | `.DFM/refs/`, `HEAD` | `refs.go` |
+| Staging | `.DFM/index` | `index.go` |
+| Reflog | `.DFM/logs/refs/heads/` | `reflog.go` |
+| Blender objects | `.DFM/manifests/` | `manifest_store.go` |
+| Reviews | `.DFM/reviews/` | `review_store.go` |
+| Locks | `.DFM/locks/` | `locking.go` |
+| Stash | `.DFM/stash/` | `stash_store.go` |
 
 ### 3. Index (Staging Area)
 
@@ -323,11 +241,10 @@ Forester поддерживает Git-подобные команды для р�
 
 **Что делает:**
 1. Создает структуру директорий `.DFM/`
-2. Инициализирует SQLite базу данных
-3. Создает ветку `main` и устанавливает HEAD
-4. Создает файл `.dfmignore` с шаблоном
-5. Создает директорию hooks с шаблонами хуков
-6. Создает конфигурационный файл
+2. Создает ветку `main` и устанавливает HEAD
+3. Создает файл `.dfmignore` с шаблоном
+4. Создает директорию hooks с шаблонами хуков
+5. Создает конфигурационный файл
 
 **Использование:**
 ```bash
@@ -470,7 +387,7 @@ forester status --no-color
 3. Сохраняет tree в storage
 4. Создает commit объект
 5. Вычисляет хеш коммита (SHA-256 от JSON без поля hash)
-6. Сохраняет commit в storage и database
+6. Сохраняет commit в object store
 7. Обновляет HEAD ветки (атомарно)
 8. Выполняет pre-commit и post-commit хуки
 9. Очищает index
@@ -718,7 +635,7 @@ forester hook uninstall <name>       # Удалить хук
 
 **Файл:** `internal/commands/rebuild.go`
 
-Пересобирает базу данных из storage (восстановление после повреждения).
+Сканирует object store и выводит статистику (commits, trees, blobs, tags). Не пересобирает БД — SQLite больше не используется.
 
 **Использование:**
 ```bash
@@ -1028,7 +945,7 @@ forester lol
    - Tree сохраняется в storage
    - Создается commit объект
    - Вычисляется хеш коммита
-   - Commit сохраняется в storage и database
+   - Commit сохраняется в object store
    - Обновляется HEAD ветки
    - Index очищается
 
@@ -1142,17 +1059,14 @@ Blobs автоматически сжимаются перед сохранен�
 ## Безопасность
 
 1. **Валидация хешей** - предотвращение path traversal атак
-2. **Атомарные операции** - использование транзакций для критических операций
+2. **Атомарная запись файлов** - `WriteFileAtomic` для критических метаданных
 3. **Проверка ссылок** - валидация имен веток и тегов
-4. **Foreign keys** - целостность данных в базе
 
 ## Производительность
 
-1. **WAL режим** - для лучшей производительности записи в SQLite
-2. **Индексы** - для быстрого поиска в базе данных
-3. **Дедупликация** - экономия места на диске
-4. **Сжатие** - уменьшение размера хранилища
-5. **Streaming** - для работы с большими файлами без загрузки в память
+1. **Дедупликация** - экономия места на диске
+2. **Сжатие** - уменьшение размера хранилища
+3. **Streaming** - для работы с большими файлами без загрузки в память
 
 ## Расширяемость
 
@@ -1199,7 +1113,7 @@ Blobs автоматически сжимаются перед сохранен�
 - `review` - система review для 3D-контента
 - `hook` - управление хуками
 - `gc` - сборка мусора
-- `rebuild` - пересборка базы данных
+- `rebuild` - сканирование object store (диагностика)
 - `config` - управление конфигурацией
 - `lol` - easter egg команда
 
@@ -1220,7 +1134,7 @@ Forester стремится к максимальной совместимост
 - ✅ Rebase (через move-to)
 
 **Отличия от Git:**
-- Использует SQLite для метаданных (вместо файлов)
+- Файловые метаданные в `.DFM/` (manifests, reviews, locks — специфичны для 3D workflow)
 - Content-addressable storage с автоматическим сжатием
 - Специализированные функции для 3D-контента (review, блокировки)
 - Глобальная конфигурация в `~/.dfm/setup.cfg`

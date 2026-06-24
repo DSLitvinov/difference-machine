@@ -204,7 +204,7 @@ ForesterContentResult* ForesterGetCommitFileContent(const char* repoPath, const 
 // reflogExpireDays: days to keep reflog entries
 ForesterGcResult* ForesterGC(const char* repoPath, int dryRun, int reflogExpireDays);
 
-// Rebuild database from storage (structured)
+// Scan object store and report statistics (structured)
 ForesterRebuildResult* ForesterRebuild(const char* repoPath);
 
 // List locks for current branch (structured)

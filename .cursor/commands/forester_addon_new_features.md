@@ -10,14 +10,13 @@
 
 ---
 
-## Часть 1: Forester (Go) - Изменения в БД и API
+## Часть 1: Forester (Go) — хранилища метаданных и API
 
 ### Приоритет: Высокий
 
 #### 1.1 Синхронизация screenshot_hash ↔ screenshot_path ✅
 **Файлы:**
-- `forester/internal/core/database.go` (обновить)
-- `forester/internal/commands/commit.go` (обновить)
+- `forester/internal/core/storage.go`, `forester/internal/commands/commit.go` (обновить)
 - `forester/api/capi.go` (обновить, если нужно)
 
 **Задачи:**
@@ -33,9 +32,9 @@
 
 ---
 
-#### 1.2 Таблица БД `objects` для реестра объектов и Mark To ✅
+#### 1.2 Manifest store `objects` для реестра объектов и Mark To ✅
 **Файлы:**
-- `forester/internal/core/database.go` (обновить)
+- `forester/internal/core/manifest_store.go`
 - `forester/internal/models/object.go` (новый, опционально)
 
 **Задачи:**
@@ -70,9 +69,9 @@
 
 ### Приоритет: Низкий
 
-#### 1.3 Таблица БД `reviews` для Review системы ✅
+#### 1.3 Review store для Review системы ✅
 **Файлы:**
-- `forester/internal/core/database.go` (обновить)
+- `forester/internal/core/review_store.go`
 - `forester/internal/models/review.go` (новый, опционально)
 
 **Задачи:**
@@ -255,7 +254,7 @@
   - `search_assets(query)` - поиск ✅
 - [x] Формат реестра: JSON файл `.DFM/assets_registry.json` ✅
 - [x] Интегрировать в `DF_OT_save_asset` ✅
-- [x] Синхронизация с БД: сохранять в таблицу `objects` (если объект из коммита) ✅ (API готово, нужно интегрировать в код)
+- [x] **Синхронизация с manifest store** (если объект из коммита) ✅
 
 **UI:**
 - [ ] Добавить секцию "Asset Registry" в панель Save Asset
@@ -294,7 +293,7 @@
 
 **Задачи:**
 
-**JSON файлы для метаданных (дублирование БД):**
+**JSON manifests (`.DFM/manifests/`):**
 - [x] Реализовать `extract_object_data(obj, depsgraph)` - извлечение метаданных ✅
 - [x] Реализовать `save_object_data(commit_hash, objects, file_path)` - сохранение в JSON ✅
   - Формат: `.DFM/objects/{commit_hash}_objects.json` ✅
@@ -302,7 +301,7 @@
 - [x] Реализовать `load_object_data(commit_hash)` - загрузка из JSON ✅
 - [x] Использовать LRU cache для оптимизации ✅
 - [x] Интегрировать в процесс создания коммита ✅
-- [x] **Синхронизация БД ↔ JSON**: при сохранении в JSON также сохранять в таблицу `objects` (БД) ✅ (API готово, нужно интегрировать в код)
+- [x] **Manifest store**: объекты сохраняются через `manifest_store.go` / Forester API ✅
 
 **Модель данных для пометок:**
 - [x] Создать PropertyGroup `DFObject` с полями:
@@ -310,9 +309,9 @@
   - `tags` (StringProperty - JSON массив тегов) ✅
   - `metadata` (StringProperty - JSON объект) ✅
 - [x] Создать CollectionProperty `df_objects` в Scene ✅
-- [x] Реализовать функции синхронизации с БД через Forester API: ✅
-  - [x] `sync_objects_from_db(commit_hash)` - загрузить объекты из БД (через `get_objects_by_commit`) ✅
-  - [x] `save_object_to_db(obj)` - сохранить объект в БД (через `add_object`) ✅
+- [x] Реализовать функции синхронизации с manifest store через Forester API: ✅
+  - [x] `sync_objects_from_manifest(commit_hash)` — загрузить объекты из manifest store ✅
+  - [x] `save_object_to_manifest(obj)` — сохранить объект через API ✅
   - [x] `add_tag_to_object(object_name, tag, commit_hash)` - добавить тег ✅
   - [x] `remove_tag_from_object(object_name, tag, commit_hash)` - убрать тег ✅
   - [x] `set_object_metadata(object_name, key, value, commit_hash)` - установить метаданные ✅
@@ -324,7 +323,7 @@
 - [x] Создать оператор `DF_OT_tag_remove` - убрать тег ✅
 - [ ] Создать универсальный оператор `DF_OT_tag_object` - добавить/убрать любой тег
 - [x] Поддержка множественного выбора объектов (для всех операторов) ✅
-- [x] Обработка ошибок при работе с БД ✅
+- [x] Обработка ошибок при работе с manifest store ✅
 
 **UI панель Mark To:**
 - [x] Создать панель `DF_PT_mark_to_panel` в категории "Difference Machine" ✅
@@ -337,7 +336,7 @@
 - [x] Показывать список объектов с их тегами:
   - Имя объекта, список тегов, новое имя (если RENAME), файл, коммит ✅
 - [x] Добавить возможность убрать тег из списка ✅
-- [ ] Загружать объекты из БД при открытии панели
+- [ ] Загружать объекты из manifest store при открытии панели
 - [ ] Фильтрация объектов по тегам
 
 **Зависимости:** 1.2 (Forester - таблица objects)
@@ -387,9 +386,9 @@
 - [ ] Кнопка "Add Review" - добавить комментарий:
   - Диалог для ввода комментария
   - Автоматически определять `file_path` и `object_name`
-  - Сохранять в БД через Forester API
+  - Сохранять через Forester API (manifest store)
 - [ ] Список review комментариев с автором и датой
-- [ ] Синхронизация с БД через Forester API
+- [ ] Синхронизация с manifest store через Forester API
 
 **Зависимости:** 1.3 (Forester - таблица reviews)
 
@@ -421,7 +420,7 @@
 
 1. **Forester 1.1** - Синхронизация screenshot_hash ↔ screenshot_path ✅ (частично)
 2. **Addon 2.4** - Обновление API wrapper для screenshot_path
-3. **Forester 1.2** - Таблица БД `objects` ✅
+3. **Forester 1.2** - Manifest store `objects` ✅
 4. **Addon 2.6** - Реестр редакторов и Mark To панель
 
 **Итого MVP:** ~25-34 часа
@@ -438,7 +437,7 @@
 
 ### Низкий приоритет:
 
-- **Forester 1.3** - Таблица БД `reviews` ✅ (выполнено)
+- **Forester 1.3** - Review store ✅ (выполнено)
 - **Addon 2.8** - Review UI в Addon (3-4ч)
 - **Addon 2.9** - Скрипт focus_object (1-2ч)
 
@@ -467,7 +466,7 @@
 
 1. **Обратная совместимость**: Все изменения должны сохранять обратную совместимость. Replace Object и Compare Object должны работать как раньше при использовании по умолчанию.
 
-2. **Синхронизация БД ↔ JSON**: При сохранении метаданных объектов в JSON также сохранять в таблицу `objects` (БД) для единого источника истины.
+2. **Manifest store**: метаданные Blender-объектов в `.DFM/manifests/` — единый источник истины.
 
 3. **Теги объектов**: Единая система тегов для объектов: 'DELETE', 'RENAME', 'MERGE', 'STABLE', 'EXPERIMENT', 'BUG', etc. Теги привязаны к коммиту.
 
@@ -483,18 +482,18 @@
 
 **Выполнено:**
 1. ✅ **Forester 1.1** — синхронизация screenshot_hash ↔ screenshot_path (roadmap 12.1)
-2. ✅ **Forester 1.2** — таблица БД `objects` (roadmap 14.1)
-3. ✅ **Forester 1.3** — таблица БД `reviews` (roadmap 16.1)
+2. ✅ **Forester 1.2** — manifest store `objects` (roadmap 14.1)
+3. ✅ **Forester 1.3** — review store (roadmap 16.1)
 4. ✅ **Addon 2.1** — Replace Object → Retrieve Objects (roadmap 9)
 5. ✅ **Addon 2.2** — Compare Object → Ghost Objects (roadmap 10)
 6. ✅ **Addon 2.3** — История объектов (roadmap 11)
 7. ✅ **Addon 2.4** — Улучшенная работа со скриншотами (roadmap 12.1)
 8. ✅ **Addon 2.5** — Save Asset: замена на link + реестр (roadmap 13.1–13.2). Остаётся: UI реестра (13.3), интеграция с коммитами (13.4)
-9. ✅ **Addon 2.6** — Mark To: БД+JSON, объекты, операторы, панель (roadmap 14). Остаётся: DF_OT_tag_object, загрузка из БД при открытии, фильтр по тегам, универсальный селектор тегов
+9. ✅ **Addon 2.6** — Mark To: manifest store, объекты, операторы, панель (roadmap 14). Остаётся: DF_OT_tag_object, загрузка при открытии, фильтр по тегам, универсальный селектор тегов
 
 **В работе / приоритет:**
 10. **Addon 2.7** — Background скрипты для merge (roadmap 15.3)
 11. **Addon 2.8** — Review UI в Addon (roadmap 16.3)
 12. **Addon 2.9** — Скрипт focus_object (roadmap 16.4)
 13. **Addon 2.5** — секция "Asset Registry" в UI, интеграция реестра с коммитами (roadmap 13.3–13.4)
-14. **Addon 2.6** — универсальный селектор тегов, загрузка из БД при открытии панели, фильтрация по тегам
+14. **Addon 2.6** — универсальный селектор тегов, загрузка из manifest store при открытии панели, фильтрация по тегам
