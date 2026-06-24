@@ -60,7 +60,7 @@ Forester CLI — **не bundle** в v1.0; путь из `~/.dfm/setup.cfg` `[for
 | External editors (Settings tab) | v1.1 | `workdir.open` + OS default |
 | Init repository wizard | v1.1 | Toast + hint `forester init` |
 | Dark theme | v1.1 | Light only в v1.0 |
-| Detached HEAD indicator | v2 | |
+| Detached HEAD indicator | v2 | `status.is_detached` + banner |
 | Branch create (GUI) | v1.0 | History dropdown — [create-branch-dialog.md](./create-branch-dialog.md) |
 | Branch delete (GUI) | v2 | CLI / Blender |
 | `commit.reset` submenu | v1.1 | Destructive |

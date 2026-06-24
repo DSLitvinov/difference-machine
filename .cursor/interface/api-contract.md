@@ -42,6 +42,8 @@ Committable paths = union всех непустых списков (см. [sideb
 
 Badge priority: staged > unstaged для одного path.
 
+Detached HEAD (v2): `is_detached`, `detached_commit`; `head_commit` = checked-out commit (detached or branch tip). State file: `.DFM/DETACHED_HEAD`.
+
 ### 2.2 Merge (v2)
 
 | JSON method | CLI | GUI |

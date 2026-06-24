@@ -9,12 +9,14 @@ import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
 import { MergeBranchPickDialog } from "@/components/merge/MergeBranchPickDialog";
 import { mergeSuccessNotice, MergeDialog } from "@/components/merge/MergeDialog";
 import { MergeInProgressBanner } from "@/components/merge/MergeInProgressBanner";
+import { DetachedHeadBanner } from "@/components/sidebar/DetachedHeadBanner";
 import { Input } from "@/components/ui/input";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { parseCommitMessage } from "@/lib/commitMessage";
 import { clearCommitStatsCache } from "@/lib/commitStatsCache";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
+import { useProjectStore } from "@/stores/projectStore";
 import { isDirtyWorktree } from "@/lib/worktreeDirty";
 import { fetchRepoUser } from "@/wails/bridge";
 import {
@@ -47,9 +49,15 @@ export function HistorySidebarPanel() {
 
   const [branches, setBranches] = useState<string[]>([]);
   const [commits, setCommits] = useState<CommitLogEntry[]>([]);
-  const [headHash, setHeadHash] = useState<string | null>(null);
   const [logCapped, setLogCapped] = useState(false);
   const [loadingLog, setLoadingLog] = useState(false);
+  const status = useProjectStore((s) => s.status);
+  const headHash = typeof status?.head_commit === "string" ? status.head_commit : null;
+  const isDetached = Boolean(status?.is_detached);
+  const detachedCommit =
+    typeof status?.detached_commit === "string" && status.detached_commit.length > 0
+      ? status.detached_commit
+      : headHash;
   const [switchingBranch, setSwitchingBranch] = useState(false);
   const [dirtyDialogOpen, setDirtyDialogOpen] = useState(false);
   const [dirtyStatus, setDirtyStatus] = useState<StatusPayload | null>(null);
@@ -61,6 +69,7 @@ export function HistorySidebarPanel() {
   const [mergeStatus, setMergeStatus] = useState<MergeStatusPayload | null>(null);
   const [author, setAuthor] = useState("");
   const [abortingMerge, setAbortingMerge] = useState(false);
+  const [returningToBranch, setReturningToBranch] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
@@ -86,7 +95,7 @@ export function HistorySidebarPanel() {
       setCommits(result.commits ?? []);
       setLogCapped(result.capped);
       const status = await fetchStatus();
-      setHeadHash(typeof status.head_commit === "string" ? status.head_commit : null);
+      useProjectStore.getState().setStatus(status);
       if (repoPath) {
         const hashes = (result.commits ?? []).map((c) => c.hash);
         const current = useHistoryStore.getState().selectedCommitHash;
@@ -195,10 +204,9 @@ export function HistorySidebarPanel() {
       setNotice("Finish or abort the merge in progress before switching branches");
       return;
     }
-    if (!currentBranch || target === currentBranch) {
-      if (target === currentBranch) {
-        setNotice(`Already on branch ${target}`);
-      }
+    if (!currentBranch) return;
+    if (target === currentBranch && !isDetached) {
+      setNotice(`Already on branch ${target}`);
       return;
     }
     try {
@@ -240,6 +248,11 @@ export function HistorySidebarPanel() {
     setMergePickOpen(true);
   };
 
+  const handleReturnToBranch = async () => {
+    if (!currentBranch) return;
+    await performSwitch(currentBranch, false);
+  };
+
   const handleAbortMerge = async () => {
     setAbortingMerge(true);
     try {
@@ -265,8 +278,9 @@ export function HistorySidebarPanel() {
         <BranchSelector
           branches={branches}
           currentBranch={currentBranch ?? branches[0] ?? ""}
+          isDetached={isDetached}
           disabled={switchingBranch}
-          mergeDisabled={Boolean(mergeStatus?.in_progress)}
+          mergeDisabled={Boolean(mergeStatus?.in_progress) || isDetached}
           onSelect={(target) => void handleBranchSelect(target)}
           onCreateClick={() => setCreateBranchDialogOpen(true)}
           onMergeIntoCurrentClick={() => void handleMergeIntoCurrentClick()}
@@ -285,6 +299,16 @@ export function HistorySidebarPanel() {
             aborting={abortingMerge}
             onReview={() => openMergeDialog(mergeStatus.branch ?? "", "continue")}
             onAbort={() => void handleAbortMerge()}
+          />
+        ) : isDetached && detachedCommit ? (
+          <DetachedHeadBanner
+            branch={currentBranch ?? ""}
+            commitHash={detachedCommit}
+            returning={returningToBranch || switchingBranch}
+            onReturnToBranch={() => {
+              setReturningToBranch(true);
+              void handleReturnToBranch().finally(() => setReturningToBranch(false));
+            }}
           />
         ) : null}
         {switchingBranch ? (

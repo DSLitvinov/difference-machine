@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 interface BranchSelectorProps {
   branches: string[];
   currentBranch: string;
+  isDetached?: boolean;
   disabled?: boolean;
   onSelect: (branch: string) => void;
   onCreateClick?: () => void;
@@ -19,6 +20,7 @@ interface BranchSelectorProps {
 export function BranchSelector({
   branches,
   currentBranch,
+  isDetached,
   disabled,
   onSelect,
   onCreateClick,
@@ -26,7 +28,9 @@ export function BranchSelector({
   mergeDisabled,
 }: BranchSelectorProps) {
   const [open, setOpen] = useState(false);
-  const label = currentBranch || "No branches";
+  const label = isDetached
+    ? `${currentBranch || "HEAD"} (detached)`
+    : currentBranch || "No branches";
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
@@ -81,12 +85,12 @@ export function BranchSelector({
                 variant="ghost"
                 className={cn(
                   "h-auto w-full justify-start gap-2 px-3 py-2 font-normal",
-                  currentBranch === branch && "bg-accent",
+                  !isDetached && currentBranch === branch && "bg-accent",
                 )}
                 title={branch}
                 onClick={() => handleSelect(branch)}
               >
-                {currentBranch === branch ? (
+                { !isDetached && currentBranch === branch ? (
                   <Check className="h-4 w-4 shrink-0" />
                 ) : (
                   <span className="h-4 w-4 shrink-0" />

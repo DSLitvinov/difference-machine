@@ -135,6 +135,15 @@ func RestoreVersion(args []string) error {
 		}
 	}
 
+	branchHead, _ := repo.GetBranchHead(currentBranch)
+	if commitHash != branchHead {
+		if err := core.WriteDetachedHead(repoPath, commitHash, currentBranch); err != nil {
+			return fmt.Errorf("failed to record detached HEAD: %w", err)
+		}
+	} else if err := core.ClearDetachedHead(repoPath); err != nil {
+		return fmt.Errorf("failed to clear detached HEAD: %w", err)
+	}
+
 	fmt.Printf("Restored working directory to commit %s\n", commitHash[:8])
 	return nil
 }

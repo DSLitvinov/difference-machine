@@ -36,6 +36,8 @@ export interface DirEntry {
 export interface StatusPayload {
   current_branch?: string;
   head_commit?: string;
+  is_detached?: boolean;
+  detached_commit?: string;
   staged_new_files?: string[];
   staged_modified_files?: string[];
   staged_deleted_files?: string[];

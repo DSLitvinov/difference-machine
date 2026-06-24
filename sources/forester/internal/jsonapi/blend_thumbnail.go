@@ -15,6 +15,8 @@ import (
 	"runtime"
 	"strings"
 	"unicode"
+
+	"github.com/klauspost/compress/zstd"
 )
 
 // Blender stores file thumbnails following the Freedesktop Thumbnail Managing
@@ -177,69 +179,45 @@ func lookupBlenderCachedThumbnail(absPath string) ([]byte, error) {
 }
 
 func extractBlendEmbeddedThumbnail(absPath string) ([]byte, error) {
-	f, err := os.Open(absPath)
+	raw, err := os.ReadFile(absPath)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-
-	reader, err := blendFileReader(f)
-	if err != nil {
-		return nil, err
-	}
-
-	width, height, rgba, err := readBlendTESTChunk(reader)
-	if err != nil {
-		return nil, err
-	}
-	return rgbaToPNG(width, height, rgba)
+	return extractBlendThumbnailFromBytes(raw)
 }
 
-func blendFileReader(f *os.File) (io.ReadSeeker, error) {
-	if _, err := f.Seek(0, io.SeekStart); err != nil {
-		return nil, err
+func blendFileBodyOffset(raw []byte) (headerEnd int, pointerSize int, bigEndian bool) {
+	pointerSize = 8
+	bigEndian = false
+	headerEnd = 12
+
+	if len(raw) < 12 || !bytes.HasPrefix(raw, []byte("BLENDER")) {
+		return headerEnd, pointerSize, bigEndian
 	}
 
-	magic := make([]byte, 12)
-	if _, err := io.ReadFull(f, magic); err != nil {
-		return nil, err
-	}
-	if _, err := f.Seek(0, io.SeekStart); err != nil {
-		return nil, err
+	switch raw[7] {
+	case '-':
+		pointerSize = 4
+		bigEndian = raw[8] == 'V'
+	case '_':
+		bigEndian = raw[8] == 'V'
+	default:
+		// Blender 4.x: BLENDER + file version (e.g. "17-01") + endian marker + build (e.g. "v050")
+		headerEnd = 17
+		if len(raw) > 12 && (raw[12] == 'v' || raw[12] == 'V') {
+			bigEndian = raw[12] == 'V'
+		}
 	}
 
-	if bytes.HasPrefix(magic, []byte("BLENDER")) {
-		return f, nil
-	}
-	if len(magic) >= 2 && magic[0] == 0x1f && magic[1] == 0x8b {
-		gz, err := gzip.NewReader(f)
-		if err != nil {
-			return nil, err
-		}
-		defer gz.Close()
-		payload, err := io.ReadAll(gz)
-		if err != nil {
-			return nil, err
-		}
-		return bytes.NewReader(payload), nil
-	}
-	return nil, fmt.Errorf("unsupported blend compression")
+	return headerEnd, pointerSize, bigEndian
 }
 
-func readBlendTESTChunk(r io.Reader) (int, int, []byte, error) {
-	head := make([]byte, 12)
-	if _, err := io.ReadFull(r, head); err != nil {
+func readBlendTESTChunkFromData(data []byte) (int, int, []byte, error) {
+	raw, err := blendPayloadBytes(data)
+	if err != nil {
 		return 0, 0, nil, err
 	}
-	if !bytes.HasPrefix(head, []byte("BLENDER")) {
-		return 0, 0, nil, fmt.Errorf("not a blend file")
-	}
-
-	pointerSize := 8
-	if head[7] == '-' {
-		pointerSize = 4
-	}
-	bigEndian := head[8] == 'V'
+	headerEnd, pointerSize, bigEndian := blendFileBodyOffset(raw)
 
 	var readU32 func([]byte) uint32
 	var readInt func([]byte) int32
@@ -256,42 +234,93 @@ func readBlendTESTChunk(r io.Reader) (int, int, []byte, error) {
 		bheadSize = 20
 	}
 
-	for {
-		bhead := make([]byte, bheadSize)
-		if _, err := io.ReadFull(r, bhead); err != nil {
-			return 0, 0, nil, err
+	off := headerEnd
+	for off+bheadSize <= len(raw) {
+		code := string(raw[off : off+4])
+		length := int(readU32(raw[off+4 : off+8]))
+		payloadStart := off + bheadSize
+		payloadEnd := payloadStart + length
+		if length < 0 || payloadEnd > len(raw) {
+			return 0, 0, nil, fmt.Errorf("invalid blend block %q", code)
 		}
 
-		code := string(bhead[:4])
-		length := int(readU32(bhead[4:8]))
-
 		if code == blendThumbREND {
-			if _, err := io.CopyN(io.Discard, r, int64(length)); err != nil {
-				return 0, 0, nil, err
-			}
+			off = payloadEnd
 			continue
 		}
 		if code != blendThumbTEST {
-			return 0, 0, nil, fmt.Errorf("TEST chunk not found")
+			off = payloadEnd
+			continue
 		}
 
-		dims := make([]byte, 8)
-		if _, err := io.ReadFull(r, dims); err != nil {
-			return 0, 0, nil, err
+		if length < 8 {
+			return 0, 0, nil, fmt.Errorf("invalid TEST chunk size")
 		}
-		width := int(readInt(dims[0:4]))
-		height := int(readInt(dims[4:8]))
+		width := int(readInt(raw[payloadStart : payloadStart+4]))
+		height := int(readInt(raw[payloadStart+4 : payloadStart+8]))
 		payloadLen := length - 8
 		if width <= 0 || height <= 0 || payloadLen != width*height*4 {
 			return 0, 0, nil, fmt.Errorf("invalid TEST chunk size")
 		}
-
 		rgba := make([]byte, payloadLen)
-		if _, err := io.ReadFull(r, rgba); err != nil {
-			return 0, 0, nil, err
-		}
+		copy(rgba, raw[payloadStart+8:payloadEnd])
 		return width, height, rgba, nil
 	}
+
+	return 0, 0, nil, fmt.Errorf("TEST chunk not found")
+}
+
+func blendPayloadBytes(data []byte) ([]byte, error) {
+	reader, err := blendPayloadReader(data)
+	if err != nil {
+		return nil, err
+	}
+	return io.ReadAll(reader)
+}
+
+func extractBlendThumbnailFromBytes(data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, fmt.Errorf("empty blend data")
+	}
+	width, height, rgba, err := readBlendTESTChunkFromData(data)
+	if err != nil {
+		return nil, err
+	}
+	return rgbaToPNG(width, height, rgba)
+}
+
+func blendPayloadReader(data []byte) (io.ReadSeeker, error) {
+	if len(data) < 12 {
+		return nil, fmt.Errorf("unsupported blend compression")
+	}
+	if bytes.HasPrefix(data, []byte("BLENDER")) {
+		return bytes.NewReader(data), nil
+	}
+	if data[0] == 0x1f && data[1] == 0x8b {
+		gz, err := gzip.NewReader(bytes.NewReader(data))
+		if err != nil {
+			return nil, err
+		}
+		defer gz.Close()
+		payload, err := io.ReadAll(gz)
+		if err != nil {
+			return nil, err
+		}
+		return bytes.NewReader(payload), nil
+	}
+	if len(data) >= 4 && data[0] == 0x28 && data[1] == 0xb5 && data[2] == 0x2f && data[3] == 0xfd {
+		decoder, err := zstd.NewReader(bytes.NewReader(data))
+		if err != nil {
+			return nil, err
+		}
+		defer decoder.Close()
+		payload, err := io.ReadAll(decoder)
+		if err != nil {
+			return nil, err
+		}
+		return bytes.NewReader(payload), nil
+	}
+	return nil, fmt.Errorf("unsupported blend compression")
 }
 
 func rgbaToPNG(width, height int, rgba []byte) ([]byte, error) {

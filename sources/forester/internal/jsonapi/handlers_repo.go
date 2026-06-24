@@ -254,14 +254,27 @@ func handleStatusGet(workPath string, _ json.RawMessage) (interface{}, error) {
 func computeStatus(repo *core.Repository, repoPath string) (map[string]interface{}, error) {
 	storage := repo.Storage
 
+	detached, detachedState, err := core.ReadDetachedHead(repoPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read detached HEAD: %w", err)
+	}
+
 	currentBranch, err := repo.Refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
 		currentBranch = "main"
 	}
 
-	headCommit, err := repo.GetBranchHead(currentBranch)
-	if err != nil {
-		headCommit = ""
+	var headCommit string
+	if detached {
+		headCommit = detachedState.Commit
+		if detachedState.Branch != "" {
+			currentBranch = detachedState.Branch
+		}
+	} else {
+		headCommit, err = repo.GetBranchHead(currentBranch)
+		if err != nil {
+			headCommit = ""
+		}
 	}
 
 	var lastTree models.Tree
@@ -362,6 +375,8 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 	return map[string]interface{}{
 		"current_branch":          currentBranch,
 		"head_commit":             headCommit,
+		"is_detached":             detached,
+		"detached_commit":         detachedState.Commit,
 		"staged_new_files":        stagedNew,
 		"staged_modified_files":   stagedModified,
 		"staged_deleted_files":    stagedDeleted,

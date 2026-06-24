@@ -49,6 +49,22 @@ func TestEscapeBlenderFileURI(t *testing.T) {
 	}
 }
 
+func TestExtractBlendThumbnailFromBytesEmptyBlend(t *testing.T) {
+	blendPath := filepath.Join("..", "..", "..", "addons", "blender", "difference_machine", "empty_files", "empty.blend")
+	raw, err := os.ReadFile(blendPath)
+	if err != nil {
+		t.Skip("empty.blend fixture not found")
+	}
+
+	thumb, err := extractBlendThumbnailFromBytes(raw)
+	if err != nil {
+		t.Skipf("empty.blend has no embedded preview: %v", err)
+	}
+	if len(thumb) < 8 || thumb[0] != 0x89 || thumb[1] != 0x50 {
+		t.Fatalf("expected PNG thumbnail, got %d bytes", len(thumb))
+	}
+}
+
 func TestLookupBlenderCachedThumbnail(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)

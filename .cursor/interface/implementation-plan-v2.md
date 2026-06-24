@@ -28,9 +28,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **5 — Detached HEAD** |
-| **Следующий шаг** | **5.1** Indicator в Sidebar History |
-| **Заметки** | Фаза **4 Fs watcher** закрыта: `workdirwatch` + `workdir:changed` event, debounced refresh |
+| **Активная фаза** | **6 — Diff rename `R`** |
+| **Следующий шаг** | **6.1** Badge `R` в History changed files |
+| **Заметки** | Фаза **5 Detached HEAD** закрыта: `.DFM/DETACHED_HEAD`, indicator + banner, checkout UX |
 
 ### Прогресс v2
 
@@ -41,7 +41,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2 | Windows build + smoke | `[—]` 0/2 |
 | 3 | Merge UI | `[x]` 3/3 |
 | 4 | Fs watcher | `[x]` 2/2 |
-| 5 | Detached HEAD | `[ ]` 0/2 |
+| 5 | Detached HEAD | `[x]` 2/2 |
 | 6 | Diff rename `R` | `[ ]` 0/2 |
 | 7 | Branch delete (GUI) | `[ ]` 0/2 |
 | 8 | Init repository wizard | `[—]` 0/3 |
@@ -133,8 +133,8 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 5 — Detached HEAD
 
-- [ ] **5.1** Indicator в Sidebar History (branch selector / banner)
-- [ ] **5.2** Checkout UX при detached — [decisions.md §3](./decisions.md)
+- [x] **5.1** Indicator в Sidebar History (branch selector / banner)
+- [x] **5.2** Checkout UX при detached — [decisions.md §3](./decisions.md)
 
 ---
 
@@ -185,3 +185,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | 1 | Smoke macOS complete (§1–7, corner cases, DMG) | **3.1** Merge UI backend |
 | 2025-06-24 | 3 | Merge UI: `merge.*` jsonapi, `MergeDialog`, History banner + branch menu | **4.1** fs watcher |
 | 2025-06-24 | 4 | Fs watcher: `internal/workdirwatch`, `workdir:changed`, debounced UI refresh | **5.1** detached HEAD |
+| 2025-06-24 | 5 | Detached HEAD: `DETACHED_HEAD` state, banner, branch selector label, return-to-branch UX | **6.1** rename `R` |

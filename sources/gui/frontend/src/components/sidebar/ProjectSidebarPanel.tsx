@@ -59,6 +59,8 @@ export function ProjectSidebarPanel() {
   const repoPath = useAppStore((s) => s.repoPath);
   const currentBranch = useAppStore((s) => s.currentBranch);
   const sidebarMode = useAppStore((s) => s.sidebarMode);
+  const status = useProjectStore((s) => s.status);
+  const isDetached = Boolean(status?.is_detached);
 
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const setShowChangedOnly = useProjectStore((s) => s.setShowChangedOnly);
@@ -103,7 +105,7 @@ export function ProjectSidebarPanel() {
         {currentBranch && !repoMenuOpen ? (
           <p className="flex items-center gap-1 px-1 text-xs text-muted-foreground">
             <GitBranch className="h-3 w-3" />
-            {currentBranch}
+            {isDetached ? `${currentBranch} (detached)` : currentBranch}
           </p>
         ) : null}
       </div>

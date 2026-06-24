@@ -85,7 +85,7 @@ func handleBranchCreate(workPath string, args json.RawMessage) (interface{}, err
 		return nil, fmt.Errorf("invalid branch name")
 	}
 
-	_, err := withRepo(workPath, func(repo *core.Repository, _ string) (interface{}, error) {
+	_, err := withRepo(workPath, func(repo *core.Repository, repoPath string) (interface{}, error) {
 		branches, err := repo.ListBranches()
 		if err != nil {
 			return nil, fmt.Errorf("failed to list branches: %w", err)
@@ -105,9 +105,13 @@ func handleBranchCreate(workPath string, args json.RawMessage) (interface{}, err
 			if currentBranch == "" {
 				currentBranch = "main"
 			}
-			commitHash, err = repo.GetBranchHead(currentBranch)
-			if err != nil || commitHash == "" {
-				return nil, fmt.Errorf("no commits to branch from")
+			if detached, state, err := core.ReadDetachedHead(repoPath); err == nil && detached {
+				commitHash = state.Commit
+			} else {
+				commitHash, err = repo.GetBranchHead(currentBranch)
+				if err != nil || commitHash == "" {
+					return nil, fmt.Errorf("no commits to branch from")
+				}
 			}
 		}
 		if err := repo.CreateBranch(params.Name, commitHash); err != nil {

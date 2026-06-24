@@ -138,7 +138,7 @@ You have uncommitted changes:
 |-----------|-----|
 | Текущая ветка | Label = `currentBranch`; checkmark у активной строки в dropdown |
 | Merge in progress | Banner над list: «Merge in progress» + **Review merge** → [merge-dialog.md](./merge-dialog.md); branch switch disabled |
-| Detached HEAD (v2) | «(detached)» в label |
+| Detached HEAD (v2) | «(detached)» в label; banner **Return to {branch}** |
 | Switch in progress | Dropdown disabled + spinner |
 
 #### Corner cases
@@ -293,7 +293,7 @@ interface HistoryViewState {
 ### 5.4 Detached HEAD
 
 - `branch.list`: одна ветка `is_current`, но HEAD может не совпадать с branch tip (если Forester такое поддерживает).
-- Показать indicator в branch selector «detached» — если API отдаёт; иначе v2.
+- Показать indicator в branch selector «(detached)»; banner с **Return to branch** при `status.is_detached`.
 
 ### 5.5 Merge commit
 

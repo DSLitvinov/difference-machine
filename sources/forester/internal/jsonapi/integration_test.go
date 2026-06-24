@@ -644,3 +644,56 @@ func TestMergeFastForward(t *testing.T) {
 		t.Fatal("merge.status still in progress after fast-forward merge")
 	}
 }
+
+func TestDetachedHeadAfterRestoreVersion(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "a.txt", "v1")
+	mustOK(t, h, "index.add", `{"files":["a.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"first"}`)
+
+	writeFile(t, dir, "a.txt", "v2")
+	mustOK(t, h, "index.add", `{"files":["a.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"second"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{}`), &logResult); err != nil {
+		t.Fatalf("decode log: %v", err)
+	}
+	if len(logResult.Commits) < 2 {
+		t.Fatalf("expected at least 2 commits, got %d", len(logResult.Commits))
+	}
+	parentCommit := logResult.Commits[1].Hash
+
+	mustOK(t, h, "restore.version", `{"commit_hash":"`+parentCommit+`"}`)
+
+	var status struct {
+		IsDetached     bool   `json:"is_detached"`
+		DetachedCommit string `json:"detached_commit"`
+		HeadCommit     string `json:"head_commit"`
+		CurrentBranch  string `json:"current_branch"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &status); err != nil {
+		t.Fatalf("decode status: %v", err)
+	}
+	if !status.IsDetached {
+		t.Fatal("expected is_detached=true")
+	}
+	if status.DetachedCommit != parentCommit || status.HeadCommit != parentCommit {
+		t.Fatalf("detached commit = %s head = %s want %s", status.DetachedCommit, status.HeadCommit, parentCommit)
+	}
+	if status.CurrentBranch != "main" {
+		t.Fatalf("current_branch = %q want main", status.CurrentBranch)
+	}
+
+	mustOK(t, h, "repo.switch", `{"target":"main"}`)
+	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &status); err != nil {
+		t.Fatalf("decode status after switch: %v", err)
+	}
+	if status.IsDetached {
+		t.Fatal("expected detached cleared after switching to branch")
+	}
+}

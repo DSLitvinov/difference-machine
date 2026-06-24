@@ -210,10 +210,14 @@ func Switch(args []string) error {
 		if err := refs.SetCurrentBranch(targetBranchName); err != nil {
 			return fmt.Errorf("failed to set current branch: %w", err)
 		}
+		if err := core.ClearDetachedHead(repoPath); err != nil {
+			return fmt.Errorf("failed to clear detached HEAD: %w", err)
+		}
 	} else {
 		// For commit checkout, we're in detached HEAD state
-		// Don't update branch HEAD, but we can still track which branch we came from
-		// The current branch remains the same, but we're not on its HEAD
+		if err := core.WriteDetachedHead(repoPath, targetCommitHash, currentBranch); err != nil {
+			return fmt.Errorf("failed to record detached HEAD: %w", err)
+		}
 	}
 
 	// Clear index
@@ -259,6 +263,9 @@ func Switch(args []string) error {
 func hasUncommittedChanges(repoPath string, repo *core.Repository, branch string) (bool, error) {
 	storage := repo.Storage
 	headCommit, err := repo.GetBranchHead(branch)
+	if detached, state, readErr := core.ReadDetachedHead(repoPath); readErr == nil && detached {
+		headCommit = state.Commit
+	}
 
 	// Get HEAD tree
 	var headTree models.Tree

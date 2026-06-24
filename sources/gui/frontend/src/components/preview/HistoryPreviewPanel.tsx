@@ -4,7 +4,7 @@ import { ChangedFilesList } from "@/components/preview/ChangedFilesList";
 import { DiffView } from "@/components/preview/DiffView";
 import { PreviewCommitHeader } from "@/components/preview/PreviewCommitHeader";
 import { useResizableWidth } from "@/hooks/useResizableWidth";
-import { classifyHistoryDiff, fileExtension } from "@/lib/fileKinds";
+import { classifyHistoryDiff } from "@/lib/fileKinds";
 import {
   loadHistoryFilesPanelWidth,
   loadHistoryImageLayout,
@@ -21,7 +21,6 @@ import {
   base64ToObjectUrl,
   fetchBlob,
   fetchBranchLog,
-  fetchCommit,
   fetchDiffNameStatus,
   fetchDiffStat,
   fetchDiffText,
@@ -64,11 +63,8 @@ export function HistoryPreviewPanel() {
   const [afterImageUrl, setAfterImageUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
-  const [screenshotUrl, setScreenshotUrl] = useState<string | null>(null);
-  const [screenshotLoading, setScreenshotLoading] = useState(false);
   const textDiffGeneration = useRef(0);
   const imageDiffGeneration = useRef(0);
-  const screenshotGeneration = useRef(0);
 
   const savedWidth = repoPath ? loadHistoryFilesPanelWidth(repoPath) : null;
   const { width: filesPanelWidth, containerRef, startDrag, resetWidth } = useResizableWidth({
@@ -250,7 +246,6 @@ export function HistoryPreviewPanel() {
       setBeforeImageUrl(null);
       setAfterImageUrl(null);
       setImageError(null);
-      setScreenshotUrl(null);
       return;
     }
 
@@ -280,45 +275,6 @@ export function HistoryPreviewPanel() {
     setIsBinary(false);
     void loadTextDiff();
   }, [selectedFile, commit, selectedCommitHash, loadImageDiff, loadTextDiff]);
-
-  useEffect(() => {
-    if (!selectedCommitHash || !selectedFile || fileExtension(selectedFile.path) !== "blend") {
-      setScreenshotUrl(null);
-      setScreenshotLoading(false);
-      return;
-    }
-
-    const generation = ++screenshotGeneration.current;
-    setScreenshotLoading(true);
-
-    void fetchCommit(selectedCommitHash)
-      .then((detail) => {
-        if (generation !== screenshotGeneration.current) return;
-        if (detail.screenshot_base64) {
-          const next = base64ToObjectUrl(detail.screenshot_base64, "image/png");
-          setScreenshotUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return next;
-          });
-        } else {
-          setScreenshotUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return null;
-          });
-        }
-      })
-      .catch(() => {
-        if (generation === screenshotGeneration.current) {
-          setScreenshotUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return null;
-          });
-        }
-      })
-      .finally(() => {
-        if (generation === screenshotGeneration.current) setScreenshotLoading(false);
-      });
-  }, [selectedCommitHash, selectedFile]);
 
   const handleOpenBinary = async () => {
     if (!selectedCommitHash || !selectedChangedFilePath) return;
@@ -381,8 +337,6 @@ export function HistoryPreviewPanel() {
             afterImageUrl={afterImageUrl}
             imageLoading={imageLoading && isImageDiff}
             imageError={imageError}
-            screenshotUrl={screenshotUrl}
-            screenshotLoading={screenshotLoading}
             onTextLayoutChange={handleTextLayoutChange}
             onImageLayoutChange={handleImageLayoutChange}
             onRetryText={() => void loadTextDiff()}

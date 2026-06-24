@@ -20,8 +20,6 @@ interface DiffViewProps {
   afterImageUrl?: string | null;
   imageLoading: boolean;
   imageError: string | null;
-  screenshotUrl?: string | null;
-  screenshotLoading?: boolean;
   onTextLayoutChange: (layout: HistoryTextLayout) => void;
   onImageLayoutChange: (layout: HistoryImageLayout) => void;
   onRetryText: () => void;
@@ -41,8 +39,6 @@ export function DiffView({
   afterImageUrl,
   imageLoading,
   imageError,
-  screenshotUrl,
-  screenshotLoading,
   onTextLayoutChange,
   onImageLayoutChange,
   onRetryText,
@@ -94,14 +90,7 @@ export function DiffView({
 
       <div className="min-h-0 flex-1 overflow-hidden">
         {kind === "deleted" ? <DeletedDiffStub path={file.path} /> : null}
-        {kind === "binary" ? (
-          <BinaryDiffStub
-            path={file.path}
-            screenshotUrl={screenshotUrl}
-            screenshotLoading={screenshotLoading}
-            onOpen={onOpenBinary}
-          />
-        ) : null}
+        {kind === "binary" ? <BinaryDiffStub onOpen={onOpenBinary} /> : null}
         {kind === "image" ? (
           <ImageDiffPanel
             beforeUrl={beforeImageUrl}
