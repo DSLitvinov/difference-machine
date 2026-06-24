@@ -28,9 +28,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **7 — Branch delete (GUI)** |
-| **Следующий шаг** | **7.1** Confirm dialog + `branch.delete` |
-| **Заметки** | Фаза **6 Diff rename `R`** закрыта: `diff.name_status` + Project `R` badge |
+| **Активная фаза** | **8 — Init repository wizard** |
+| **Следующий шаг** | **8.1** Wizard steps (backlog) |
+| **Заметки** | Фаза **7 Branch delete** закрыта: confirm dialog + `branch.delete`, disable current/protected/merge |
 
 ### Прогресс v2
 
@@ -43,7 +43,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 4 | Fs watcher | `[x]` 2/2 |
 | 5 | Detached HEAD | `[x]` 2/2 |
 | 6 | Diff rename `R` | `[x]` 2/2 |
-| 7 | Branch delete (GUI) | `[ ]` 0/2 |
+| 7 | Branch delete (GUI) | `[x]` 2/2 |
 | 8 | Init repository wizard | `[—]` 0/3 |
 | 9 | Linux build + QA | `[—]` 0/2 |
 
@@ -147,8 +147,8 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 7 — Branch delete (GUI)
 
-- [ ] **7.1** Confirm dialog + `branch.delete` (или эквивалент CLI)
-- [ ] **7.2** Disable на `currentBranch` / protected
+- [x] **7.1** Confirm dialog + `branch.delete` (или эквивалент CLI)
+- [x] **7.2** Disable на `currentBranch` / protected
 
 ---
 
@@ -185,4 +185,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | 1 | Smoke macOS complete (§1–7, corner cases, DMG) | **3.1** Merge UI backend |
 | 2025-06-24 | 3 | Merge UI: `merge.*` jsonapi, `MergeDialog`, History banner + branch menu | **4.1** fs watcher |
 | 2025-06-24 | 4 | Fs watcher: `internal/workdirwatch`, `workdir:changed`, debounced UI refresh | **5.1** detached HEAD |
-| 2025-06-24 | 6 | Diff rename `R`: blob-hash pairing in `diff.name_status`, `renamed_files` in `status.get`, UI badges | **7.1** branch delete |
+| 2025-06-24 | 7 | Branch delete GUI: trash in branch dropdown, `DeleteBranchDialog`, `branch.delete` | **8.1** init wizard (backlog) |

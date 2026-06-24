@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { BranchSelector } from "@/components/sidebar/BranchSelector";
 import { CommitList } from "@/components/sidebar/CommitList";
 import { CreateBranchDialog } from "@/components/sidebar/CreateBranchDialog";
+import { DeleteBranchDialog } from "@/components/sidebar/DeleteBranchDialog";
 import { DirtyBranchSwitchDialog } from "@/components/sidebar/DirtyBranchSwitchDialog";
 import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
 import { MergeBranchPickDialog } from "@/components/merge/MergeBranchPickDialog";
@@ -24,6 +25,7 @@ import {
   fetchBranchLog,
   fetchMergeStatus,
   fetchStatus,
+  deleteBranch,
   mergeAbort,
   switchBranch,
   type CommitLogEntry,
@@ -62,6 +64,8 @@ export function HistorySidebarPanel() {
   const [dirtyDialogOpen, setDirtyDialogOpen] = useState(false);
   const [dirtyStatus, setDirtyStatus] = useState<StatusPayload | null>(null);
   const [createBranchDialogOpen, setCreateBranchDialogOpen] = useState(false);
+  const [deleteBranchTarget, setDeleteBranchTarget] = useState<string | null>(null);
+  const [deletingBranch, setDeletingBranch] = useState(false);
   const [mergePickOpen, setMergePickOpen] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
   const [mergeTargetBranch, setMergeTargetBranch] = useState("");
@@ -267,6 +271,21 @@ export function HistorySidebarPanel() {
     }
   };
 
+  const handleDeleteBranch = async () => {
+    if (!deleteBranchTarget) return;
+    setDeletingBranch(true);
+    try {
+      await deleteBranch(deleteBranchTarget);
+      await loadBranches();
+      setNotice(`Deleted branch ${deleteBranchTarget}`);
+      setDeleteBranchTarget(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeletingBranch(false);
+    }
+  };
+
   if (!repoPath) {
     return <EmptyRepoState />;
   }
@@ -280,10 +299,13 @@ export function HistorySidebarPanel() {
           currentBranch={currentBranch ?? branches[0] ?? ""}
           isDetached={isDetached}
           disabled={switchingBranch}
+          mergeInProgress={Boolean(mergeStatus?.in_progress)}
+          mergeBranch={mergeStatus?.branch ?? null}
           mergeDisabled={Boolean(mergeStatus?.in_progress) || isDetached}
           onSelect={(target) => void handleBranchSelect(target)}
           onCreateClick={() => setCreateBranchDialogOpen(true)}
           onMergeIntoCurrentClick={() => void handleMergeIntoCurrentClick()}
+          onDeleteClick={(branch) => setDeleteBranchTarget(branch)}
         />
         <Input
           value={searchQuery}
@@ -351,6 +373,16 @@ export function HistorySidebarPanel() {
         onCreated={loadBranches}
         onError={setError}
         onNotice={setNotice}
+      />
+
+      <DeleteBranchDialog
+        open={deleteBranchTarget !== null}
+        branchName={deleteBranchTarget ?? ""}
+        loading={deletingBranch}
+        onConfirm={() => void handleDeleteBranch()}
+        onCancel={() => {
+          if (!deletingBranch) setDeleteBranchTarget(null);
+        }}
       />
 
       <MergeBranchPickDialog

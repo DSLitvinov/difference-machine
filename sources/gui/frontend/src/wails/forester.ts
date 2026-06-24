@@ -299,6 +299,10 @@ export async function createBranch(name: string, commitHash = ""): Promise<void>
   await foresterCall("branch.create", { name, commit_hash: commitHash });
 }
 
+export async function deleteBranch(name: string): Promise<void> {
+  await foresterCall("branch.delete", { name });
+}
+
 export interface CommitDetail extends CommitLogEntry {
   screenshot_path?: string;
   screenshot_base64?: string;

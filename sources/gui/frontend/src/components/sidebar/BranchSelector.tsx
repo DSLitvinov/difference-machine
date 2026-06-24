@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Check, ChevronDown, GitBranch, GitMerge, Plus } from "lucide-react";
+import { Check, ChevronDown, GitBranch, GitMerge, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { branchDeleteBlockReason } from "@/lib/branchDelete";
 import { cn } from "@/lib/utils";
 
 interface BranchSelectorProps {
@@ -11,9 +12,12 @@ interface BranchSelectorProps {
   currentBranch: string;
   isDetached?: boolean;
   disabled?: boolean;
+  mergeInProgress?: boolean;
+  mergeBranch?: string | null;
   onSelect: (branch: string) => void;
   onCreateClick?: () => void;
   onMergeIntoCurrentClick?: () => void;
+  onDeleteClick?: (branch: string) => void;
   mergeDisabled?: boolean;
 }
 
@@ -22,9 +26,12 @@ export function BranchSelector({
   currentBranch,
   isDetached,
   disabled,
+  mergeInProgress,
+  mergeBranch,
   onSelect,
   onCreateClick,
   onMergeIntoCurrentClick,
+  onDeleteClick,
   mergeDisabled,
 }: BranchSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -49,6 +56,11 @@ export function BranchSelector({
   const handleMergeClick = () => {
     handleOpenChange(false);
     onMergeIntoCurrentClick?.();
+  };
+
+  const handleDeleteClick = (branch: string) => {
+    handleOpenChange(false);
+    onDeleteClick?.(branch);
   };
 
   return (
@@ -78,26 +90,54 @@ export function BranchSelector({
           {branches.length === 0 ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">No branches</p>
           ) : (
-            branches.map((branch) => (
-              <Button
-                key={branch}
-                type="button"
-                variant="ghost"
-                className={cn(
-                  "h-auto w-full justify-start gap-2 px-3 py-2 font-normal",
-                  !isDetached && currentBranch === branch && "bg-accent",
-                )}
-                title={branch}
-                onClick={() => handleSelect(branch)}
-              >
-                { !isDetached && currentBranch === branch ? (
-                  <Check className="h-4 w-4 shrink-0" />
-                ) : (
-                  <span className="h-4 w-4 shrink-0" />
-                )}
-                <span className="truncate">{branch}</span>
-              </Button>
-            ))
+            branches.map((branch) => {
+              const deleteBlockReason = onDeleteClick
+                ? branchDeleteBlockReason({
+                    branch,
+                    branches,
+                    currentBranch,
+                    isDetached: Boolean(isDetached),
+                    mergeInProgress,
+                    mergeBranch,
+                  })
+                : "Delete unavailable";
+              const isCurrent = !isDetached && currentBranch === branch;
+
+              return (
+                <div key={branch} className="flex items-center gap-0.5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className={cn(
+                      "h-auto min-w-0 flex-1 justify-start gap-2 px-3 py-2 font-normal",
+                      isCurrent && "bg-accent",
+                    )}
+                    title={branch}
+                    onClick={() => handleSelect(branch)}
+                  >
+                    {isCurrent ? (
+                      <Check className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <span className="h-4 w-4 shrink-0" />
+                    )}
+                    <span className="truncate">{branch}</span>
+                  </Button>
+                  {onDeleteClick ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+                      disabled={Boolean(deleteBlockReason)}
+                      title={deleteBlockReason ?? `Delete branch ${branch}`}
+                      onClick={() => handleDeleteClick(branch)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : null}
+                </div>
+              );
+            })
           )}
         </div>
         {onCreateClick ? (
