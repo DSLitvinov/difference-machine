@@ -124,13 +124,9 @@ func createConfigFile(repoPath string) error {
 	return utils.WriteFileString(configPath, configContent)
 }
 
-func createDefaultIgnoreFile(repoPath string) error {
-	ignorePath := filepath.Join(repoPath, ".dfmignore")
-	if utils.Exists(ignorePath) {
-		return nil // Already exists
-	}
-
-	ignoreContent := `# Forester ignore file
+// DefaultDfmignoreTemplate returns the default .dfmignore content for new repositories.
+func DefaultDfmignoreTemplate() string {
+	return `# Forester ignore file
 # Similar to .gitignore
 
 # OS files
@@ -175,8 +171,63 @@ Intermediate/
 Saved/
 DerivedDataCache/
 `
+}
 
-	return utils.WriteFileString(ignorePath, ignoreContent)
+func createDefaultIgnoreFile(repoPath string) error {
+	ignorePath := filepath.Join(repoPath, ".dfmignore")
+	if utils.Exists(ignorePath) {
+		return nil // Already exists
+	}
+
+	return utils.WriteFileString(ignorePath, DefaultDfmignoreTemplate())
+}
+
+// ApplyRepositoryInitOptions updates author and .dfmignore after repo.init.
+func ApplyRepositoryInitOptions(repoPath, author, dfmignore string) error {
+	if strings.TrimSpace(author) != "" {
+		if err := setRepositoryUserName(repoPath, strings.TrimSpace(author)); err != nil {
+			return err
+		}
+	}
+	if strings.TrimSpace(dfmignore) != "" {
+		ignorePath := filepath.Join(repoPath, ".dfmignore")
+		if err := utils.WriteFileString(ignorePath, dfmignore); err != nil {
+			return fmt.Errorf("failed to write .dfmignore: %w", err)
+		}
+	}
+	return nil
+}
+
+func setRepositoryUserName(repoPath, name string) error {
+	configPath := filepath.Join(repoPath, ".DFM", "config")
+	if !utils.Exists(configPath) {
+		return fmt.Errorf("repository config not found")
+	}
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to read repository config: %w", err)
+	}
+	lines := strings.Split(string(content), "\n")
+	updated := false
+	inUserSection := false
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "[user]" {
+			inUserSection = true
+			continue
+		}
+		if strings.HasPrefix(trimmed, "[") && trimmed != "[user]" {
+			inUserSection = false
+		}
+		if inUserSection && strings.HasPrefix(trimmed, "name") {
+			lines[i] = "    name = " + name
+			updated = true
+		}
+	}
+	if !updated {
+		return fmt.Errorf("user name field not found in repository config")
+	}
+	return utils.WriteFileString(configPath, strings.Join(lines, "\n"))
 }
 
 func createHooksDirectory(repoPath string) error {

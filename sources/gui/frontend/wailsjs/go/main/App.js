@@ -34,6 +34,10 @@ export function InitRepository(arg1) {
   return window['go']['main']['App']['InitRepository'](arg1);
 }
 
+export function InitRepositoryWithOptions(arg1, arg2, arg3) {
+  return window['go']['main']['App']['InitRepositoryWithOptions'](arg1, arg2, arg3);
+}
+
 export function IsForesterRepository(arg1) {
   return window['go']['main']['App']['IsForesterRepository'](arg1);
 }

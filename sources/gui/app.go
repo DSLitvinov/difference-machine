@@ -172,6 +172,11 @@ func (a *App) IsForesterRepository(path string) (bool, error) {
 
 // InitRepository initializes a Forester repository in the given directory.
 func (a *App) InitRepository(path string) error {
+	return a.InitRepositoryWithOptions(path, "", "")
+}
+
+// InitRepositoryWithOptions initializes a repository and applies optional author / .dfmignore.
+func (a *App) InitRepositoryWithOptions(path, author, dfmignore string) error {
 	canonical, err := paths.CanonicalAbsPath(path)
 	if err != nil {
 		return err
@@ -186,7 +191,14 @@ func (a *App) InitRepository(path string) error {
 	if isForesterRepo(canonical) {
 		return nil
 	}
-	raw := jsonapi.CallStateless(canonical, "repo.init", "{}")
+	args, err := json.Marshal(map[string]string{
+		"author":    author,
+		"dfmignore": dfmignore,
+	})
+	if err != nil {
+		return err
+	}
+	raw := jsonapi.CallStateless(canonical, "repo.init", string(args))
 	return decodeForesterAPIResponse(raw)
 }
 

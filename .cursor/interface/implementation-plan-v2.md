@@ -28,9 +28,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **8 — Init repository wizard** |
-| **Следующий шаг** | **8.1** Wizard steps (backlog) |
-| **Заметки** | Фаза **7 Branch delete** закрыта: confirm dialog + `branch.delete`, disable current/protected/merge |
+| **Активная фаза** | **9 — Linux build + QA** |
+| **Следующий шаг** | **9.1** `wails build` Linux |
+| **Заметки** | Фаза **8 Init wizard** закрыта: 3-step dialog, author + `.dfmignore` |
 
 ### Прогресс v2
 
@@ -44,7 +44,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 5 | Detached HEAD | `[x]` 2/2 |
 | 6 | Diff rename `R` | `[x]` 2/2 |
 | 7 | Branch delete (GUI) | `[x]` 2/2 |
-| 8 | Init repository wizard | `[—]` 0/3 |
+| 8 | Init repository wizard | `[x]` 3/3 |
 | 9 | Linux build + QA | `[—]` 0/2 |
 
 ---
@@ -156,9 +156,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 Перенесено из v1.1 backlog — [init-repository-dialog.md](./init-repository-dialog.md) (расширенный wizard).
 
-- [—] **8.1** Wizard steps beyond AlertDialog
-- [—] **8.2** `.dfmignore` template / author defaults
-- [—] **8.3** Smoke: add non-repo folder end-to-end
+- [x] **8.1** Wizard steps beyond AlertDialog
+- [x] **8.2** `.dfmignore` template / author defaults
+- [x] **8.3** Smoke: add non-repo folder end-to-end
 
 ---
 
@@ -185,4 +185,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | 1 | Smoke macOS complete (§1–7, corner cases, DMG) | **3.1** Merge UI backend |
 | 2025-06-24 | 3 | Merge UI: `merge.*` jsonapi, `MergeDialog`, History banner + branch menu | **4.1** fs watcher |
 | 2025-06-24 | 4 | Fs watcher: `internal/workdirwatch`, `workdir:changed`, debounced UI refresh | **5.1** detached HEAD |
-| 2025-06-24 | 7 | Branch delete GUI: trash in branch dropdown, `DeleteBranchDialog`, `branch.delete` | **8.1** init wizard (backlog) |
+| 2025-06-24 | 8 | Init wizard: 3-step dialog, `repo.init` author/dfmignore, `InitRepositoryWithOptions` | **9.1** Linux build |

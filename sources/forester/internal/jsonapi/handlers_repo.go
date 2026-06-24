@@ -12,9 +12,23 @@ import (
 	"github.com/difference-machine/forester/internal/utils"
 )
 
-func handleRepoInit(workPath string, _ json.RawMessage) (interface{}, error) {
+func handleRepoInit(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Author    string `json:"author"`
+		Dfmignore string `json:"dfmignore"`
+	}
+	_ = decodeArgs(args, &params)
+
+	repoPath := workPath
+	if repoPath == "" {
+		repoPath = "."
+	}
+
 	_, err := withWorkDir(workPath, func() (interface{}, error) {
 		if err := commands.Init([]string{}); err != nil {
+			return nil, err
+		}
+		if err := commands.ApplyRepositoryInitOptions(repoPath, params.Author, params.Dfmignore); err != nil {
 			return nil, err
 		}
 		return successResult(), nil

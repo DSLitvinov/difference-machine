@@ -4,6 +4,7 @@ import {
   GetKnownRepos,
   GetRepoUser,
   InitRepository,
+  InitRepositoryWithOptions,
   IsForesterRepository,
   OpenRepo,
   PickRepositoryFolder,
@@ -61,8 +62,13 @@ export async function checkIsForesterRepository(path: string): Promise<boolean> 
   return IsForesterRepository(path);
 }
 
-export async function initRepository(path: string): Promise<void> {
-  await InitRepository(path);
+export interface InitRepositoryOptions {
+  author?: string;
+  dfmignore?: string;
+}
+
+export async function initRepository(path: string, options: InitRepositoryOptions = {}): Promise<void> {
+  await InitRepositoryWithOptions(path, options.author ?? "", options.dfmignore ?? "");
 }
 
 export async function pickRepositoryFolder(): Promise<string> {

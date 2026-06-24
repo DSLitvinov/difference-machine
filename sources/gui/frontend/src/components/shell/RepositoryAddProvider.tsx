@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
+import { InitRepositoryWizard } from "@/components/shell/InitRepositoryWizard";
 import { registerRepositoryAddActions } from "@/lib/repositoryAddActions";
 import { useAppStore } from "@/stores/appStore";
 import {
@@ -73,35 +73,35 @@ export function RepositoryAddProvider({ children }: { children: ReactNode }) {
     closeDialog();
   }, [closeDialog, setError]);
 
-  const handleCreate = useCallback(async () => {
-    const path = pendingPath;
-    const onReady = onReadyRef.current;
-    if (!path || typeof onReady !== "function") return;
+  const handleCreate = useCallback(
+    async (options: { author: string; dfmignore: string }) => {
+      const path = pendingPath;
+      const onReady = onReadyRef.current;
+      if (!path || typeof onReady !== "function") return;
 
-    setLoading(true);
-    try {
-      await initRepository(path);
-      await onReady(path);
-      closeDialog();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [closeDialog, pendingPath, setError]);
+      setLoading(true);
+      try {
+        await initRepository(path, options);
+        await onReady(path);
+        closeDialog();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [closeDialog, pendingPath, setError],
+  );
 
   return (
     <RepositoryAddContext.Provider value={{ ensureRepositoryPath, pickRepositoryPath }}>
       {children}
-      <ConfirmAlertDialog
+      <InitRepositoryWizard
         open={open}
-        title="This folder is not a repository"
-        description="Do you want to make this folder a repository?"
-        cancelLabel="Cancel"
-        confirmLabel="Create"
+        path={pendingPath}
         loading={loading}
         onCancel={handleCancel}
-        onConfirm={() => void handleCreate()}
+        onCreate={(options) => void handleCreate(options)}
       />
     </RepositoryAddContext.Provider>
   );
