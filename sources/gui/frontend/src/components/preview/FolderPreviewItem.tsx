@@ -1,5 +1,4 @@
-import { Folder } from "lucide-react";
-
+import { FolderIcon } from "@/components/preview/FolderIcon";
 import { Button } from "@/components/ui/button";
 
 interface FolderPreviewItemProps {
@@ -25,7 +24,7 @@ export function FolderPreviewItem({
       onClick={onOpen}
       onDoubleClick={onOpen}
     >
-      <Folder className="text-muted-foreground" style={{ width: iconSize, height: iconSize }} />
+      <FolderIcon size={iconSize} />
       <span className="line-clamp-2 w-full break-all" title={name}>
         {name}
       </span>

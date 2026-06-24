@@ -2,7 +2,7 @@
 
 Компонент карточки **подпапки** в **Content Preview → Project view** (секция `Folders`).
 
-**Figma (shadcn kit):** [4026:5059](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5059) · legacy [7310:16074](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16074)
+**Figma (shadcn kit):** [4026:5054](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/shadcn-ui--The-Ultimate-UI-Kit-for-Figma--Community-?node-id=4026-5054) · item [4026:5059](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5059) · legacy [7310:16074](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16074)
 
 **Стек:** React + shadcn/ui  
 **Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [design-tokens.md](./design-tokens.md) · [architecture.md](./architecture.md)
@@ -31,7 +31,8 @@
 | Gap icon ↔ labels | `8px` |
 | Gap name ↔ count | `2px` |
 | Border radius (hover/selected) | `8px` (`rounded-md`) |
-| Icon size | `48×48` |
+| Icon size | `48×48` (base); масштабируется с `thumbScale` |
+| Icon asset | `FolderIcon.tsx` — Figma `Icon/128/folder` (4026:5054): tab `#A8A29E`, body `#D6D3D1` |
 | Name | `text-xs`, `text-foreground`, `truncate`, center |
 | Count | `text-xs`, `text-muted-foreground`, center |
 

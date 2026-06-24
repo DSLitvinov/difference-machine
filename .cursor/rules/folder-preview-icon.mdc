@@ -1,0 +1,41 @@
+---
+description: Content Preview folder icon — use FolderIcon from Figma shadcn kit
+globs: sources/gui/frontend/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Content Preview folder icon
+
+For **folder icons in Content Preview** (Project view, `Folders` section), use the shared component:
+
+```tsx
+import { FolderIcon } from "@/components/preview/FolderIcon";
+
+<FolderIcon size={iconSize} />
+```
+
+## Do not
+
+- Do **not** use `lucide-react` `Folder`, `FolderOpen`, or other generic folder icons in Content Preview folder cards.
+- Do **not** duplicate the SVG inline in `FolderPreviewItem` or sibling components — import `FolderIcon`.
+- Do **not** change fill colors or paths without updating the Figma source and spec.
+
+## Canonical asset
+
+| Field | Value |
+|-------|--------|
+| Component | `sources/gui/frontend/src/components/preview/FolderIcon.tsx` |
+| Figma | [shadcn-ui kit — `Icon/128/folder`, node 4026:5054](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/shadcn-ui--The-Ultimate-UI-Kit-for-Figma--Community-?node-id=4026-5054) |
+| Spec | `.cursor/interface/folder-preview-item.md` |
+| viewBox | `0 0 48 48` |
+| Tab fill | `#A8A29E` |
+| Body fill | `#D6D3D1` |
+| Default size | `48` (scale via `size` prop with `thumbScale`) |
+
+## When updating the icon
+
+1. Export SVG from Figma node `4026:5054` (or its successor in the kit).
+2. Update paths/fills in `FolderIcon.tsx` only.
+3. Update `.cursor/interface/folder-preview-item.md` if dimensions or colors change.
+
+Sidebar and other panels may use different folder icons unless the spec says otherwise.
