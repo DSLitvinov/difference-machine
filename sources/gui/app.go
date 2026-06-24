@@ -12,14 +12,16 @@ import (
 	"github.com/difference-machine/gui/internal/forester"
 	"github.com/difference-machine/gui/internal/install"
 	"github.com/difference-machine/gui/internal/paths"
+	"github.com/difference-machine/gui/internal/workdirwatch"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App is the Wails binding surface for the Forester GUI.
 type App struct {
-	ctx    context.Context
-	cfg    *config.Store
-	client *forester.Client
+	ctx          context.Context
+	cfg          *config.Store
+	client       *forester.Client
+	workdirWatch *workdirwatch.Watcher
 }
 
 // RepoState is returned to the frontend after open/switch.
@@ -36,6 +38,9 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.workdirWatch = workdirwatch.New(func() {
+		runtime.EventsEmit(a.ctx, "workdir:changed")
+	})
 
 	store, err := config.NewStore()
 	if err != nil {
@@ -58,6 +63,9 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) shutdown(ctx context.Context) {
+	if a.workdirWatch != nil {
+		a.workdirWatch.Stop()
+	}
 	if a.client != nil {
 		a.client.Close()
 	}
@@ -217,12 +225,21 @@ func (a *App) openRepo(path string, persist bool) (*RepoState, error) {
 		a.client.Close()
 		a.client = nil
 	}
+	if a.workdirWatch != nil {
+		a.workdirWatch.Stop()
+	}
 
 	client, err := forester.Open(canonical)
 	if err != nil {
 		return nil, err
 	}
 	a.client = client
+
+	if a.workdirWatch != nil {
+		if err := a.workdirWatch.Start(canonical); err != nil {
+			runtime.LogWarningf(a.ctx, "workdir watch: %v", err)
+		}
+	}
 
 	if persist && a.cfg != nil {
 		if err := a.cfg.SetCurrentRepoPath(canonical); err != nil {

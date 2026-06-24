@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { useProjectStore } from "@/stores/projectStore";
 import {
   committableFilesInSubtree,
   fetchWorkdirEntries,
@@ -37,6 +38,7 @@ export function useWorkdirFolderEntries({
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const workdirGeneration = useProjectStore((s) => s.workdirGeneration);
 
   useEffect(() => {
     if (!enabled) {
@@ -77,7 +79,7 @@ export function useWorkdirFolderEntries({
     return () => {
       cancelled = true;
     };
-  }, [enabled, folderPath, showChangedOnly, committable]);
+  }, [enabled, folderPath, showChangedOnly, committable, workdirGeneration]);
 
   const loadMore = useCallback(async () => {
     if (!enabled || showChangedOnly || !hasMore || loadingMore || loading) {

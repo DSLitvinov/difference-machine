@@ -46,6 +46,7 @@ interface ProjectState {
   committable: string[];
   lockedByPath: Record<string, string>;
   previewGeneration: number;
+  workdirGeneration: number;
   sortLocale: SortLocale;
   thumbScale: ThumbScalePx;
   navStack: string[];
@@ -74,6 +75,7 @@ interface ProjectState {
   setStatus: (status: StatusPayload | null) => void;
   setLocks: (lockedByPath: Record<string, string>) => void;
   bumpPreviewGeneration: () => void;
+  bumpWorkdirGeneration: () => void;
   setSortLocale: (locale: SortLocale) => void;
   setThumbScale: (px: ThumbScalePx) => void;
   setPreviewSearchQuery: (query: string) => void;
@@ -93,6 +95,7 @@ const initialState = {
   committable: [] as string[],
   lockedByPath: {} as Record<string, string>,
   previewGeneration: 0,
+  workdirGeneration: 0,
   sortLocale: "en-US" as SortLocale,
   thumbScale: DEFAULT_THUMB_SCALE,
   navStack: [""] as string[],
@@ -258,6 +261,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }),
   bumpPreviewGeneration: () =>
     set((state) => ({ previewGeneration: state.previewGeneration + 1 })),
+  bumpWorkdirGeneration: () =>
+    set((state) => ({ workdirGeneration: state.workdirGeneration + 1 })),
   setSortLocale: (locale) => {
     const repoPath = useAppStore.getState().repoPath;
     if (repoPath) saveSortLocale(repoPath, locale);

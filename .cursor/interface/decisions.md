@@ -221,7 +221,7 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ### 8.6 Конкурентность
 
-- GUI + Blender + CLI: polling + refresh on window focus.
+- GUI + Blender + CLI: **fs watcher** (`workdir:changed`, debounce 300ms) + polling `status.get` (5s, window focus) + refresh on window focus.
 - `setup.cfg`: last-write-wins в v1.0.
 
 ### 8.7 Язык UI

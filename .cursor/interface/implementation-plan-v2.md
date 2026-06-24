@@ -28,9 +28,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **4 — Fs watcher** |
-| **Следующий шаг** | **4.1** Wails / OS watcher → invalidate status/tree |
-| **Заметки** | Фаза **3 Merge UI** закрыта (backend `merge.*`, `MergeDialog`, History entry); ручная проверка merge — перед релизом v2 |
+| **Активная фаза** | **5 — Detached HEAD** |
+| **Следующий шаг** | **5.1** Indicator в Sidebar History |
+| **Заметки** | Фаза **4 Fs watcher** закрыта: `workdirwatch` + `workdir:changed` event, debounced refresh |
 
 ### Прогресс v2
 
@@ -40,7 +40,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 1 | Manual smoke (macOS) | `[x]` |
 | 2 | Windows build + smoke | `[—]` 0/2 |
 | 3 | Merge UI | `[x]` 3/3 |
-| 4 | Fs watcher | `[ ]` 0/2 |
+| 4 | Fs watcher | `[x]` 2/2 |
 | 5 | Detached HEAD | `[ ]` 0/2 |
 | 6 | Diff rename `R` | `[ ]` 0/2 |
 | 7 | Branch delete (GUI) | `[ ]` 0/2 |
@@ -126,8 +126,8 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 4 — Fs watcher
 
-- [ ] **4.1** Wails / OS watcher → invalidate `status.get` / tree без full polling-only
-- [ ] **4.2** Debounce + corner cases (external delete, rename)
+- [x] **4.1** Wails / OS watcher → invalidate `status.get` / tree без full polling-only
+- [x] **4.2** Debounce + corner cases (external delete, rename)
 
 ---
 
@@ -184,3 +184,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | — | Создан v2 plan; smoke перенесён из v1 фазы 7 | **1.1** предусловия |
 | 2025-06-24 | 1 | Smoke macOS complete (§1–7, corner cases, DMG) | **3.1** Merge UI backend |
 | 2025-06-24 | 3 | Merge UI: `merge.*` jsonapi, `MergeDialog`, History banner + branch menu | **4.1** fs watcher |
+| 2025-06-24 | 4 | Fs watcher: `internal/workdirwatch`, `workdir:changed`, debounced UI refresh | **5.1** detached HEAD |

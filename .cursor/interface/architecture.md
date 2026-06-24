@@ -379,7 +379,8 @@ interface SidebarEvents {
 
 ### 6.5 Конкурентные изменения на диске
 
-- Polling `status.get` каждые N сек (настраиваемо, default 5s) **только когда** `mode === 'project'` или окно в фокусе.
+- **Fs watcher (v2):** OS `fsnotify` на workdir → Wails event `workdir:changed` → debounced refresh `status.get` + `workdir.tree` / entries (Project mode).
+- **Polling fallback:** `status.get` каждые 5s + window focus ([decisions.md §8.6](./decisions.md)).
 - При расхождении selection (файл удалён) → сбросить selection, toast.
 
 ### 6.6 Смена ветки извне (CLI / Blender)

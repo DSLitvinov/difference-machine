@@ -4,6 +4,7 @@ go 1.22.0
 
 require (
 	github.com/difference-machine/forester v0.0.0
+	github.com/fsnotify/fsnotify v1.9.0
 	github.com/wailsapp/wails/v2 v2.12.0
 )
 

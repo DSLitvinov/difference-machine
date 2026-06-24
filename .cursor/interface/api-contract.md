@@ -325,6 +325,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 | `gui:open-settings` | Application menu View → Settings ([application-menu.md](./application-menu.md)) |
 | `gui:switch-mode` | `"project"` \| `"history"` — Application menu или shortcut |
 | `gui:toggle-sidebar` | Collapse / expand sidebar column (`⌘B`) |
+| `workdir:changed` | Go `fsnotify` на repo workdir (skip `.DFM`) → debounced refresh status + tree (Project) |
 
 **Нет** `kind: 'folder'` в `onSelectionChange` — папка только через `ProjectViewContext`.
 
@@ -356,7 +357,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 | Rename `R` в `diff.name_status` | v2 |
 | `diff.stat` на commit cards | v1.1 |
 | `diff` rename detection | v2 |
-| Fs watcher | v2 |
+| Fs watcher | v2 | `workdir:changed` — `sources/gui/internal/workdirwatch` |
 | Tree collapse + fully expanded tree | v1.1 / v2 |
 | Branch merge UI | v2 — [merge-dialog.md](./merge-dialog.md) |
 | `EvalSymlinks` для repo paths | v1.1 |

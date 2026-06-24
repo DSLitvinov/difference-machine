@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { EventsOn } from "../../wailsjs/runtime/runtime";
 
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { useAppStore } from "@/stores/appStore";
@@ -7,6 +8,7 @@ import { getRepositoryAddActions } from "@/lib/repositoryAddActions";
 import { fetchStatus, fetchLockList, foresterCall, locksByPath } from "@/wails/forester";
 
 const POLL_INTERVAL_MS = 5000;
+const WATCHER_DEBOUNCE_MS = 300;
 
 async function refreshStatus() {
   const status = await fetchStatus();
@@ -46,13 +48,27 @@ async function validateSelectedFiles() {
   }
 }
 
+async function refreshWorkdirFromWatcher() {
+  const { repoPath, sidebarMode } = useAppStore.getState();
+  if (!repoPath || sidebarMode !== "project") {
+    await refreshStatus();
+    return;
+  }
+
+  await refreshStatus();
+  await loadProjectData();
+  await validateSelectedFiles();
+  useProjectStore.getState().bumpWorkdirGeneration();
+}
+
 export function useProjectStatusPolling() {
   const repoPath = useAppStore((s) => s.repoPath);
   const sidebarMode = useAppStore((s) => s.sidebarMode);
   const setForesterError = useAppStore((s) => s.setForesterError);
   const ticking = useRef(false);
+  const watcherDebounceRef = useRef<number | undefined>(undefined);
 
-  const poll = async () => {
+  const poll = useCallback(async () => {
     if (!repoPath || ticking.current) return;
     ticking.current = true;
     try {
@@ -65,7 +81,19 @@ export function useProjectStatusPolling() {
     } finally {
       ticking.current = false;
     }
-  };
+  }, [repoPath, sidebarMode, setForesterError]);
+
+  const refreshFromWatcher = useCallback(async () => {
+    if (!repoPath || ticking.current) return;
+    ticking.current = true;
+    try {
+      await refreshWorkdirFromWatcher();
+    } catch (err) {
+      setForesterError(err instanceof Error ? err.message : String(err));
+    } finally {
+      ticking.current = false;
+    }
+  }, [repoPath, setForesterError]);
 
   useEffect(() => {
     if (!repoPath) return;
@@ -77,7 +105,7 @@ export function useProjectStatusPolling() {
     }, POLL_INTERVAL_MS);
 
     return () => window.clearInterval(id);
-  }, [repoPath, sidebarMode]);
+  }, [poll, repoPath]);
 
   useEffect(() => {
     if (!repoPath) return;
@@ -87,7 +115,24 @@ export function useProjectStatusPolling() {
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [repoPath, sidebarMode]);
+  }, [poll, repoPath]);
+
+  useEffect(() => {
+    if (!repoPath) return;
+
+    const cleanup = EventsOn("workdir:changed", () => {
+      if (!document.hasFocus()) return;
+      window.clearTimeout(watcherDebounceRef.current);
+      watcherDebounceRef.current = window.setTimeout(() => {
+        void refreshFromWatcher();
+      }, WATCHER_DEBOUNCE_MS);
+    });
+
+    return () => {
+      cleanup();
+      window.clearTimeout(watcherDebounceRef.current);
+    };
+  }, [refreshFromWatcher, repoPath]);
 }
 
 export async function retryForesterConnection() {
@@ -98,6 +143,7 @@ export async function retryForesterConnection() {
   try {
     await refreshStatus();
     await loadProjectData();
+    useProjectStore.getState().bumpWorkdirGeneration();
   } catch (err) {
     setForesterError(err instanceof Error ? err.message : String(err));
   } finally {
@@ -126,6 +172,7 @@ export async function reopenRepositoryFromPicker() {
         typeof state.status.current_branch === "string" ? state.status.current_branch : null,
       );
       await loadProjectData();
+      useProjectStore.getState().bumpWorkdirGeneration();
       useAppStore.getState().setNotice("Repository opened");
     });
   } catch (err) {
