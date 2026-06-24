@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown, GitBranch, Plus } from "lucide-react";
+import { Check, ChevronDown, GitBranch, GitMerge, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,6 +12,8 @@ interface BranchSelectorProps {
   disabled?: boolean;
   onSelect: (branch: string) => void;
   onCreateClick?: () => void;
+  onMergeIntoCurrentClick?: () => void;
+  mergeDisabled?: boolean;
 }
 
 export function BranchSelector({
@@ -20,6 +22,8 @@ export function BranchSelector({
   disabled,
   onSelect,
   onCreateClick,
+  onMergeIntoCurrentClick,
+  mergeDisabled,
 }: BranchSelectorProps) {
   const [open, setOpen] = useState(false);
   const label = currentBranch || "No branches";
@@ -38,13 +42,18 @@ export function BranchSelector({
     onCreateClick?.();
   };
 
+  const handleMergeClick = () => {
+    handleOpenChange(false);
+    onMergeIntoCurrentClick?.();
+  };
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
           variant="outline"
-          disabled={disabled}
+          disabled={disabled || mergeDisabled}
           className="w-full justify-between gap-2 bg-background font-medium"
           title={currentBranch || undefined}
         >
@@ -100,6 +109,18 @@ export function BranchSelector({
               Create new branch…
             </Button>
           </>
+        ) : null}
+        {onMergeIntoCurrentClick ? (
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
+            disabled={mergeDisabled}
+            onClick={handleMergeClick}
+          >
+            <GitMerge className="h-4 w-4" />
+            Merge into current branch…
+          </Button>
         ) : null}
       </PopoverContent>
     </Popover>

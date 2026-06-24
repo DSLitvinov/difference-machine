@@ -65,6 +65,6 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 
 **v1.1 (polish):** multiselect (Shift/marquee), virtual scroll, dark theme, commit card stats + full ⋮ menu, fully expanded tree, Settings (Appearance + External editors). Thumbnails (images + `.blend`) — v1.0+.
 
-**v2:** macOS smoke **закрыт** ([smoke-checklist.md](./smoke-checklist.md)) · [implementation-plan-v2.md](./implementation-plan-v2.md) фаза **3** (Merge UI). Далее: [merge-dialog.md](./merge-dialog.md), fs watcher, rename `R`, detached HEAD, Windows/Linux build.
+**v2:** macOS smoke **закрыт** ([smoke-checklist.md](./smoke-checklist.md)) · Merge UI **закрыт** ([implementation-plan-v2.md](./implementation-plan-v2.md) фаза 3) · активная фаза **4** (fs watcher). Далее: detached HEAD, rename `R`, Windows/Linux build.
 
 Канон API/events: [api-contract.md](./api-contract.md). Порядок реализации: [decisions.md §4](./decisions.md) · [api-contract.md §7](./api-contract.md).

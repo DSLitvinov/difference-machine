@@ -225,6 +225,7 @@ export interface CommitLogEntry {
 export interface BranchEntry {
   name: string;
   is_current: boolean;
+  commit_hash?: string;
 }
 
 export async function fetchFileLog(branch: string, path: string, maxCount = 100) {
@@ -265,6 +266,10 @@ export async function fetchDiffNameStatus(to: string, commit: CommitLogEntry) {
     to,
     ...diffFromArgs(commit),
   });
+}
+
+export async function fetchDiffNameStatusBetween(from: string, to: string) {
+  return foresterCall<{ files: DiffFileEntry[] }>("diff.name_status", { from, to });
 }
 
 export async function fetchDiffStat(to: string, commit: CommitLogEntry) {
@@ -354,4 +359,56 @@ export async function compareCleanup(commitHash: string): Promise<void> {
 
 export async function openWorkdirPath(path: string): Promise<void> {
   await foresterCall("workdir.open", { path });
+}
+
+export interface MergeStatusPayload {
+  in_progress: boolean;
+  branch?: string;
+  current_head?: string;
+  target_head?: string;
+  from?: string;
+  to?: string;
+  has_conflicts?: boolean;
+}
+
+export async function fetchMergeStatus(): Promise<MergeStatusPayload> {
+  return foresterCall<MergeStatusPayload>("merge.status", {});
+}
+
+export async function mergeStart(
+  branch: string,
+  options?: { no_ff?: boolean; no_commit?: boolean },
+): Promise<{ success: boolean; hash: string; in_progress?: boolean; has_conflicts?: boolean }> {
+  return foresterCall("merge.start", {
+    branch,
+    no_ff: options?.no_ff ?? true,
+    no_commit: options?.no_commit ?? false,
+  });
+}
+
+export async function mergeContinue(): Promise<{
+  success: boolean;
+  hash: string;
+  in_progress?: boolean;
+  has_conflicts?: boolean;
+}> {
+  return foresterCall("merge.continue", {});
+}
+
+export async function mergeAbort(): Promise<void> {
+  await foresterCall("merge.abort", {});
+}
+
+export interface MergeObjectEntry {
+  object_name: string;
+  object_type?: string;
+  tags?: string[];
+  metadata?: Record<string, string>;
+}
+
+export async function fetchObjectsByFile(path: string, commitHash: string) {
+  return foresterCall<{ objects: MergeObjectEntry[] }>("objects.by_file", {
+    path,
+    commit_hash: commitHash,
+  });
 }

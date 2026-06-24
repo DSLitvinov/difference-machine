@@ -583,3 +583,64 @@ type folderNodeResult struct {
 	ItemCount int                `json:"item_count"`
 	Children  []folderNodeResult `json:"children"`
 }
+
+func TestMergeStatusIdle(t *testing.T) {
+	_, h := initTestRepo(t)
+	var status struct {
+		InProgress bool `json:"in_progress"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "merge.status", `{}`), &status); err != nil {
+		t.Fatalf("decode merge.status: %v", err)
+	}
+	if status.InProgress {
+		t.Fatal("merge.status in_progress = true, want false")
+	}
+}
+
+func TestMergeFastForward(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "base.txt", "base")
+	mustOK(t, h, "index.add", `{"files":["base.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"base"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{}`), &logResult); err != nil {
+		t.Fatalf("decode log: %v", err)
+	}
+	baseHead := logResult.Commits[0].Hash
+
+	mustOK(t, h, "branch.create", `{"name":"feature","commit_hash":"`+baseHead+`"}`)
+	mustOK(t, h, "repo.switch", `{"target":"feature","auto_stash":true}`)
+	writeFile(t, dir, "feature.txt", "feature")
+	mustOK(t, h, "index.add", `{"files":["feature.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"feature commit"}`)
+
+	mustOK(t, h, "repo.switch", `{"target":"main"}`)
+	var mergeResult struct {
+		Success bool   `json:"success"`
+		Hash    string `json:"hash"`
+	}
+	if err := json.Unmarshal(
+		mustOK(t, h, "merge.start", `{"branch":"feature","no_ff":false}`),
+		&mergeResult,
+	); err != nil {
+		t.Fatalf("decode merge.start: %v", err)
+	}
+	if !mergeResult.Success || mergeResult.Hash == "" {
+		t.Fatalf("merge.start = %+v", mergeResult)
+	}
+
+	var after struct {
+		InProgress bool `json:"in_progress"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "merge.status", `{}`), &after); err != nil {
+		t.Fatalf("decode merge.status: %v", err)
+	}
+	if after.InProgress {
+		t.Fatal("merge.status still in progress after fast-forward merge")
+	}
+}

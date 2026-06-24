@@ -28,9 +28,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **3 — Merge UI** |
-| **Следующий шаг** | **3.1** Backend `merge.*` jsonapi — [merge-dialog.md](./merge-dialog.md) |
-| **Заметки** | Фаза **1 smoke macOS** закрыта — [smoke-checklist.md](./smoke-checklist.md) все `[x]`; macOS v1.x ready for release |
+| **Активная фаза** | **4 — Fs watcher** |
+| **Следующий шаг** | **4.1** Wails / OS watcher → invalidate status/tree |
+| **Заметки** | Фаза **3 Merge UI** закрыта (backend `merge.*`, `MergeDialog`, History entry); ручная проверка merge — перед релизом v2 |
 
 ### Прогресс v2
 
@@ -39,7 +39,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 0 | macOS DMG packaging | `[x]` 4/4 |
 | 1 | Manual smoke (macOS) | `[x]` |
 | 2 | Windows build + smoke | `[—]` 0/2 |
-| 3 | Merge UI | `[ ]` 0/3 |
+| 3 | Merge UI | `[x]` 3/3 |
 | 4 | Fs watcher | `[ ]` 0/2 |
 | 5 | Detached HEAD | `[ ]` 0/2 |
 | 6 | Diff rename `R` | `[ ]` 0/2 |
@@ -116,9 +116,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 Спека: [merge-dialog.md](./merge-dialog.md) · API: [api-contract.md §2.2](./api-contract.md)
 
-- [ ] **3.1** Backend: `merge.*` jsonapi + тесты
-- [ ] **3.2** `MergeDialog` — object preview, confirm
-- [ ] **3.3** Entry point из History / branch UX
+- [x] **3.1** Backend: `merge.*` jsonapi + тесты
+- [x] **3.2** `MergeDialog` — object preview, confirm
+- [x] **3.3** Entry point из History / branch UX
 
 **Проверка:** merge commit с object preview; corner cases из merge-dialog §corner.
 
@@ -183,3 +183,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 |------|------|---------|---------------|
 | 2025-06-24 | — | Создан v2 plan; smoke перенесён из v1 фазы 7 | **1.1** предусловия |
 | 2025-06-24 | 1 | Smoke macOS complete (§1–7, corner cases, DMG) | **3.1** Merge UI backend |
+| 2025-06-24 | 3 | Merge UI: `merge.*` jsonapi, `MergeDialog`, History banner + branch menu | **4.1** fs watcher |

@@ -6,6 +6,9 @@ import { CommitList } from "@/components/sidebar/CommitList";
 import { CreateBranchDialog } from "@/components/sidebar/CreateBranchDialog";
 import { DirtyBranchSwitchDialog } from "@/components/sidebar/DirtyBranchSwitchDialog";
 import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
+import { MergeBranchPickDialog } from "@/components/merge/MergeBranchPickDialog";
+import { mergeSuccessNotice, MergeDialog } from "@/components/merge/MergeDialog";
+import { MergeInProgressBanner } from "@/components/merge/MergeInProgressBanner";
 import { Input } from "@/components/ui/input";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { parseCommitMessage } from "@/lib/commitMessage";
@@ -13,12 +16,16 @@ import { clearCommitStatsCache } from "@/lib/commitStatsCache";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { isDirtyWorktree } from "@/lib/worktreeDirty";
+import { fetchRepoUser } from "@/wails/bridge";
 import {
   fetchBranchList,
   fetchBranchLog,
+  fetchMergeStatus,
   fetchStatus,
+  mergeAbort,
   switchBranch,
   type CommitLogEntry,
+  type MergeStatusPayload,
   type StatusPayload,
 } from "@/wails/forester";
 
@@ -47,6 +54,13 @@ export function HistorySidebarPanel() {
   const [dirtyDialogOpen, setDirtyDialogOpen] = useState(false);
   const [dirtyStatus, setDirtyStatus] = useState<StatusPayload | null>(null);
   const [createBranchDialogOpen, setCreateBranchDialogOpen] = useState(false);
+  const [mergePickOpen, setMergePickOpen] = useState(false);
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+  const [mergeTargetBranch, setMergeTargetBranch] = useState("");
+  const [mergeDialogMode, setMergeDialogMode] = useState<"preview" | "continue">("preview");
+  const [mergeStatus, setMergeStatus] = useState<MergeStatusPayload | null>(null);
+  const [author, setAuthor] = useState("");
+  const [abortingMerge, setAbortingMerge] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
   useEffect(() => {
@@ -87,6 +101,34 @@ export function HistorySidebarPanel() {
     }
   }, [currentBranch, repoPath, restoreSelection, setError]);
 
+  const loadMergeStatus = useCallback(async () => {
+    try {
+      const status = await fetchMergeStatus();
+      setMergeStatus(status.in_progress ? status : null);
+    } catch {
+      setMergeStatus(null);
+    }
+  }, []);
+
+  const refreshAfterMerge = useCallback(async () => {
+    clearCommitStatsCache();
+    await loadBranches();
+    await loadLog();
+    await loadProjectData();
+    await loadMergeStatus();
+    const status = await fetchStatus();
+    const branch =
+      typeof status.current_branch === "string" ? status.current_branch : currentBranch;
+    if (branch) {
+      setRepo(repoPath, useAppStore.getState().repoName, branch);
+    }
+  }, [currentBranch, loadBranches, loadLog, loadMergeStatus, repoPath, setRepo]);
+
+  useEffect(() => {
+    if (!repoPath || sidebarMode !== "history") return;
+    void fetchRepoUser().then(setAuthor).catch(() => setAuthor(""));
+    void loadMergeStatus();
+  }, [loadMergeStatus, repoPath, sidebarMode]);
   useEffect(() => {
     if (!repoPath || sidebarMode !== "history") return;
     let cancelled = false;
@@ -94,6 +136,7 @@ export function HistorySidebarPanel() {
       try {
         await loadBranches();
         if (!cancelled) await loadLog();
+        if (!cancelled) await loadMergeStatus();
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : String(err));
@@ -104,7 +147,7 @@ export function HistorySidebarPanel() {
     return () => {
       cancelled = true;
     };
-  }, [repoPath, sidebarMode, currentBranch, loadBranches, loadLog, setError]);
+  }, [repoPath, sidebarMode, currentBranch, loadBranches, loadLog, loadMergeStatus, setError]);
 
   const handleAfterCommitAction = useCallback(async () => {
     await loadLog();
@@ -148,6 +191,10 @@ export function HistorySidebarPanel() {
   };
 
   const handleBranchSelect = async (target: string) => {
+    if (mergeStatus?.in_progress) {
+      setNotice("Finish or abort the merge in progress before switching branches");
+      return;
+    }
     if (!currentBranch || target === currentBranch) {
       if (target === currentBranch) {
         setNotice(`Already on branch ${target}`);
@@ -168,6 +215,45 @@ export function HistorySidebarPanel() {
     }
   };
 
+  const openMergeDialog = (target: string, mode: "preview" | "continue") => {
+    setMergeTargetBranch(target);
+    setMergeDialogMode(mode);
+    setMergeDialogOpen(true);
+  };
+
+  const handleMergeIntoCurrentClick = async () => {
+    if (mergeStatus?.in_progress) {
+      const branch = mergeStatus.branch ?? "";
+      if (branch) openMergeDialog(branch, "continue");
+      return;
+    }
+    try {
+      const status = await fetchStatus();
+      if (isDirtyWorktree(status)) {
+        setError("Commit or stash changes before starting a merge");
+        return;
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      return;
+    }
+    setMergePickOpen(true);
+  };
+
+  const handleAbortMerge = async () => {
+    setAbortingMerge(true);
+    try {
+      await mergeAbort();
+      setMergeStatus(null);
+      await refreshAfterMerge();
+      setNotice("Merge aborted");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setAbortingMerge(false);
+    }
+  };
+
   if (!repoPath) {
     return <EmptyRepoState />;
   }
@@ -180,8 +266,10 @@ export function HistorySidebarPanel() {
           branches={branches}
           currentBranch={currentBranch ?? branches[0] ?? ""}
           disabled={switchingBranch}
+          mergeDisabled={Boolean(mergeStatus?.in_progress)}
           onSelect={(target) => void handleBranchSelect(target)}
           onCreateClick={() => setCreateBranchDialogOpen(true)}
+          onMergeIntoCurrentClick={() => void handleMergeIntoCurrentClick()}
         />
         <Input
           value={searchQuery}
@@ -191,6 +279,14 @@ export function HistorySidebarPanel() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col bg-background">
+        {mergeStatus?.in_progress ? (
+          <MergeInProgressBanner
+            status={mergeStatus}
+            aborting={abortingMerge}
+            onReview={() => openMergeDialog(mergeStatus.branch ?? "", "continue")}
+            onAbort={() => void handleAbortMerge()}
+          />
+        ) : null}
         {switchingBranch ? (
           <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -231,6 +327,36 @@ export function HistorySidebarPanel() {
         onCreated={loadBranches}
         onError={setError}
         onNotice={setNotice}
+      />
+
+      <MergeBranchPickDialog
+        open={mergePickOpen}
+        onOpenChange={setMergePickOpen}
+        branches={branches}
+        currentBranch={currentBranch ?? ""}
+        onSelect={(branch) => openMergeDialog(branch, "preview")}
+      />
+
+      <MergeDialog
+        open={mergeDialogOpen}
+        onOpenChange={setMergeDialogOpen}
+        mode={mergeDialogMode}
+        targetBranch={mergeTargetBranch}
+        currentBranch={currentBranch ?? ""}
+        author={author}
+        mergeStatus={mergeStatus}
+        onError={(message) => {
+          setError(message);
+          void loadMergeStatus();
+        }}
+        onCompleted={async (result) => {
+          await refreshAfterMerge();
+          if (result?.hash) {
+            setNotice(await mergeSuccessNotice(result.hash));
+          } else {
+            setNotice("Merge completed");
+          }
+        }}
       />
     </div>
   );

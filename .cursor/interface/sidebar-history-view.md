@@ -17,7 +17,7 @@
 
 **UX-ориентир:** GitHub Desktop — branch dropdown = checkout; History log всегда для **текущей** ветки (`currentBranch`).
 
-**Не в scope v1 Sidebar:** удаление веток. **Создание ветки** — dropdown + [create-branch-dialog.md](./create-branch-dialog.md). **Merge** — v2: [merge-dialog.md](./merge-dialog.md).
+**Не в scope v1 Sidebar:** удаление веток. **Создание ветки** — dropdown + [create-branch-dialog.md](./create-branch-dialog.md). **Merge** — dropdown «Merge into current branch…» + [merge-dialog.md](./merge-dialog.md).
 
 ---
 
@@ -146,7 +146,7 @@ You have uncommitted changes:
 | Ситуация | Поведение |
 |----------|-----------|
 | Select та же ветка | No-op; optional toast «Already on branch X» |
-| Switch при merge in progress | Block; suggest merge continue/abort (v2) |
+| Switch при merge in progress | Block branch switch; banner **Review merge** / **Abort** |
 | Switch fail (Forester error) | Toast; `currentBranch` и dropdown **не** менять |
 | Быстрая смена веток | Cancel stale `log.get`; skeleton на list |
 | CLI switch извне | Refresh `branch.list`; обновить label и log |
