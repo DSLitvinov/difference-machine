@@ -47,7 +47,7 @@ def compare_object_history(
     """
     api = get_api()
     
-    file_path_str = str(file_path).as_posix()
+    file_path_str = Path(file_path).as_posix()
     success, commits, error = api.log(repo_path, limit=100, path=file_path_str)
     if not success:
         logger.error(f"Failed to get commit log: {error}")

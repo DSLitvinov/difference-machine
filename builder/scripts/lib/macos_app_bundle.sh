@@ -28,7 +28,10 @@ create_macos_app_bundle() {
 }
 
 # create_forester_console_app APP_DIR REAL_FORESTER_BINARY_PATH
-# Builds Forester.app: Resources/forester (CLI) + MacOS/Forester (launcher → Terminal or exec).
+# Builds Forester.app:
+#   Resources/forester       real CLI binary
+#   Resources/bin/forester   PATH-friendly wrapper (VS Code / Docker pattern)
+#   MacOS/Forester           GUI launcher → Terminal or exec
 create_forester_console_app() {
     local app_dir="$1"
     local forester_bin="$2"
@@ -52,12 +55,31 @@ create_forester_console_app() {
     cp "${forester_bin}" "${resources_dir}/forester"
     chmod +x "${resources_dir}/forester"
 
+    mkdir -p "${resources_dir}/bin"
+    cat > "${resources_dir}/bin/forester" << 'WRAPPER'
+#!/bin/bash
+set -euo pipefail
+
+BIN_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONTENTS_DIR="$(cd "${BIN_DIR}/.." && pwd)"
+FORESTER_BIN="${CONTENTS_DIR}/forester"
+FRAMEWORKS_DIR="${CONTENTS_DIR}/Frameworks"
+
+if [ -d "${FRAMEWORKS_DIR}" ]; then
+    export DYLD_LIBRARY_PATH="${FRAMEWORKS_DIR}${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}"
+fi
+
+exec "${FORESTER_BIN}" "$@"
+WRAPPER
+    chmod +x "${resources_dir}/bin/forester"
+
     cat > "${macos_dir}/${launcher_name}" << 'LAUNCHER'
 #!/bin/bash
 set -euo pipefail
 
 CONTENTS_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 FORESTER_BIN="${CONTENTS_DIR}/Resources/forester"
+FORESTER_BIN_DIR="${CONTENTS_DIR}/Resources/bin"
 FRAMEWORKS_DIR="${CONTENTS_DIR}/Frameworks"
 
 if [ -d "${FRAMEWORKS_DIR}" ]; then
@@ -69,10 +91,11 @@ run_forester() {
 }
 
 open_terminal_session() {
-    osascript - "$FORESTER_BIN" <<'APPLESCRIPT' || return 1
+    # Add Resources/bin to PATH (same approach as VS Code "Install shell command").
+    osascript - "$FORESTER_BIN_DIR" <<'APPLESCRIPT' || return 1
 on run argv
-    set foresterBin to item 1 of argv
-    set shCmd to "alias forester=" & quoted form of foresterBin & "; echo ''; echo 'Forester CLI - examples: forester status | forester log | forester --help'; echo ''; exec $SHELL -l"
+    set binDir to item 1 of argv
+    set shCmd to "export PATH=" & quoted form of binDir & ":$PATH; echo ''; echo 'Forester CLI - examples: forester status | forester log | forester --help'; echo ''"
     tell application "Terminal" to activate
     tell application "Terminal" to do script shCmd
 end run
@@ -92,11 +115,10 @@ fi
 TMP_SCRIPT="$(mktemp -t forester-cli.XXXXXX).command"
 cat > "${TMP_SCRIPT}" <<SCRIPT
 #!/bin/bash
-alias forester=$(printf '%q' "${FORESTER_BIN}")
+export PATH=$(printf '%q' "${FORESTER_BIN_DIR}"):\$PATH
 echo ''
 echo 'Forester CLI - examples: forester status | forester log | forester --help'
 echo ''
-exec "\$SHELL" -l
 SCRIPT
 chmod +x "${TMP_SCRIPT}"
 open "${TMP_SCRIPT}"

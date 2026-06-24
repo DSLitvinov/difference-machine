@@ -13,6 +13,7 @@ Run the full build from the project root:
 | **build_forester.sh** | Build Forester CLI and c-shared API into `builder/.staging/forester/` |
 | **build_gui.sh** | Build Wails GUI → `Difference Machine.app` in staging (macOS, `--gui` / `--dmg`) |
 | **wrap_forester_app.sh** | Wrap CLI + API into `Forester.app` |
+| **package_blender_addon_zip.sh** | Zip addon folder for DMG (`difference_machine/` inside archive) |
 | **package_macos_dmg.sh** | Assemble DMG (`--dmg`) |
 | **stage_dist.sh** | Assemble payload into `DFM_DIST` (default `~/dfm_distr`) |
 | **copy_addons.sh** | Copy `sources/addons/` → `[TARGET]/addons/`. Default target: `~/dfm_distr` |

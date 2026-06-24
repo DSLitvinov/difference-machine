@@ -14,8 +14,9 @@ const (
 	macDefaultRoot       = "/Applications/" + macInstallFolderName
 	macFlatLegacyRoot    = "/Applications"
 	macLegacyInstallRoot = "/Applications/DiffMachine"
-	foresterAppName     = "Forester.app"
-	foresterCLIInside = "Contents/MacOS/Forester"
+	foresterAppName      = "Forester.app"
+	foresterCLIBinInside = "Contents/Resources/bin/forester"
+	foresterCLILauncher  = "Contents/MacOS/Forester"
 	addonRelative     = "addons/blender/difference_machine"
 	apiLibInside        = "Contents/Frameworks/libforester.dylib"
 )
@@ -104,19 +105,23 @@ func installRootFromExecutable() (string, bool) {
 }
 
 func toolchainAtRoot(root string) (ToolchainPaths, bool) {
-	cli := filepath.Join(root, foresterAppName, foresterCLIInside)
-	addon := filepath.Join(root, addonRelative)
+	cli := filepath.Join(root, foresterAppName, foresterCLIBinInside)
 	api := filepath.Join(root, foresterAppName, apiLibInside)
 
 	if st, err := os.Stat(cli); err != nil || st.IsDir() {
-		// Legacy bundle with binary directly in MacOS/forester
-		legacy := filepath.Join(root, foresterAppName, "Contents/MacOS/forester")
-		if st, err := os.Stat(legacy); err != nil || st.IsDir() {
-			return ToolchainPaths{}, false
+		cli = filepath.Join(root, foresterAppName, foresterCLILauncher)
+		if st, err := os.Stat(cli); err != nil || st.IsDir() {
+			// Legacy bundle with binary directly in MacOS/forester
+			legacy := filepath.Join(root, foresterAppName, "Contents/MacOS/forester")
+			if st, err := os.Stat(legacy); err != nil || st.IsDir() {
+				return ToolchainPaths{}, false
+			}
+			cli = legacy
 		}
-		cli = legacy
 	}
-	if st, err := os.Stat(addon); err != nil || !st.IsDir() {
+
+	addon, ok := resolveAddonDir(root)
+	if !ok {
 		return ToolchainPaths{}, false
 	}
 

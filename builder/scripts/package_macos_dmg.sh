@@ -69,8 +69,10 @@ if [ ! -d "${DFM_DIST}/${ADDON_REL}" ]; then
     echo -e "${RED}Addon not found: ${DFM_DIST}/${ADDON_REL}${NC}" >&2
     exit 1
 fi
+ADDON_ZIP_REL="addons/blender/difference_machine.zip"
 mkdir -p "${INSTALL_DIR}/addons/blender"
-cp -R "${DFM_DIST}/${ADDON_REL}" "${INSTALL_DIR}/${ADDON_REL}"
+ADDON_ZIP_PATH="$("${SCRIPT_DIR}/package_blender_addon_zip.sh" "${DFM_DIST}/${ADDON_REL}" "${INSTALL_DIR}/${ADDON_ZIP_REL}")"
+echo -e "${GREEN}✓ ${ADDON_ZIP_REL}${NC}"
 
 cat > "${DMG_LAYOUT}/README.txt" << EOF
 Difference Machine — macOS install
@@ -82,21 +84,28 @@ Difference Machine — macOS install
    After install:
      /Applications/${INSTALL_FOLDER_NAME}/${GUI_APP_NAME}
      /Applications/${INSTALL_FOLDER_NAME}/Forester.app
-     /Applications/${INSTALL_FOLDER_NAME}/addons/...
+     /Applications/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine.zip
 
-2. Install the Blender addon (once per Blender version):
-   ln -sf "/Applications/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine" \\
-     "\$HOME/Library/Application Support/Blender/<version>/extensions/user_default/difference_machine"
+2. Install the Blender addon (once per Blender version), either:
+   Blender → Edit → Preferences → Get Extensions → Install from Disk…
+   and select difference_machine.zip from the install folder above;
 
-   Replace <version> with your Blender version (e.g. 4.2).
+   or symlink after first launch of "${GUI_APP_NAME}" (extracts the zip):
+     ln -sf "/Applications/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine" \\
+       "\$HOME/Library/Application Support/Blender/<version>/extensions/user_default/difference_machine"
+
+   Replace <version> with your Blender version (e.g. 4.5).
 
 3. Launch "${GUI_APP_NAME}" once. It creates ~/.dfm/setup.cfg with paths
    to Forester and the addon (same install folder).
 
 4. Open Blender and enable the "Difference Machine" extension.
 
-Forester.app — double-click opens Terminal with the forester CLI.
-CLI: /Applications/${INSTALL_FOLDER_NAME}/Forester.app/Contents/MacOS/Forester status
+Forester.app — double-click opens Terminal with forester on PATH.
+Persistent CLI (optional):
+  sudo ln -sfn "/Applications/${INSTALL_FOLDER_NAME}/Forester.app/Contents/Resources/bin/forester" /usr/local/bin/forester
+Or run directly:
+  "/Applications/${INSTALL_FOLDER_NAME}/Forester.app/Contents/Resources/bin/forester" status
 
 Support: https://github.com/difference-machine/difference-machine
 EOF
@@ -126,7 +135,7 @@ echo "  Applications →"
 echo "  ${INSTALL_FOLDER_NAME}/"
 echo "    ${GUI_APP_NAME}"
 echo "    Forester.app"
-echo "    addons/blender/difference_machine/"
+echo "    addons/blender/difference_machine.zip"
 echo ""
 echo "Install path: /Applications/${INSTALL_FOLDER_NAME}/"
 echo -e "${YELLOW}Note: Code signing and notarization are not applied by this script.${NC}"

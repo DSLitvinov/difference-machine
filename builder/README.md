@@ -33,7 +33,7 @@ Applications →
 Difference Machine/
   Difference Machine.app
   Forester.app
-  addons/blender/difference_machine/
+  addons/blender/difference_machine.zip
 ```
 
 Install path: `/Applications/Difference Machine/` — GUI finds Forester as a sibling app in the same folder.
@@ -100,11 +100,11 @@ ln -sf ~/dfm_distr/addons/blender/difference_machine \
   ~/Library/Application\ Support/Blender/4.2/extensions/user_default/difference_machine
 ```
 
-**After DMG install:**
+**After DMG install** (symlink after first GUI launch, or install zip in Blender):
 
 ```bash
 ln -sf "/Applications/Difference Machine/addons/blender/difference_machine" \
-  ~/Library/Application\ Support/Blender/4.2/extensions/user_default/difference_machine
+  ~/Library/Application\ Support/Blender/4.5/extensions/user_default/difference_machine
 ```
 
 ---

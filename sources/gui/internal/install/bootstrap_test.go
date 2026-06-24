@@ -33,6 +33,13 @@ func TestToolchainAtRoot(t *testing.T) {
 	if err := os.WriteFile(realCLI, []byte{0}, 0o755); err != nil {
 		t.Fatal(err)
 	}
+	cliWrapper := filepath.Join(root, foresterAppName, "Contents", "Resources", "bin", "forester")
+	if err := os.MkdirAll(filepath.Dir(cliWrapper), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cliWrapper, []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
 
 	api := filepath.Join(foresterFrameworks, "libforester.dylib")
 	if err := os.WriteFile(api, []byte{0}, 0o644); err != nil {
@@ -43,8 +50,8 @@ func TestToolchainAtRoot(t *testing.T) {
 	if !ok {
 		t.Fatal("expected valid layout")
 	}
-	if got.ForesterCLI != cli {
-		t.Fatalf("cli: got %q want %q", got.ForesterCLI, cli)
+	if got.ForesterCLI != cliWrapper {
+		t.Fatalf("cli: got %q want %q", got.ForesterCLI, cliWrapper)
 	}
 	if got.APILib != api {
 		t.Fatalf("api: got %q want %q", got.APILib, api)
