@@ -9,6 +9,7 @@ import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
 import { Input } from "@/components/ui/input";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { parseCommitMessage } from "@/lib/commitMessage";
+import { clearCommitStatsCache } from "@/lib/commitStatsCache";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { isDirtyWorktree } from "@/lib/worktreeDirty";
@@ -64,6 +65,7 @@ export function HistorySidebarPanel() {
 
   const loadLog = useCallback(async () => {
     if (!currentBranch) return;
+    clearCommitStatsCache();
     setLoadingLog(true);
     try {
       const result = await fetchBranchLog(currentBranch);

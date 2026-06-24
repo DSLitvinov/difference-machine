@@ -48,23 +48,24 @@
 
 | Поле | Значение |
 |------|----------|
-| **Последнее обновление** | 2025-06-23 |
-| **Активная фаза** | **7 — Сборка и smoke** |
-| **Следующий шаг** | Пройти [smoke-checklist.md](./smoke-checklist.md) · `7.2` Windows build |
-| **Заметки** | Corner cases 6.3–6.7; polling в History mode |
+| **Последнее обновление** | 2025-06-24 |
+| **Активная фаза** | **8 — v1.1 polish** |
+| **Следующий шаг** | **8.2** Commit card ⋮ menu — [commit-card.md §6](./commit-card.md) |
+| **Заметки** | 8.1 stats done; Windows/Linux build отложены |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
-| 1 | Backend API | `[~]` 11/17 |
-| 2 | Slice 1 — Shell + OpenRepo | `[~]` 12/12 |
+| 1 | Backend API | `[~]` 16/17 |
+| 2 | Slice 1 — Shell + OpenRepo | `[x]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
 | 6 | Slice 5 — Polish + Settings | `[x]` 9/9 |
-| 7 | Сборка и smoke | `[ ]` 2/4 |
+| 7 | Сборка и smoke (macOS) | `[x]` 2/4 |
+| 8 | v1.1 polish | `[~]` 3/6 |
 
 ---
 
@@ -108,13 +109,13 @@
 
 ### 1.4 App shell (Wails, не jsonapi)
 
-- [ ] **1.4.1** `GetKnownRepos` / `GetCurrentRepoPath`
-- [ ] **1.4.2** `AddKnownRepo` / `RemoveKnownRepo` — [multi-repo.md](./multi-repo.md)
+- [x] **1.4.1** `GetKnownRepos` / `GetCurrentRepoPath`
+- [x] **1.4.2** `AddKnownRepo` / `RemoveKnownRepo` — [multi-repo.md](./multi-repo.md)
 - [x] **1.4.2a** `IsForesterRepository` / `InitRepository` — [init-repository-dialog.md](./init-repository-dialog.md)
-- [ ] **1.4.3** `OpenRepo` — validate `.DFM` + `status.get`
-- [ ] **1.4.4** `SetCurrentRepoPath` — atomic write `setup.cfg`
-- [ ] **1.4.5** `GetRepoUser` / `SetRepoUser` — `[user].name`
-- [ ] **1.4.6** `settings.get` / `settings.save` (partial cfg)
+- [x] **1.4.3** `OpenRepo` — validate `.DFM` + `status.get`
+- [x] **1.4.4** `SetCurrentRepoPath` — atomic write `setup.cfg`
+- [x] **1.4.5** `GetRepoUser` / `SetRepoUser` — `[user].name`
+- [x] **1.4.6** `settings.get` / `settings.save` (partial cfg)
 - [~] **1.4.7** (optional) `commit.get` + `screenshot_base64` для `.blend` stub
 
 **Проверка:** `go test ./internal/jsonapi/...` зелёный; ручной вызов новых методов из тестового handler.
@@ -257,8 +258,8 @@
 - [x] **6.2.1** `SettingsDialog` — large modal — [settings-dialog.md](./settings-dialog.md)
 - [x] **6.2.2** Tab Profile — author name
 - [x] **6.2.3** Tab Repositories — add/remove list
-- [x] **6.2.4** Tab Forester — read-only paths
-- [—] **6.2.5** `[—]` Appearance / External editors → v1.1
+- [x] **6.2.4** Tab Forester — paths (CLI, Blender, addon)
+- [x] **6.2.5** Appearance + External editors — [settings-dialog.md](./settings-dialog.md) (перенесено из v1.1 backlog)
 
 ### 6.3 Доработки
 
@@ -270,26 +271,62 @@
 
 ---
 
-## Фаза 7 — Сборка и smoke
+## Фаза 7 — Сборка и smoke (macOS v1.0)
 
-- [x] **7.1** `wails build` macOS — 2025-06-23
-- [ ] **7.2** `wails build` Windows (CI или ручная машина)
-- [ ] **7.3** Интеграция в `builder/` (опционально v1.0)
-- [ ] **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) (ручная проверка)
+- [x] **7.1** `wails build` macOS
+- [—] **7.2** `wails build` Windows — **отложено**
+- [—] **7.3** Интеграция в `builder/` — **отложено**
+- [ ] **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) (ручная, параллельно с v1.1)
 
 ---
 
-## v1.1 — backlog (не блокирует v1.0)
+## Фаза 8 — v1.1 polish
 
-Отмечать `[x]` только после явного старта v1.1.
+Спеки: [plan.md §v1.1](./plan.md) · [decisions.md §3 OUT](./decisions.md)
 
-- [—] Fully expanded folder tree + virtual scroll
-- [—] Marquee + Shift-range multiselect
+### 8.1 Commit card stats
+
+- [x] **8.1.1** Lazy `diff.stat` per commit — `IntersectionObserver` + cache (`commitStatsCache.ts`)
+- [x] **8.1.2** `CommitCardStats` — строка `N files changed` +/− — [commit-card.md §2.4](./commit-card.md)
+- [x] **8.1.3** Skeleton / hide on error
+
+### 8.2 Commit card ⋮ menu (full)
+
+- [ ] **8.2.1** Compare, Restore version, Revert — [commit-card.md §6](./commit-card.md)
+- [ ] **8.2.2** `AlertDialog` для destructive actions
+- [ ] **8.2.3** Disable Revert на HEAD
+
+### 8.3 Project Preview UX
+
+- [ ] **8.3.1** Virtual scroll для file grid — [decisions.md §7.5](./decisions.md)
+- [ ] **8.3.2** Fully expanded folder tree (опционально vs lazy)
+
+### 8.4 Прочее v1.1
+
+- [x] **8.4.1** Dark theme + Appearance tab
+- [x] **8.4.2** External editors tab + macOS `.app` resolve
+- [x] **8.4.3** Marquee + Shift-range multiselect (базово)
+- [x] **8.4.4** Create branch dialog — [create-branch-dialog.md](./create-branch-dialog.md)
+- [x] **8.4.5** Global errors → Toast (`AppToast`)
+- [—] **8.4.6** Init repository wizard — отложено
+- [—] **8.4.7** Linux build + QA — отложено
+
+**Проверка:** commit cards показывают stats; ⋮ menu с revert/restore; smoke §4–5.
+
+---
+
+## v1.1 — backlog (сводка)
+
+Уже в фазе 8 или закрыто досрочно:
+
 - [x] Real thumbnails (images + `.blend` workdir cache)
-- [—] Dark theme + Appearance tab
-- [—] External editors tab
-- [—] `diff.stat` на commit cards
-- [—] Commit card full ⋮ menu (destructive)
+- [x] Dark theme + Appearance tab
+- [x] External editors tab
+- [x] Marquee + Shift-range multiselect (базово)
+- [x] Create branch (GUI)
+- [ ] `diff.stat` на commit cards → **8.1** `[x]`
+- [ ] Commit card full ⋮ menu → **8.2**
+- [ ] Virtual scroll + expanded tree → **8.3**
 - [—] Init repository wizard
 - [—] Linux build + QA
 
@@ -301,7 +338,8 @@
 - [—] Fs watcher
 - [—] Rename `R` в diff
 - [—] Detached HEAD UI
-- [—] Branch create/delete в GUI
+- [x] Branch create (GUI) — [create-branch-dialog.md](./create-branch-dialog.md)
+- [—] Branch delete (GUI)
 
 ---
 
@@ -314,3 +352,4 @@
 | 2025-06-23 | 7 | shadcn migration; 3-panel resize + persist | Smoke checklist · toolbar polish |
 | 2025-06-23 | 3 + 7 | Project toolbar; `workdir.search` API | Smoke checklist |
 | 2025-06-23 | 6 + 7 | Corner cases; smoke-checklist.md; wails build | Ручной smoke |
+| 2025-06-24 | 7→8 | Windows/Linux build отложены; v1.0 macOS scope закрыт | **8.1** commit card stats |

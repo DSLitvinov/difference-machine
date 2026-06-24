@@ -3,6 +3,7 @@ import { Copy, GitBranch, GitMerge, MoreVertical } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CommitCardStats } from "@/components/sidebar/CommitCardStats";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,6 +79,7 @@ export function CommitCard({ commit, selected, focused = false, isHead, onSelect
         {description ? (
           <p className="line-clamp-2 h-8 text-xs text-muted-foreground">Description: {description}</p>
         ) : null}
+        <CommitCardStats commit={commit} />
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="font-normal">
             {formatRelativeTime(commit.timestamp)}
