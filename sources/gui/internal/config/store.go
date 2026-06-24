@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/difference-machine/gui/internal/paths"
 )
@@ -17,6 +18,7 @@ const cfgFileName = "setup.cfg"
 
 // Store reads and writes the user-level ~/.dfm/setup.cfg file.
 type Store struct {
+	mu   sync.RWMutex
 	path string
 	data map[string]map[string]string
 }
@@ -45,6 +47,9 @@ func (s *Store) Path() string {
 
 // Load reads setup.cfg from disk.
 func (s *Store) Load() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.data = make(map[string]map[string]string)
 
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o755); err != nil {
@@ -111,6 +116,12 @@ func quoteIfNeeded(value string) string {
 
 // Get returns a config value.
 func (s *Store) Get(section, key string) string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.getUnlocked(section, key)
+}
+
+func (s *Store) getUnlocked(section, key string) string {
 	if sec, ok := s.data[section]; ok {
 		return sec[key]
 	}
@@ -119,6 +130,12 @@ func (s *Store) Get(section, key string) string {
 
 // Set updates a config value in memory.
 func (s *Store) Set(section, key, value string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked(section, key, value)
+}
+
+func (s *Store) setUnlocked(section, key, value string) {
 	if s.data[section] == nil {
 		s.data[section] = make(map[string]string)
 	}
@@ -127,6 +144,12 @@ func (s *Store) Set(section, key, value string) {
 
 // Save writes setup.cfg atomically.
 func (s *Store) Save() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.saveUnlocked()
+}
+
+func (s *Store) saveUnlocked() error {
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o755); err != nil {
 		return err
 	}
@@ -174,12 +197,14 @@ func (s *Store) SetCurrentRepoPath(path string) error {
 	if err != nil {
 		return err
 	}
-	s.Set("current repo", "path", canonical)
-	return s.Save()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked("current repo", "path", canonical)
+	return s.saveUnlocked()
 }
 
-// KnownRepos returns repository paths from [repo] ordered by path_N suffix.
-func (s *Store) KnownRepos() ([]string, error) {
+// knownReposUnlocked returns repository paths from [repo] ordered by path_N suffix.
+func (s *Store) knownReposUnlocked() ([]string, error) {
 	sec := s.data["repo"]
 	if len(sec) == 0 {
 		return nil, nil
@@ -218,6 +243,13 @@ func (s *Store) KnownRepos() ([]string, error) {
 	return out, nil
 }
 
+// KnownRepos returns repository paths from [repo] ordered by path_N suffix.
+func (s *Store) KnownRepos() ([]string, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.knownReposUnlocked()
+}
+
 // AddKnownRepo appends a repository path or switches to an existing one.
 func (s *Store) AddKnownRepo(path string) error {
 	canonical, err := paths.CanonicalAbsPath(path)
@@ -225,13 +257,17 @@ func (s *Store) AddKnownRepo(path string) error {
 		return err
 	}
 
-	repos, err := s.KnownRepos()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	repos, err := s.knownReposUnlocked()
 	if err != nil {
 		return err
 	}
 	for _, existing := range repos {
 		if paths.SamePath(existing, canonical) {
-			return s.SetCurrentRepoPath(canonical)
+			s.setUnlocked("current repo", "path", canonical)
+			return s.saveUnlocked()
 		}
 	}
 
@@ -248,11 +284,12 @@ func (s *Store) AddKnownRepo(path string) error {
 		}
 	}
 
-	s.Set("repo", fmt.Sprintf("path_%d", next), canonical)
-	if err := s.Save(); err != nil {
+	s.setUnlocked("repo", fmt.Sprintf("path_%d", next), canonical)
+	if err := s.saveUnlocked(); err != nil {
 		return err
 	}
-	return s.SetCurrentRepoPath(canonical)
+	s.setUnlocked("current repo", "path", canonical)
+	return s.saveUnlocked()
 }
 
 // RemoveKnownRepo removes a path from [repo].
@@ -262,26 +299,30 @@ func (s *Store) RemoveKnownRepo(path string) error {
 		return err
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	sec := s.data["repo"]
 	for key, value := range sec {
 		if paths.SamePath(value, canonical) {
 			delete(sec, key)
 		}
 	}
-	if err := s.Save(); err != nil {
+	if err := s.saveUnlocked(); err != nil {
 		return err
 	}
 
-	if paths.SamePath(s.CurrentRepoPath(), canonical) {
-		repos, err := s.KnownRepos()
+	if paths.SamePath(s.getUnlocked("current repo", "path"), canonical) {
+		repos, err := s.knownReposUnlocked()
 		if err != nil {
 			return err
 		}
 		if len(repos) > 0 {
-			return s.SetCurrentRepoPath(repos[0])
+			s.setUnlocked("current repo", "path", repos[0])
+			return s.saveUnlocked()
 		}
-		s.Set("current repo", "path", "")
-		return s.Save()
+		s.setUnlocked("current repo", "path", "")
+		return s.saveUnlocked()
 	}
 	return nil
 }
@@ -298,12 +339,17 @@ func (s *Store) UserName() string {
 
 // SetUserName updates [user].name.
 func (s *Store) SetUserName(name string) error {
-	s.Set("user", "name", strings.TrimSpace(name))
-	return s.Save()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked("user", "name", strings.TrimSpace(name))
+	return s.saveUnlocked()
 }
 
 // SetKnownReposList replaces [repo] with an ordered deduplicated list.
 func (s *Store) SetKnownReposList(repoPaths []string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.data["repo"] = make(map[string]string)
 	seen := make(map[string]struct{})
 	idx := 1
@@ -316,10 +362,10 @@ func (s *Store) SetKnownReposList(repoPaths []string) error {
 			continue
 		}
 		seen[canonical] = struct{}{}
-		s.Set("repo", fmt.Sprintf("path_%d", idx), canonical)
+		s.setUnlocked("repo", fmt.Sprintf("path_%d", idx), canonical)
 		idx++
 	}
-	return s.Save()
+	return s.saveUnlocked()
 }
 
 // Language returns [gui].language or "en".
@@ -332,8 +378,10 @@ func (s *Store) Language() string {
 
 // SetLanguage updates [gui].language.
 func (s *Store) SetLanguage(lang string) error {
-	s.Set("gui", "language", strings.TrimSpace(lang))
-	return s.Save()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked("gui", "language", strings.TrimSpace(lang))
+	return s.saveUnlocked()
 }
 
 // GUITheme returns [gui].theme or "light".
@@ -360,9 +408,11 @@ func (s *Store) SetAppearance(theme, font string) error {
 	if font == "" {
 		font = "inter"
 	}
-	s.Set("gui", "theme", theme)
-	s.Set("gui", "font", font)
-	return s.Save()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked("gui", "theme", theme)
+	s.setUnlocked("gui", "font", font)
+	return s.saveUnlocked()
 }
 
 // BlenderPath returns [blender].path.
@@ -375,8 +425,8 @@ func (s *Store) AddonPath() string {
 	return s.Get("addons", "diffmachine_path")
 }
 
-// OrderedPathList returns path_N entries from a config section in numeric order.
-func (s *Store) OrderedPathList(section string) ([]string, error) {
+// orderedPathListUnlocked returns path_N entries from a config section in numeric order.
+func (s *Store) orderedPathListUnlocked(section string) ([]string, error) {
 	sec := s.data[section]
 	if len(sec) == 0 {
 		return nil, nil
@@ -415,8 +465,18 @@ func (s *Store) OrderedPathList(section string) ([]string, error) {
 	return out, nil
 }
 
+// OrderedPathList returns path_N entries from a config section in numeric order.
+func (s *Store) OrderedPathList(section string) ([]string, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.orderedPathListUnlocked(section)
+}
+
 // SetOrderedPathList replaces path_N keys in a section with an ordered deduplicated list.
 func (s *Store) SetOrderedPathList(section string, pathList []string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	s.data[section] = make(map[string]string)
 	seen := make(map[string]struct{})
 	idx := 1
@@ -432,10 +492,10 @@ func (s *Store) SetOrderedPathList(section string, pathList []string) error {
 			continue
 		}
 		seen[canonical] = struct{}{}
-		s.Set(section, fmt.Sprintf("path_%d", idx), canonical)
+		s.setUnlocked(section, fmt.Sprintf("path_%d", idx), canonical)
 		idx++
 	}
-	return s.Save()
+	return s.saveUnlocked()
 }
 
 // GUIEditors returns configured external editor executables.
@@ -462,27 +522,18 @@ func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
 	} else if info.IsDir() {
 		return fmt.Errorf("Forester CLI must be a file")
 	}
-	s.Set("forester", "path", cliCanonical)
 
+	var blenderCanonical string
 	if blenderPath != "" {
-		blenderCanonical, err := paths.CanonicalAbsPath(blenderPath)
+		blenderCanonical, err = paths.ResolveExecutablePath(blenderPath)
 		if err != nil {
-			return err
-		}
-		if info, err := os.Stat(blenderCanonical); err != nil {
 			return fmt.Errorf("Blender executable not found: %w", err)
-		} else if info.IsDir() {
-			return fmt.Errorf("Blender executable must be a file")
-		}
-		s.Set("blender", "path", blenderCanonical)
-	} else {
-		if sec := s.data["blender"]; sec != nil {
-			delete(sec, "path")
 		}
 	}
 
+	var addonCanonical string
 	if addonPath != "" {
-		addonCanonical, err := paths.CanonicalAbsPath(addonPath)
+		addonCanonical, err = paths.CanonicalAbsPath(addonPath)
 		if err != nil {
 			return err
 		}
@@ -493,12 +544,24 @@ func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
 		if !info.IsDir() {
 			return fmt.Errorf("Blender addon path must be a directory")
 		}
-		s.Set("addons", "diffmachine_path", addonCanonical)
-	} else {
-		if sec := s.data["addons"]; sec != nil {
-			delete(sec, "diffmachine_path")
-		}
 	}
 
-	return s.Save()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.setUnlocked("forester", "path", cliCanonical)
+
+	if blenderPath != "" {
+		s.setUnlocked("blender", "path", blenderCanonical)
+	} else if sec := s.data["blender"]; sec != nil {
+		delete(sec, "path")
+	}
+
+	if addonPath != "" {
+		s.setUnlocked("addons", "diffmachine_path", addonCanonical)
+	} else if sec := s.data["addons"]; sec != nil {
+		delete(sec, "diffmachine_path")
+	}
+
+	return s.saveUnlocked()
 }

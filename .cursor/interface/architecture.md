@@ -344,18 +344,18 @@ interface SidebarEvents {
 ### 6.2 Путь не является Forester repo
 
 - При **Add repository** / folder picker: [init-repository-dialog.md](./init-repository-dialog.md).
-- **Cancel** → `not a Forester repository` в error state.
+- **Cancel** → `not a Forester repository` в `appStore.error`; toast destructive (`AppToast`), **не** в Sidebar.
 - **Create** → `repo.init` + добавление в список.
-- При открытии уже добавленного битого пути: `status.get` → error `not a Forester repository`; banner + **Re-open…**.
+- При открытии уже добавленного битого пути: `status.get` → error `not a Forester repository`; toast + **Re-open…**.
 
 ### 6.3 Repo root недоступен
 
 - Диск отмонтирован / нет прав / path deleted.
-- `error` в state; список пуст; кнопка «Re-open».
+- `error` в state; список пуст; toast + **Re-open…**.
 
 ### 6.4 Forester API / Wails binding недоступен
 
-- Skeleton → error banner «Forester unavailable».
+- `foresterError` → toast «Forester unavailable» + **Re-open** / **Retry** (`AppToast`).
 - Retry по кнопке.
 
 ### 6.5 Конкурентные изменения на диске

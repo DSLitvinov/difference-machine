@@ -299,6 +299,8 @@ export const treeRowStateClasses = {
 | Диалоги (Settings, Create commit) | `Dialog` (`@radix-ui/react-dialog`) |
 | Подтверждения (revert, dirty branch) | `ConfirmAlertDialog` → `AlertDialog` |
 | Переключатель Changed (sidebar) | `Switch` + `Label` |
+| **Toast** (`AppToast`) | `fixed bottom-4 right-4`; notice — auto-dismiss 4s; errors — destructive, manual dismiss |
+| **`Alert`** | Inline callout ([Figma `162:2550`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=162-2550)) — preview panels, warnings; **не** для глобальных ошибок |
 | Layout toggle (text/image diff) | `ToggleGroup` + `ToggleGroupItem` |
 | Opacity slider (image overlay) | `Slider` |
 | Commit date chip | `Badge variant="secondary"` |

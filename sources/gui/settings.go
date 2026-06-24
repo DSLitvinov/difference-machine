@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/difference-machine/gui/internal/paths"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -130,14 +129,9 @@ func (a *App) SaveSettingsEditors(editorPaths []string) error {
 		if path == "" {
 			continue
 		}
-		abs, err := paths.CanonicalAbsPath(path)
+		abs, err := paths.ResolveExecutablePath(path)
 		if err != nil {
-			return err
-		}
-		if info, err := os.Stat(abs); err != nil {
-			return fmt.Errorf("editor not found: %s", abs)
-		} else if info.IsDir() {
-			return fmt.Errorf("editor must be a file: %s", abs)
+			return fmt.Errorf("editor not found: %w", err)
 		}
 		canonical = append(canonical, abs)
 	}

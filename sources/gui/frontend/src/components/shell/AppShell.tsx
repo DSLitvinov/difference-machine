@@ -10,8 +10,7 @@ import {
 import { HistorySidebarPanel } from "@/components/sidebar/HistorySidebarPanel";
 import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
-import { ForesterErrorBanner } from "@/components/shell/ForesterErrorBanner";
-import { AppNotice } from "@/components/shell/AppNotice";
+import { AppToast } from "@/components/shell/AppToast";
 import { PanelResizeHandle } from "@/components/shell/PanelResizeHandle";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
 import { usePanelLayout } from "@/hooks/usePanelLayout";
@@ -93,7 +92,6 @@ export function AppShell() {
         className="flex min-h-0 shrink-0 flex-col bg-background"
         style={{ width: previewWidth, minWidth: PREVIEW_MIN }}
       >
-        <ForesterErrorBanner />
         {loading && !repoPath ? (
           <PlaceholderPanel title="Loading" subtitle="Opening repository…" />
         ) : sidebarMode === "project" ? (
@@ -127,7 +125,7 @@ export function AppShell() {
         </Button>
       ) : null}
 
-      <AppNotice />
+      <AppToast />
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </div>
   );
