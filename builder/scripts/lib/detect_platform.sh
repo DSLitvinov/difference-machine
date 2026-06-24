@@ -25,7 +25,7 @@ detect_platform() {
             CURRENT_OS="windows"
             FORESTER_CLI_NAME="forester.exe"
             API_LIB_NAME="forester.dll"
-            DEFAULT_PREFIX="C:\\Program Files\\DiffMachine"
+            DEFAULT_PREFIX="C:\\Program Files\\Difference Machine"
             GUI_WAILS_OUTPUT="difference-machine"
             GUI_STAGE_NAME="difference-machine.exe"
             GUI_RELEASE_ARCHIVE_EXT="zip"

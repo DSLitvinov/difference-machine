@@ -38,9 +38,9 @@
 
 `PATH` += `$(go env GOPATH)/bin`.
 
-**Forester runtime:** `./builder/build.sh --write-local-config` → `~/dfm_distr/bin/forester`. Blender не нужен.
+**Forester runtime:** `./builder/macos/build.sh --write-local-config` → `builder/dist/payload/bin/forester`. Blender не нужен.
 
-**Сборка GUI:** `./builder/build.sh --gui` → `~/dfm_distr/apps/*.app` (macOS). **Release DMG:** `./builder/build.sh --dmg` → `builder/dist/DifferenceMachine-*-macos.dmg` — [macos-installer.md](./macos-installer.md).
+**Сборка GUI:** `./builder/macos/build.sh --gui` → `builder/dist/payload/apps/`. **Release DMG:** `./builder/macos/build.sh --dmg` → `builder/dist/DifferenceMachine-*-macos.dmg` — [macos-installer.md](./macos-installer.md).
 
 ---
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copy addons into the distribution target directory.
 # Usage: copy_addons.sh [TARGET_DIR]
-# Default TARGET_DIR: ${HOME}/dfm_distr
+# Default TARGET_DIR: DFM_DIST (builder/dist/payload)
 
 set -euo pipefail
 
@@ -13,7 +13,15 @@ ADDONS_SOURCE="${SOURCES_DIR}/addons"
 if [ ! -d "${ADDONS_SOURCE}" ]; then
     ADDONS_SOURCE="${PROJECT_ROOT}/addons"
 fi
-TARGET_DIR="${1:-${HOME}/dfm_distr}"
+
+if [ -n "${1:-}" ]; then
+    TARGET_DIR="$1"
+else
+    # shellcheck source=lib/dfm_dist.sh
+    . "${SCRIPT_DIR}/lib/dfm_dist.sh"
+    ensure_dfm_dist "${BUILDER_DIR}"
+    TARGET_DIR="${DFM_DIST}"
+fi
 
 echo "=== Copy addons ==="
 echo "Source: ${ADDONS_SOURCE}"

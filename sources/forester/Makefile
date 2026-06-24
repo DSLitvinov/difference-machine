@@ -3,7 +3,7 @@
 # Build variables
 BINARY_NAME=forester
 BUILD_DIR=build
-VERSION?=0.7.5
+VERSION?=0.8
 BUILD_TIME=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
 GIT_COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 

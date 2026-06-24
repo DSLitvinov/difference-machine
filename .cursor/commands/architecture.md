@@ -127,11 +127,12 @@ difference-machine/
 │   └── setup.py                       # Установочный скрипт
 │
 ├── builder/                           # Сборка дистрибутива (payload)
-│   ├── build.sh                       # Полная сборка → ~/dfm_distr
+│   ├── build.sh                       # Delegate → macos|linux|windows/build.sh
+│   ├── dist/payload/                  # Сборка forester, addon, API, GUI
 │   ├── setup.cfg.template             # Шаблон конфига для установщика
 │   └── scripts/
 │       ├── build_forester.sh          # Forester CLI + API → .staging/
-│       ├── stage_dist.sh              # Сборка dfm_distr (forester, addon, API)
+│       ├── stage_dist.sh              # Stage → builder/dist/payload
 │       ├── copy_addons.sh             # Копирование addons/
 │       └── lib/detect_platform.sh     # Определение платформы
 │

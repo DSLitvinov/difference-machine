@@ -28,10 +28,6 @@ create_macos_app_bundle() {
 }
 
 # create_forester_console_app APP_DIR REAL_FORESTER_BINARY_PATH
-# Builds Forester.app:
-#   Resources/forester       real CLI binary
-#   Resources/bin/forester   PATH-friendly wrapper (VS Code / Docker pattern)
-#   MacOS/Forester           GUI launcher → Terminal or exec
 create_forester_console_app() {
     local app_dir="$1"
     local forester_bin="$2"
@@ -91,7 +87,6 @@ run_forester() {
 }
 
 open_terminal_session() {
-    # Add Resources/bin to PATH (same approach as VS Code "Install shell command").
     osascript - "$FORESTER_BIN_DIR" <<'APPLESCRIPT' || return 1
 on run argv
     set binDir to item 1 of argv
@@ -106,12 +101,10 @@ if [ "$#" -gt 0 ]; then
     run_forester "$@"
 fi
 
-# Finder / Dock / open Forester.app (no args): interactive Terminal
 if open_terminal_session; then
     exit 0
 fi
 
-# Fallback if Automation/Terminal is blocked (e.g. osascript denied)
 TMP_SCRIPT="$(mktemp -t forester-cli.XXXXXX).command"
 cat > "${TMP_SCRIPT}" <<SCRIPT
 #!/bin/bash

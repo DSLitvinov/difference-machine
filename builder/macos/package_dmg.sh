@@ -8,19 +8,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/detect_platform.sh
-. "${SCRIPT_DIR}/lib/detect_platform.sh"
+PLATFORM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BUILDER_DIR="$(cd "${PLATFORM_DIR}/.." && pwd)"
+SCRIPTS_DIR="${BUILDER_DIR}/scripts"
 
-detect_platform
+# shellcheck source=../scripts/lib/dfm_dist.sh
+. "${SCRIPTS_DIR}/lib/dfm_dist.sh"
+ensure_dfm_dist "${BUILDER_DIR}"
 
-if [ "${CURRENT_OS}" != "macos" ]; then
-    echo -e "${RED}DMG packaging is macOS only (current: ${CURRENT_OS}).${NC}" >&2
-    exit 1
-fi
-
-BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DFM_DIST="${DFM_DIST:-${HOME}/dfm_distr}"
 DIST_DIR="${BUILDER_DIR}/dist"
 STAGING="${BUILDER_DIR}/.staging/macos_installer"
 INSTALL_FOLDER_NAME="${INSTALL_FOLDER_NAME:-Difference Machine}"
@@ -39,7 +34,7 @@ echo "Output: ${DMG_PATH}"
 echo ""
 
 if [ ! -d "${DFM_DIST}/apps" ]; then
-    echo -e "${RED}GUI app not found. Build with: ./builder/build.sh --gui${NC}" >&2
+    echo -e "${RED}GUI app not found. Build with: ./builder/macos/build.sh --gui${NC}" >&2
     exit 1
 fi
 
@@ -53,7 +48,7 @@ fi
 GUI_SRC="${GUI_APPS[0]}"
 
 echo "=== Forester.app ==="
-OUT_DIR="${STAGING}" bash "${SCRIPT_DIR}/wrap_forester_app.sh"
+OUT_DIR="${STAGING}" bash "${PLATFORM_DIR}/wrap_forester_app.sh"
 
 echo ""
 echo "=== DMG layout ==="
@@ -71,7 +66,7 @@ if [ ! -d "${DFM_DIST}/${ADDON_REL}" ]; then
 fi
 ADDON_ZIP_REL="addons/blender/difference_machine.zip"
 mkdir -p "${INSTALL_DIR}/addons/blender"
-ADDON_ZIP_PATH="$("${SCRIPT_DIR}/package_blender_addon_zip.sh" "${DFM_DIST}/${ADDON_REL}" "${INSTALL_DIR}/${ADDON_ZIP_REL}")"
+"${SCRIPTS_DIR}/package_blender_addon_zip.sh" "${DFM_DIST}/${ADDON_REL}" "${INSTALL_DIR}/${ADDON_ZIP_REL}"
 echo -e "${GREEN}✓ ${ADDON_ZIP_REL}${NC}"
 
 cat > "${DMG_LAYOUT}/README.txt" << EOF
@@ -128,14 +123,6 @@ rm -rf "${DMG_LAYOUT}"
 
 echo ""
 echo -e "${GREEN}✓ DMG ready: ${DMG_PATH}${NC}"
-echo ""
-echo "DMG contents:"
-echo "  README.txt"
-echo "  Applications →"
-echo "  ${INSTALL_FOLDER_NAME}/"
-echo "    ${GUI_APP_NAME}"
-echo "    Forester.app"
-echo "    addons/blender/difference_machine.zip"
 echo ""
 echo "Install path: /Applications/${INSTALL_FOLDER_NAME}/"
 echo -e "${YELLOW}Note: Code signing and notarization are not applied by this script.${NC}"

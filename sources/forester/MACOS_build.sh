@@ -73,7 +73,7 @@ echo "=== Сборка проекта ==="
 mkdir -p "${BUILD_DIR}"
 
 # Build with version
-VERSION="${VERSION:-0.7.5}"
+VERSION="${VERSION:-0.8}"
 BUILD_TIME=$(date -u '+%Y-%m-%d_%H:%M:%S')
 GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 

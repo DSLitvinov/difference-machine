@@ -46,7 +46,7 @@ func TestToolchainAtRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, ok := toolchainAtRoot(root)
+	got, ok := macToolchainAtRoot(root)
 	if !ok {
 		t.Fatal("expected valid layout")
 	}

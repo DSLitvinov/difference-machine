@@ -54,7 +54,7 @@ assemble_portable_install_dir() {
 
     if ! resolve_gui_artifact "${dfm_dist}"; then
         echo "GUI artifact not found under ${dfm_dist}/apps" >&2
-        echo "Build with: ./builder/build.sh --gui" >&2
+        echo "Build with: ./builder/macos/build.sh --gui or ./builder/windows/build.sh --gui" >&2
         return 1
     fi
 

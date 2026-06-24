@@ -7,6 +7,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/detect_platform.sh
 . "${SCRIPT_DIR}/lib/detect_platform.sh"
+# shellcheck source=lib/zip_archive.sh
+. "${SCRIPT_DIR}/lib/zip_archive.sh"
+
 detect_platform
 
 BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
@@ -34,11 +37,7 @@ find "${STAGING_ZIP}" \
     \( -name '__pycache__' -o -name '.git' -o -name '.DS_Store' -o -name '*.pyc' -o -name '*.pyo' \) \
     -print -prune -exec rm -rf {} + 2>/dev/null || true
 
-rm -f "${OUTPUT_ZIP}"
-(
-    cd "${STAGING_ZIP}"
-    zip -r -q "${OUTPUT_ZIP}" "${ADDON_ID}"
-)
+create_zip_archive "${OUTPUT_ZIP}" "${STAGING_ZIP}/${ADDON_ID}"
 rm -rf "${STAGING_ZIP}"
 
 echo "${OUTPUT_ZIP}"

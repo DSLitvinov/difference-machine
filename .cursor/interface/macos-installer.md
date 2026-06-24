@@ -2,7 +2,7 @@
 
 Release packaging for Forester GUI + CLI + Blender addon on macOS.
 
-**Build:** `./builder/build.sh --dmg` → `builder/dist/DifferenceMachine-<version>-macos.dmg`  
+**Build:** `./builder/macos/build.sh --dmg` → `builder/dist/DifferenceMachine-<version>-macos.dmg`  
 **Builder docs:** [builder/README.md](../../builder/README.md)
 
 ---

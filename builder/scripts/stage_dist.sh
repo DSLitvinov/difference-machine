@@ -1,5 +1,5 @@
 #!/bin/bash
-# Assemble distribution payload: forester, API, Blender addon → DFM_DIST (default ~/dfm_distr)
+# Assemble distribution payload: forester, API, Blender addon → DFM_DIST (default builder/dist/payload)
 
 set -euo pipefail
 
@@ -11,12 +11,14 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/detect_platform.sh
 . "${SCRIPT_DIR}/lib/detect_platform.sh"
+# shellcheck source=lib/dfm_dist.sh
+. "${SCRIPT_DIR}/lib/dfm_dist.sh"
 detect_platform
 
 BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
+ensure_dfm_dist "${BUILDER_DIR}"
 STAGING_DIR="${BUILDER_DIR}/.staging/forester"
-DFM_DIST="${DFM_DIST:-${HOME}/dfm_distr}"
 BUILD_GUI="${BUILD_GUI:-false}"
 STAGING_GUI="${BUILDER_DIR}/.staging/gui"
 
@@ -161,7 +163,7 @@ ${MANIFEST_COMPONENTS}
 EOF
 
 cat > "${DFM_DIST}/README.txt" << 'EOF'
-Difference Machine distribution payload (dfm_distr)
+Difference Machine distribution payload
 
 This folder is a self-contained build output. A separate installer will
 copy forester and the Blender addon to system paths.
@@ -172,9 +174,10 @@ Layout:
   addons/  Blender addon (API embedded in addons/blender/difference_machine/api/)
   apps/    Difference Machine GUI (macOS .app, Linux binary, Windows .exe when built with --gui)
 
-macOS release DMG: ./builder/build.sh --dmg → builder/dist/DifferenceMachine-<version>-macos.dmg
-Linux release:     ./builder/build.sh --tar → builder/dist/DifferenceMachine-<version>-linux.tar.gz
-Windows release:   ./builder/build.sh --zip → builder/dist/DifferenceMachine-<version>-windows.zip
+macOS release DMG: ./builder/macos/build.sh --dmg
+Linux release:     ./builder/linux/build.sh --tar
+Windows installer: ./builder/windows/build.sh --installer
+Windows portable:  ./builder/windows/build.sh --zip
 
 Developer setup (manual):
   1. Add bin/ to PATH, or run bin/forester directly.
@@ -184,7 +187,7 @@ Developer setup (manual):
        Windows: %APPDATA%\Blender Foundation\Blender\<version>\extensions\user_default\difference_machine
   3. Use setup.cfg.template as a reference for ~/.dfm/setup.cfg after install.
 
-Build again: ./builder/build.sh from the project root.
+Build again: ./builder/macos/build.sh | ./builder/linux/build.sh | ./builder/windows/build.sh
 EOF
 
 echo -e "${GREEN}✓ manifest.json, setup.cfg.template, README.txt${NC}"

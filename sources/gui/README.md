@@ -15,13 +15,14 @@ wails dev
 From the project root (recommended):
 
 ```bash
-./builder/build.sh --gui
-# Output: ~/dfm_distr/apps/ (platform-specific GUI artifact)
+./builder/macos/build.sh --gui
+# Output: builder/dist/payload/apps/
 
-./builder/build.sh --release
-# macOS: builder/dist/DifferenceMachine-<version>-macos.dmg
-# Linux: builder/dist/DifferenceMachine-<version>-linux.tar.gz
-# Windows: builder/dist/DifferenceMachine-<version>-windows.zip
+./builder/macos/build.sh --dmg
+# builder/dist/DifferenceMachine-<version>-macos.dmg
+
+./builder/windows/build.sh --installer
+# builder/dist/DifferenceMachine-<version>-windows-setup.exe
 ```
 
 Native menu spec: [.cursor/interface/application-menu.md](../../.cursor/interface/application-menu.md)
@@ -51,4 +52,4 @@ sources/gui/
 
 Forester JSON API: `github.com/difference-machine/forester/pkg/jsonapi`
 
-Release macOS DMG: `../../builder/build.sh --dmg` from repo root. See [macos-installer.md](../../.cursor/interface/macos-installer.md).
+Release: [macos-installer.md](../../.cursor/interface/macos-installer.md) · [windows-installer.md](../../.cursor/interface/windows-installer.md)

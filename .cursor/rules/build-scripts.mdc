@@ -1,5 +1,5 @@
 ---
-description: Conventions for builder shell scripts (dfm_distr pipeline)
+description: Conventions for builder shell scripts (distribution pipeline)
 globs: builder/**/*
 alwaysApply: false
 ---
@@ -8,14 +8,14 @@ alwaysApply: false
 
 ## Purpose
 
-Build scripts produce a **distribution payload** at `DFM_DIST` (default `~/dfm_distr`). They do not install into system paths, Blender, or write `~/.dfm/setup.cfg` unless explicitly requested (`--write-local-config`).
+Build scripts produce a **distribution payload** at `DFM_DIST` (default `builder/dist/payload`). They do not install into system paths, Blender, or write `~/.dfm/setup.cfg` unless explicitly requested (`--write-local-config`).
 
-A future installer reads `manifest.json` from the payload and performs system installation.
+Platform installers (DMG, tar.gz, NSIS) live under `builder/macos/`, `builder/linux/`, `builder/windows/`.
 
 ## Layout contract
 
 ```
-dfm_distr/
+builder/dist/payload/
 ├── bin/           Forester CLI
 ├── lib/           Native API library
 ├── apps/          Forester GUI (macOS .app, Linux binary, Windows .exe, optional --gui)
@@ -26,33 +26,18 @@ dfm_distr/
 └── VERSION
 ```
 
-Do not reintroduce `<os>/forester/` nesting or legacy desktop-app paths in the payload.
+Release artifacts: `builder/dist/DifferenceMachine-*`
 
 ## Script structure
 
-- **Entry point**: `builder/build.sh`
-- **Shared platform detection**: `builder/scripts/lib/detect_platform.sh` (source, do not execute)
-- **Shared PATH setup**: `builder/scripts/lib/setup_dev_path.sh` — `$(go env GOPATH)/bin`, Homebrew on macOS
-- **Staging**: `builder/.staging/forester/` — intermediate only, cleaned by `clean_build.sh`
-- **Comments**: English only (see project-wide rule)
-
-## Conventions
-
-- Use `set -euo pipefail` in new bash scripts.
-- Resolve paths via `SCRIPT_DIR` / `BUILDER_DIR` / `PROJECT_ROOT`; never hardcode user home except `DFM_DIST="${DFM_DIST:-${HOME}/dfm_distr}"`.
-- Forester sources: `sources/forester`, fallback `forester/`.
-- Addons sources: `sources/addons`, fallback `addons/`.
-- Use `detect_platform` for OS name and API library filename (`libforester.so`, `libforester.dylib`, `forester.dll`).
-
-## Adding steps
-
-1. Add a focused script under `builder/scripts/`.
-2. Wire it from `build.sh` in pipeline order: build → stage → optional config → clean.
-3. Update `manifest.json` generation in `stage_dist.sh` if new components are added.
-4. Update `builder/README.md`.
+- **Delegate**: `builder/build.sh` → `builder/{macos,linux,windows}/build.sh`
+- **Payload path**: `builder/scripts/lib/dfm_dist.sh` — `ensure_dfm_dist`
+- **Shared pipeline**: `builder/scripts/lib/build_common.sh`
+- **Staging**: `builder/.staging/` — cleaned by `clean_build.sh`
+- **Comments**: English only
 
 ## Avoid
 
-- OS install scripts (`install.sh`, `install.bat`) in the build pipeline
-- Legacy desktop-app / PyInstaller / ISO build steps
-- Writing absolute paths into files inside the payload (use `setup.cfg.template` placeholders)
+- `~/dfm_distr` or home-directory build outputs
+- Monolithic multi-platform `build.sh` with all flags
+- OS install scripts in the build pipeline

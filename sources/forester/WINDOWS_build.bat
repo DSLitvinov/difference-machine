@@ -96,7 +96,7 @@ echo === Сборка проекта ===
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
 REM Сборка с версией
-if "%VERSION%"=="" set "VERSION=0.7.5"
+if "%VERSION%"=="" set "VERSION=0.8"
 
 REM Получение времени сборки (UTC)
 for /f "delims=" %%i in ('powershell -Command "Get-Date -Format \"yyyy-MM-dd_HH:mm:ss\" -AsUTC"') do set "BUILD_TIME=%%i"

@@ -68,7 +68,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ### 1.1 Предусловия
 
-- [x] **1.1.1** Forester CLI: `~/dfm_distr/bin/forester` (или путь из `setup.cfg`)
+- [x] **1.1.1** Forester CLI: `builder/dist/payload/bin/forester` (или путь из `setup.cfg`)
 - [x] **1.1.2** Тестовый репозиторий с `.DFM/` и ≥1 коммитом
 - [x] **1.1.3** Окно ≥ 1435×720 (Project) / 1081×720 (History)
 
@@ -108,7 +108,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 - [—] **2.1** `wails build` Windows — интеграция в `builder/` (аналог `--gui`)
 - [—] **2.2** Smoke subset на Windows — core §1.2.1–1.2.4 + init dialog
 
-**Проверка:** `.exe` из `dfm_distr`; open repo + diff на тестовом репо.
+**Проверка:** `.exe` из `builder/dist/payload`; open repo + diff на тестовом репо.
 
 ---
 

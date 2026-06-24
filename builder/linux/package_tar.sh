@@ -5,24 +5,23 @@ set -euo pipefail
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 NC='\033[0m'
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/detect_platform.sh
-. "${SCRIPT_DIR}/lib/detect_platform.sh"
-# shellcheck source=lib/release_install_folder.sh
-. "${SCRIPT_DIR}/lib/release_install_folder.sh"
+PLATFORM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BUILDER_DIR="$(cd "${PLATFORM_DIR}/.." && pwd)"
+SCRIPTS_DIR="${BUILDER_DIR}/scripts"
+
+# shellcheck source=../scripts/lib/detect_platform.sh
+. "${SCRIPTS_DIR}/lib/detect_platform.sh"
+# shellcheck source=../scripts/lib/release_install_folder.sh
+. "${SCRIPTS_DIR}/lib/release_install_folder.sh"
+# shellcheck source=../scripts/lib/dfm_dist.sh
+. "${SCRIPTS_DIR}/lib/dfm_dist.sh"
 
 detect_platform
+ensure_dfm_dist "${BUILDER_DIR}"
 
-if [ "${CURRENT_OS}" != "linux" ]; then
-    echo -e "${RED}Linux tar packaging is linux only (current: ${CURRENT_OS}).${NC}" >&2
-    exit 1
-fi
-
-BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DFM_DIST="${DFM_DIST:-${HOME}/dfm_distr}"
+DFM_DIST="${DFM_DIST}"
 DIST_DIR="${BUILDER_DIR}/dist"
 STAGING="${BUILDER_DIR}/.staging/linux_installer"
 INSTALL_FOLDER_NAME="${INSTALL_FOLDER_NAME:-Difference Machine}"
@@ -65,8 +64,6 @@ Contents:
      ln -sf "/opt/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine" \\
        "\$HOME/.config/blender/<version>/extensions/user_default/difference_machine"
 
-   Replace <version> with your Blender version (e.g. 4.2).
-
 3. Launch ${GUI_DEST_NAME} once. It creates ~/.dfm/setup.cfg with paths
    to Forester and the addon in this install folder.
 
@@ -87,11 +84,3 @@ rm -rf "${STAGING}"
 
 echo ""
 echo -e "${GREEN}✓ Archive ready: ${ARCHIVE_PATH}${NC}"
-echo ""
-echo "Archive contents:"
-echo "  ${INSTALL_FOLDER_NAME}/"
-echo "    ${GUI_DEST_NAME}"
-echo "    bin/${FORESTER_CLI_NAME}"
-echo "    lib/${API_LIB_NAME}"
-echo "    addons/blender/difference_machine.zip"
-echo "    README.txt"

@@ -6,9 +6,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/detect_platform.sh
 . "${SCRIPT_DIR}/lib/detect_platform.sh"
+# shellcheck source=lib/dfm_dist.sh
+. "${SCRIPT_DIR}/lib/dfm_dist.sh"
 detect_platform
 
-DFM_DIST="${DFM_DIST:-${HOME}/dfm_distr}"
+BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ensure_dfm_dist "${BUILDER_DIR}"
 CONFIG_DIR="${HOME}/.dfm"
 CONFIG_FILE="${CONFIG_DIR}/setup.cfg"
 

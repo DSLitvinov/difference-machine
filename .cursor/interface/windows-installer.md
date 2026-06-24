@@ -1,0 +1,97 @@
+# Windows installer (NSIS)
+
+Release packaging for Forester GUI + CLI + Blender addon on Windows.
+
+**Build:** `./builder/windows/build.sh --installer` → `builder/dist/DifferenceMachine-<version>-windows-setup.exe`  
+**Portable zip:** `./builder/windows/build.sh --zip`  
+**Builder docs:** [builder/README.md](../../builder/README.md)
+
+---
+
+## 1. Install layout
+
+Default install path (64-bit):
+
+```
+C:\Program Files\Difference Machine\
+├── difference-machine.exe      GUI
+├── bin\forester.exe            Forester CLI
+├── lib\forester.dll            Forester API
+├── addons\blender\
+│   └── difference_machine.zip
+├── README.txt
+└── uninst.exe                  Uninstaller (created by NSIS)
+```
+
+After first launch of **difference-machine.exe**, the addon zip is extracted to `addons\blender\difference_machine\` for `~/.dfm/setup.cfg` bootstrap (same as macOS DMG).
+
+GUI bootstrap resolves install root as the **parent folder** of `difference-machine.exe` (sibling `bin\`, `lib\`, `addons\`).
+
+`manifest.json` `install_defaults.forester_prefix`: `C:\Program Files\Difference Machine`.
+
+---
+
+## 2. NSIS installer
+
+Built by `builder/windows/package_nsis.sh` using `builder/windows/installer.nsi`.
+
+| Feature | Detail |
+|---------|--------|
+| Install dir | `$PROGRAMFILES64\Difference Machine` |
+| Start menu | Shortcut to GUI + Uninstall |
+| Uninstall | Settings → Apps, or Start menu |
+| Admin | `RequestExecutionLevel admin` |
+
+**Requires:** [NSIS](https://nsis.sourceforge.io/Download) (`makensis` on PATH, or default install path).
+
+---
+
+## 3. `%USERPROFILE%\.dfm\setup.cfg`
+
+Created on first launch of **difference-machine.exe** (`internal/install/bootstrap.go`):
+
+```ini
+[forester]
+path = C:\Program Files\Difference Machine\bin\forester.exe
+
+[api]
+path = C:\Program Files\Difference Machine\lib\forester.dll
+
+[addons]
+diffmachine_path = C:\Program Files\Difference Machine\addons\blender\difference_machine
+```
+
+Paths use native Windows separators after `CanonicalAbsPath`.
+
+---
+
+## 4. Forester CLI
+
+| Approach | How |
+|----------|-----|
+| **Direct** | `"C:\Program Files\Difference Machine\bin\forester.exe" status` |
+| **PATH (optional)** | Add `...\Difference Machine\bin` to user PATH |
+
+---
+
+## 5. User steps
+
+1. Run **DifferenceMachine-*-windows-setup.exe** and complete the wizard.
+2. Launch **Difference Machine** from the Start menu once (extracts addon zip, writes `setup.cfg`).
+3. Install Blender addon from **`addons\blender\difference_machine.zip`** (Install from Disk in Blender), or symlink after step 2.
+4. Open Blender and enable the **Difference Machine** extension.
+
+---
+
+## 6. Code signing
+
+`builder/windows/package_nsis.sh` does **not** Authenticode-sign the installer. For distribution outside your machine, sign `*-windows-setup.exe` before release to reduce SmartScreen warnings.
+
+---
+
+## 7. Build commands
+
+```bash
+./builder/windows/build.sh --installer
+./builder/windows/build.sh --zip
+```

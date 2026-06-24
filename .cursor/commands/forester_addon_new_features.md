@@ -1,6 +1,6 @@
 # План добавления новых функций в Forester и Addon
 
-**Версии компонентов:** Forester 0.7.5, Blender Addon 0.7.5.
+**Версии компонентов:** Forester 0.8, Blender Addon 0.8.
 
 ## Обзор
 

@@ -1,4 +1,4 @@
-**Version:** 0.7.5 (Forester, Blender Addon).
+**Version:** 0.8 (Forester, Blender Addon).
 
 ## About
 

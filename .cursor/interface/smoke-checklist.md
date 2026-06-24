@@ -4,7 +4,7 @@
 
 **План:** [implementation-plan-v2.md §1](./implementation-plan-v2.md) · **v1 code:** [implementation-plan.md](./implementation-plan.md) (закрыт)
 
-**Запуск:** dev — `cd sources/gui && wails dev`. Release — install from `./builder/build.sh --dmg` ([macos-installer.md](./macos-installer.md)).
+**Запуск:** dev — `cd sources/gui && wails dev`. Release — install from `./builder/macos/build.sh --dmg` ([macos-installer.md](./macos-installer.md)).
 
 **Связанные документы:** [architecture.md §6](./architecture.md)
 
@@ -14,7 +14,7 @@
 
 ## Предусловия
 
-- [x] Forester CLI собран: `~/dfm_distr/bin/forester` (или путь из `setup.cfg`)
+- [x] Forester CLI собран: `builder/dist/payload/bin/forester` (или путь из `setup.cfg`)
 - [x] Тестовый репозиторий с `.DFM/` и хотя бы одним коммитом — `/Users/nopomuk/Documents/3d_test_anchorpoint` (5 commits)
 - [x] Окно ≥ 1435×720 (Project) / 1081×720 (History) — `main.go` + `layout.ts`
 
@@ -122,7 +122,7 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 ## Сборка
 
-- [x] `./builder/build.sh --dmg` (macOS) — DMG в `builder/dist/` — **v2 §1.5.1**
+- [x] `./builder/macos/build.sh --dmg` (macOS) — DMG в `builder/dist/` — **v2 §1.5.1**
 - [x] DMG install → `~/.dfm/setup.cfg` bootstrap — **v2 §1.5.2** · [macos-installer.md](./macos-installer.md)
 - [—] `wails build` Windows — **v2 фаза 2**
 

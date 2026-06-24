@@ -21,7 +21,7 @@ if [ ! -d "${FORESTER_DIR}" ]; then
 fi
 
 STAGING_DIR="${BUILDER_DIR}/.staging/forester"
-VERSION="${VERSION:-0.7.5}"
+VERSION="${VERSION:-0.8}"
 
 if [ "${CURRENT_OS}" = "unknown" ]; then
     echo -e "${RED}Unsupported platform${NC}"

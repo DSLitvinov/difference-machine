@@ -13,7 +13,7 @@ Build the library from the project root:
 ./builder/build.sh
 ```
 
-The build copies the native library and JSON bindings into the addon automatically. For manual setup, copy from `~/dfm_distr/lib/` (library) and `sources/forester/api/python_bindings_json.py` (into `api/python/`).
+The build copies the native library and JSON bindings into the addon automatically. For manual setup, copy from `builder/dist/payload/lib/` (library) and `sources/forester/api/python_bindings_json.py` (into `api/python/`).
 
 The addon uses the JSON C API (`ForesterOpen` / `ForesterCall`). Python bindings live in `api/python/python_bindings_json.py` and are kept in sync with `sources/forester/api/python_bindings_json.py`.
 
