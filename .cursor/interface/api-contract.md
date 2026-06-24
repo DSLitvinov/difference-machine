@@ -34,7 +34,7 @@ ForesterCall(repoPath: string, method: string, args: object): Promise<unknown>
 | `branch.create` | `git branch <name>` | History **Create new branch…** — [create-branch-dialog.md](./create-branch-dialog.md) |
 | `compare.extract` | worktree extract | Content Info Compare, card menu |
 | `restore.version` | restore whole tree | Card menu «Restore this version» |
-| `lock.list` | — (Forester) | lock badge; check before `restore.file` |
+| `lock.list` | — (Forester) | lock badge (Content Preview + Content Info); check before `restore.file` |
 
 ### 2.1 `status.get` — единственный источник VCS UI
 

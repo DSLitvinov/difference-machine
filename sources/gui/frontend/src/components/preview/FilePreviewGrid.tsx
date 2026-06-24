@@ -17,6 +17,7 @@ interface FilePreviewGridProps {
   thumbScale: number;
   scrollElement: HTMLElement | null;
   vcsStatusFor: (path: string) => VcsFileStatus | null;
+  lockUserFor?: (path: string) => string | null;
   subtitleFor?: (entry: DirEntry) => string | undefined;
   onOpen: (path: string) => void;
   onNearEnd?: () => void;
@@ -28,6 +29,7 @@ export function FilePreviewGrid({
   thumbScale,
   scrollElement,
   vcsStatusFor,
+  lockUserFor,
   subtitleFor,
   onOpen,
   onNearEnd,
@@ -138,6 +140,7 @@ export function FilePreviewGrid({
                     subtitle={subtitleFor?.(entry)}
                     selected={selectedFilePaths.includes(entry.path)}
                     vcsStatus={vcsStatusFor(entry.path)}
+                    lockUser={lockUserFor?.(entry.path) ?? null}
                     onSelect={(event) => handleFileSelect(entry.path, event)}
                     onOpen={() => onOpen(entry.path)}
                   />

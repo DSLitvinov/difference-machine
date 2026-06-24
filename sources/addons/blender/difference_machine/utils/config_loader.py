@@ -17,8 +17,24 @@ def _get_addon_api_dir() -> Path:
     return get_addon_root() / "api"
 
 
+def _normalize_existing_file(path: Optional[str]) -> Optional[str]:
+    if not path:
+        return None
+    cleaned = path.strip().strip('"').strip("'")
+    if not cleaned:
+        return None
+    candidate = Path(cleaned)
+    if candidate.is_file():
+        return str(candidate.absolute())
+    return None
+
+
 def get_api_library_path() -> Optional[str]:
-    """Forester native API library from addon api/ directory."""
+    """Forester native API library from ~/.dfm/setup.cfg or addon api/."""
+    configured = _normalize_existing_file(get_config_value("api", "path"))
+    if configured:
+        return configured
+
     api_dir = _get_addon_api_dir()
     if not api_dir.exists():
         return None

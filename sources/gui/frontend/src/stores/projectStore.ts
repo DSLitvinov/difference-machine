@@ -44,6 +44,7 @@ interface ProjectState {
   folderTree: FolderNode | null;
   status: StatusPayload | null;
   committable: string[];
+  lockedByPath: Record<string, string>;
   previewGeneration: number;
   sortLocale: SortLocale;
   thumbScale: ThumbScalePx;
@@ -71,6 +72,7 @@ interface ProjectState {
   setFolderTree: (tree: FolderNode | null) => void;
   mergeFolderChildren: (path: string, children: FolderNode[]) => void;
   setStatus: (status: StatusPayload | null) => void;
+  setLocks: (lockedByPath: Record<string, string>) => void;
   bumpPreviewGeneration: () => void;
   setSortLocale: (locale: SortLocale) => void;
   setThumbScale: (px: ThumbScalePx) => void;
@@ -89,6 +91,7 @@ const initialState = {
   folderTree: null as FolderNode | null,
   status: null as StatusPayload | null,
   committable: [] as string[],
+  lockedByPath: {} as Record<string, string>,
   previewGeneration: 0,
   sortLocale: "en-US" as SortLocale,
   thumbScale: DEFAULT_THUMB_SCALE,
@@ -245,6 +248,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         return state;
       }
       return { status, committable, previewGeneration: state.previewGeneration + 1 };
+    }),
+  setLocks: (lockedByPath) =>
+    set((state) => {
+      if (JSON.stringify(state.lockedByPath) === JSON.stringify(lockedByPath)) {
+        return state;
+      }
+      return { lockedByPath };
     }),
   bumpPreviewGeneration: () =>
     set((state) => ({ previewGeneration: state.previewGeneration + 1 })),

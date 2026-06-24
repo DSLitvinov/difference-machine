@@ -11,7 +11,7 @@
 
 ## 1. Назначение
 
-Thumbnail + имя файла + optional VCS status badge. Поддерживает **multiselect** (Ctrl/Cmd, Shift, marquee). Один или несколько selected files → сигнал в Content Info.
+Thumbnail + имя файла + optional VCS status badge + optional lock badge. Поддерживает **multiselect** (Ctrl/Cmd, Shift, marquee). Один или несколько selected files → сигнал в Content Info.
 
 ---
 
@@ -68,6 +68,22 @@ Thumbnail async через `workdir.thumbnail` ([api-contract.md §4.3](./api-co
 
 Стиль badge: `bg-primary text-primary-foreground text-xs font-semibold rounded-full px-3 h-[22px]`.
 
+### 2.3 Lock badge
+
+Показывается **только** если файл присутствует в `lock.list` (`lockedByPath` в project store).
+
+| Поле | Значение |
+|------|----------|
+| Badge text | `lock` |
+| Tooltip | `Locked by {user}` |
+| Стиль | `variant="secondary"`, `h-[22px]`, `rounded-full`, `text-xs font-semibold` |
+| Позиция | По центру снизу thumbnail (Min: `-bottom-1`, Max: `bottom-0`) |
+| Группа | VCS + lock в одном ряду: `flex items-center gap-1` (4px между бейджами), `left-1/2 -translate-x-1/2` |
+
+VCS badge и lock badge независимы: оба могут отображаться одновременно в одной центрированной группе.
+
+Источник данных: `lock.list` при загрузке проекта и в polling (`useProjectStatusPolling`, интервал как у `status.get`).
+
 ---
 
 ## 3. Состояния
@@ -102,6 +118,7 @@ Figma tokens: [design-tokens.md §3.3](./design-tokens.md). Tailwind states: §4
 | **Selected in multiselect group** | Идентично single selected |
 | **Focus (keyboard)** | `ring-2 ring-ring ring-offset-2` |
 | **Deleted file** | Thumbnail dimmed `opacity-50`; badge `D` |
+| **Locked file** | Lock badge `lock` (§2.3); независимо от VCS |
 
 ### 3.4 Диаграмма (single item)
 
@@ -196,7 +213,8 @@ type VcsFileStatus =
 
 | Case | UI |
 |------|-----|
-| No VCS status | Hide badge |
+| No VCS status | Hide VCS badge |
+| Not locked | Hide lock badge |
 | Thumbnail fail | Placeholder, retry on visible |
 | Very long name | `truncate` + tooltip full name |
 | `deleted` in status | Strikethrough name optional v1.1; badge `D` |

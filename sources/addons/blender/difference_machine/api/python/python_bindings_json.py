@@ -99,6 +99,20 @@ class ForesterAPI:
         _API_INSTANCES.add(self)
 
     def _find_library(self) -> Optional[str]:
+        try:
+            setup_cfg = Path.home() / ".dfm" / "setup.cfg"
+            if setup_cfg.is_file():
+                import configparser
+
+                config = configparser.ConfigParser()
+                config.read(setup_cfg)
+                if config.has_option("api", "path"):
+                    configured = config.get("api", "path", fallback="").strip().strip('"').strip("'")
+                    if configured and os.path.exists(configured):
+                        return configured
+        except Exception:
+            pass
+
         if sys.platform == "win32":
             names = ["forester.dll", "libforester.dll"]
         elif sys.platform == "darwin":

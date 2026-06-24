@@ -744,7 +744,7 @@ _api_wrapper_instance: Optional[ForesterAPIWrapper] = None
 def get_api() -> ForesterAPIWrapper:
     """Get global ForesterAPIWrapper instance."""
     global _api_wrapper_instance
-    if _api_wrapper_instance is None:
+    if _api_wrapper_instance is None or not _api_wrapper_instance._use_api:
         _api_wrapper_instance = ForesterAPIWrapper()
     return _api_wrapper_instance
 

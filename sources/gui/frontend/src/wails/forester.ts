@@ -195,6 +195,16 @@ export async function fetchLockList(): Promise<LockEntry[]> {
   return result.locks ?? [];
 }
 
+export function locksByPath(locks: LockEntry[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const lock of locks) {
+    if (lock.file_path) {
+      out[lock.file_path] = lock.user;
+    }
+  }
+  return out;
+}
+
 export async function indexAddFiles(files: string[]): Promise<void> {
   await foresterCall("index.add", { files });
 }

@@ -149,7 +149,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | **Hover** | `7310:16049` | `7310:16054` |
 | **Selected** | `7310:16059` | `7310:16064` |
 
-Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-коды (§3.3).
+Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-коды (§3.3); lock badge — §3.3.1.
 
 #### Жесты на файле
 
@@ -175,12 +175,25 @@ Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-код�
 
 > Если файл одновременно staged и unstaged-modified — приоритет staged (показываем `M` staged). Tooltip на badge через `Tooltip`.
 
+### 3.3.1 Lock badge
+
+| Поле | Значение |
+|------|----------|
+| Источник | `lock.list` → `lockedByPath` в project store |
+| Текст | `lock` |
+| Tooltip | `Locked by {user}` |
+| Видимость | Только для заблокированных файлов |
+| Позиция | По центру снизу thumbnail в группе с VCS badge |
+| Расстояние | `gap-1` (4px) между VCS и lock badge |
+
+Обновление: при `loadProjectData` и в polling вместе с `status.get` ([file-preview-item.md §2.3](./file-preview-item.md)).
+
 ### 3.4 Сводная матрица состояний item
 
-| Тип | Default | Hover | Selected | Multi-selected | Status badge |
-|-----|---------|-------|----------|----------------|--------------|
-| Folder | ✓ | ✓ | ✓ (1 шт.) | ✗ | ✗ |
-| File | ✓ | ✓ | ✓ | ✓ (Shift/Ctrl/рамка) | ✓ (если не clean) |
+| Тип | Default | Hover | Selected | Multi-selected | Status badge | Lock badge |
+|-----|---------|-------|----------|----------------|--------------|------------|
+| Folder | ✓ | ✓ | ✓ (1 шт.) | ✗ | ✗ | ✗ |
+| File | ✓ | ✓ | ✓ | ✓ (Shift/Ctrl/рамка) | ✓ (если не clean) | ✓ (если в `lock.list`) |
 
 Стили Selected и Multi-selected: `bg-accent border-ring` ([design-tokens.md](./design-tokens.md)).
 
@@ -310,8 +323,8 @@ async function onFileDoubleClick(filePath: string) {
 | 4 | **120** | Max |
 | 5 | **128** | Max |
 
-- Позиции `48`, `66`, `84` — **Min-визуал**: плоский квадрат с бордером `border/default`, status badge слева-снизу (файлы).
-- Позиции `102`, `120`, `128` — **Max-визуал**: dot-grid placeholder, status badge по центру снизу (файлы).
+- Позиции `48`, `66`, `84` — **Min-визуал**: плоский квадрат с бордером `border/default`, VCS/lock badges по центру снизу (`-bottom-1`, `gap-1`).
+- Позиции `102`, `120`, `128` — **Max-визуал**: dot-grid placeholder, VCS/lock badges по центру снизу (`bottom-0`, `gap-1`).
 - Порог переключения Min↔Max: **`>= 102px`**.
 - Значение `128` — явный endpoint (не кратен шагу 18 от 120; последний тик слайдера).
 
@@ -482,6 +495,7 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 | `workdir.thumbnail` | Миниатюра — images, text snippet, `.blend` ([api-contract.md §4.3](./api-contract.md)) |
 | `workdir.open` | Double-click → ОС (§4.4) |
 | `status.get` | VCS badges |
+| `lock.list` | Lock badges на file preview items |
 
 **Workdir exclusions:** `.DFM/`, файл `.dfmignore` (не отображать), паттерны `.dfmignore`, no symlink follow — [api-contract.md §4.0](./api-contract.md).
 
@@ -567,4 +581,5 @@ frontend/src/
 | 6 | Changed ON | Folders скрыты; recursive committable flat list |
 | 7 | Слайдер | 48→128px, шаг 18px (6 позиций), Min-визуал ≤84, Max-визуал ≥102, per-repo persist |
 | 8 | Status badge | VCS-код (A/M/D/?), скрыт для clean; только у файлов |
+| 9 | Lock badge | Текст `lock`, tooltip `Locked by {user}`; только у заблокированных файлов |
 | 9 | Double-click файл | `workdir.open` — открытие в приложении по умолчанию ОС (§4.4) |

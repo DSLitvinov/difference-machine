@@ -47,20 +47,20 @@
 
 ### 4. History → select commit → text diff
 
-- [ ] Rail → History; выбрать коммит в списке
-- [ ] Preview: header, changed files, text diff (или image/binary stub)
-- [ ] Content Info **скрыта**
+- [x] Rail → History; выбрать коммит в списке
+- [x] Preview: header, changed files, text diff (или image/binary stub)
+- [x] Content Info **скрыта**
 
 ### 5. Switch branch — clean + dirty (stash)
 
-- [ ] **Clean:** Branch selector → другая ветка → checkout без диалога
-- [ ] **Dirty:** изменить файл → switch branch → `DirtyBranchSwitchDialog` → Stash & switch
-- [ ] `currentBranch` обновился; log перезагрузился
+- [x] **Clean:** Branch selector → другая ветка → checkout без диалога
+- [x] **Dirty:** изменить файл → switch branch → `DirtyBranchSwitchDialog` → Stash & switch
+- [x] `currentBranch` обновился; log перезагрузился
 
 ### 6. Revert file from Info History
 
-- [ ] Project → один файл → History section → branch + commit → **Revert**
-- [ ] Confirm → файл восстановлен; toast; status обновился
+- [x] Project → один файл → History section → branch + commit → **Revert**
+- [x] Confirm → файл восстановлен; toast; status обновился
 
 ---
 

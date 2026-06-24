@@ -4,17 +4,19 @@ import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { getRepositoryAddActions } from "@/lib/repositoryAddActions";
-import { fetchStatus, foresterCall } from "@/wails/forester";
+import { fetchStatus, fetchLockList, foresterCall, locksByPath } from "@/wails/forester";
 
 const POLL_INTERVAL_MS = 5000;
 
 async function refreshStatus() {
   const status = await fetchStatus();
+  const locks = await fetchLockList();
   const { repoPath, repoName, currentBranch, setRepo } = useAppStore.getState();
   const branch = status.current_branch;
   const nextBranch = typeof branch === "string" && branch.length > 0 ? branch : currentBranch;
 
   useProjectStore.getState().setStatus(status);
+  useProjectStore.getState().setLocks(locksByPath(locks));
 
   if (repoPath && nextBranch && nextBranch !== currentBranch) {
     setRepo(repoPath, repoName, nextBranch);

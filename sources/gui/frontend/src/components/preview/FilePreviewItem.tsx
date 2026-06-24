@@ -18,6 +18,7 @@ interface FilePreviewItemProps {
   thumbScale?: number;
   subtitle?: string;
   vcsStatus: VcsFileStatus | null;
+  lockUser?: string | null;
   onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
   onOpen: () => void;
 }
@@ -29,6 +30,7 @@ export function FilePreviewItem({
   thumbScale = 48,
   subtitle,
   vcsStatus,
+  lockUser,
   onSelect,
   onOpen,
 }: FilePreviewItemProps) {
@@ -77,18 +79,35 @@ export function FilePreviewItem({
             <File className="text-muted-foreground" style={{ width: iconSize, height: iconSize }} />
           )}
         </div>
-        {badge ? (
-          <Badge
-            variant="outline"
+        {(badge || lockUser) ? (
+          <div
             className={cn(
-              "absolute border-transparent h-[22px] min-w-[22px] justify-center rounded-full px-1.5 text-xs font-semibold hover:bg-inherit",
-              vcsStatusBadgeClass(vcsStatus!),
-              maxVisual ? "bottom-0 left-1/2 -translate-x-1/2" : "-bottom-1 -left-1",
+              "absolute left-1/2 flex -translate-x-1/2 items-center gap-1",
+              maxVisual ? "bottom-0" : "-bottom-1",
             )}
-            title={vcsStatus ?? undefined}
           >
-            {badge}
-          </Badge>
+            {badge ? (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "border-transparent h-[22px] min-w-[22px] justify-center rounded-full px-1.5 text-xs font-semibold hover:bg-inherit",
+                  vcsStatusBadgeClass(vcsStatus!),
+                )}
+                title={vcsStatus ?? undefined}
+              >
+                {badge}
+              </Badge>
+            ) : null}
+            {lockUser ? (
+              <Badge
+                variant="secondary"
+                className="h-[22px] rounded-full px-1.5 text-xs font-semibold"
+                title={`Locked by ${lockUser}`}
+              >
+                lock
+              </Badge>
+            ) : null}
+          </div>
         ) : null}
       </div>
       <span className="line-clamp-2 w-full break-all text-xs" title={name}>

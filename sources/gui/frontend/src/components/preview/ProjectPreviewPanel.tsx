@@ -12,8 +12,10 @@ import { useWorkdirFolderEntries } from "@/hooks/useWorkdirFolderEntries";
 import type { SortLocale } from "@/lib/storage";
 import {
   fetchStatus,
+  fetchLockList,
   fetchWorkdirSearch,
   fetchWorkdirTree,
+  locksByPath,
   openWorkdirFile,
   vcsFileStatus,
   type DirEntry,
@@ -51,9 +53,14 @@ export async function loadProjectData() {
   }
   store.setTreeLoading(true);
   try {
-    const [tree, status] = await Promise.all([fetchWorkdirTree("", 1), fetchStatus()]);
+    const [tree, status, locks] = await Promise.all([
+      fetchWorkdirTree("", 1),
+      fetchStatus(),
+      fetchLockList(),
+    ]);
     store.setFolderTree(tree);
     store.setStatus(status);
+    store.setLocks(locksByPath(locks));
     useAppStore.getState().setForesterError(null);
   } catch (err) {
     useAppStore.getState().setForesterError(err instanceof Error ? err.message : String(err));
@@ -76,6 +83,7 @@ export function ProjectPreviewPanel() {
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const status = useProjectStore((s) => s.status);
+  const lockedByPath = useProjectStore((s) => s.lockedByPath);
   const sortLocale = useProjectStore((s) => s.sortLocale);
   const setSortLocale = useProjectStore((s) => s.setSortLocale);
   const thumbScale = useProjectStore((s) => s.thumbScale);
@@ -295,6 +303,7 @@ export function ProjectPreviewPanel() {
                       thumbScale={thumbScale}
                       scrollElement={scrollElement}
                       vcsStatusFor={(path) => vcsFileStatus(path, status)}
+                      lockUserFor={(path) => lockedByPath[path] ?? null}
                       subtitleFor={(entry) => parentFolderPath(entry.path) || "root"}
                       onOpen={(path) => void openFile(path)}
                     />
@@ -355,6 +364,7 @@ export function ProjectPreviewPanel() {
                   thumbScale={thumbScale}
                   scrollElement={scrollElement}
                   vcsStatusFor={(path) => vcsFileStatus(path, status)}
+                  lockUserFor={(path) => lockedByPath[path] ?? null}
                   subtitleFor={
                     showChangedOnly
                       ? (entry) => parentFolderPath(entry.path) || "root"
