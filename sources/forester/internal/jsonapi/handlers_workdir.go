@@ -100,13 +100,23 @@ func handleWorkdirMetadata(workPath string, args json.RawMessage) (interface{}, 
 		if err != nil {
 			return nil, err
 		}
-		return map[string]interface{}{
-			"path":       rel,
-			"size":       info.Size(),
-			"modified":   info.ModTime().Unix(),
-			"mime":       guessMime(rel),
-			"is_dir":     info.IsDir(),
-		}, nil
+		result := map[string]interface{}{
+			"path":     rel,
+			"size":     info.Size(),
+			"modified": info.ModTime().Unix(),
+			"mime":     guessMime(rel),
+			"is_dir":   info.IsDir(),
+		}
+		if created, ok := fileCreatedUnix(info); ok {
+			result["created"] = created
+		}
+		if !info.IsDir() {
+			if w, h, ok := imageDimensions(abs, imageExtFromRel(rel)); ok {
+				result["width"] = w
+				result["height"] = h
+			}
+		}
+		return result, nil
 	})
 }
 

@@ -25,13 +25,13 @@
 | Row | Source | Show when |
 |-----|--------|-----------|
 | **Locked** | `lock.list` → user | value present |
-| **Editor** | — | **скрыт** v1 (нет данных) |
+| **Editor** | `log.get` + `path` → latest commit `author` | value present |
 | **Modified** | `mtime` FS | always |
-| **Dimensions** | image width×height | image only, if readable |
+| **Dimensions** | `workdir.metadata` width×height | image only, if readable |
 | **Size** | `size` FS | always |
 | **Type** | extension / mime | always |
-| **Creator** | — | **скрыт** v1 |
-| **Created** | `birthtime` or `ctime` FS | if available |
+| **Creator** | `log.get` + `path` → first commit `author` | value present |
+| **Created** | `birthtime` FS (macOS) or `workdir.metadata` `created` | if available |
 
 **Правило:** пустые / недоступные поля — **не рендерить** (не показывать «—»).
 
@@ -73,6 +73,8 @@ interface FileMetadata {
   width?: number
   height?: number
   lockedBy?: string
+  editor?: string
+  creator?: string
 }
 ```
 

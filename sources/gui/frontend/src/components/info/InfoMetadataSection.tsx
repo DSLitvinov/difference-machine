@@ -11,7 +11,12 @@ export interface FileMetadata {
   extension: string;
   mime?: string;
   modifiedAt: number;
+  createdAt?: number;
+  width?: number;
+  height?: number;
   lockedBy?: string;
+  editor?: string;
+  creator?: string;
 }
 
 interface InfoMetadataSectionProps {
@@ -26,6 +31,10 @@ function MetadataRow({ label, value }: { label: string; value: string }) {
       <span className="min-w-0 flex-1 break-all">{value}</span>
     </div>
   );
+}
+
+function formatDimensions(width: number, height: number): string {
+  return `${width} × ${height}`;
 }
 
 export function InfoMetadataSection({ metadata, loading }: InfoMetadataSectionProps) {
@@ -49,12 +58,23 @@ export function InfoMetadataSection({ metadata, loading }: InfoMetadataSectionPr
           ) : metadata ? (
             <>
               {metadata.lockedBy ? <MetadataRow label="Locked" value={metadata.lockedBy} /> : null}
+              {metadata.editor ? <MetadataRow label="Editor" value={metadata.editor} /> : null}
               <MetadataRow label="Modified" value={formatTimestamp(metadata.modifiedAt)} />
+              {metadata.width != null && metadata.height != null ? (
+                <MetadataRow
+                  label="Dimensions"
+                  value={formatDimensions(metadata.width, metadata.height)}
+                />
+              ) : null}
               <MetadataRow label="Size" value={formatFileSize(metadata.size)} />
               <MetadataRow
                 label="Type"
                 value={metadata.extension || metadata.mime || "unknown"}
               />
+              {metadata.creator ? <MetadataRow label="Creator" value={metadata.creator} /> : null}
+              {metadata.createdAt != null ? (
+                <MetadataRow label="Created" value={formatTimestamp(metadata.createdAt)} />
+              ) : null}
             </>
           ) : (
             <p className="text-sm text-muted-foreground">No metadata</p>
@@ -67,8 +87,15 @@ export function InfoMetadataSection({ metadata, loading }: InfoMetadataSectionPr
 
 export function metadataFromWorkdir(
   path: string,
-  raw: { size: number; modified: number; mime: string },
-  lockedBy?: string,
+  raw: {
+    size: number;
+    modified: number;
+    mime: string;
+    created?: number;
+    width?: number;
+    height?: number;
+  },
+  options?: { lockedBy?: string; editor?: string; creator?: string },
 ): FileMetadata {
   return {
     path,
@@ -76,6 +103,11 @@ export function metadataFromWorkdir(
     extension: fileExtension(path),
     mime: raw.mime,
     modifiedAt: raw.modified,
-    lockedBy,
+    createdAt: raw.created,
+    width: raw.width,
+    height: raw.height,
+    lockedBy: options?.lockedBy,
+    editor: options?.editor,
+    creator: options?.creator,
   };
 }

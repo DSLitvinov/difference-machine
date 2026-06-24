@@ -21,6 +21,7 @@ import { useProjectStore } from "@/stores/projectStore";
 import { fetchRepoUser } from "@/wails/bridge";
 import {
   fetchLockList,
+  fetchFileLog,
   fetchWorkdirMetadata,
   indexAddFiles,
   vcsFileStatus,
@@ -32,6 +33,7 @@ export function ContentInfoPanel() {
   const selectedFilePaths = useProjectStore((s) => s.selectedFilePaths);
   const status = useProjectStore((s) => s.status);
   const committable = useProjectStore((s) => s.committable);
+  const currentBranch = useAppStore((s) => s.currentBranch);
 
   const [metadata, setMetadata] = useState<FileMetadata | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,13 +61,24 @@ export function ContentInfoPanel() {
     const load = async () => {
       setLoading(true);
       try {
-        const [meta, locks] = await Promise.all([
+        const branch = currentBranch ?? "main";
+        const [meta, locks, fileLog] = await Promise.all([
           fetchWorkdirMetadata(selectedFilePath),
           fetchLockList(),
+          fetchFileLog(branch, selectedFilePath, 500),
         ]);
         if (cancelled) return;
         const lock = locks.find((entry) => entry.file_path === selectedFilePath);
-        setMetadata(metadataFromWorkdir(selectedFilePath, meta, lock?.user));
+        const commits = fileLog.commits ?? [];
+        const editor = commits[0]?.author;
+        const creator = commits.length > 0 ? commits[commits.length - 1]?.author : undefined;
+        setMetadata(
+          metadataFromWorkdir(selectedFilePath, meta, {
+            lockedBy: lock?.user,
+            editor,
+            creator,
+          }),
+        );
       } catch (err) {
         if (!cancelled) {
           setMetadata(null);
@@ -79,7 +92,7 @@ export function ContentInfoPanel() {
     return () => {
       cancelled = true;
     };
-  }, [selectedFilePath, isMulti, setError, metadataKey]);
+  }, [selectedFilePath, isMulti, setError, metadataKey, currentBranch]);
 
   if (selectedFilePaths.length === 0) {
     return (

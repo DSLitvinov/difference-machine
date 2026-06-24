@@ -14,9 +14,11 @@
 
 ## Предусловия
 
-- [ ] Forester CLI собран: `~/dfm_distr/bin/forester` (или путь из `setup.cfg`)
-- [ ] Тестовый репозиторий с `.DFM/` и хотя бы одним коммитом
-- [ ] Окно ≥ 1435×720 (Project) / 1081×720 (History)
+- [x] Forester CLI собран: `~/dfm_distr/bin/forester` (или путь из `setup.cfg`)
+- [x] Тестовый репозиторий с `.DFM/` и хотя бы одним коммитом — `/Users/nopomuk/Documents/3d_test_anchorpoint` (5 commits)
+- [x] Окно ≥ 1435×720 (Project) / 1081×720 (History) — `main.go` + `layout.ts`
+
+Проверка: `./builder/scripts/verify_smoke_prereqs.sh [REPO_PATH]`
 
 ---
 
@@ -24,24 +26,24 @@
 
 ### 1. Cold start → auto-open last repo
 
-- [ ] В `~/.dfm/setup.cfg` задан `[current repo] path`
-- [ ] Запуск приложения → репозиторий открывается автоматически
-- [ ] Repo selector показывает basename; дерево папок загружается
+- [x] В `~/.dfm/setup.cfg` задан `[current repo] path`
+- [x] Запуск приложения → репозиторий открывается автоматически
+- [x] Repo selector показывает basename; дерево папок загружается
 
 ### 2. Add repo → browse → select file
 
-- [ ] Empty state → **Add repository** → folder picker
-- [ ] Папка без `.DFM` → dialog «This folder is not a repository» → **Create** → repo открыт
-- [ ] **Cancel** в dialog → error `not a Forester repository`
-- [ ] Project: дерево папок, drill-down в Preview, клик по файлу
+- [x] Empty state → **Add repository** → folder picker
+- [x] Папка без `.DFM` → dialog «This folder is not a repository» → **Create** → repo открыт
+- [x] **Cancel** в dialog → error `not a Forester repository`
+- [x] Project: дерево папок, drill-down в Preview, клик по файлу
 - [ ] Content Info показывает metadata; VCS badge на файле (если changed)
-- [ ] `.blend` с превью из Blender → thumbnail в grid и Info (не stub)
+- [x] `.blend` с превью из Blender → thumbnail в grid и Info (не stub)
 
 ### 3. Create commit
 
-- [ ] Выбрать committable файл(ы) → **Create commit** в Info
-- [ ] Диалог → subject → Create
-- [ ] Toast с hash; статус обновился; файл больше не в changed (или badge снят)
+- [x] Выбрать committable файл(ы) → **Create commit** в Info
+- [x] Диалог → subject → Create
+- [x] Toast с hash; статус обновился; файл больше не в changed (или badge снят)
 
 ### 4. History → select commit → text diff
 

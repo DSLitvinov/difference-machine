@@ -162,6 +162,9 @@ export interface WorkdirMetadata {
   modified: number;
   mime: string;
   is_dir: boolean;
+  created?: number;
+  width?: number;
+  height?: number;
 }
 
 export interface LockEntry {

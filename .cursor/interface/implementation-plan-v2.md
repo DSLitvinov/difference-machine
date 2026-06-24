@@ -29,15 +29,15 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
 | **Активная фаза** | **1 — Manual smoke (macOS)** |
-| **Следующий шаг** | **1.1** Предусловия — [smoke-checklist.md](./smoke-checklist.md) |
-| **Заметки** | macOS DMG + setup.cfg bootstrap реализованы; smoke — [smoke-checklist.md](./smoke-checklist.md) |
+| **Следующий шаг** | **1.2.1** Cold start → auto-open last repo — [smoke-checklist.md](./smoke-checklist.md) |
+| **Заметки** | Prerequisites 1.1 (steps 3–5) пройдены; `verify_smoke_prereqs.sh` |
 
 ### Прогресс v2
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | macOS DMG packaging | `[x]` 4/4 |
-| 1 | Manual smoke (macOS) | `[ ]` 0/5 |
+| 1 | Manual smoke (macOS) | `[~]` 1.1 done |
 | 2 | Windows build + smoke | `[—]` 0/2 |
 | 3 | Merge UI | `[ ]` 0/3 |
 | 4 | Fs watcher | `[ ]` 0/2 |
@@ -68,9 +68,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ### 1.1 Предусловия
 
-- [ ] **1.1.1** Forester CLI: `~/dfm_distr/bin/forester` (или путь из `setup.cfg`)
-- [ ] **1.1.2** Тестовый репозиторий с `.DFM/` и ≥1 коммитом
-- [ ] **1.1.3** Окно ≥ 1435×720 (Project) / 1081×720 (History)
+- [x] **1.1.1** Forester CLI: `~/dfm_distr/bin/forester` (или путь из `setup.cfg`)
+- [x] **1.1.2** Тестовый репозиторий с `.DFM/` и ≥1 коммитом
+- [x] **1.1.3** Окно ≥ 1435×720 (Project) / 1081×720 (History)
 
 ### 1.2 Core scenarios (§1–6)
 
