@@ -1,10 +1,12 @@
-# Smoke checklist — Forester GUI v1.0
+# Smoke checklist — Forester GUI
 
 Ручная проверка перед релизом. Отмечайте `[x]` после прохождения.
 
 **Запуск:** `cd sources/gui && wails dev` (или собранный `.app`).
 
 **Связанные документы:** [implementation-plan.md](./implementation-plan.md) · [architecture.md §6](./architecture.md)
+
+**Автоматически (CI / агент):** `npm run build` в `frontend/` · `go test ./internal/jsonapi/...` в `sources/forester` · `wails build` в `sources/gui` (macOS).
 
 ---
 
@@ -64,8 +66,8 @@
 |---|----------|----------|-----------|
 | 6.1 | Нет репо в cfg | Empty state + Add repository | [ ] |
 | 6.2 | Папка без `.DFM` при Add | Init dialog; Cancel → error; Create → repo init + open | [ ] |
-| 6.3 | Repo path удалён / диск отмонтирован | Error banner + **Re-open** / Retry | [ ] |
-| 6.4 | Forester binary недоступен | Banner «Forester unavailable» + Retry | [ ] |
+| 6.3 | Repo path удалён / диск отмонтирован | Toast (destructive) + **Re-open** / Retry | [ ] |
+| 6.4 | Forester binary недоступен | Toast «Forester unavailable» + Retry | [ ] |
 | 6.5 | Файл удалён с диска при selection | Selection сброшен, notice | [ ] |
 | 6.6 | Ветка сменена из CLI | Polling обновляет branch + History log | [ ] |
 | 6.7 | Пустой репо (нет коммитов) | «No commits yet» в History | [ ] |
@@ -74,10 +76,37 @@
 
 ---
 
+## 7. v1.1 polish (дополнительно к §1–6)
+
+### 7.1 Commit cards
+
+- [ ] Stats: при скролле списка — lazy `N files changed` (+/−); skeleton → строка или скрыто при ошибке
+- [ ] ⋮ menu: View in Preview, Compare with working tree, Restore, Revert (disabled на HEAD), Copy hash/message
+- [ ] Restore / Revert → `AlertDialog` → после успеха log и Project data обновляются
+
+### 7.2 Project Preview + Sidebar
+
+- [ ] Папка с >200 файлами: scroll подгружает следующую страницу; сетка виртуализирована
+- [ ] **Expand all** / **Collapse** в дереве папок
+- [ ] Header **Project view** — серый `bg-sidebar`; список папок — белый `bg-background` (как History)
+
+### 7.3 Settings + branch
+
+- [ ] Dark theme (Appearance)
+- [ ] External editors: путь к `.app` на macOS резолвится в binary
+- [ ] History → Branch selector → **Create new branch…** → диалог → ветка создана
+
+### 7.4 Errors + multiselect
+
+- [ ] Ошибки Forester / repo — toast bottom-right (не sidebar banner)
+- [ ] Marquee + Shift-range на file grid; Cmd/Ctrl+A select all в папке
+
+---
+
 ## Сборка
 
 - [ ] `cd sources/gui && wails build` (macOS) — без ошибок
-- [ ] `wails build` Windows (если доступна машина / CI)
+- [—] `wails build` Windows — отложено
 
 ---
 

@@ -18,6 +18,7 @@ A future installer reads `manifest.json` from the payload and performs system in
 dfm_distr/
 ├── bin/           Forester CLI
 ├── lib/           Native API library
+├── apps/          Forester GUI .app (macOS, optional --gui)
 ├── addons/blender/difference_machine/
 │   └── api/       Native lib + python/ bindings (embedded at build time)
 ├── manifest.json
@@ -31,6 +32,7 @@ Do not reintroduce `<os>/forester/` nesting or legacy desktop-app paths in the p
 
 - **Entry point**: `builder/build.sh`
 - **Shared platform detection**: `builder/scripts/lib/detect_platform.sh` (source, do not execute)
+- **Shared PATH setup**: `builder/scripts/lib/setup_dev_path.sh` — `$(go env GOPATH)/bin`, Homebrew on macOS
 - **Staging**: `builder/.staging/forester/` — intermediate only, cleaned by `clean_build.sh`
 - **Comments**: English only (see project-wide rule)
 

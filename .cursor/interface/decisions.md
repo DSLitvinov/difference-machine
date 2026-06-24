@@ -105,10 +105,10 @@ Backend для slice 2–4 — **до или вместе** с UI по [api-cont
 | View in Preview | да |
 | Copy hash | да |
 | Copy message | да |
-| Compare with working tree | v1.1 |
-| Restore this version | v1.1 |
-| Revert commit | v1.1 |
-| Reset to this commit | v1.1 |
+| Compare with working tree | v1.1 (shipped) |
+| Restore this version | v1.1 (shipped) |
+| Revert commit | v1.1 (shipped) |
+| Reset to this commit | v1.1 (optional, не в UI) |
 
 Compare для файла — только Content Info History ([info-history-section.md](./info-history-section.md)).
 

@@ -40,7 +40,7 @@
 
 **Forester runtime:** `./builder/build.sh --write-local-config` → `~/dfm_distr/bin/forester`. Blender не нужен.
 
-**Запуск:** `cd sources/gui && wails dev` · **сборка:** `wails build`
+**Сборка GUI:** `./builder/build.sh --gui` → `~/dfm_distr/apps/*.app` (macOS; PATH + Wails CLI настроены в скрипте).
 
 ---
 
@@ -50,8 +50,8 @@
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
 | **Активная фаза** | **8 — v1.1 polish** |
-| **Следующий шаг** | **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) |
-| **Заметки** | 8.3 virtual scroll done; Windows/Linux build отложены |
+| **Следующий шаг** | **7.4** Ручной smoke — [smoke-checklist.md](./smoke-checklist.md) §1–7 |
+| **Заметки** | v1.1 code complete; auto: `npm build` + `go test jsonapi` OK; `wails build` — локально |
 
 ### Прогресс v1.0
 
@@ -64,8 +64,8 @@
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
 | 6 | Slice 5 — Polish + Settings | `[x]` 9/9 |
-| 7 | Сборка и smoke (macOS) | `[x]` 2/4 |
-| 8 | v1.1 polish | `[~]` 8/9 |
+| 7 | Сборка и smoke (macOS) | `[~]` 3/4 |
+| 8 | v1.1 polish | `[x]` 9/9 |
 
 ---
 
@@ -275,7 +275,7 @@
 
 - [x] **7.1** `wails build` macOS
 - [—] **7.2** `wails build` Windows — **отложено**
-- [—] **7.3** Интеграция в `builder/` — **отложено**
+- [x] **7.3** Интеграция GUI в `builder/` — `./builder/build.sh --gui` (macOS)
 - [ ] **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) (ручная, параллельно с v1.1)
 
 ---
@@ -308,10 +308,11 @@
 - [x] **8.4.3** Marquee + Shift-range multiselect (базово)
 - [x] **8.4.4** Create branch dialog — [create-branch-dialog.md](./create-branch-dialog.md)
 - [x] **8.4.5** Global errors → Toast (`AppToast`)
-- [—] **8.4.6** Init repository wizard — отложено
-- [—] **8.4.7** Linux build + QA — отложено
+- [x] **8.4.6** Project sidebar header `bg-sidebar` (как History)
+- [—] **8.4.7** Init repository wizard — отложено
+- [—] **8.4.8** Linux build + QA — отложено
 
-**Проверка:** commit cards показывают stats; ⋮ menu с revert/restore; smoke §4–5.
+**Проверка:** ручной smoke — [smoke-checklist.md §7](./smoke-checklist.md).
 
 ---
 
@@ -324,9 +325,9 @@
 - [x] External editors tab
 - [x] Marquee + Shift-range multiselect (базово)
 - [x] Create branch (GUI)
-- [ ] `diff.stat` на commit cards → **8.1** `[x]`
-- [ ] Commit card full ⋮ menu → **8.2** `[x]`
-- [x] Virtual scroll + expanded tree → **8.3** `[x]`
+- [x] `diff.stat` на commit cards → **8.1**
+- [x] Commit card full ⋮ menu → **8.2**
+- [x] Virtual scroll + expanded tree → **8.3**
 - [—] Init repository wizard
 - [—] Linux build + QA
 

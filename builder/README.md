@@ -26,6 +26,20 @@ Write `~/.dfm/setup.cfg` for local development:
 ./builder/build.sh --write-local-config
 ```
 
+Build Forester **and** the Wails GUI (macOS only):
+
+```bash
+./builder/build.sh --gui
+```
+
+Combined:
+
+```bash
+./builder/build.sh --gui --write-local-config
+```
+
+The script extends `PATH` with `$(go env GOPATH)/bin` (for `wails`) and common Homebrew locations. If Wails CLI is missing, it is installed via `go install` unless `INSTALL_WAILS=false`.
+
 On Windows (Git Bash or WSL):
 
 ```bash
@@ -40,6 +54,7 @@ bash builder/build.sh
 dfm_distr/
 ├── bin/                 Forester CLI
 ├── lib/                 Native API (libforester.so / .dylib / forester.dll)
+├── apps/                Forester GUI .app (macOS, when built with --gui)
 ├── addons/
 │   └── blender/
 │       └── difference_machine/
@@ -57,8 +72,9 @@ Build runs **only for the current OS** (native compile). Cross-compilation is no
 ## What the build does
 
 1. **`scripts/build_forester.sh`** — Go CLI (`cmd/forester`) and c-shared API (`./api`) → `builder/.staging/forester/`
-2. **`scripts/stage_dist.sh`** — Copy staging + addons into `DFM_DIST`, embed API in the addon, write `manifest.json` and metadata
-3. **`scripts/clean_build.sh`** — Remove staging and intermediate artifacts (does **not** delete `dfm_distr`)
+2. **`scripts/build_gui.sh`** — (optional, `--gui`, macOS) Wails GUI → `builder/.staging/gui/*.app`
+3. **`scripts/stage_dist.sh`** — Copy staging + addons into `DFM_DIST`, embed API in the addon, write `manifest.json` and metadata
+4. **`scripts/clean_build.sh`** — Remove staging and intermediate artifacts (does **not** delete `dfm_distr`)
 
 ---
 
@@ -101,6 +117,13 @@ export PATH="$HOME/dfm_distr/bin:$PATH"
 - **C compiler** (optional, for native Forester API library)
 - Platform build only on matching OS (Linux on Linux, macOS on macOS, Windows on Windows)
 
+**GUI (`--gui`, macOS only):**
+
+- **Node.js** 20+ LTS and **npm**
+- **Wails v2 CLI** — `go install github.com/wailsapp/wails/v2/cmd/wails@latest` (auto-installed by `build_gui.sh` if missing)
+- **Xcode Command Line Tools** — `xcode-select --install`
+- `PATH` must include `$(go env GOPATH)/bin` — `build.sh` adds this automatically via `setup_dev_path.sh`
+
 ---
 
 ## Folder reference
@@ -111,11 +134,13 @@ export PATH="$HOME/dfm_distr/bin:$PATH"
 | `setup.cfg.template` | Template for `~/.dfm/setup.cfg` (used by future installer) |
 | `setup.cfg.example` | Extended example config for end users |
 | `scripts/build_forester.sh` | Build CLI + API to staging |
+| `scripts/build_gui.sh` | Build Wails GUI to staging (macOS, `--gui`) |
 | `scripts/stage_dist.sh` | Assemble `dfm_distr` |
 | `scripts/copy_addons.sh` | Copy `sources/addons/` into target |
 | `scripts/write_setup_cfg.sh` | Write `~/.dfm/setup.cfg` (optional, `--write-local-config`) |
 | `scripts/clean_build.sh` | Clean intermediate artifacts |
 | `scripts/lib/detect_platform.sh` | Shared OS / library name detection |
+| `scripts/lib/setup_dev_path.sh` | Extend PATH (Go bin, Homebrew) for Wails toolchain |
 
 ---
 

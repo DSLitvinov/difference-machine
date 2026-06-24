@@ -17,6 +17,8 @@ BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
 STAGING_DIR="${BUILDER_DIR}/.staging/forester"
 DFM_DIST="${DFM_DIST:-${HOME}/dfm_distr}"
+BUILD_GUI="${BUILD_GUI:-false}"
+STAGING_GUI="${BUILDER_DIR}/.staging/gui"
 
 SOURCES_DIR="${PROJECT_ROOT}/sources"
 FORESTER_API_SRC="${SOURCES_DIR}/forester/api"
@@ -74,6 +76,29 @@ if [ -d "${FORESTER_API_SRC}" ]; then
     echo -e "${GREEN}✓ Python bindings → ${ADDON_REL}/api/python/${NC}"
 fi
 
+GUI_MANIFEST_ENTRY=""
+if [ "${BUILD_GUI}" = true ] && [ -d "${STAGING_GUI}" ]; then
+    echo ""
+    echo "=== Copy GUI app (macOS) ==="
+    shopt -s nullglob
+    GUI_APPS=("${STAGING_GUI}"/*.app)
+    shopt -u nullglob
+    if [ "${#GUI_APPS[@]}" -gt 0 ]; then
+        mkdir -p "${DFM_DIST}/apps"
+        for app in "${GUI_APPS[@]}"; do
+            app_name="$(basename "${app}")"
+            rm -rf "${DFM_DIST}/apps/${app_name}"
+            cp -R "${app}" "${DFM_DIST}/apps/${app_name}"
+            echo -e "${GREEN}✓ apps/${app_name}${NC}"
+            GUI_MANIFEST_ENTRY="\"gui_app\": \"apps/${app_name}\""
+        done
+    else
+        echo -e "${YELLOW}⚠ BUILD_GUI=true but no .app in ${STAGING_GUI}${NC}"
+    fi
+elif [ "${BUILD_GUI}" = true ]; then
+    echo -e "${YELLOW}⚠ BUILD_GUI=true but staging GUI not found: ${STAGING_GUI}${NC}"
+fi
+
 echo ""
 echo "=== Metadata ==="
 if [ -f "${STAGING_DIR}/VERSION" ]; then
@@ -84,14 +109,29 @@ fi
 
 cp "${BUILDER_DIR}/setup.cfg.template" "${DFM_DIST}/setup.cfg.template"
 
+if [ -n "${GUI_MANIFEST_ENTRY}" ]; then
+    MANIFEST_COMPONENTS=$(cat << EOF
+    "forester_cli": "bin/${FORESTER_CLI_NAME}",
+    "forester_api": "lib/${API_LIB_NAME}",
+    "blender_addon": "${ADDON_REL}",
+    ${GUI_MANIFEST_ENTRY}
+EOF
+)
+else
+    MANIFEST_COMPONENTS=$(cat << EOF
+    "forester_cli": "bin/${FORESTER_CLI_NAME}",
+    "forester_api": "lib/${API_LIB_NAME}",
+    "blender_addon": "${ADDON_REL}"
+EOF
+)
+fi
+
 cat > "${DFM_DIST}/manifest.json" << EOF
 {
   "format": 1,
   "platform": "${CURRENT_OS}",
   "components": {
-    "forester_cli": "bin/${FORESTER_CLI_NAME}",
-    "forester_api": "lib/${API_LIB_NAME}",
-    "blender_addon": "${ADDON_REL}"
+${MANIFEST_COMPONENTS}
   },
   "install_defaults": {
     "forester_prefix": "${DEFAULT_PREFIX}",
@@ -110,6 +150,7 @@ Layout:
   bin/     Forester CLI
   lib/     Forester API native library
   addons/  Blender addon (API embedded in addons/blender/difference_machine/api/)
+  apps/    Forester GUI .app (macOS, when built with --gui)
 
 Developer setup (manual):
   1. Add bin/ to PATH, or run bin/forester directly.

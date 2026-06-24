@@ -12,9 +12,19 @@ wails dev
 
 ## Build
 
+From the project root (recommended):
+
 ```bash
+./builder/build.sh --gui
+# Output: ~/dfm_distr/apps/*.app
+```
+
+Or directly in this folder (ensure Wails is on PATH):
+
+```bash
+export PATH="$PATH:$(go env GOPATH)/bin"
 wails build
-# Output: build/bin/difference-machine-gui.app (macOS)
+# Output: build/bin/*.app (macOS)
 ```
 
 ## Layout
