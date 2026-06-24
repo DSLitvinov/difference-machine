@@ -81,7 +81,7 @@ History:
 
 | # | Элемент | Иконка (lucide) | Действие |
 |---|---------|-----------------|----------|
-| 1 | App / home | `GalleryVerticalEnd` | Зарезервировано (about — вне scope v1) |
+| 1 | App / home | `GalleryVerticalEnd` | Зарезервировано (About — [application-menu.md](./application-menu.md) §2.1) |
 | 2 | Project view | `FolderGit2` | `sidebarMode = 'project'` |
 | 3 | History | `GitFork` | `sidebarMode = 'history'` |
 | — | *(spacer)* | — | `flex-1` между **header** (home + modes) и **footer** |
@@ -163,6 +163,21 @@ onSettingsClick={() => setSettingsOpen(true)}
 | Commit cards | `Card` + `Badge` + `Tooltip` + `DropdownMenu` |
 | Scroll area | `ScrollArea` |
 | Empty / loading | `Skeleton` |
+
+### 2.7 Application menu (macOS)
+
+Нативное меню Wails в строке меню ОС — **не** in-app dropdowns.
+
+Полная спека: **[application-menu.md](./application-menu.md)**.
+
+| Подменю | Кратко |
+|---------|--------|
+| **Difference Machine** | `menu.AppMenu()` — About, Quit |
+| **View** | Settings `⌘,`, Project `⌘1`, History `⌘2`, Toggle Sidebar `⌘B` |
+| **Edit** | `menu.EditMenu()` — Cut/Copy/Paste в WebView |
+| **Window** | Minimize `⌘M`, Zoom `⌃⌘F` |
+
+События `gui:open-settings`, `gui:switch-mode`, `gui:toggle-sidebar` → `AppShell` ([api-contract.md §6](./api-contract.md)).
 
 ---
 
@@ -410,30 +425,22 @@ interface SidebarEvents {
 Wails app: **`sources/gui/`** ([decisions.md §2](./decisions.md)).
 
 ```
-sources/gui/frontend/src/
-  components/sidebar/
-    Sidebar.tsx              # shell + rail
-    SidebarRail.tsx          # logo, mode icons, Settings, avatar
-    SettingsDialog.tsx
-    SidebarCollapseButton.tsx
-    project/
-      ProjectViewPanel.tsx
-      ProjectHeader.tsx
-      FolderTree.tsx
-      FolderTreeRow.tsx
-    history/
-      HistoryViewPanel.tsx
-      HistoryHeader.tsx
-      BranchSelector.tsx
-      CommitSearch.tsx
-      CommitList.tsx
-      CommitCard.tsx
-      CommitCardMenu.tsx
-      CommitCardStats.tsx
-  state/
-    sidebarStore.ts          # zustand или context
-  wails/
-    forester.ts              # typed bindings
+sources/gui/
+  main.go
+  menu.go                    # native application menu — application-menu.md
+  app.go
+  frontend/src/
+    components/shell/
+      AppShell.tsx           # EventsOn: gui:open-settings, gui:switch-mode, …
+      SidebarRail.tsx
+    lib/
+      sidebarModeSwitch.ts
+    components/sidebar/
+      ProjectSidebarPanel.tsx
+      HistorySidebarPanel.tsx
+      …
+    wails/
+      forester.ts
 ```
 
 ---
@@ -445,7 +452,7 @@ sources/gui/frontend/src/
 | Фаза | Scope |
 |------|-------|
 | **v1.0 (ship)** | Shell · multi-repo · resize · Project (lazy tree) · History + diff · Info single-file · Create commit · dirty dialog · commit card (урезанное ⋮) |
-| **v1.1 (polish)** | Fully expanded tree · virtual scroll · multiselect (Shift/marquee) · dark theme · commit card stats + full ⋮ · Settings (Appearance, External editors) |
+| **v1.1 (polish)** | Fully expanded tree · virtual scroll · multiselect · dark theme · commit card stats + full ⋮ · Settings · **native app menu (macOS)** |
 | **v2** | Fs watcher · rename `R` · detached HEAD · **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
 
 **Порядок:** [decisions.md §4](./decisions.md) · backend ([api-contract.md §7](./api-contract.md)) → UI slices.

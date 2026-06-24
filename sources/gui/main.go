@@ -21,6 +21,7 @@ func main() {
 		Height:    900,
 		MinWidth:  1435,
 		MinHeight: 720,
+		Menu:      buildApplicationMenu(app),
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -29,6 +30,10 @@ func main() {
 		OnShutdown:       app.shutdown,
 		Mac: &mac.Options{
 			TitleBar: mac.TitleBarDefault(),
+			About: &mac.AboutInfo{
+				Title:   "Difference Machine",
+				Message: "Forester GUI for version-controlled 3D workflows.",
+			},
 		},
 		Bind: []interface{}{
 			app,

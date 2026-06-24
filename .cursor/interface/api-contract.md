@@ -305,6 +305,9 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 | `onSelectionChange({ kind: 'commit', hash, branch })` | Выбор коммита в History; `branch` = `currentBranch` |
 | `onSelectionChange({ kind: 'none' })` | Сброс commit selection |
 | `onPreviewSelectionChange(PreviewSelection)` | File multiselect в Preview |
+| `gui:open-settings` | Application menu View → Settings ([application-menu.md](./application-menu.md)) |
+| `gui:switch-mode` | `"project"` \| `"history"` — Application menu или shortcut |
+| `gui:toggle-sidebar` | Collapse / expand sidebar column (`⌘B`) |
 
 **Нет** `kind: 'folder'` в `onSelectionChange` — папка только через `ProjectViewContext`.
 

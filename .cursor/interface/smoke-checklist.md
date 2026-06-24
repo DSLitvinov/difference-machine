@@ -101,6 +101,17 @@
 - [ ] Ошибки Forester / repo — toast bottom-right (не sidebar banner)
 - [ ] Marquee + Shift-range на file grid; Cmd/Ctrl+A select all в папке
 
+### 7.5 Native application menu (macOS)
+
+- [ ] View → Settings открывает диалог
+- [ ] `⌘1` / `⌘2` — Project / History (как Rail)
+- [ ] `⌘B` — toggle sidebar
+- [ ] Edit → Copy/Paste в полях ввода
+- [ ] Window → Minimize / Zoom
+- [ ] About — title + message
+
+См. [application-menu.md](./application-menu.md) §9.
+
 ---
 
 ## Сборка

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { WindowSetMinSize } from "../../../wailsjs/runtime/runtime";
+import { EventsOn, WindowSetMinSize } from "../../../wailsjs/runtime/runtime";
 
 import { ContentInfoPanel } from "@/components/info/ContentInfoPanel";
 import { HistoryPreviewPanel } from "@/components/preview/HistoryPreviewPanel";
@@ -16,6 +16,7 @@ import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRa
 import { usePanelLayout } from "@/hooks/usePanelLayout";
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
 import { MIN_WINDOW_HEIGHT, MIN_WINDOW_HISTORY, MIN_WINDOW_PROJECT, PREVIEW_MIN } from "@/lib/layout";
+import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -65,6 +66,26 @@ export function AppShell() {
   }, [sidebarMode]);
 
   useProjectStatusPolling();
+
+  useEffect(() => {
+    const cleanups = [
+      EventsOn("gui:open-settings", () => setSettingsOpen(true)),
+      EventsOn("gui:switch-mode", (mode: unknown) => {
+        if (mode === "project" || mode === "history") {
+          switchSidebarMode(mode);
+        }
+      }),
+      EventsOn("gui:toggle-sidebar", () => {
+        const collapsed = useAppStore.getState().sidebarCollapsed;
+        useAppStore.getState().setSidebarCollapsed(!collapsed);
+      }),
+    ];
+    return () => {
+      for (const cleanup of cleanups) {
+        cleanup();
+      }
+    };
+  }, []);
 
   const showInfo = sidebarMode === "project";
 

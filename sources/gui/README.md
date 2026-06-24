@@ -19,6 +19,8 @@ From the project root (recommended):
 # Output: ~/dfm_distr/apps/*.app
 ```
 
+Native menu spec: [.cursor/interface/application-menu.md](../../.cursor/interface/application-menu.md)
+
 Or directly in this folder (ensure Wails is on PATH):
 
 ```bash
@@ -31,7 +33,7 @@ wails build
 
 ```
 sources/gui/
-  main.go, app.go          # Wails entry + bindings
+  main.go, app.go, menu.go     # Wails entry + bindings + native menu
   internal/
     config/                # ~/.dfm/setup.cfg
     paths/                 # CanonicalAbsPath, SamePath

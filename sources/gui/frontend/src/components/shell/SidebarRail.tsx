@@ -8,11 +8,10 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
 import { userDisplayInitials } from "@/lib/userInitials";
 import { cn } from "@/lib/utils";
 import { useAppStore, type SidebarMode } from "@/stores/appStore";
-import { useHistoryStore } from "@/stores/historyStore";
-import { useProjectStore } from "@/stores/projectStore";
 
 interface SidebarRailProps {
   onSettingsClick?: () => void;
@@ -49,23 +48,12 @@ function RailButton({
 
 export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
   const sidebarMode = useAppStore((s) => s.sidebarMode);
-  const repoPath = useAppStore((s) => s.repoPath);
   const userName = useAppStore((s) => s.userName);
-  const setSidebarMode = useAppStore((s) => s.setSidebarMode);
   const avatarLabel = userName.trim() || "User";
   const avatarInitials = userDisplayInitials(userName);
 
   const switchMode = (mode: SidebarMode) => {
-    if (mode === sidebarMode) return;
-    useProjectStore.getState().clearFileSelection();
-    if (repoPath) {
-      if (sidebarMode === "history") {
-        useHistoryStore.getState().selectCommit(repoPath, null);
-      }
-    } else {
-      useHistoryStore.getState().reset();
-    }
-    setSidebarMode(mode);
+    switchSidebarMode(mode);
   };
 
   return (

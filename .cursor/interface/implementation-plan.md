@@ -65,7 +65,7 @@
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
 | 6 | Slice 5 — Polish + Settings | `[x]` 9/9 |
 | 7 | Сборка и smoke (macOS) | `[~]` 3/4 |
-| 8 | v1.1 polish | `[x]` 9/9 |
+| 8 | v1.1 polish | `[x]` 10/10 |
 
 ---
 
@@ -309,8 +309,9 @@
 - [x] **8.4.4** Create branch dialog — [create-branch-dialog.md](./create-branch-dialog.md)
 - [x] **8.4.5** Global errors → Toast (`AppToast`)
 - [x] **8.4.6** Project sidebar header `bg-sidebar` (как History)
-- [—] **8.4.7** Init repository wizard — отложено
-- [—] **8.4.8** Linux build + QA — отложено
+- [x] **8.4.7** Native application menu (macOS) — [application-menu.md](./application-menu.md)
+- [—] **8.4.8** Init repository wizard — отложено
+- [—] **8.4.9** Linux build + QA — отложено
 
 **Проверка:** ручной smoke — [smoke-checklist.md §7](./smoke-checklist.md).
 
