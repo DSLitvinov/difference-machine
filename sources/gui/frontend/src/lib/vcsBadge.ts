@@ -5,6 +5,7 @@ export const STATUS_BADGE_CLASS = {
   A: "bg-emerald-600 text-white",
   M: "bg-amber-500 text-white",
   D: "bg-destructive text-destructive-foreground",
+  R: "bg-blue-600 text-white",
   untracked: "bg-blue-600 text-white",
 } as const;
 
@@ -22,6 +23,8 @@ export function vcsStatusBadgeClass(status: VcsFileStatus): string {
     case "staged-deleted":
     case "deleted":
       return STATUS_BADGE_CLASS.D;
+    case "renamed":
+      return STATUS_BADGE_CLASS.R;
     case "untracked":
       return STATUS_BADGE_CLASS.untracked;
     default:

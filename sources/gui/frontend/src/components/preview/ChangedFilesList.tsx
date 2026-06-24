@@ -7,7 +7,15 @@ const STATUS_LABELS: Record<DiffFileEntry["status"], string> = {
   A: "Added",
   M: "Modified",
   D: "Deleted",
+  R: "Renamed",
 };
+
+function formatChangedFilePath(file: DiffFileEntry): string {
+  if (file.status === "R" && file.old_path) {
+    return `${file.old_path} → ${file.path}`;
+  }
+  return file.path;
+}
 
 interface ChangedFileItemProps {
   file: DiffFileEntry;
@@ -16,6 +24,8 @@ interface ChangedFileItemProps {
 }
 
 export function ChangedFileItem({ file, selected, onSelect }: ChangedFileItemProps) {
+  const displayPath = formatChangedFilePath(file);
+
   return (
     <Button
       type="button"
@@ -24,7 +34,7 @@ export function ChangedFileItem({ file, selected, onSelect }: ChangedFileItemPro
         "h-auto w-full justify-start gap-2 rounded-none px-3 py-2 text-left text-sm font-normal",
         selected ? "bg-accent" : "",
       )}
-      title={STATUS_LABELS[file.status]}
+      title={displayPath}
       onClick={onSelect}
     >
       <span
@@ -35,7 +45,7 @@ export function ChangedFileItem({ file, selected, onSelect }: ChangedFileItemPro
       >
         {file.status}
       </span>
-      <span className="min-w-0 flex-1 truncate">{file.path}</span>
+      <span className="min-w-0 flex-1 truncate">{displayPath}</span>
     </Button>
   );
 }
@@ -74,7 +84,7 @@ export function ChangedFilesList({
         ) : (
           files.map((file) => (
             <ChangedFileItem
-              key={`${file.status}:${file.path}`}
+              key={`${file.status}:${file.path}:${file.old_path ?? ""}`}
               file={file}
               selected={selectedPath === file.path}
               onSelect={() => onSelect(file.path)}

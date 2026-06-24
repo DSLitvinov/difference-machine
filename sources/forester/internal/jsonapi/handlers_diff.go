@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/difference-machine/forester/internal/commands"
@@ -22,12 +23,80 @@ const (
 	diffFromHash
 )
 
+type renamePair struct {
+	OldPath string
+	NewPath string
+}
+
 type treeDiffResult struct {
 	added    []string
 	modified []string
 	deleted  []string
+	renamed  []renamePair
 	tree1    map[string]*models.TreeEntry
 	tree2    map[string]*models.TreeEntry
+}
+
+func (d *treeDiffResult) detectRenames() {
+	if len(d.added) == 0 || len(d.deleted) == 0 {
+		return
+	}
+
+	deletedByHash := make(map[string][]string)
+	for _, path := range d.deleted {
+		entry := d.tree1[path]
+		if entry == nil {
+			continue
+		}
+		deletedByHash[entry.Hash] = append(deletedByHash[entry.Hash], path)
+	}
+	for hash := range deletedByHash {
+		sort.Strings(deletedByHash[hash])
+	}
+
+	usedOld := make(map[string]bool)
+	var newAdded, newDeleted []string
+	sortedAdded := append([]string(nil), d.added...)
+	sort.Strings(sortedAdded)
+
+	for _, newPath := range sortedAdded {
+		entry := d.tree2[newPath]
+		if entry == nil {
+			newAdded = append(newAdded, newPath)
+			continue
+		}
+		matched := ""
+		for _, oldPath := range deletedByHash[entry.Hash] {
+			if !usedOld[oldPath] {
+				matched = oldPath
+				break
+			}
+		}
+		if matched != "" {
+			d.renamed = append(d.renamed, renamePair{OldPath: matched, NewPath: newPath})
+			usedOld[matched] = true
+		} else {
+			newAdded = append(newAdded, newPath)
+		}
+	}
+	for _, path := range d.deleted {
+		if !usedOld[path] {
+			newDeleted = append(newDeleted, path)
+		}
+	}
+	sort.Strings(newAdded)
+	sort.Strings(newDeleted)
+	d.added = newAdded
+	d.deleted = newDeleted
+}
+
+func (d *treeDiffResult) renameOldPath(newPath string) string {
+	for _, pair := range d.renamed {
+		if pair.NewPath == newPath {
+			return pair.OldPath
+		}
+	}
+	return ""
 }
 
 func parseDiffFrom(raw json.RawMessage) (diffFromMode, string, error) {
@@ -94,6 +163,10 @@ func compareTrees(storage *core.Storage, fromTreeHash, toTreeHash string) (*tree
 			result.deleted = append(result.deleted, name)
 		}
 	}
+	sort.Strings(result.added)
+	sort.Strings(result.modified)
+	sort.Strings(result.deleted)
+	result.detectRenames()
 	return result, nil
 }
 
@@ -179,7 +252,7 @@ func handleDiffNameStatus(workPath string, args json.RawMessage) (interface{}, e
 			return nil, err
 		}
 
-		files := make([]map[string]string, 0, len(diff.added)+len(diff.modified)+len(diff.deleted))
+		files := make([]map[string]string, 0, len(diff.added)+len(diff.modified)+len(diff.deleted)+len(diff.renamed))
 		for _, path := range diff.added {
 			files = append(files, map[string]string{"status": "A", "path": path})
 		}
@@ -188,6 +261,13 @@ func handleDiffNameStatus(workPath string, args json.RawMessage) (interface{}, e
 		}
 		for _, path := range diff.deleted {
 			files = append(files, map[string]string{"status": "D", "path": path})
+		}
+		for _, pair := range diff.renamed {
+			files = append(files, map[string]string{
+				"status":   "R",
+				"path":     pair.NewPath,
+				"old_path": pair.OldPath,
+			})
 		}
 		return map[string]interface{}{"files": files}, nil
 	})
@@ -248,7 +328,7 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 		}
 
 		return map[string]interface{}{
-			"files_changed": len(diff.added) + len(diff.modified) + len(diff.deleted),
+			"files_changed": len(diff.added) + len(diff.modified) + len(diff.deleted) + len(diff.renamed),
 			"insertions":    insertions,
 			"deletions":     deletions,
 		}, nil
@@ -285,7 +365,10 @@ func handleDiffText(workPath string, args json.RawMessage) (interface{}, error) 
 		}
 
 		status := ""
+		oldPath := diff.renameOldPath(relPath)
 		switch {
+		case oldPath != "":
+			status = "R"
 		case contains(diff.added, relPath):
 			status = "A"
 		case contains(diff.modified, relPath):
@@ -307,6 +390,17 @@ func handleDiffText(workPath string, args json.RawMessage) (interface{}, error) 
 		} else if status == "A" {
 			entry := diff.tree2[relPath]
 			content2, err = storage.GetBlobContentString(entry.Hash)
+			if err != nil {
+				return nil, err
+			}
+		} else if status == "R" {
+			entry1 := diff.tree1[oldPath]
+			entry2 := diff.tree2[relPath]
+			content1, err = storage.GetBlobContentString(entry1.Hash)
+			if err != nil {
+				return nil, err
+			}
+			content2, err = storage.GetBlobContentString(entry2.Hash)
 			if err != nil {
 				return nil, err
 			}
@@ -350,6 +444,16 @@ func handleDiffText(workPath string, args json.RawMessage) (interface{}, error) 
 		} else if status == "D" {
 			diffLines := utils.ComputeDiff(content1, "")
 			unified = utils.FormatUnifiedDiff(relPath, "/dev/null", diffLines)
+		} else if status == "R" {
+			if content1 == content2 {
+				return map[string]interface{}{
+					"content":   "",
+					"format":    "unified",
+					"is_binary": false,
+				}, nil
+			}
+			diffLines := utils.ComputeDiff(content1, content2)
+			unified = utils.FormatUnifiedDiff(oldPath, relPath, diffLines)
 		} else {
 			diffLines := utils.ComputeDiff(content1, content2)
 			unified = utils.FormatUnifiedDiff(relPath, relPath, diffLines)

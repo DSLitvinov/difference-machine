@@ -169,6 +169,13 @@ export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanel
       </div>
     );
   }
+  if (!content.trim()) {
+    return (
+      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+        No content changes
+      </div>
+    );
+  }
 
   if (layout === "split") {
     return (

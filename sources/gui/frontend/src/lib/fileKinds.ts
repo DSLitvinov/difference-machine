@@ -32,7 +32,11 @@ export function fileExtension(path: string): string {
 
 export type HistoryDiffKind = "text" | "image" | "binary" | "deleted";
 
-export function classifyHistoryDiff(status: "A" | "M" | "D", path: string, isBinary?: boolean): HistoryDiffKind {
+export function classifyHistoryDiff(
+  status: "A" | "M" | "D" | "R",
+  path: string,
+  isBinary?: boolean,
+): HistoryDiffKind {
   if (status === "D") return "deleted";
   const ext = fileExtension(path);
   if (IMAGE_EXTENSIONS.has(ext)) return "image";

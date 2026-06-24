@@ -209,8 +209,10 @@ export function HistoryPreviewPanel() {
     try {
       const parent = firstParentHash(commit);
       let before: string | null = null;
+      const beforePath =
+        selectedFile.status === "R" && selectedFile.old_path ? selectedFile.old_path : selectedFile.path;
       if (selectedFile.status !== "A" && parent) {
-        const blob = await fetchBlob(parent, selectedFile.path);
+        const blob = await fetchBlob(parent, beforePath);
         if (generation !== imageDiffGeneration.current) return;
         if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) return;
         before = base64ToObjectUrl(blob.content_base64, blob.mime);

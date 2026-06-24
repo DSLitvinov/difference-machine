@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 interface ImageDiffPanelProps {
   beforeUrl?: string | null;
   afterUrl?: string | null;
-  status: "A" | "M" | "D";
+  status: "A" | "M" | "D" | "R";
   layout: HistoryImageLayout;
   loading: boolean;
   error: string | null;

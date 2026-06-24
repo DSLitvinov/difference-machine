@@ -372,6 +372,10 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 		}
 	}
 
+	renamedFiles, stagedNew, stagedDeleted, unstagedDeleted := detectWorkingTreeRenames(
+		stagedNew, stagedDeleted, unstagedDeleted, indexMap, trackedMap,
+	)
+
 	return map[string]interface{}{
 		"current_branch":          currentBranch,
 		"head_commit":             headCommit,
@@ -383,5 +387,64 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 		"unstaged_modified_files": unstagedModified,
 		"unstaged_deleted_files":  unstagedDeleted,
 		"untracked_files":         untracked,
+		"renamed_files":           renamedFiles,
 	}, nil
+}
+
+func detectWorkingTreeRenames(
+	stagedNew, stagedDeleted, unstagedDeleted []string,
+	indexMap, trackedMap map[string]string,
+) ([]map[string]string, []string, []string, []string) {
+	oldCandidates := append(append([]string{}, stagedDeleted...), unstagedDeleted...)
+	oldByHash := make(map[string][]string)
+	for _, path := range oldCandidates {
+		hash, ok := trackedMap[path]
+		if !ok {
+			continue
+		}
+		oldByHash[hash] = append(oldByHash[hash], path)
+	}
+
+	usedOld := make(map[string]bool)
+	renamedFiles := make([]map[string]string, 0)
+	remainingNew := make([]string, 0, len(stagedNew))
+
+	for _, newPath := range stagedNew {
+		hash, ok := indexMap[newPath]
+		if !ok {
+			remainingNew = append(remainingNew, newPath)
+			continue
+		}
+		matched := ""
+		for _, oldPath := range oldByHash[hash] {
+			if !usedOld[oldPath] {
+				matched = oldPath
+				break
+			}
+		}
+		if matched != "" {
+			renamedFiles = append(renamedFiles, map[string]string{
+				"old_path": matched,
+				"path":     newPath,
+			})
+			usedOld[matched] = true
+		} else {
+			remainingNew = append(remainingNew, newPath)
+		}
+	}
+
+	filterDeleted := func(list []string) []string {
+		if len(usedOld) == 0 {
+			return list
+		}
+		out := make([]string, 0, len(list))
+		for _, path := range list {
+			if !usedOld[path] {
+				out = append(out, path)
+			}
+		}
+		return out
+	}
+
+	return renamedFiles, remainingNew, filterDeleted(stagedDeleted), filterDeleted(unstagedDeleted)
 }

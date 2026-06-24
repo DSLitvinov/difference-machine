@@ -44,43 +44,36 @@ export interface StatusPayload {
   unstaged_modified_files?: string[];
   unstaged_deleted_files?: string[];
   untracked_files?: string[];
+  renamed_files?: RenamedFileEntry[];
 }
 
 export type VcsFileStatus =
   | "staged-new"
   | "staged-modified"
   | "staged-deleted"
+  | "renamed"
   | "modified"
   | "deleted"
   | "untracked";
 
-const STAGED_PRIORITY: VcsFileStatus[] = [
-  "staged-new",
-  "staged-modified",
-  "staged-deleted",
-];
-
-const UNSTAGED_PRIORITY: VcsFileStatus[] = ["modified", "deleted", "untracked"];
-
-const STATUS_LIST_KEYS: Record<VcsFileStatus, keyof StatusPayload> = {
-  "staged-new": "staged_new_files",
-  "staged-modified": "staged_modified_files",
-  "staged-deleted": "staged_deleted_files",
-  modified: "unstaged_modified_files",
-  deleted: "unstaged_deleted_files",
-  untracked: "untracked_files",
-};
+export interface RenamedFileEntry {
+  old_path: string;
+  path: string;
+}
 
 export function vcsFileStatus(path: string, status: StatusPayload | null): VcsFileStatus | null {
   if (!status) return null;
-  for (const kind of STAGED_PRIORITY) {
-    const list = status[STATUS_LIST_KEYS[kind]];
-    if (Array.isArray(list) && list.includes(path)) return kind;
+  if (Array.isArray(status.renamed_files)) {
+    for (const entry of status.renamed_files) {
+      if (entry.path === path) return "renamed";
+    }
   }
-  for (const kind of UNSTAGED_PRIORITY) {
-    const list = status[STATUS_LIST_KEYS[kind]];
-    if (Array.isArray(list) && list.includes(path)) return kind;
-  }
+  if (status.staged_new_files?.includes(path)) return "staged-new";
+  if (status.staged_modified_files?.includes(path)) return "staged-modified";
+  if (status.staged_deleted_files?.includes(path)) return "staged-deleted";
+  if (status.unstaged_modified_files?.includes(path)) return "modified";
+  if (status.unstaged_deleted_files?.includes(path)) return "deleted";
+  if (status.untracked_files?.includes(path)) return "untracked";
   return null;
 }
 
@@ -94,6 +87,8 @@ export function vcsBadgeLabel(status: VcsFileStatus): string {
     case "staged-deleted":
     case "deleted":
       return "D";
+    case "renamed":
+      return "R";
     case "untracked":
       return "N";
     default:
@@ -118,6 +113,11 @@ export function committablePaths(status: StatusPayload): string[] {
   for (const list of sets) {
     if (!list) continue;
     for (const p of list) out.add(p);
+  }
+  if (status.renamed_files) {
+    for (const entry of status.renamed_files) {
+      out.add(entry.path);
+    }
   }
   return [...out];
 }
@@ -259,8 +259,9 @@ export function diffFromArgs(commit: CommitLogEntry): Record<string, unknown> {
 }
 
 export interface DiffFileEntry {
-  status: "A" | "M" | "D";
+  status: "A" | "M" | "D" | "R";
   path: string;
+  old_path?: string;
 }
 
 export async function fetchDiffNameStatus(to: string, commit: CommitLogEntry) {
