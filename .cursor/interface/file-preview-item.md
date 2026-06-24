@@ -4,7 +4,7 @@
 
 **Figma (shadcn kit):** [4026:5023](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5023) · legacy [7310:16038](https://www.figma.com/design/GTu6s7FMr4Tn1NWrYeGpIF/?node-id=7310-16038)
 
-**Стек:** React + shadcn/ui (`Badge`)  
+**Стек:** React + shadcn/ui (`Badge` для lock only; VCS — `<span>` + `vcsStatusBadgeClass`)  
 **Связанные документы:** [content-preview-project-view.md](./content-preview-project-view.md) · [content-info-project-view.md](./content-info-project-view.md) · [design-tokens.md](./design-tokens.md) · [architecture.md](./architecture.md)
 
 ---
@@ -34,8 +34,9 @@ Thumbnail + имя файла + optional VCS status badge + optional lock badge.
 | Container padding | `8px` | `8px` |
 | Gap thumbnail ↔ name | `8px` | `8px` |
 | Status badge height | `22px` | `22px` |
-| Badge position (Min) | `left: -6.5px`, `top: 26px` (overlap bottom-left) | — |
-| Badge position (Max) | — | `left: 50%`, `top: 98px`, centered |
+| Badge group (VCS + lock) | centered bottom, `gap-1` (4px) | то же |
+| Badge position (Min) | `-bottom-1`, `left-1/2 -translate-x-1/2` | — |
+| Badge position (Max) | `bottom-0`, centered | — |
 
 ### 2.1 Thumbnail content
 
@@ -66,7 +67,7 @@ Thumbnail async через `workdir.thumbnail` ([api-contract.md §4.3](./api-co
 | `untracked` | `N` | ✓ |
 | clean / none | — | **скрыть** (`status={false}` в Figma) |
 
-Стиль badge: `vcsStatusBadgeClass` — [design-tokens.md §3.5](./design-tokens.md): `A` emerald, `M` amber, `D` destructive, `N` blue.
+Стиль badge: `<span>` + `vcsStatusBadgeClass` из `@/lib/vcsBadge` — [design-tokens.md §3.5](./design-tokens.md): `A` emerald, `M` amber, `D` destructive, `N` blue. **Не** `Badge variant="outline"` / `default`.
 
 ### 2.3 Lock badge
 

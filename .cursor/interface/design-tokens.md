@@ -231,7 +231,7 @@
 |---------|-------|----------|
 | Panel | `background/default` | `bg-background border-border` |
 | Preview frame | `border/default` | `border border-border rounded-md` |
-| Status badge | `background/primary/default` | `Badge variant="default"` |
+| Status badge | colorful VCS | `<span>` + `vcsStatusBadgeClass` — [design-tokens.md §3.5](./design-tokens.md); rule `.cursor/rules/status-badge-colors.mdc` |
 | Lock badge | `background/secondary` | `Badge variant="secondary"` |
 | Section header | `foreground/default` | `text-sm font-semibold` |
 | Metadata label | `foreground/default` | `text-sm` |

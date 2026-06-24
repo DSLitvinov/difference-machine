@@ -69,7 +69,7 @@ Forester CLI — **не bundle** в v1.0; путь из `~/.dfm/setup.cfg` `[for
 | Fully expanded folder tree | v1.1 | v1.0: lazy expand (§5) |
 | Native app menu (macOS) | v1.1 | [application-menu.md](./application-menu.md) |
 | Fs watcher | v2 | |
-| Rename `R` в diff | v2 | UI badges A/M/D only |
+| Rename `R` в diff | v2 | History badges A/M/D; Project badges A/M/D/N |
 
 ---
 

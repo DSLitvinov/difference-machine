@@ -28,16 +28,16 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **1 — Manual smoke (macOS)** |
-| **Следующий шаг** | **1.2.1** Cold start → auto-open last repo — [smoke-checklist.md](./smoke-checklist.md) |
-| **Заметки** | Prerequisites 1.1 (steps 3–5) пройдены; `verify_smoke_prereqs.sh` |
+| **Активная фаза** | **3 — Merge UI** |
+| **Следующий шаг** | **3.1** Backend `merge.*` jsonapi — [merge-dialog.md](./merge-dialog.md) |
+| **Заметки** | Фаза **1 smoke macOS** закрыта — [smoke-checklist.md](./smoke-checklist.md) все `[x]`; macOS v1.x ready for release |
 
 ### Прогресс v2
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | macOS DMG packaging | `[x]` 4/4 |
-| 1 | Manual smoke (macOS) | `[~]` 1.1 done |
+| 1 | Manual smoke (macOS) | `[x]` |
 | 2 | Windows build + smoke | `[—]` 0/2 |
 | 3 | Merge UI | `[ ]` 0/3 |
 | 4 | Fs watcher | `[ ]` 0/2 |
@@ -62,9 +62,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ---
 
-## Фаза 1 — Manual smoke (macOS)
+## Фаза 1 — Manual smoke (macOS) `[x]`
 
-Ручная проверка перед релизом v1.x на macOS. Детали сценариев — [smoke-checklist.md](./smoke-checklist.md).
+Ручная проверка перед релизом v1.x на macOS. Детали сценариев — [smoke-checklist.md](./smoke-checklist.md). **Закрыта 2025-06-24.**
 
 ### 1.1 Предусловия
 
@@ -74,30 +74,30 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ### 1.2 Core scenarios (§1–6)
 
-- [ ] **1.2.1** Cold start → auto-open last repo
-- [ ] **1.2.2** Add repo → browse → select file (включая init dialog, `.blend` thumbnail)
-- [ ] **1.2.3** Create commit
-- [ ] **1.2.4** History → select commit → text diff
-- [ ] **1.2.5** Switch branch — clean + dirty (stash)
-- [ ] **1.2.6** Revert file from Info History
+- [x] **1.2.1** Cold start → auto-open last repo
+- [x] **1.2.2** Add repo → browse → select file (включая init dialog, `.blend` thumbnail)
+- [x] **1.2.3** Create commit
+- [x] **1.2.4** History → select commit → text diff
+- [x] **1.2.5** Switch branch — clean + dirty (stash)
+- [x] **1.2.6** Revert file from Info History
 
 ### 1.3 Corner cases (architecture §6)
 
-- [ ] **1.3.1** Таблица 6.1–6.10 — [smoke-checklist.md §Corner cases](./smoke-checklist.md)
+- [x] **1.3.1** Таблица 6.1–6.10 — [smoke-checklist.md §Corner cases](./smoke-checklist.md)
 
 ### 1.4 v1.1 polish (§7)
 
-- [ ] **1.4.1** Commit cards — stats + ⋮ menu (§7.1)
-- [ ] **1.4.2** Project Preview + Sidebar — virtual scroll, expand/collapse, header styling (§7.2)
-- [ ] **1.4.3** Settings + branch — dark theme, editors, create branch (§7.3)
-- [ ] **1.4.4** Errors + multiselect — toast, marquee (§7.4)
-- [ ] **1.4.5** Native application menu macOS (§7.5)
+- [x] **1.4.1** Commit cards — stats + ⋮ menu (§7.1)
+- [x] **1.4.2** Project Preview + Sidebar — virtual scroll, expand/collapse, header styling (§7.2)
+- [x] **1.4.3** Settings + branch — dark theme, editors, create branch (§7.3)
+- [x] **1.4.4** Errors + multiselect — toast, marquee (§7.4)
+- [x] **1.4.5** Native application menu macOS (§7.5)
 
 ### 1.5 Сборка
 
-- [ ] **1.5.1** `./builder/build.sh --dmg` (macOS) — без ошибок; DMG открывается
-- [ ] **1.5.2** DMG install → first launch → `~/.dfm/setup.cfg` с путями `/Applications/Difference Machine/...`
-- [ ] **1.5.3** Заметки сессии — [smoke-checklist.md §Заметки](./smoke-checklist.md)
+- [x] **1.5.1** `./builder/build.sh --dmg` (macOS) — без ошибок; DMG открывается
+- [x] **1.5.2** DMG install → first launch → `~/.dfm/setup.cfg` с путями `/Applications/Difference Machine/...`
+- [x] **1.5.3** Заметки сессии — [smoke-checklist.md §Заметки](./smoke-checklist.md)
 
 **Проверка:** все пункты [smoke-checklist.md](./smoke-checklist.md) отмечены `[x]`; критичные баги заведены или исправлены.
 
@@ -182,3 +182,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | Дата | Фаза | Сделано | Следующий шаг |
 |------|------|---------|---------------|
 | 2025-06-24 | — | Создан v2 plan; smoke перенесён из v1 фазы 7 | **1.1** предусловия |
+| 2025-06-24 | 1 | Smoke macOS complete (§1–7, corner cases, DMG) | **3.1** Merge UI backend |

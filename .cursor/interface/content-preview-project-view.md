@@ -173,7 +173,9 @@ Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-код�
 | `D` | `deleted` | `unstaged_deleted_files` | Deleted |
 | `N` | `untracked` | `untracked_files` | Untracked |
 
-> Если файл одновременно staged и unstaged-modified — приоритет staged (показываем `M` staged). Tooltip на badge через `Tooltip`.
+> Если файл одновременно staged и unstaged-modified — приоритет staged (показываем `M` staged). Tooltip на badge через `title` / `Tooltip`.
+
+Цвета VCS: `vcsStatusBadgeClass` — [design-tokens.md §3.5](./design-tokens.md). Рендер: `<span>`, не `Badge variant="default"`.
 
 ### 3.3.1 Lock badge
 

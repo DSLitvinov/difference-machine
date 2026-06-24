@@ -338,14 +338,16 @@ interface SidebarEvents {
 
 ### 5.3 Статусы для badge в Preview
 
-| Статус | Источник |
-|--------|----------|
-| `staged-new` | `staged_new_files` |
-| `staged-modified` | `staged_modified_files` |
-| `staged-deleted` | `staged_deleted_files` |
-| `modified` | `unstaged_modified_files` |
-| `deleted` | `unstaged_deleted_files` |
-| `untracked` | `untracked_files` |
+| Статус | Badge | Источник |
+|--------|-------|----------|
+| `staged-new` | `A` | `staged_new_files` |
+| `staged-modified` | `M` | `staged_modified_files` |
+| `staged-deleted` | `D` | `staged_deleted_files` |
+| `modified` | `M` | `unstaged_modified_files` |
+| `deleted` | `D` | `unstaged_deleted_files` |
+| `untracked` | `N` | `untracked_files` |
+
+Цвета: `vcsStatusBadgeClass` — [design-tokens.md §3.5](./design-tokens.md). Lock badge (`lock`) — отдельно, `lock.list`.
 
 ---
 

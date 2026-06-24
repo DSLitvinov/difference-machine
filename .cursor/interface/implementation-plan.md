@@ -49,8 +49,8 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Статус** | **v1.0 / v1.1 code complete** |
-| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — фаза **1** manual smoke |
+| **Статус** | **v1.0 / v1.1 code complete** · **v2 фаза 1 smoke macOS complete** |
+| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — фаза **3** Merge UI |
 | **Заметки** | Smoke перенесён в v2; auto: `npm build` + `go test jsonapi` + `wails build` macOS |
 
 ### Прогресс v1.0
@@ -352,3 +352,4 @@
 | 2025-06-23 | 6 + 7 | Corner cases; smoke-checklist.md; wails build | Ручной smoke |
 | 2025-06-24 | 7→8 | Windows/Linux build отложены; v1.0 macOS scope закрыт | **8.1** commit card stats |
 | 2025-06-24 | 8 | v1.1 code complete; smoke → v2 | [implementation-plan-v2.md](./implementation-plan-v2.md) фаза 1 |
+| 2025-06-24 | v2·1 | Smoke macOS complete | **3.1** Merge UI |

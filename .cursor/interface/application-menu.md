@@ -136,9 +136,11 @@ Quit — через системный `AppMenu` (Wails), не кастомны�
 
 ## 9. Smoke
 
-- [ ] View → Settings открывает `SettingsDialog`
-- [ ] `⌘1` / `⌘2` переключают Project / History (как Rail)
-- [ ] `⌘B` сворачивает / разворачивает sidebar column
-- [ ] Edit → Copy/Paste работают в search input и диалогах
-- [ ] Window → Minimize / Zoom
-- [ ] About показывает title + message из `mac.About`
+- [x] View → Settings открывает `SettingsDialog`
+- [x] `⌘1` / `⌘2` переключают Project / History (как Rail)
+- [x] `⌘B` сворачивает / разворачивает sidebar column
+- [x] Edit → Copy/Paste работают в search input и диалогах
+- [x] Window → Minimize / Zoom
+- [x] About показывает title + message из `mac.About`
+
+Проверено в [smoke-checklist.md §7.5](./smoke-checklist.md).

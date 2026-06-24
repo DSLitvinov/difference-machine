@@ -82,8 +82,8 @@ function classifyInfoPreview(ext: string): InfoPreviewKind {
 
 | Badge | Условие | Style |
 |-------|---------|-------|
-| **status** | VCS ≠ clean | `Badge default` — `A`/`M`/`D`/`N` |
-| **lock** | `lock.list` has entry for file+branch | `Badge secondary` — `lock` или username |
+| **status** | VCS ≠ clean | `<span>` + `vcsStatusBadgeClass` — `A`/`M`/`D`/`N` ([design-tokens.md §3.5](./design-tokens.md)) |
+| **lock** | `lock.list` has entry for file+branch | `bg-secondary` — текст `lock`; tooltip `Locked by {user}` |
 
 - status **скрыт** если clean
 - lock **скрыт** если не заблокирован

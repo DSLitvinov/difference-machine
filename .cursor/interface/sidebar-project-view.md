@@ -112,8 +112,8 @@ Toggle **Changed** одновременно:
 #### Сворачивание (collapse)
 
 - **v1.0:** lazy expand/collapse per-node (chevron).
-- **v1.1:** optional «expand all» / fully expanded для малых репо.
-- Persist expanded paths в `localStorage` per repo — v1.1.
+- **v1.1:** **Expand all** / **Collapse** в заголовке Folders; lazy по умолчанию.
+- Persist expanded paths в `localStorage` per repo — v2.1+ backlog.
 
 #### Производительность
 
@@ -340,10 +340,10 @@ type FolderTreeNode struct {
 | # | Тема | Решение |
 |---|------|---------|
 | 1 | Count badge | **Recursive files** — [architecture.md §4.2](./architecture.md) |
-| 2 | Навигация | **Full tree, always expanded** |
+| 2 | Навигация | Lazy tree + **Expand all** / **Collapse** (v1.1) |
 | 3 | Файлы в Sidebar | **Нет** — только в Content Preview |
 | 4 | Drill-down | **Отменён** |
 | 5 | Changed toggle | Фильтр папок в Sidebar **+** committable-only в Preview (§3) |
 | 6 | Root | **Selectable** — файлы корня в Preview |
-| 7 | Collapse узлов | **Отключён** в v1 |
+| 7 | Collapse узлов | Per-node chevron + **Expand all** / **Collapse** (v1.1) |
 | 8 | Multi-repo | [multi-repo.md](./multi-repo.md) — `~/.dfm/setup.cfg` `[current repo]` + `[repo]` |

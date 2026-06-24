@@ -1,6 +1,6 @@
 # Smoke checklist — Forester GUI (v2)
 
-Ручная проверка **v2 фаза 1** перед релизом. Отмечайте `[x]` после прохождения.
+Ручная проверка **v2 фаза 1** перед релизом. **Статус: complete** (2025-06-24).
 
 **План:** [implementation-plan-v2.md §1](./implementation-plan-v2.md) · **v1 code:** [implementation-plan.md](./implementation-plan.md) (закрыт)
 
@@ -68,15 +68,15 @@
 
 | # | Сценарий | Ожидание | Проверено |
 |---|----------|----------|-----------|
-| 6.1 | Нет репо в cfg | Empty state + Add repository | [ ] |
-| 6.2 | Папка без `.DFM` при Add | Init dialog; Cancel → error; Create → repo init + open | [ ] |
-| 6.3 | Repo path удалён / диск отмонтирован | Toast (destructive) + **Re-open** / Retry | [ ] |
-| 6.4 | Forester binary недоступен | Toast «Forester unavailable» + Retry | [ ] |
-| 6.5 | Файл удалён с диска при selection | Selection сброшен, notice | [ ] |
-| 6.6 | Ветка сменена из CLI | Polling обновляет branch + History log | [ ] |
-| 6.7 | Пустой репо (нет коммитов) | «No commits yet» в History | [ ] |
-| 6.9 | Sidebar collapse | Rail 48px; expand восстанавливает ширину | [ ] |
-| 6.10 | Project ↔ History | Selection сброшен; Info hide/show | [ ] |
+| 6.1 | Нет репо в cfg | Empty state + Add repository | [x] |
+| 6.2 | Папка без `.DFM` при Add | Init dialog; Cancel → error; Create → repo init + open | [x] |
+| 6.3 | Repo path удалён / диск отмонтирован | Toast (destructive) + **Re-open** / Retry | [x] |
+| 6.4 | Forester binary недоступен | Toast «Forester unavailable» + Retry | [x] |
+| 6.5 | Файл удалён с диска при selection | Selection сброшен, notice | [x] |
+| 6.6 | Ветка сменена из CLI | Polling обновляет branch + History log | [x] |
+| 6.7 | Пустой репо (нет коммитов) | «No commits yet» в History | [x] |
+| 6.9 | Sidebar collapse | Rail 48px; expand восстанавливает ширину | [x] |
+| 6.10 | Project ↔ History | Selection сброшен; Info hide/show | [x] |
 
 ---
 
@@ -130,4 +130,4 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 ## Заметки сессии
 
-_Запишите сюда найденные баги и отклонения от спеки._
+**2025-06-24 — smoke complete.** Критичных блокеров не зафиксировано. Доп. UI после smoke-прогона: lock badge в Content Preview, `FolderIcon` (Figma 4026:5054), untracked badge `N`, цветные VCS badges (`vcsBadge.ts`).
