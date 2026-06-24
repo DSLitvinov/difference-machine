@@ -1,0 +1,71 @@
+---
+description: VCS and diff status badges must use shared colorful styles everywhere
+globs: sources/gui/frontend/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Status badges — always colorful
+
+All **VCS / diff status badges** in the GUI must use the shared color map from `@/lib/vcsBadge`. Never gray `Badge variant="default"` / `variant="outline"` / `bg-primary` for file status.
+
+## Single source of truth
+
+| Module | Role |
+|--------|------|
+| `sources/gui/frontend/src/lib/vcsBadge.ts` | `STATUS_BADGE_CLASS`, `vcsStatusBadgeClass()`, `diffStatusBadgeClass()` |
+| `sources/gui/frontend/src/wails/forester.ts` | `vcsBadgeLabel()` — badge text (`A`, `M`, `D`, `N`) |
+| `.cursor/interface/design-tokens.md` §3.5 | Spec reference |
+
+## Color map (do not duplicate inline)
+
+| Label | Meaning | Classes |
+|-------|---------|---------|
+| `A` | staged-new / Added | `bg-emerald-600 text-white` |
+| `M` | modified (staged or unstaged) | `bg-amber-500 text-white` |
+| `D` | deleted (staged or unstaged) | `bg-destructive text-destructive-foreground` |
+| `N` | untracked | `bg-blue-600 text-white` |
+| `R` | rename (History diff) | `bg-blue-600 text-white` when added |
+
+## How to render
+
+Use a plain `<span>` (or equivalent) with the helper class — **not** shadcn `Badge` for VCS status:
+
+```tsx
+import { vcsStatusBadgeClass } from "@/lib/vcsBadge";
+import { vcsBadgeLabel } from "@/wails/forester";
+
+<span
+  className={cn(
+    "flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
+    vcsStatusBadgeClass(vcsStatus),
+  )}
+>
+  {vcsBadgeLabel(vcsStatus)}
+</span>
+```
+
+History changed files: `diffStatusBadgeClass(file.status)`.
+
+## Do not
+
+- Do **not** use `Badge variant="outline"` or `variant="default"` for VCS/diff status — outline resets colors; default is gray primary.
+- Do **not** hardcode `bg-primary`, `bg-secondary`, `bg-muted`, or `text-muted-foreground` for status letters.
+- Do **not** copy Tailwind color classes into components — extend `vcsBadge.ts` instead.
+- Do **not** use Git-style `??` for untracked — label is **`N`**.
+
+## Exceptions
+
+- **Lock badge** (`lock` text) — intentionally `Badge variant="secondary"` / `bg-secondary`; not a VCS status.
+- **Date / tag badges** on commit cards — secondary/default per commit-card spec.
+
+## When adding a new status badge surface
+
+1. Import helpers from `vcsBadge.ts` + `vcsBadgeLabel` if needed.
+2. Render with `<span>` + shared classes.
+3. Update `vcsBadge.ts` and `design-tokens.md` §3.5 if a new status code appears.
+
+## Reference implementations
+
+- `FilePreviewItem.tsx` — Content Preview file grid
+- `InfoFilePreviewSingle.tsx` — Content Info preview
+- `ChangedFilesList.tsx` — History changed files

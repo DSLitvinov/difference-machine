@@ -171,7 +171,7 @@ Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-код�
 | `D` | `staged-deleted` | `staged_deleted_files` | Deleted (staged) |
 | `M` | `modified` | `unstaged_modified_files` | Modified |
 | `D` | `deleted` | `unstaged_deleted_files` | Deleted |
-| `?` | `untracked` | `untracked_files` | Untracked |
+| `N` | `untracked` | `untracked_files` | Untracked |
 
 > Если файл одновременно staged и unstaged-modified — приоритет staged (показываем `M` staged). Tooltip на badge через `Tooltip`.
 
@@ -580,6 +580,6 @@ frontend/src/
 | 5 | Поиск | Global по репозиторию, отдельный results view |
 | 6 | Changed ON | Folders скрыты; recursive committable flat list |
 | 7 | Слайдер | 48→128px, шаг 18px (6 позиций), Min-визуал ≤84, Max-визуал ≥102, per-repo persist |
-| 8 | Status badge | VCS-код (A/M/D/?), скрыт для clean; только у файлов |
+| 8 | Status badge | VCS-код (A/M/D/N), скрыт для clean; только у файлов |
 | 9 | Lock badge | Текст `lock`, tooltip `Locked by {user}`; только у заблокированных файлов |
 | 9 | Double-click файл | `workdir.open` — открытие в приложении по умолчанию ОС (§4.4) |

@@ -220,7 +220,7 @@ function committableFilesInSubtree(
 - В карточке файла: subtitle = parent folder (`assets` / `root`) для различения одноимённых имён.
 - Секция **Folders** в Preview скрыта; навигация по scope — через дерево Sidebar или breadcrumbs.
 
-Каждый файл в Preview сопровождается `VcsFileStatus` из `status.get` (badge `M`, `A`, `D`, `U`, `??`).
+Каждый файл в Preview сопровождается `VcsFileStatus` из `status.get` (badge `M`, `A`, `D`, `N`).
 
 **При включении Changed без выбранной папки:** auto-select root (`path: ''`) или сохранить текущий `selectedFolderPath` — если null, default **root**.
 

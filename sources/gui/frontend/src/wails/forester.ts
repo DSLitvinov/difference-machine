@@ -93,7 +93,7 @@ export function vcsBadgeLabel(status: VcsFileStatus): string {
     case "deleted":
       return "D";
     case "untracked":
-      return "??";
+      return "N";
     default:
       return "";
   }

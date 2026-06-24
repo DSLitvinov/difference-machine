@@ -82,7 +82,7 @@ function classifyInfoPreview(ext: string): InfoPreviewKind {
 
 | Badge | Условие | Style |
 |-------|---------|-------|
-| **status** | VCS ≠ clean | `Badge default` — `A`/`M`/`D`/`??` |
+| **status** | VCS ≠ clean | `Badge default` — `A`/`M`/`D`/`N` |
 | **lock** | `lock.list` has entry for file+branch | `Badge secondary` — `lock` или username |
 
 - status **скрыт** если clean

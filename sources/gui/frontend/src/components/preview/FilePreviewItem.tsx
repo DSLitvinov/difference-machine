@@ -87,16 +87,15 @@ export function FilePreviewItem({
             )}
           >
             {badge ? (
-              <Badge
-                variant="outline"
+              <span
                 className={cn(
-                  "border-transparent h-[22px] min-w-[22px] justify-center rounded-full px-1.5 text-xs font-semibold hover:bg-inherit",
+                  "flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
                   vcsStatusBadgeClass(vcsStatus!),
                 )}
                 title={vcsStatus ?? undefined}
               >
                 {badge}
-              </Badge>
+              </span>
             ) : null}
             {lockUser ? (
               <Badge

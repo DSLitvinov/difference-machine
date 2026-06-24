@@ -36,7 +36,7 @@
 - [x] Папка без `.DFM` → dialog «This folder is not a repository» → **Create** → repo открыт
 - [x] **Cancel** в dialog → error `not a Forester repository`
 - [x] Project: дерево папок, drill-down в Preview, клик по файлу
-- [ ] Content Info показывает metadata; VCS badge на файле (если changed)
+- [x] Content Info показывает metadata; VCS badge на файле (если changed)
 - [x] `.blend` с превью из Blender → thumbnail в grid и Info (не stub)
 
 ### 3. Create commit
@@ -86,35 +86,35 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 ### 7.1 Commit cards
 
-- [ ] Stats: при скролле списка — lazy `N files changed` (+/−); skeleton → строка или скрыто при ошибке
-- [ ] ⋮ menu: View in Preview, Compare with working tree, Restore, Revert (disabled на HEAD), Copy hash/message
-- [ ] Restore / Revert → `AlertDialog` → после успеха log и Project data обновляются
+- [x] Stats: при скролле списка — lazy `N files changed` (+/−); skeleton → строка или скрыто при ошибке
+- [x] ⋮ menu: View in Preview, Compare with working tree, Restore, Revert (disabled на HEAD), Copy hash/message
+- [x] Restore / Revert → `AlertDialog` → после успеха log и Project data обновляются
 
 ### 7.2 Project Preview + Sidebar
 
-- [ ] Папка с >200 файлами: scroll подгружает следующую страницу; сетка виртуализирована
-- [ ] **Expand all** / **Collapse** в дереве папок
-- [ ] Header **Project view** — серый `bg-sidebar`; список папок — белый `bg-background` (как History)
+- [x] Папка с >200 файлами: scroll подгружает следующую страницу; сетка виртуализирована
+- [x] **Expand all** / **Collapse** в дереве папок
+- [x] Header **Project view** — серый `bg-sidebar`; список папок — белый `bg-background` (как History)
 
 ### 7.3 Settings + branch
 
-- [ ] Dark theme (Appearance)
-- [ ] External editors: путь к `.app` на macOS резолвится в binary
-- [ ] History → Branch selector → **Create new branch…** → диалог → ветка создана
+- [x] Dark theme (Appearance)
+- [x] External editors: путь к `.app` на macOS резолвится в binary
+- [x] History → Branch selector → **Create new branch…** → диалог → ветка создана
 
 ### 7.4 Errors + multiselect
 
-- [ ] Ошибки Forester / repo — toast bottom-right (не sidebar banner)
-- [ ] Marquee + Shift-range на file grid; Cmd/Ctrl+A select all в папке
+- [x] Ошибки Forester / repo — toast bottom-right (не sidebar banner)
+- [x] Marquee + Shift-range на file grid; Cmd/Ctrl+A select all в папке
 
 ### 7.5 Native application menu (macOS)
 
-- [ ] View → Settings открывает диалог
-- [ ] `⌘1` / `⌘2` — Project / History (как Rail)
-- [ ] `⌘B` — toggle sidebar
-- [ ] Edit → Copy/Paste в полях ввода
-- [ ] Window → Minimize / Zoom
-- [ ] About — title + message
+- [x] View → Settings открывает диалог
+- [x] `⌘1` / `⌘2` — Project / History (как Rail)
+- [x] `⌘B` — toggle sidebar
+- [x] Edit → Copy/Paste в полях ввода
+- [x] Window → Minimize / Zoom
+- [x] About — title + message
 
 См. [application-menu.md](./application-menu.md) §9.
 
@@ -122,8 +122,8 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 ## Сборка
 
-- [ ] `./builder/build.sh --dmg` (macOS) — DMG в `builder/dist/` — **v2 §1.5.1**
-- [ ] DMG install → `~/.dfm/setup.cfg` bootstrap — **v2 §1.5.2** · [macos-installer.md](./macos-installer.md)
+- [x] `./builder/build.sh --dmg` (macOS) — DMG в `builder/dist/` — **v2 §1.5.1**
+- [x] DMG install → `~/.dfm/setup.cfg` bootstrap — **v2 §1.5.2** · [macos-installer.md](./macos-installer.md)
 - [—] `wails build` Windows — **v2 фаза 2**
 
 ---

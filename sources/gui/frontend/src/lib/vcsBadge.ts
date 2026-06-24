@@ -5,7 +5,7 @@ export const STATUS_BADGE_CLASS = {
   A: "bg-emerald-600 text-white",
   M: "bg-amber-500 text-white",
   D: "bg-destructive text-destructive-foreground",
-  untracked: "bg-zinc-600 text-white",
+  untracked: "bg-blue-600 text-white",
 } as const;
 
 export function diffStatusBadgeClass(status: DiffFileEntry["status"]): string {

@@ -63,10 +63,10 @@ Thumbnail async через `workdir.thumbnail` ([api-contract.md §4.3](./api-co
 | `staged-deleted` | `D` | ✓ |
 | `modified` | `M` | ✓ |
 | `deleted` | `D` | ✓ |
-| `untracked` | `??` | ✓ |
+| `untracked` | `N` | ✓ |
 | clean / none | — | **скрыть** (`status={false}` в Figma) |
 
-Стиль badge: `bg-primary text-primary-foreground text-xs font-semibold rounded-full px-3 h-[22px]`.
+Стиль badge: `vcsStatusBadgeClass` — [design-tokens.md §3.5](./design-tokens.md): `A` emerald, `M` amber, `D` destructive, `N` blue.
 
 ### 2.3 Lock badge
 

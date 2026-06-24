@@ -205,6 +205,7 @@
 | Status badge A | success | `bg-emerald-600 text-white` |
 | Status badge M | warning | `bg-amber-500 text-white` |
 | Status badge D | destructive | `bg-destructive text-destructive-foreground` |
+| Status badge N (untracked) | info | `bg-blue-600 text-white` |
 | Status badge R | info | `bg-blue-600 text-white` |
 | Image diff handle | `border/primary/default` | `border-ring bg-background` |
 | Resize divider | `border/default` | `bg-border` |
