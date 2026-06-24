@@ -1,6 +1,6 @@
-# Forester GUI — план реализации (v1.0)
+# Forester GUI — план реализации (v1.0 / v1.1)
 
-Живой чеклист для возобновления работы после прерывания.
+Живой чеклист **закрытого** scope v1.0 и v1.1. QA и v2 — [implementation-plan-v2.md](./implementation-plan-v2.md).
 
 **Канон scope:** [decisions.md](./decisions.md) · **API:** [api-contract.md](./api-contract.md) · **архитектура:** [architecture.md](./architecture.md)
 
@@ -49,9 +49,9 @@
 | Поле | Значение |
 |------|----------|
 | **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **8 — v1.1 polish** |
-| **Следующий шаг** | **7.4** Ручной smoke — [smoke-checklist.md](./smoke-checklist.md) §1–7 |
-| **Заметки** | v1.1 code complete; auto: `npm build` + `go test jsonapi` OK; `wails build` — локально |
+| **Статус** | **v1.0 / v1.1 code complete** |
+| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — фаза **1** manual smoke |
+| **Заметки** | Smoke перенесён в v2; auto: `npm build` + `go test jsonapi` + `wails build` macOS |
 
 ### Прогресс v1.0
 
@@ -64,7 +64,7 @@
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
 | 5 | Slice 4 — History + diff | `[x]` 17/17 |
 | 6 | Slice 5 — Polish + Settings | `[x]` 9/9 |
-| 7 | Сборка и smoke (macOS) | `[~]` 3/4 |
+| 7 | Сборка (macOS) | `[x]` 3/3 |
 | 8 | v1.1 polish | `[x]` 10/10 |
 
 ---
@@ -264,19 +264,20 @@
 ### 6.3 Доработки
 
 - [x] **6.3.1** History ↔ Project mode switch — сброс selection по [architecture.md §3.1](./architecture.md)
-- [x] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — пройти чеклист
+- [x] **6.3.2** Corner cases §6 из [architecture.md](./architecture.md) — код; ручной прогон → [implementation-plan-v2.md §1.3](./implementation-plan-v2.md)
 - [x] **6.3.3** Keyboard a11y на commit list (roving tabindex)
 
 **Проверка:** multiselect → multi Info; Settings save author; resize persist после restart.
 
 ---
 
-## Фаза 7 — Сборка и smoke (macOS v1.0)
+## Фаза 7 — Сборка (macOS v1.0)
 
 - [x] **7.1** `wails build` macOS
-- [—] **7.2** `wails build` Windows — **отложено**
+- [—] **7.2** `wails build` Windows — **v2** [implementation-plan-v2.md §2](./implementation-plan-v2.md)
 - [x] **7.3** Интеграция GUI в `builder/` — `./builder/build.sh --gui` (macOS)
-- [ ] **7.4** Smoke checklist — [smoke-checklist.md](./smoke-checklist.md) (ручная, параллельно с v1.1)
+
+Ручной smoke → **v2 фаза 1** — [implementation-plan-v2.md](./implementation-plan-v2.md) · [smoke-checklist.md](./smoke-checklist.md)
 
 ---
 
@@ -313,7 +314,7 @@
 - [—] **8.4.8** Init repository wizard — отложено
 - [—] **8.4.9** Linux build + QA — отложено
 
-**Проверка:** ручной smoke — [smoke-checklist.md §7](./smoke-checklist.md).
+**Проверка:** код и автосборка; ручной smoke — [implementation-plan-v2.md §1](./implementation-plan-v2.md).
 
 ---
 
@@ -334,14 +335,9 @@
 
 ---
 
-## v2 — backlog
+## v2
 
-- [—] [merge-dialog.md](./merge-dialog.md) + `merge.*` API
-- [—] Fs watcher
-- [—] Rename `R` в diff
-- [—] Detached HEAD UI
-- [x] Branch create (GUI) — [create-branch-dialog.md](./create-branch-dialog.md)
-- [—] Branch delete (GUI)
+Полный план, smoke и backlog: **[implementation-plan-v2.md](./implementation-plan-v2.md)**
 
 ---
 
@@ -355,3 +351,4 @@
 | 2025-06-23 | 3 + 7 | Project toolbar; `workdir.search` API | Smoke checklist |
 | 2025-06-23 | 6 + 7 | Corner cases; smoke-checklist.md; wails build | Ручной smoke |
 | 2025-06-24 | 7→8 | Windows/Linux build отложены; v1.0 macOS scope закрыт | **8.1** commit card stats |
+| 2025-06-24 | 8 | v1.1 code complete; smoke → v2 | [implementation-plan-v2.md](./implementation-plan-v2.md) фаза 1 |

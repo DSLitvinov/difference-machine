@@ -1,12 +1,14 @@
-# Smoke checklist — Forester GUI
+# Smoke checklist — Forester GUI (v2)
 
-Ручная проверка перед релизом. Отмечайте `[x]` после прохождения.
+Ручная проверка **v2 фаза 1** перед релизом. Отмечайте `[x]` после прохождения.
 
-**Запуск:** `cd sources/gui && wails dev` (или собранный `.app`).
+**План:** [implementation-plan-v2.md §1](./implementation-plan-v2.md) · **v1 code:** [implementation-plan.md](./implementation-plan.md) (закрыт)
 
-**Связанные документы:** [implementation-plan.md](./implementation-plan.md) · [architecture.md §6](./architecture.md)
+**Запуск:** `cd sources/gui && wails dev` (или собранный `.app` из `./builder/build.sh --gui`).
 
-**Автоматически (CI / агент):** `npm run build` в `frontend/` · `go test ./internal/jsonapi/...` в `sources/forester` · `wails build` в `sources/gui` (macOS).
+**Связанные документы:** [architecture.md §6](./architecture.md)
+
+**Автоматически (CI / агент, не заменяет smoke):** `npm run build` в `frontend/` · `go test ./internal/jsonapi/...` в `sources/forester` · `wails build` в `sources/gui` (macOS).
 
 ---
 
@@ -78,6 +80,8 @@
 
 ## 7. v1.1 polish (дополнительно к §1–6)
 
+_Реализовано в v1.1; проверяется в v2 smoke._
+
 ### 7.1 Commit cards
 
 - [ ] Stats: при скролле списка — lazy `N files changed` (+/−); skeleton → строка или скрыто при ошибке
@@ -116,8 +120,8 @@
 
 ## Сборка
 
-- [ ] `cd sources/gui && wails build` (macOS) — без ошибок
-- [—] `wails build` Windows — отложено
+- [ ] `cd sources/gui && wails build` (macOS) — без ошибок — **v2 §1.5.1**
+- [—] `wails build` Windows — **v2 фаза 2** — [implementation-plan-v2.md §2](./implementation-plan-v2.md)
 
 ---
 

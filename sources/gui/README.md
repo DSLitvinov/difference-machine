@@ -46,4 +46,4 @@ sources/gui/
 
 Forester JSON API: `github.com/difference-machine/forester/pkg/jsonapi`
 
-Implementation checklist: [.cursor/interface/implementation-plan.md](../../.cursor/interface/implementation-plan.md)
+Implementation checklist: v1 [.cursor/interface/implementation-plan.md](../../.cursor/interface/implementation-plan.md) (closed) · v2 [.cursor/interface/implementation-plan-v2.md](../../.cursor/interface/implementation-plan-v2.md) · smoke [.cursor/interface/smoke-checklist.md](../../.cursor/interface/smoke-checklist.md)

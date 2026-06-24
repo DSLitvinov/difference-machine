@@ -14,7 +14,7 @@
 |--------|------|
 | **v1.0** | Сквозной сценарий: open repo → browse → commit → history → diff |
 | **v1.1** | Polish: UX из Figma, не блокирующий ship |
-| **v2** | Merge UI, fs watcher, tree collapse, detached HEAD |
+| **v2** | Manual smoke (macOS) + QA; Merge UI, fs watcher, detached HEAD, Windows/Linux |
 
 ---
 
@@ -250,4 +250,5 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 - [sidebar-history-view.md](./sidebar-history-view.md) — branch flowchart
 - [sidebar-project-view.md](./sidebar-project-view.md) — lazy tree v1.0
 - [architecture.md](./architecture.md) — фазы реализации
-- [implementation-plan.md](./implementation-plan.md) — чеклист реализации GUI (прогресс)
+- [implementation-plan.md](./implementation-plan.md) — v1.0 / v1.1 (закрыт)
+- [implementation-plan-v2.md](./implementation-plan-v2.md) — v2: smoke, платформы, фичи
