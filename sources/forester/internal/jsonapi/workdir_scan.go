@@ -53,11 +53,14 @@ func (s *workdirScanner) absDir(rel string) (string, error) {
 }
 
 func (s *workdirScanner) shouldSkipName(name string, rel string, isDir bool) bool {
-	if name == ".DFM" {
+	if name == ".DFM" || name == ".dfmignore" {
 		return true
 	}
 	rel = filepath.ToSlash(rel)
 	if rel == ".DFM" || strings.HasPrefix(rel, ".DFM/") {
+		return true
+	}
+	if rel == ".dfmignore" {
 		return true
 	}
 	if s.patterns.Matches(rel) {

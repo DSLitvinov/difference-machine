@@ -159,6 +159,12 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 Только immediate children; `depth` optional, default 1. Полное дерево — v1.1 или expand-on-demand.
 
+### 7.6.1 Workdir exclusions в GUI
+
+- Файл **`.dfmignore`** в корне репозитория **никогда не отображается** в Project view (tree, entries, search) — это служебный конфиг, не контент проекта.
+- Паттерны из `.dfmignore` по-прежнему применяются к остальным путям.
+- Канон: [api-contract.md §4.0](./api-contract.md); реализация: `workdir_scan.go` → `shouldSkipName`.
+
 ### 7.7 `diff.text` / `blob.get` — лимиты
 
 - Ответ > **5 MB** → error `file_too_large`; UI — stub «File too large to display».

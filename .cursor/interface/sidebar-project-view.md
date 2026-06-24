@@ -285,7 +285,8 @@ sequenceDiagram
 | Changed ON, нет изменений | Empty tree «No changed folders»; Preview «No changed files» |
 | Пустая папка в дереве | Показать узел, count `0`, лист без детей |
 | `.DFM/` | Не включается в дерево |
-| `.dfmignore` | Игнорируемые папки не строятся |
+| `.dfmignore` (файл) | **Не показывать** в GUI (ни в дереве, ни в Preview, ни в поиске) — [api-contract.md §4.0](./api-contract.md) |
+| Пути из `.dfmignore` | Игнорируемые папки/файлы не строятся |
 | Папка удалена на диске | Refresh → узел исчезает; сброс selection если была выбрана |
 | Очень глубокое дерево | Virtual scroll |
 | Toggle Changed при выбранной папке | Preview перефильтровывает без сброса folder |
@@ -326,7 +327,7 @@ type FolderTreeNode struct {
 - Корень: synthetic node `path: ""`, `name` = repo basename или `"."`.
 - **Только директории** в `children`; файлы не возвращаются.
 - `item_count` — recursive **file count**. Семантика: [architecture.md §4.2](./architecture.md).
-- Exclude `.DFM`, `.dfmignore`, no symlink follow.
+- Exclude `.DFM`, файл `.dfmignore`, паттерны `.dfmignore`, no symlink follow — [api-contract.md §4.0](./api-contract.md).
 
 ### 7.2 Preview entries
 

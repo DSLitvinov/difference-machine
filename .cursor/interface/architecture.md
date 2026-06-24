@@ -317,6 +317,8 @@ interface SidebarEvents {
 
 `item_count` — **recursive file count** в поддереве папки. **Одинаковая семантика везде:** `workdir.tree`, `workdir.entries` (`DirEntry` для папок), `FolderPreviewItem`. Узлы дерева — **только папки**; файлы в JSON дерева не возвращаются.
 
+Исключения при сканировании (`.DFM`, файл `.dfmignore`, паттерны ignore): [api-contract.md §4.0](./api-contract.md).
+
 ---
 
 ## 5. VCS-статусы и toggle «Changed»

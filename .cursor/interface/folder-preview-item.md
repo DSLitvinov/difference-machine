@@ -141,7 +141,7 @@ interface FolderPreviewItemData {
 | Длинное имя | `truncate` + `title` tooltip |
 | Unicode / emoji в имени | Отображать as-is; сортировка — [content-preview.md](./content-preview.md) §7 |
 | Папка удалена на диске | После refresh — исчезает; если была current path → back в parent |
-| `.DFM/`, ignored | Не показывать |
+| `.DFM/`, ignored paths, `.dfmignore` file | Не показывать — [api-contract.md §4.0](./api-contract.md) |
 | Пустая секция Folders | Скрыть заголовок `Folders` + секцию целиком |
 | Loading | `FolderPreviewItemSkeleton` × 4 |
 | Search active | Скрыть если имя не match query |

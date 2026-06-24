@@ -191,6 +191,23 @@ Content Info History — commit combobox.
 | `workdir.thumbnail` | Preview / Info thumbnails — images, text snippet, `.blend` (OS cache + embedded) |
 | `workdir.open` | Double-click → OS default app |
 
+### 4.0 Workdir scan exclusions (все методы §4)
+
+Реализация: `sources/forester/internal/jsonapi/workdir_scan.go` → `shouldSkipName`.
+
+GUI **не фильтрует** на frontend — backend не возвращает исключённые пути.
+
+| Исключение | Поведение |
+|------------|-----------|
+| `.DFM/` (каталог) | Не в tree / entries / search; обход `SkipDir` |
+| **`.dfmignore` (файл в корне)** | **Никогда не показывать** в tree / entries / search (служебный файл репо) |
+| Пути из `.dfmignore` | Не показывать (паттерны `utils.Patterns`) |
+| Symlinks | Не follow (v1.0) |
+
+Затронутые методы: `workdir.tree`, `workdir.entries`, `workdir.search`, recursive `item_count`.
+
+Тест: `TestWorkdirTreeAndEntries` — entries и search не содержат `.dfmignore`.
+
 ### 4.1 `workdir.tree`
 
 См. [architecture.md §4.2](./architecture.md).

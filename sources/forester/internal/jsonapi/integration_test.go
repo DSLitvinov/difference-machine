@@ -419,6 +419,11 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 	if entriesResult.Total < 2 {
 		t.Fatalf("total = %d, want >= 2", entriesResult.Total)
 	}
+	for _, entry := range entriesResult.Entries {
+		if entry.Path == ".dfmignore" {
+			t.Fatal("workdir.entries must not include .dfmignore")
+		}
+	}
 
 	var openResult map[string]bool
 	if err := json.Unmarshal(mustOK(t, h, "workdir.open", `{"path":"readme.txt"}`), &openResult); err != nil {
@@ -445,6 +450,9 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 	for _, entry := range searchResult.Entries {
 		if entry.Path == "readme.txt" {
 			foundReadme = true
+		}
+		if entry.Path == ".dfmignore" {
+			t.Fatal("workdir.search must not include .dfmignore")
 		}
 	}
 	if !foundReadme {

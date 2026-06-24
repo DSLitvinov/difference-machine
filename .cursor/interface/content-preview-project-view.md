@@ -482,7 +482,9 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 | `workdir.thumbnail` | Миниатюра — images, text snippet, `.blend` ([api-contract.md §4.3](./api-contract.md)) |
 | `workdir.open` | Double-click → ОС (§4.4) |
 | `status.get` | VCS badges |
-- Exclude `.DFM`, `.dfmignore`, no symlink follow.
+
+**Workdir exclusions:** `.DFM/`, файл `.dfmignore` (не отображать), паттерны `.dfmignore`, no symlink follow — [api-contract.md §4.0](./api-contract.md).
+
 - Миниатюры: raster images (direct read); `.blend` — Blender OS cache + embedded preview; text — snippet; иначе generic file-icon placeholder.
 
 ---
@@ -506,6 +508,7 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 
 | Ситуация | Поведение |
 |----------|-----------|
+| `.dfmignore` в корне репо | **Не показывать** в Folders/Files/Search — backend `workdir.*` ([api-contract.md §4.0](./api-contract.md)) |
 | Очень много файлов (>500) | Виртуализация сетки (`@tanstack/react-virtual`, grid) |
 | Длинные / unicode имена | `truncate` + `Tooltip` на полное имя |
 | Одноимённые файлы в результатах поиска | Показывать относительный путь под item |
