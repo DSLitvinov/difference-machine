@@ -10,6 +10,7 @@ import (
 	"github.com/difference-machine/forester/pkg/jsonapi"
 	"github.com/difference-machine/gui/internal/config"
 	"github.com/difference-machine/gui/internal/forester"
+	"github.com/difference-machine/gui/internal/install"
 	"github.com/difference-machine/gui/internal/paths"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -42,6 +43,10 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 	a.cfg = store
+
+	if err := install.BootstrapConfig(store); err != nil {
+		runtime.LogWarningf(ctx, "install bootstrap: %v", err)
+	}
 
 	current := store.CurrentRepoPath()
 	if current == "" {

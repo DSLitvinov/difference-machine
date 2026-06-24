@@ -4,7 +4,7 @@
 
 **План:** [implementation-plan-v2.md §1](./implementation-plan-v2.md) · **v1 code:** [implementation-plan.md](./implementation-plan.md) (закрыт)
 
-**Запуск:** `cd sources/gui && wails dev` (или собранный `.app` из `./builder/build.sh --gui`).
+**Запуск:** dev — `cd sources/gui && wails dev`. Release — install from `./builder/build.sh --dmg` ([macos-installer.md](./macos-installer.md)).
 
 **Связанные документы:** [architecture.md §6](./architecture.md)
 
@@ -120,8 +120,9 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 ## Сборка
 
-- [ ] `cd sources/gui && wails build` (macOS) — без ошибок — **v2 §1.5.1**
-- [—] `wails build` Windows — **v2 фаза 2** — [implementation-plan-v2.md §2](./implementation-plan-v2.md)
+- [ ] `./builder/build.sh --dmg` (macOS) — DMG в `builder/dist/` — **v2 §1.5.1**
+- [ ] DMG install → `~/.dfm/setup.cfg` bootstrap — **v2 §1.5.2** · [macos-installer.md](./macos-installer.md)
+- [—] `wails build` Windows — **v2 фаза 2**
 
 ---
 

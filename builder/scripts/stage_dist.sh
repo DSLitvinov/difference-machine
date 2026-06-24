@@ -135,6 +135,9 @@ ${MANIFEST_COMPONENTS}
   },
   "install_defaults": {
     "forester_prefix": "${DEFAULT_PREFIX}",
+    "macos_install_folder": "Difference Machine",
+    "gui_app": "apps/Difference Machine.app",
+    "forester_app": "Forester.app",
     "blender_addon_name": "difference_machine"
   }
 }
@@ -150,7 +153,9 @@ Layout:
   bin/     Forester CLI
   lib/     Forester API native library
   addons/  Blender addon (API embedded in addons/blender/difference_machine/api/)
-  apps/    Forester GUI .app (macOS, when built with --gui)
+  apps/    Difference Machine GUI .app (macOS, when built with --gui)
+
+macOS release DMG: ./builder/build.sh --dmg → builder/dist/DifferenceMachine-<version>-macos.dmg
 
 Developer setup (manual):
   1. Add bin/ to PATH, or run bin/forester directly.

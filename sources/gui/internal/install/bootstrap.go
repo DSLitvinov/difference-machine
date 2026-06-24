@@ -1,0 +1,136 @@
+package install
+
+import (
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+
+	"github.com/difference-machine/gui/internal/config"
+)
+
+const (
+	macInstallFolderName = "Difference Machine"
+	macDefaultRoot       = "/Applications/" + macInstallFolderName
+	macFlatLegacyRoot    = "/Applications"
+	macLegacyInstallRoot = "/Applications/DiffMachine"
+	foresterAppName     = "Forester.app"
+	foresterCLIInside = "Contents/MacOS/Forester"
+	addonRelative     = "addons/blender/difference_machine"
+	apiLibInside        = "Contents/Frameworks/libforester.dylib"
+)
+
+// ToolchainPaths are absolute paths written to ~/.dfm/setup.cfg after a DMG install.
+type ToolchainPaths struct {
+	ForesterCLI string
+	APILib      string
+	AddonDir    string
+}
+
+// BootstrapConfig fills missing Forester toolchain paths from a packaged macOS layout.
+func BootstrapConfig(store *config.Store) error {
+	if store == nil || runtime.GOOS != "darwin" {
+		return nil
+	}
+	if !store.NeedsForesterBootstrap() {
+		return nil
+	}
+
+	paths, ok := DetectToolchainPaths()
+	if !ok {
+		return nil
+	}
+	return store.SetInstallToolchainPaths(paths.ForesterCLI, paths.APILib, paths.AddonDir)
+}
+
+// DetectToolchainPaths locates Forester.app, API dylib, and the Blender addon directory.
+func DetectToolchainPaths() (ToolchainPaths, bool) {
+	for _, root := range candidateInstallRoots() {
+		if paths, ok := toolchainAtRoot(root); ok {
+			return paths, true
+		}
+	}
+	return ToolchainPaths{}, false
+}
+
+func candidateInstallRoots() []string {
+	seen := make(map[string]struct{})
+	var roots []string
+
+	add := func(root string) {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			return
+		}
+		if _, ok := seen[root]; ok {
+			return
+		}
+		seen[root] = struct{}{}
+		roots = append(roots, root)
+	}
+
+	if root, ok := installRootFromExecutable(); ok {
+		add(root)
+	}
+	add(macDefaultRoot)
+	add(macFlatLegacyRoot)
+	add(macLegacyInstallRoot)
+
+	return roots
+}
+
+func installRootFromExecutable() (string, bool) {
+	execPath, err := os.Executable()
+	if err != nil {
+		return "", false
+	}
+	execPath, err = filepath.EvalSymlinks(execPath)
+	if err != nil {
+		return "", false
+	}
+
+	marker := ".app/Contents/MacOS/"
+	idx := strings.Index(execPath, marker)
+	if idx < 0 {
+		return "", false
+	}
+
+	appBundle := execPath[:idx+len(".app")]
+	root := filepath.Dir(appBundle)
+	if layoutLooksValid(root) {
+		return root, true
+	}
+	return "", false
+}
+
+func toolchainAtRoot(root string) (ToolchainPaths, bool) {
+	cli := filepath.Join(root, foresterAppName, foresterCLIInside)
+	addon := filepath.Join(root, addonRelative)
+	api := filepath.Join(root, foresterAppName, apiLibInside)
+
+	if st, err := os.Stat(cli); err != nil || st.IsDir() {
+		// Legacy bundle with binary directly in MacOS/forester
+		legacy := filepath.Join(root, foresterAppName, "Contents/MacOS/forester")
+		if st, err := os.Stat(legacy); err != nil || st.IsDir() {
+			return ToolchainPaths{}, false
+		}
+		cli = legacy
+	}
+	if st, err := os.Stat(addon); err != nil || !st.IsDir() {
+		return ToolchainPaths{}, false
+	}
+
+	out := ToolchainPaths{
+		ForesterCLI: cli,
+		AddonDir:    addon,
+	}
+	if st, err := os.Stat(api); err == nil && !st.IsDir() {
+		out.APILib = api
+	}
+	return out, true
+}
+
+func layoutLooksValid(root string) bool {
+	_, ok := toolchainAtRoot(root)
+	return ok
+}

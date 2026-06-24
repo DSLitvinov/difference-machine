@@ -1,6 +1,6 @@
 # Difference Machine — Build
 
-Scripts in this folder produce a **distribution payload** (`dfm_distr`): Forester CLI, native API library, and the Blender addon with embedded API. The payload is self-contained and intended to be consumed by a separate system installer (not implemented here).
+Scripts build Forester CLI, native API, Blender addon, optional Wails GUI, and a **macOS `.dmg` installer**.
 
 ---
 
@@ -14,36 +14,45 @@ From the project root:
 
 Output (default): `~/dfm_distr`
 
-Override output location:
+### macOS release DMG
 
 ```bash
-DFM_DIST=/tmp/dfm_test ./builder/build.sh
+./builder/build.sh --dmg
 ```
 
-Write `~/.dfm/setup.cfg` for local development:
+Produces:
 
-```bash
-./builder/build.sh --write-local-config
+- `~/dfm_distr` — dev payload (bin, lib, apps, addons)
+- `builder/dist/DifferenceMachine-<version>-macos.dmg`
+
+DMG contents:
+
+```
+README.txt
+Applications →
+Difference Machine/
+  Difference Machine.app
+  Forester.app
+  addons/blender/difference_machine/
 ```
 
-Build Forester **and** the Wails GUI (macOS only):
+Install path: `/Applications/Difference Machine/` — GUI finds Forester as a sibling app in the same folder.
 
-```bash
-./builder/build.sh --gui
-```
+First launch of **Difference Machine.app** writes `~/.dfm/setup.cfg` ([macos-installer.md](../.cursor/interface/macos-installer.md)).
 
-Combined:
+### Development
 
 ```bash
 ./builder/build.sh --gui --write-local-config
 ```
 
-The script extends `PATH` with `$(go env GOPATH)/bin` (for `wails`) and common Homebrew locations. If Wails CLI is missing, it is installed via `go install` unless `INSTALL_WAILS=false`.
+- `--gui` — Wails GUI → `dfm_distr/apps/Difference Machine.app`
+- `--write-local-config` — `~/.dfm/setup.cfg` → `~/dfm_distr` paths
 
-On Windows (Git Bash or WSL):
+Override output:
 
 ```bash
-bash builder/build.sh
+DFM_DIST=/tmp/dfm_test ./builder/build.sh --dmg
 ```
 
 ---
@@ -54,75 +63,57 @@ bash builder/build.sh
 dfm_distr/
 ├── bin/                 Forester CLI
 ├── lib/                 Native API (libforester.so / .dylib / forester.dll)
-├── apps/                Forester GUI .app (macOS, when built with --gui)
+├── apps/                Difference Machine.app (macOS, --gui / --dmg)
 ├── addons/
 │   └── blender/
 │       └── difference_machine/
 │           └── api/     Native lib + python/ bindings (filled by build)
-├── manifest.json        Contract for the future installer
-├── setup.cfg.template   Config template with {PREFIX} placeholders
+├── manifest.json
+├── setup.cfg.template
 ├── VERSION
 └── README.txt
 ```
 
-Build runs **only for the current OS** (native compile). Cross-compilation is not supported.
+Build runs **only for the current OS**. Cross-compilation is not supported.
 
 ---
 
-## What the build does
+## Pipeline
 
-1. **`scripts/build_forester.sh`** — Go CLI (`cmd/forester`) and c-shared API (`./api`) → `builder/.staging/forester/`
-2. **`scripts/build_gui.sh`** — (optional, `--gui`, macOS) Wails GUI → `builder/.staging/gui/*.app`
-3. **`scripts/stage_dist.sh`** — Copy staging + addons into `DFM_DIST`, embed API in the addon, write `manifest.json` and metadata
-4. **`scripts/clean_build.sh`** — Remove staging and intermediate artifacts (does **not** delete `dfm_distr`)
+| Step | Script | Notes |
+|------|--------|-------|
+| 1 | `scripts/build_forester.sh` | CLI + c-shared API → staging |
+| 2 | `scripts/build_gui.sh` | Optional; macOS Wails → `Difference Machine.app` |
+| 3 | `scripts/stage_dist.sh` | Assemble `DFM_DIST` |
+| 3b | `scripts/write_setup_cfg.sh` | Optional dev `~/.dfm/setup.cfg` |
+| 3c | `scripts/package_macos_dmg.sh` | `--dmg`: `Forester.app` + DMG |
+| 4 | `scripts/clean_build.sh` | Remove staging (keeps `dfm_distr` and `builder/dist/*.dmg`) |
 
 ---
 
 ## Manual addon setup (development)
 
-After build, link the addon into Blender extensions, for example:
-
-**Linux**
-
-```bash
-ln -sf ~/dfm_distr/addons/blender/difference_machine \
-  ~/.config/blender/4.2/extensions/user_default/difference_machine
-```
-
-**macOS**
+**macOS** (after `~/dfm_distr` build):
 
 ```bash
 ln -sf ~/dfm_distr/addons/blender/difference_machine \
   ~/Library/Application\ Support/Blender/4.2/extensions/user_default/difference_machine
 ```
 
-**Windows** (cmd, adjust version):
-
-```cmd
-mklink /D "%APPDATA%\Blender Foundation\Blender\4.2\extensions\user_default\difference_machine" ^
-  "%USERPROFILE%\dfm_distr\addons\blender\difference_machine"
-```
-
-Add Forester to PATH:
+**After DMG install:**
 
 ```bash
-export PATH="$HOME/dfm_distr/bin:$PATH"
+ln -sf "/Applications/Difference Machine/addons/blender/difference_machine" \
+  ~/Library/Application\ Support/Blender/4.2/extensions/user_default/difference_machine
 ```
 
 ---
 
 ## Requirements
 
-- **Go 1.21+** (Forester CLI and API)
-- **C compiler** (optional, for native Forester API library)
-- Platform build only on matching OS (Linux on Linux, macOS on macOS, Windows on Windows)
-
-**GUI (`--gui`, macOS only):**
-
-- **Node.js** 20+ LTS and **npm**
-- **Wails v2 CLI** — `go install github.com/wailsapp/wails/v2/cmd/wails@latest` (auto-installed by `build_gui.sh` if missing)
-- **Xcode Command Line Tools** — `xcode-select --install`
-- `PATH` must include `$(go env GOPATH)/bin` — `build.sh` adds this automatically via `setup_dev_path.sh`
+- **Go 1.22+**
+- **C compiler** (Forester API library)
+- **GUI / DMG (macOS):** Node.js 20+, Wails v2 CLI, Xcode Command Line Tools
 
 ---
 
@@ -130,39 +121,27 @@ export PATH="$HOME/dfm_distr/bin:$PATH"
 
 | Path | Description |
 |------|-------------|
-| `build.sh` | Main entry point |
-| `setup.cfg.template` | Template for `~/.dfm/setup.cfg` (used by future installer) |
-| `setup.cfg.example` | Extended example config for end users |
-| `scripts/build_forester.sh` | Build CLI + API to staging |
-| `scripts/build_gui.sh` | Build Wails GUI to staging (macOS, `--gui`) |
-| `scripts/stage_dist.sh` | Assemble `dfm_distr` |
-| `scripts/copy_addons.sh` | Copy `sources/addons/` into target |
-| `scripts/write_setup_cfg.sh` | Write `~/.dfm/setup.cfg` (optional, `--write-local-config`) |
-| `scripts/clean_build.sh` | Clean intermediate artifacts |
-| `scripts/lib/detect_platform.sh` | Shared OS / library name detection |
-| `scripts/lib/setup_dev_path.sh` | Extend PATH (Go bin, Homebrew) for Wails toolchain |
+| `build.sh` | Main entry (`--gui`, `--dmg`, `--write-local-config`) |
+| `scripts/package_macos_dmg.sh` | Assemble install folder + `hdiutil` DMG |
+| `scripts/wrap_forester_app.sh` | `Forester.app` from `bin/forester` + API dylib |
+| `scripts/lib/macos_app_bundle.sh` | Minimal `.app` bundle helper |
+| `scripts/build_forester.sh` | CLI + API |
+| `scripts/build_gui.sh` | Wails GUI |
+| `scripts/stage_dist.sh` | `dfm_distr` |
+| `scripts/write_setup_cfg.sh` | Dev `setup.cfg` |
 
 ---
 
-## Future installer
+## Code signing
 
-The payload includes `manifest.json` with relative paths to components. A separate installer will:
-
-1. Read `manifest.json`
-2. Copy `bin/`, `lib/`, and `addons/` to a system prefix
-3. Install the Blender addon
-4. Generate `~/.dfm/setup.cfg` from `setup.cfg.template`
-
-Build scripts do **not** install into system paths or modify Blender directories.
+`package_macos_dmg.sh` does **not** sign or notarize. For distribution outside your machine, add Developer ID signing and notarization before release.
 
 ---
 
-## CI packaging
-
-For embedding in an installer bundle:
+## CI
 
 ```bash
-DFM_DIST="${PWD}/builder/dist/dfm_distr" ./builder/build.sh
+DFM_DIST="${PWD}/builder/dist/dfm_distr" ./builder/build.sh --dmg
 ```
 
-The layout is identical; only the output path changes.
+Artifact: `builder/dist/DifferenceMachine-*-macos.dmg`

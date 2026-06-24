@@ -40,7 +40,7 @@
 
 **Forester runtime:** `./builder/build.sh --write-local-config` → `~/dfm_distr/bin/forester`. Blender не нужен.
 
-**Сборка GUI:** `./builder/build.sh --gui` → `~/dfm_distr/apps/*.app` (macOS; PATH + Wails CLI настроены в скрипте).
+**Сборка GUI:** `./builder/build.sh --gui` → `~/dfm_distr/apps/*.app` (macOS). **Release DMG:** `./builder/build.sh --dmg` → `builder/dist/DifferenceMachine-*-macos.dmg` — [macos-installer.md](./macos-installer.md).
 
 ---
 

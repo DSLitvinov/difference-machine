@@ -467,7 +467,8 @@ sources/gui/
 
 - [decisions.md](./decisions.md) — decision log (scope v1.0/v1.1, API, UX)
 - [implementation-plan.md](./implementation-plan.md) — чеклист v1.0 / v1.1 (закрыт)
-- [implementation-plan-v2.md](./implementation-plan-v2.md) — v2: smoke, платформы, фичи
+- [implementation-plan-v2.md](./implementation-plan-v2.md) — v2: smoke, DMG, фичи
+- [macos-installer.md](./macos-installer.md) — macOS DMG + `setup.cfg` bootstrap
 - [api-contract.md](./api-contract.md) — JSON API + UI events
 - [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)
 - [panel-layout.md](./panel-layout.md) — resize Sidebar / Preview / Info

@@ -16,7 +16,10 @@ From the project root (recommended):
 
 ```bash
 ./builder/build.sh --gui
-# Output: ~/dfm_distr/apps/*.app
+# Output: ~/dfm_distr/apps/Difference Machine.app
+
+./builder/build.sh --dmg
+# Output: builder/dist/DifferenceMachine-<version>-macos.dmg
 ```
 
 Native menu spec: [.cursor/interface/application-menu.md](../../.cursor/interface/application-menu.md)
@@ -46,4 +49,4 @@ sources/gui/
 
 Forester JSON API: `github.com/difference-machine/forester/pkg/jsonapi`
 
-Implementation checklist: v1 [.cursor/interface/implementation-plan.md](../../.cursor/interface/implementation-plan.md) (closed) · v2 [.cursor/interface/implementation-plan-v2.md](../../.cursor/interface/implementation-plan-v2.md) · smoke [.cursor/interface/smoke-checklist.md](../../.cursor/interface/smoke-checklist.md)
+Release macOS DMG: `../../builder/build.sh --dmg` from repo root. See [macos-installer.md](../../.cursor/interface/macos-installer.md).

@@ -105,14 +105,14 @@ if [ "${#APP_BUNDLES[@]}" -eq 0 ]; then
 fi
 
 APP_SRC="${APP_BUNDLES[0]}"
-APP_NAME="$(basename "${APP_SRC}")"
+GUI_APP_NAME="Difference Machine.app"
 
 echo ""
 echo "=== Stage GUI app ==="
 rm -rf "${STAGING_GUI}"
 mkdir -p "${STAGING_GUI}"
-cp -R "${APP_SRC}" "${STAGING_GUI}/${APP_NAME}"
+cp -R "${APP_SRC}" "${STAGING_GUI}/${GUI_APP_NAME}"
 
-echo -e "${GREEN}✓ ${STAGING_GUI}/${APP_NAME}${NC}"
+echo -e "${GREEN}✓ ${STAGING_GUI}/${GUI_APP_NAME}${NC}"
 echo ""
 echo -e "${GREEN}GUI build complete.${NC}"

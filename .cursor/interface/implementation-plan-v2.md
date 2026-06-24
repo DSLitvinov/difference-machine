@@ -30,12 +30,13 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | **Последнее обновление** | 2025-06-24 |
 | **Активная фаза** | **1 — Manual smoke (macOS)** |
 | **Следующий шаг** | **1.1** Предусловия — [smoke-checklist.md](./smoke-checklist.md) |
-| **Заметки** | Smoke перенесён из v1 фазы 7; автотесты (`go test`, `npm build`, `wails build`) — по-прежнему в CI |
+| **Заметки** | macOS DMG + setup.cfg bootstrap реализованы; smoke — [smoke-checklist.md](./smoke-checklist.md) |
 
 ### Прогресс v2
 
 | Фаза | Название | Статус |
 |------|----------|--------|
+| 0 | macOS DMG packaging | `[x]` 4/4 |
 | 1 | Manual smoke (macOS) | `[ ]` 0/5 |
 | 2 | Windows build + smoke | `[—]` 0/2 |
 | 3 | Merge UI | `[ ]` 0/3 |
@@ -45,6 +46,19 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 7 | Branch delete (GUI) | `[ ]` 0/2 |
 | 8 | Init repository wizard | `[—]` 0/3 |
 | 9 | Linux build + QA | `[—]` 0/2 |
+
+---
+
+## Фаза 0 — macOS DMG packaging
+
+Спека: [macos-installer.md](./macos-installer.md)
+
+- [x] **0.1** `Forester.app` wrapper (`wrap_forester_app.sh`)
+- [x] **0.2** `package_macos_dmg.sh` + `./builder/build.sh --dmg`
+- [x] **0.3** GUI bootstrap `~/.dfm/setup.cfg` (`internal/install/bootstrap.go`)
+- [x] **0.4** Builder + spec docs
+
+**Проверка:** `./builder/build.sh --dmg` → `builder/dist/DifferenceMachine-*-macos.dmg`; install → first launch writes `setup.cfg`.
 
 ---
 
@@ -81,8 +95,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ### 1.5 Сборка
 
-- [ ] **1.5.1** `cd sources/gui && wails build` (macOS) — без ошибок
-- [ ] **1.5.2** Заметки сессии заполнены при найденных багах — [smoke-checklist.md §Заметки](./smoke-checklist.md)
+- [ ] **1.5.1** `./builder/build.sh --dmg` (macOS) — без ошибок; DMG открывается
+- [ ] **1.5.2** DMG install → first launch → `~/.dfm/setup.cfg` с путями `/Applications/Difference Machine/...`
+- [ ] **1.5.3** Заметки сессии — [smoke-checklist.md §Заметки](./smoke-checklist.md)
 
 **Проверка:** все пункты [smoke-checklist.md](./smoke-checklist.md) отмечены `[x]`; критичные баги заведены или исправлены.
 

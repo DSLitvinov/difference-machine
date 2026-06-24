@@ -13,7 +13,7 @@ detect_platform() {
             CURRENT_OS="macos"
             FORESTER_CLI_NAME="forester"
             API_LIB_NAME="libforester.dylib"
-            DEFAULT_PREFIX="/Applications/DiffMachine"
+            DEFAULT_PREFIX="/Applications/Difference Machine"
             ;;
         MINGW*|MSYS*|CYGWIN*)
             CURRENT_OS="windows"

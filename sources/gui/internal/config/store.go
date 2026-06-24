@@ -332,6 +332,26 @@ func (s *Store) ForesterBinaryPath() string {
 	return s.Get("forester", "path")
 }
 
+// NeedsForesterBootstrap reports whether install paths should be auto-filled (macOS DMG).
+func (s *Store) NeedsForesterBootstrap() bool {
+	if !pathExists(s.ForesterBinaryPath()) {
+		return true
+	}
+	if !pathExists(s.Get("addons", "diffmachine_path")) {
+		return true
+	}
+	return false
+}
+
+func pathExists(path string) bool {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return false
+	}
+	_, err := os.Stat(path)
+	return err == nil
+}
+
 // UserName returns the author name from [user].
 func (s *Store) UserName() string {
 	return s.Get("user", "name")
@@ -508,11 +528,8 @@ func (s *Store) SetGUIEditorsList(editorPaths []string) error {
 	return s.SetOrderedPathList("gui editors", editorPaths)
 }
 
-// SetForesterPaths updates backend toolchain paths in setup.cfg.
-func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
-	if strings.TrimSpace(cliPath) == "" {
-		return fmt.Errorf("Forester CLI path is required")
-	}
+// SetInstallToolchainPaths writes Forester CLI, API library, and addon paths (installer bootstrap).
+func (s *Store) SetInstallToolchainPaths(cliPath, apiPath, addonPath string) error {
 	cliCanonical, err := paths.CanonicalAbsPath(cliPath)
 	if err != nil {
 		return err
@@ -522,6 +539,63 @@ func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
 	} else if info.IsDir() {
 		return fmt.Errorf("Forester CLI must be a file")
 	}
+
+	addonCanonical, err := paths.CanonicalAbsPath(addonPath)
+	if err != nil {
+		return err
+	}
+	info, err := os.Stat(addonCanonical)
+	if err != nil {
+		return fmt.Errorf("Blender addon path not found: %w", err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("Blender addon path must be a directory")
+	}
+
+	var apiCanonical string
+	if strings.TrimSpace(apiPath) != "" {
+		apiCanonical, err = paths.CanonicalAbsPath(apiPath)
+		if err != nil {
+			return err
+		}
+		if st, err := os.Stat(apiCanonical); err != nil {
+			return fmt.Errorf("Forester API library not found: %w", err)
+		} else if st.IsDir() {
+			return fmt.Errorf("Forester API path must be a file")
+		}
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.setUnlocked("forester", "installed", "true")
+	s.setUnlocked("forester", "path", cliCanonical)
+
+	if apiCanonical != "" {
+		s.setUnlocked("api", "installed", "true")
+		s.setUnlocked("api", "path", apiCanonical)
+	}
+
+	s.setUnlocked("addons", "diffmachine_path", addonCanonical)
+
+	return s.saveUnlocked()
+}
+
+// SetForesterPaths updates backend toolchain paths in setup.cfg.
+func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
+	if strings.TrimSpace(cliPath) == "" {
+		return fmt.Errorf("Forester CLI path is required")
+	}
+	cliResolved, err := paths.ResolveExecutablePath(cliPath)
+	if err != nil {
+		return fmt.Errorf("Forester CLI not found: %w", err)
+	}
+	if info, err := os.Stat(cliResolved); err != nil {
+		return fmt.Errorf("Forester CLI not found: %w", err)
+	} else if info.IsDir() {
+		return fmt.Errorf("Forester CLI must be a file")
+	}
+	cliCanonical := cliResolved
 
 	var blenderCanonical string
 	if blenderPath != "" {
