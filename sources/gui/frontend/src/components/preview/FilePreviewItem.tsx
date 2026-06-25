@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
 import { fileExtension, isThumbnailPreviewPath } from "@/lib/fileKinds";
+import { useT } from "@/lib/i18n";
 import { isMaxThumbVisual } from "@/lib/previewScale";
 import { vcsStatusBadgeClass } from "@/lib/vcsBadge";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ export function FilePreviewItem({
   onSelect,
   onOpen,
 }: FilePreviewItemProps) {
+  const t = useT();
   const badge = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
   const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
   const maxVisual = isMaxThumbVisual(thumbScale);
@@ -101,9 +103,9 @@ export function FilePreviewItem({
               <Badge
                 variant="secondary"
                 className="h-[22px] rounded-full px-1.5 text-xs font-semibold"
-                title={`Locked by ${lockUser}`}
+                title={t("info.lockedBy", { user: lockUser })}
               >
-                lock
+                {t("info.lock")}
               </Badge>
             ) : null}
           </div>

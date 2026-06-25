@@ -1,4 +1,5 @@
 import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
+import { useT } from "@/lib/i18n";
 import { dirtyWorktreeSummary } from "@/lib/worktreeDirty";
 import type { StatusPayload } from "@/wails/forester";
 
@@ -19,16 +20,17 @@ export function DirtyBranchSwitchDialog({
   onCancel,
   onStashAndSwitch,
 }: DirtyBranchSwitchDialogProps) {
+  const t = useT();
   const lines = status ? dirtyWorktreeSummary(status) : [];
-  const description = ["You have uncommitted changes:", ...lines].join("\n");
+  const description = [t("branch.uncommittedChanges"), ...lines].join("\n");
 
   return (
     <ConfirmAlertDialog
       open={open}
-      title={`Switch branch to "${targetBranch}"?`}
+      title={t("branch.switchTitle", { branch: targetBranch })}
       description={description}
-      confirmLabel={switching ? "Switching…" : "Stash & switch"}
-      cancelLabel="Cancel"
+      confirmLabel={switching ? t("common.switchingBranch") : t("branch.stashAndSwitch")}
+      cancelLabel={t("common.cancel")}
       loading={switching}
       onConfirm={onStashAndSwitch}
       onCancel={onCancel}

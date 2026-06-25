@@ -213,12 +213,12 @@ export function HistoryPreviewPanel() {
       if (generation !== textDiffGeneration.current) return;
       if (useHistoryStore.getState().selectedChangedFilePath !== pathAtStart) return;
       const message = err instanceof Error ? err.message : String(err);
-      setDiffError(message === "file_too_large" ? "File too large to display" : message);
+      setDiffError(message === "file_too_large" ? t("preview.diffFileTooLarge") : message);
       setDiffContent("");
     } finally {
       if (generation === textDiffGeneration.current) setLoadingDiff(false);
     }
-  }, [selectedCommitHash, commit, selectedChangedFilePath, selectedFile]);
+  }, [selectedCommitHash, commit, selectedChangedFilePath, selectedFile, t]);
 
   const loadImageDiff = useCallback(async () => {
     if (!selectedCommitHash || !commit || !selectedFile) return;
@@ -348,7 +348,7 @@ export function HistoryPreviewPanel() {
         isHead={headHash === selectedCommitHash}
         loading={loadingCommit}
         stats={stats}
-        onCopy={() => setNotice("Copied commit hash")}
+        onCopy={() => setNotice(t("preview.commitHashCopied"))}
       />
       <div ref={containerRef} className="flex min-h-0 flex-1">
         <ChangedFilesList
@@ -361,7 +361,7 @@ export function HistoryPreviewPanel() {
         />
         <div
           className="relative w-1 shrink-0 cursor-col-resize bg-border hover:bg-ring"
-          title="Drag to resize; double-click to reset"
+          title={t("preview.dragResizeReset")}
           onMouseDown={startDrag}
           onDoubleClick={resetWidth}
         />

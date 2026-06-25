@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 import { formatFileSize, formatTimestamp } from "@/lib/format";
 import { fileExtension } from "@/lib/fileKinds";
+import { useT } from "@/lib/i18n";
 
 export interface FileMetadata {
   path: string;
@@ -38,6 +39,7 @@ function formatDimensions(width: number, height: number): string {
 }
 
 export function InfoMetadataSection({ metadata, loading }: InfoMetadataSectionProps) {
+  const t = useT();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -48,36 +50,36 @@ export function InfoMetadataSection({ metadata, loading }: InfoMetadataSectionPr
         className="mb-2 h-auto w-full justify-between px-0 py-0 text-sm font-semibold hover:bg-transparent"
         onClick={() => setCollapsed((v) => !v)}
       >
-        <span>Metadata</span>
+        <span>{t("info.metadata")}</span>
         {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
       </Button>
       {!collapsed ? (
         <div className="space-y-2">
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <p className="text-sm text-muted-foreground">{t("common.loading")}…</p>
           ) : metadata ? (
             <>
-              {metadata.lockedBy ? <MetadataRow label="Locked" value={metadata.lockedBy} /> : null}
-              {metadata.editor ? <MetadataRow label="Editor" value={metadata.editor} /> : null}
-              <MetadataRow label="Modified" value={formatTimestamp(metadata.modifiedAt)} />
+              {metadata.lockedBy ? <MetadataRow label={t("info.locked")} value={metadata.lockedBy} /> : null}
+              {metadata.editor ? <MetadataRow label={t("info.editor")} value={metadata.editor} /> : null}
+              <MetadataRow label={t("info.modified")} value={formatTimestamp(metadata.modifiedAt)} />
               {metadata.width != null && metadata.height != null ? (
                 <MetadataRow
-                  label="Dimensions"
+                  label={t("info.dimensions")}
                   value={formatDimensions(metadata.width, metadata.height)}
                 />
               ) : null}
-              <MetadataRow label="Size" value={formatFileSize(metadata.size)} />
+              <MetadataRow label={t("info.size")} value={formatFileSize(metadata.size)} />
               <MetadataRow
-                label="Type"
-                value={metadata.extension || metadata.mime || "unknown"}
+                label={t("info.type")}
+                value={metadata.extension || metadata.mime || t("common.unknown")}
               />
-              {metadata.creator ? <MetadataRow label="Creator" value={metadata.creator} /> : null}
+              {metadata.creator ? <MetadataRow label={t("info.creator")} value={metadata.creator} /> : null}
               {metadata.createdAt != null ? (
-                <MetadataRow label="Created" value={formatTimestamp(metadata.createdAt)} />
+                <MetadataRow label={t("info.created")} value={formatTimestamp(metadata.createdAt)} />
               ) : null}
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No metadata</p>
+            <p className="text-sm text-muted-foreground">{t("info.noMetadata")}</p>
           )}
         </div>
       ) : null}

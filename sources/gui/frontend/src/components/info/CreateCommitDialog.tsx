@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { shortHash } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { createCommit, fetchStatus } from "@/wails/forester";
@@ -29,6 +30,7 @@ export function CreateCommitDialog({
   author,
   selectedPaths,
 }: CreateCommitDialogProps) {
+  const t = useT();
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const setStatus = useProjectStore((s) => s.setStatus);
@@ -54,7 +56,7 @@ export function CreateCommitDialog({
       const status = await fetchStatus();
       setStatus(status);
       const hash = shortHash(status.head_commit);
-      setNotice(hash ? `Commit ${hash} created` : "Commit created");
+      setNotice(hash ? t("commit.createdWithHash", { hash }) : t("commit.created"));
       setSubject("");
       setDescription("");
       onOpenChange(false);
@@ -69,20 +71,20 @@ export function CreateCommitDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create commit</DialogTitle>
+          <DialogTitle>{t("commit.create")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <p className="mb-1 text-sm text-muted-foreground">Author</p>
-            <p className="text-sm">{author || "Unknown"}</p>
+            <p className="mb-1 text-sm text-muted-foreground">{t("commit.author")}</p>
+            <p className="text-sm">{author || t("common.unknown")}</p>
           </div>
           <div>
             <Label className="mb-1 text-muted-foreground" htmlFor="commit-subject">
-              Message
+              {t("commit.message")}
             </Label>
             <Input
               id="commit-subject"
-              placeholder="Write commit..."
+              placeholder={t("commit.writePlaceholder")}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               disabled={submitting}
@@ -90,11 +92,11 @@ export function CreateCommitDialog({
           </div>
           <div>
             <Label className="mb-1 text-muted-foreground" htmlFor="commit-body">
-              Description
+              {t("common.description")}
             </Label>
             <Textarea
               id="commit-body"
-              placeholder="Description..."
+              placeholder={t("commit.descriptionPlaceholder")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={submitting}
@@ -102,11 +104,11 @@ export function CreateCommitDialog({
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button onClick={() => void handleSubmit()} disabled={!canSubmit}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Create
+              {t("common.create")}
             </Button>
           </div>
         </div>
@@ -118,16 +120,20 @@ export function CreateCommitDialog({
 export function prepareCommitPaths(
   selectedPaths: string[],
   committable: string[],
+  t: ReturnType<typeof useT>,
 ): { toStage: string[]; error?: string; warning?: string } {
   const committableSet = new Set(committable);
   const toStage = selectedPaths.filter((p) => committableSet.has(p));
   if (toStage.length === 0) {
-    return { toStage, error: "Selected files are already committed" };
+    return { toStage, error: t("commit.selectedAlreadyCommitted") };
   }
   if (toStage.length < selectedPaths.length) {
     return {
       toStage,
-      warning: `${toStage.length} of ${selectedPaths.length} files will be committed`,
+      warning: t("commit.filesWillBeCommitted", {
+        staged: toStage.length,
+        selected: selectedPaths.length,
+      }),
     };
   }
   return { toStage };

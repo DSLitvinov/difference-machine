@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface SettingsPathListRowProps {
@@ -13,11 +14,12 @@ interface SettingsPathListRowProps {
 }
 
 export function SettingsPathListRow({ path, onSelect, onRemove, className }: SettingsPathListRowProps) {
+  const t = useT();
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Input value={path} readOnly className="min-w-0 flex-1 font-mono text-xs" title={path} />
       <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={onSelect}>
-        Select
+        {t("common.select")}
       </Button>
       <Button
         type="button"
@@ -51,26 +53,29 @@ export function SettingsLabeledPathRow({
   optional,
   className,
 }: SettingsLabeledPathRowProps) {
+  const t = useT();
   return (
     <div className={cn("space-y-2", className)}>
       <Label className="text-sm font-medium">
         {label}
-        {optional ? <span className="ml-1 font-normal text-muted-foreground">(optional)</span> : null}
+        {optional ? (
+          <span className="ml-1 font-normal text-muted-foreground">({t("common.optional")})</span>
+        ) : null}
       </Label>
       <div className="flex items-center gap-2">
         <Input
           value={value}
-          placeholder="Select a path…"
+          placeholder={t("common.selectPath")}
           className="min-w-0 flex-1 font-mono text-xs"
           title={value}
           onChange={(e) => onChange(e.target.value)}
         />
         <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={onSelect}>
-          Select
+          {t("common.select")}
         </Button>
         {optional && onClear ? (
           <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={onClear}>
-            Clear
+            {t("common.clear")}
           </Button>
         ) : null}
       </div>

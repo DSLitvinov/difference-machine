@@ -1,4 +1,6 @@
 import { ForesterCall } from "../../wailsjs/go/main/App";
+import { translate } from "@/lib/i18n";
+import { useAppStore } from "@/stores/appStore";
 
 export interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -13,7 +15,8 @@ export async function foresterCall<T = unknown>(
   const raw = await ForesterCall(method, JSON.stringify(args));
   const resp = JSON.parse(raw) as ApiResponse<T>;
   if (!resp.ok) {
-    throw new Error(resp.error || `Forester API error: ${method}`);
+    const language = useAppStore.getState().language;
+    throw new Error(resp.error || translate(language, "forester.apiError", { method }));
   }
   return resp.result as T;
 }

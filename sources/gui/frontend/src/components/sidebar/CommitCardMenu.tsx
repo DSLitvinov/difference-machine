@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { shortHash } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import {
   compareExtract,
@@ -37,6 +38,7 @@ interface CommitCardMenuProps {
 }
 
 export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: CommitCardMenuProps) {
+  const t = useT();
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
 
@@ -49,9 +51,9 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
   const copyText = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setNotice("Copied to clipboard");
+      setNotice(t("common.copiedToClipboard"));
     } catch {
-      setError("Failed to copy to clipboard");
+      setError(t("common.copyFailed"));
     }
   };
 
@@ -62,7 +64,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
     try {
       const path = await compareExtract(commit.hash);
       await openWorkdirPath(TMP_REVIEW_PATH);
-      setNotice(path ? `Compare opened: ${path}` : `Compare opened: ${TMP_REVIEW_PATH}`);
+      setNotice(t("commit.compareOpened", { path: path || TMP_REVIEW_PATH }));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -77,13 +79,13 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
     try {
       if (pendingAction === "restore") {
         await restoreVersion(commit.hash);
-        setNotice(`Working tree restored to ${hashShort}`);
+        setNotice(t("commit.restoredWorkingTree", { hash: hashShort }));
       } else if (pendingAction === "revert") {
         await revertCommit(commit.hash);
-        setNotice(`Reverted commit ${hashShort}`);
+        setNotice(t("commit.reverted", { hash: hashShort }));
       } else {
         await resetCommit(commit.hash, pendingAction.mode);
-        setNotice(`Reset ${pendingAction.mode} to ${hashShort}`);
+        setNotice(t("commit.resetDone", { mode: pendingAction.mode, hash: hashShort }));
       }
       setPendingAction(null);
       await onAfterAction?.();
@@ -97,36 +99,37 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
   const dialogCopy = (() => {
     if (pendingAction === "restore") {
       return {
-        title: `Restore version ${hashShort}?`,
-        description:
-          "Replace the entire working directory with the contents of this commit. Uncommitted changes may be lost.",
-        confirmLabel: "Restore",
+        title: t("commit.restoreTitle", { hash: hashShort }),
+        description: t("commit.restoreDescription"),
+        confirmLabel: t("commit.restoreAction"),
       };
     }
     if (pendingAction === "revert") {
       return {
-        title: `Revert commit ${hashShort}?`,
-        description:
-          "Create a new commit that undoes the changes introduced by this commit. Merge commits may require manual resolution.",
-        confirmLabel: "Revert",
+        title: t("commit.revertTitle", { hash: hashShort }),
+        description: t("commit.revertDescription"),
+        confirmLabel: t("commit.revertAction"),
       };
     }
     if (pendingAction && typeof pendingAction === "object" && pendingAction.kind === "reset") {
       const modeDescriptions: Record<CommitResetMode, string> = {
-        soft: "Move HEAD to this commit and keep all changes staged.",
-        mixed: "Move HEAD to this commit, keep file changes in the working tree, and reset the index.",
-        hard: "Move HEAD to this commit and discard tracked working tree and index changes.",
+        soft: t("commit.resetSoftDescription"),
+        mixed: t("commit.resetMixedDescription"),
+        hard: t("commit.resetHardDescription"),
       };
       return {
-        title: `Reset ${pendingAction.mode} to ${hashShort}?`,
-        description: `${modeDescriptions[pendingAction.mode]}\n\nThis rewrites the current branch pointer. Use only when you intentionally want to move the branch back to this commit.`,
-        confirmLabel: pendingAction.mode === "hard" ? "Hard reset" : `Reset ${pendingAction.mode}`,
+        title: t("commit.resetTitle", { mode: pendingAction.mode, hash: hashShort }),
+        description: `${modeDescriptions[pendingAction.mode]}\n\n${t("commit.resetWarning")}`,
+        confirmLabel:
+          pendingAction.mode === "hard"
+            ? t("commit.resetHardAction")
+            : t("commit.resetAction", { mode: pendingAction.mode }),
       };
     }
     return {
       title: "",
       description: "",
-      confirmLabel: "Confirm",
+      confirmLabel: t("common.confirm"),
     };
   })();
 
@@ -139,7 +142,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-muted-foreground"
-            aria-label="Commit actions"
+            aria-label={t("commit.actions")}
             disabled={acting}
           >
             <MoreVertical className="h-4 w-4" />
@@ -152,10 +155,10 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
               setMenuOpen(false);
             }}
           >
-            View in Preview
+            {t("commit.viewPreview")}
           </DropdownMenuItem>
           <DropdownMenuItem disabled={acting} onClick={() => void handleCompare()}>
-            Compare with working tree
+            {t("commit.compareWorkingTree")}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={acting}
@@ -164,24 +167,24 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
               setPendingAction("restore");
             }}
           >
-            Restore this version
+            {t("commit.restoreVersion")}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={acting || isHead}
-            title={isHead ? "Cannot revert HEAD commit" : undefined}
+            title={isHead ? t("commit.cannotRevertHead") : undefined}
             onClick={() => {
               setMenuOpen(false);
               setPendingAction("revert");
             }}
           >
-            Revert commit
+            {t("commit.revert")}
           </DropdownMenuItem>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger
               disabled={acting || isHead}
-              title={isHead ? "Already at this commit" : undefined}
+              title={isHead ? t("commit.alreadyAtCommit") : undefined}
             >
-              Reset branch to commit
+              {t("commit.resetBranch")}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="min-w-[12rem]">
               <DropdownMenuItem
@@ -190,7 +193,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
                   setPendingAction({ kind: "reset", mode: "soft" });
                 }}
               >
-                Soft reset
+                {t("commit.softReset")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
@@ -198,7 +201,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
                   setPendingAction({ kind: "reset", mode: "mixed" });
                 }}
               >
-                Mixed reset
+                {t("commit.mixedReset")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
@@ -207,7 +210,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
                   setPendingAction({ kind: "reset", mode: "hard" });
                 }}
               >
-                Hard reset
+                {t("commit.hardReset")}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
@@ -220,7 +223,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
             }}
           >
             <Copy className="h-3.5 w-3.5" />
-            Copy hash
+            {t("commit.copyHash")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-2"
@@ -230,7 +233,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
             }}
           >
             <Copy className="h-3.5 w-3.5" />
-            Copy message
+            {t("commit.copyMessage")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -239,7 +242,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
         open={pendingAction !== null}
         title={dialogCopy.title}
         description={dialogCopy.description}
-        confirmLabel={acting ? "Working…" : dialogCopy.confirmLabel}
+        confirmLabel={acting ? t("common.working") : dialogCopy.confirmLabel}
         loading={acting}
         onConfirm={() => void handleConfirm()}
         onCancel={() => {

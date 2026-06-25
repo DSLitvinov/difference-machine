@@ -4,6 +4,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export interface DropdownOption {
@@ -26,13 +27,15 @@ export function DropdownSelector({
   label,
   value,
   options,
-  placeholder = "Select…",
+  placeholder,
   disabled,
   icon,
   onChange,
 }: DropdownSelectorProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const selected = options.find((option) => option.value === value);
+  const resolvedPlaceholder = placeholder ?? t("common.selectPlaceholder");
 
   return (
     <div>
@@ -50,7 +53,7 @@ export function DropdownSelector({
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
               {icon ? <span className="shrink-0 text-muted-foreground">{icon}</span> : null}
-              <span className="truncate">{selected?.label ?? placeholder}</span>
+              <span className="truncate">{selected?.label ?? resolvedPlaceholder}</span>
             </span>
             <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Button>
@@ -60,7 +63,7 @@ export function DropdownSelector({
           align="start"
         >
           {options.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">{placeholder}</p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{resolvedPlaceholder}</p>
           ) : (
             options.map((option) => (
               <Button

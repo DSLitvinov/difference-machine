@@ -15,6 +15,7 @@ import {
   type ThumbScalePx,
   thumbScaleFromSliderValue,
 } from "@/lib/previewScale";
+import { useT } from "@/lib/i18n";
 import type { SortLocale } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +59,7 @@ export function PreviewToolbar({
   onSortLocaleChange,
   onThumbScaleChange,
 }: PreviewToolbarProps) {
+  const t = useT();
   const nextLocale: SortLocale = sortLocale === "en-US" ? "ru" : "en-US";
   const sortLabel = sortLocale === "en-US" ? "A–Z" : "А–Я";
   const sliderIndex = sliderIndexFromThumbScale(thumbScale);
@@ -70,7 +72,7 @@ export function PreviewToolbar({
         size="icon"
         className="h-10 w-10 shrink-0"
         disabled={!canGoBack}
-        title="Back"
+        title={t("preview.back")}
         onClick={onBack}
       >
         <ChevronLeft className="h-4 w-4" />
@@ -81,7 +83,7 @@ export function PreviewToolbar({
         size="icon"
         className="h-10 w-10 shrink-0"
         disabled={!canGoForward}
-        title="Forward"
+        title={t("preview.forward")}
         onClick={onForward}
       >
         <ChevronRight className="h-4 w-4" />
@@ -105,7 +107,7 @@ export function PreviewToolbar({
           </span>
         ))}
         {showChangedOnly ? (
-          <span className="text-xs text-muted-foreground">· changed only</span>
+          <span className="text-xs text-muted-foreground">· {t("preview.changedOnly")}</span>
         ) : null}
       </nav>
 
@@ -116,7 +118,7 @@ export function PreviewToolbar({
           step={1}
           value={[sliderIndex]}
           className="flex-1"
-          title="Thumbnail size"
+          title={t("preview.thumbnailSize")}
           onValueChange={([index]) => onThumbScaleChange(thumbScaleFromSliderValue(index))}
         />
       </div>
@@ -125,7 +127,7 @@ export function PreviewToolbar({
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={searchQuery}
-          placeholder="Search"
+          placeholder={t("common.search")}
           className={cn("h-9 pl-9", searchLoading && "pr-9")}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={(e) => {
@@ -142,7 +144,7 @@ export function PreviewToolbar({
         variant="ghost"
         size="icon"
         className="h-10 w-10 shrink-0"
-        title={`Sort: ${sortLabel}. Click to switch.`}
+        title={t("preview.sortSwitch", { label: sortLabel })}
         onClick={() => onSortLocaleChange(nextLocale)}
       >
         <ArrowUpDown className="h-4 w-4" />

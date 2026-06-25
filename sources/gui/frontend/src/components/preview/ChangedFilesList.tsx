@@ -100,7 +100,7 @@ export function ChangedFilesList({
       await navigator.clipboard.writeText(text);
       setNotice(label);
     } catch {
-      setError("Failed to copy to clipboard");
+      setError(t("common.copyFailed"));
     }
   };
 

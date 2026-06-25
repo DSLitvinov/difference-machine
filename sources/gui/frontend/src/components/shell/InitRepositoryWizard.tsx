@@ -16,6 +16,7 @@ import {
   DEFAULT_DFMIGNORE_TEMPLATE,
   type InitRepositoryWizardStep,
 } from "@/lib/initRepository";
+import { useT } from "@/lib/i18n";
 import { basename } from "@/lib/utils";
 import { fetchRepoUser } from "@/wails/bridge";
 
@@ -34,6 +35,7 @@ export function InitRepositoryWizard({
   onCancel,
   onCreate,
 }: InitRepositoryWizardProps) {
+  const t = useT();
   const [step, setStep] = useState<InitRepositoryWizardStep>("confirm");
   const [author, setAuthor] = useState("");
   const [dfmignore, setDfmignore] = useState(DEFAULT_DFMIGNORE_TEMPLATE);
@@ -89,25 +91,23 @@ export function InitRepositoryWizard({
         <DialogHeader>
           <DialogTitle>
             {step === "confirm"
-              ? "This folder is not a repository"
+              ? t("init.notRepository")
               : step === "author"
-                ? "Author defaults"
-                : ".dfmignore template"}
+                ? t("init.authorDefaults")
+                : t("init.ignoreTemplate")}
           </DialogTitle>
         </DialogHeader>
 
         {step === "confirm" ? (
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>Do you want to make this folder a Forester repository?</p>
+            <p>{t("init.makeRepository")}</p>
             {path ? (
               <p className="truncate rounded-md border border-border bg-muted/30 px-3 py-2 font-mono text-xs text-foreground">
                 {path}
               </p>
             ) : null}
             <p>
-              The wizard will create <span className="font-medium text-foreground">.DFM/</span>,
-              branch <span className="font-medium text-foreground">main</span>, and a default{" "}
-              <span className="font-medium text-foreground">.dfmignore</span> file.
+              {t("init.wizardCreates")}
             </p>
           </div>
         ) : null}
@@ -115,18 +115,16 @@ export function InitRepositoryWizard({
         {step === "author" ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Set the default author for commits in{" "}
-              <span className="font-medium text-foreground">{folderLabel || "this repository"}</span>.
-              This is stored in the repository config and prefilled from your global profile.
+              {t("init.authorDescription", { repo: folderLabel || t("init.thisRepository") })}
             </p>
             <div>
-              <Label htmlFor="init-author">Author name</Label>
+              <Label htmlFor="init-author">{t("init.authorName")}</Label>
               <Input
                 id="init-author"
                 value={author}
                 disabled={loading}
                 autoFocus
-                placeholder="Your name"
+                placeholder={t("settings.yourName")}
                 onChange={(e) => setAuthor(e.target.value)}
               />
             </div>
@@ -136,12 +134,10 @@ export function InitRepositoryWizard({
         {step === "ignore" ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Review ignore patterns for{" "}
-              <span className="font-medium text-foreground">.dfmignore</span>. Matching files will
-              not appear in Project view or be tracked unless you change this file later.
+              {t("init.ignoreDescription")}
             </p>
             <div>
-              <Label htmlFor="init-dfmignore">Ignore patterns</Label>
+              <Label htmlFor="init-dfmignore">{t("init.ignorePatterns")}</Label>
               <Textarea
                 id="init-dfmignore"
                 value={dfmignore}
@@ -157,13 +153,13 @@ export function InitRepositoryWizard({
           <div>
             {step !== "confirm" ? (
               <Button type="button" variant="outline" disabled={loading} onClick={handleBack}>
-                Back
+                {t("init.back")}
               </Button>
             ) : null}
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="outline" disabled={loading} onClick={onCancel}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               type="button"
@@ -173,12 +169,12 @@ export function InitRepositoryWizard({
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating…
+                  {t("common.creating")}
                 </>
               ) : step === "ignore" ? (
-                "Create repository"
+                t("init.createRepository")
               ) : (
-                "Next"
+                t("init.next")
               )}
             </Button>
           </div>

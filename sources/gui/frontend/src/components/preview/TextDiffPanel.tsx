@@ -8,6 +8,7 @@ import {
 } from "@/lib/parseUnifiedDiff";
 import type { TextSegment } from "@/lib/intralineDiff";
 import type { HistoryTextLayout } from "@/lib/storage";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface TextDiffPanelProps {
@@ -122,6 +123,7 @@ function SplitRowSide({
 
 
 export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanelProps) {
+  const t = useT();
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
   const syncing = useRef(false);
@@ -158,7 +160,7 @@ export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanel
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Loading diff…
+        {t("preview.loadingDiff")}
       </div>
     );
   }
@@ -172,7 +174,7 @@ export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanel
   if (!content.trim()) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        No content changes
+        {t("preview.noContentChanges")}
       </div>
     );
   }
@@ -182,7 +184,7 @@ export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanel
       <div className="grid h-full min-h-0 grid-cols-2">
         <div className="flex min-h-0 flex-col border-r border-border">
           <p className="shrink-0 border-b border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
-            Parent
+            {t("preview.parent")}
           </p>
           <div ref={leftRef} className="min-h-0 flex-1 overflow-auto bg-background">
             <div className="grid grid-cols-1">
@@ -241,7 +243,7 @@ export function TextDiffPanel({ content, layout, loading, error }: TextDiffPanel
         </div>
         <div className="flex min-h-0 flex-col">
           <p className="shrink-0 border-b border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
-            Commit
+            {t("common.commit")}
           </p>
           <div ref={rightRef} className="min-h-0 flex-1 overflow-auto bg-background">
             <div className="grid grid-cols-1">

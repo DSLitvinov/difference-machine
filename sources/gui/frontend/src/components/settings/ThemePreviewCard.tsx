@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import type { GuiTheme } from "@/lib/applyAppearance";
+import { useT } from "@/lib/i18n";
 
 interface ThemePreviewCardProps {
   theme: GuiTheme;
@@ -8,6 +9,7 @@ interface ThemePreviewCardProps {
 }
 
 export function ThemePreviewCard({ theme, selected, onSelect }: ThemePreviewCardProps) {
+  const t = useT();
   const isDark = theme === "dark";
 
   return (
@@ -33,7 +35,9 @@ export function ThemePreviewCard({ theme, selected, onSelect }: ThemePreviewCard
           <div className={cn("h-2 w-[80%] rounded-full", isDark ? "bg-[#52525b]" : "bg-white")} />
         </div>
       </div>
-      <span className="text-sm text-muted-foreground">{isDark ? "Dark" : "Light"}</span>
+      <span className="text-sm text-muted-foreground">
+        {isDark ? t("settings.dark") : t("settings.light")}
+      </span>
     </button>
   );
 }

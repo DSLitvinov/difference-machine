@@ -10,7 +10,8 @@ const UNITS: [number, Intl.RelativeTimeFormatUnit][] = [
 export function formatRelativeTime(unixSeconds: number): string {
   if (!Number.isFinite(unixSeconds) || unixSeconds <= 0) return "—";
   let delta = Math.round(unixSeconds - Date.now() / 1000);
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const locale = document.documentElement.lang === "ru" ? "ru" : undefined;
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   for (const [divisor, unit] of UNITS) {
     if (Math.abs(delta) < divisor) {
       return rtf.format(delta, unit);

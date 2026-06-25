@@ -4,6 +4,7 @@ import { Check, ChevronDown, FolderGit2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { useT } from "@/lib/i18n";
 import { basename, cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
@@ -19,6 +20,7 @@ interface RepoSelectorProps {
 }
 
 export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
+  const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
   const repoName = useAppStore((s) => s.repoName);
   const setRepo = useAppStore((s) => s.setRepo);
@@ -90,7 +92,7 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
         >
           <span className="flex min-w-0 flex-1 items-center gap-2">
             <FolderGit2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span className="truncate">{repoName ?? "Repository"}</span>
+            <span className="truncate">{repoName ?? t("repo.generic")}</span>
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Button>
@@ -103,7 +105,7 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
       >
         <div className="max-h-56 overflow-auto">
           {repos.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">No repositories yet</p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{t("repo.noRepositories")}</p>
           ) : (
             repos.map((path) => (
               <Button
@@ -135,7 +137,7 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
           onClick={() => void handleAdd()}
         >
           <Plus className="h-4 w-4" />
-          Add repository…
+          {t("repo.addWithEllipsis")}
         </Button>
       </PopoverContent>
     </Popover>

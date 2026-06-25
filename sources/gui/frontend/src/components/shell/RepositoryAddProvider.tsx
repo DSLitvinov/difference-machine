@@ -9,10 +9,10 @@ import {
 } from "react";
 
 import { InitRepositoryWizard } from "@/components/shell/InitRepositoryWizard";
+import { useT } from "@/lib/i18n";
 import { registerRepositoryAddActions } from "@/lib/repositoryAddActions";
 import { useAppStore } from "@/stores/appStore";
 import {
-  NOT_FORESTER_REPOSITORY_ERROR,
   checkIsForesterRepository,
   initRepository,
   pickRepositoryFolder,
@@ -28,6 +28,7 @@ interface RepositoryAddContextValue {
 const RepositoryAddContext = createContext<RepositoryAddContextValue | null>(null);
 
 export function RepositoryAddProvider({ children }: { children: ReactNode }) {
+  const t = useT();
   const setError = useAppStore((s) => s.setError);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,9 +70,9 @@ export function RepositoryAddProvider({ children }: { children: ReactNode }) {
   }, [ensureRepositoryPath, pickRepositoryPath]);
 
   const handleCancel = useCallback(() => {
-    setError(NOT_FORESTER_REPOSITORY_ERROR);
+    setError(t("repo.notForester"));
     closeDialog();
-  }, [closeDialog, setError]);
+  }, [closeDialog, setError, t]);
 
   const handleCreate = useCallback(
     async (options: { author: string; dfmignore: string }) => {

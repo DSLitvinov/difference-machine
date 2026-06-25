@@ -5,7 +5,7 @@ Difference Machine - Version control for Blender projects.
 bl_info = {
     "name": "Difference Machine",
     "author": "Dmitry Litvinov",
-    "version": (0, 7, 5),
+    "version": (0, 8, 0),
     "blender": (4, 5, 0),
     "location": "View3D > Sidebar > Difference Machine",
     "description": "Version control for Blender projects using Forester API",

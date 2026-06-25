@@ -112,7 +112,7 @@ export function ProjectSidebarPanel() {
         {currentBranch && !repoMenuOpen ? (
           <p className="flex items-center gap-1 px-1 text-xs text-muted-foreground">
             <GitBranch className="h-3 w-3" />
-            {isDetached ? `${currentBranch} (detached)` : currentBranch}
+            {isDetached ? `${currentBranch} (${t("branch.detached")})` : currentBranch}
           </p>
         ) : null}
       </div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { EventsOn } from "../../wailsjs/runtime/runtime";
 
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
+import { translate } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { getRepositoryAddActions } from "@/lib/repositoryAddActions";
@@ -43,7 +44,8 @@ async function validateSelectedFiles() {
   if (stillValid.length !== selectedFilePaths.length) {
     setSelectedFilePaths(stillValid);
     if (stillValid.length < selectedFilePaths.length) {
-      useAppStore.getState().setNotice("Selected file was removed or is no longer available");
+      const { language, setNotice } = useAppStore.getState();
+      setNotice(translate(language, "repo.selectedFileUnavailable"));
     }
   }
 }
@@ -152,10 +154,10 @@ export async function retryForesterConnection() {
 }
 
 export async function reopenRepositoryFromPicker() {
-  const { setRepo, setError, setForesterError, setLoading } = useAppStore.getState();
+  const { language, setRepo, setError, setForesterError, setLoading } = useAppStore.getState();
   const actions = getRepositoryAddActions();
   if (!actions) {
-    setError("Repository picker is not ready");
+    setError(translate(language, "repo.pickerNotReady"));
     return;
   }
 
@@ -173,7 +175,7 @@ export async function reopenRepositoryFromPicker() {
       );
       await loadProjectData();
       useProjectStore.getState().bumpWorkdirGeneration();
-      useAppStore.getState().setNotice("Repository opened");
+      useAppStore.getState().setNotice(translate(language, "repo.opened"));
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

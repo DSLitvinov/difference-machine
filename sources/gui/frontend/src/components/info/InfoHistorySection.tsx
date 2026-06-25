@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownSelector } from "@/components/ui/dropdown-selector";
 import { Toggle } from "@/components/ui/toggle";
 import { formatTimestamp, shortHash } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { loadFileHistoryBranch, saveFileHistoryBranch } from "@/lib/storage";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -36,6 +37,7 @@ function commitLabel(entry: CommitLogEntry): string {
 }
 
 export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHistorySectionProps) {
+  const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
   const currentBranch = useAppStore((s) => s.currentBranch);
   const setNotice = useAppStore((s) => s.setNotice);
@@ -130,7 +132,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
         setCommits(result.commits);
         setSelectedCommit(result.commits[0]?.hash ?? "");
         if (result.capped) {
-          setNotice("Showing latest 100 commits for this file");
+          setNotice(t("history.latestFileCommits"));
         }
       } catch (err) {
         if (!cancelled) {
@@ -146,7 +148,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
     return () => {
       cancelled = true;
     };
-  }, [branch, filePath, setError, setNotice]);
+  }, [branch, filePath, setError, setNotice, t]);
 
   useEffect(() => {
     if (compareActive && compareCommit && selectedCommit !== compareCommit) {
@@ -172,7 +174,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
     const lock = locks.find((entry) => entry.file_path === filePath);
     if (!lock) return true;
     if (lock.user === currentUser || !currentUser) return true;
-    setError(`File is locked by ${lock.user}`);
+    setError(t("history.fileLockedBy", { user: lock.user }));
     return false;
   };
 
@@ -186,7 +188,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
       await restoreFile(selectedCommit, [filePath]);
       const status = await fetchStatus();
       setStatus(status);
-      setNotice(`Restored ${filePath} from commit ${shortHash(selectedCommit)}`);
+      setNotice(t("history.restoredFile", { path: filePath, hash: shortHash(selectedCommit) }));
       setRevertOpen(false);
       onRestored();
     } catch (err) {
@@ -211,7 +213,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
         await openWorkdirPath(TMP_REVIEW_PATH);
         setCompareActive(true);
         setCompareCommit(selectedCommit);
-        setNotice(path ? `Compare opened: ${path}` : `Compare opened: ${TMP_REVIEW_PATH}`);
+        setNotice(t("commit.compareOpened", { path: path || TMP_REVIEW_PATH }));
         return;
       }
 
@@ -249,27 +251,27 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
         className="mb-2 h-auto w-full justify-between px-0 py-0 text-sm font-semibold hover:bg-transparent"
         onClick={() => setCollapsed((v) => !v)}
       >
-        <span>History</span>
+        <span>{t("history.title")}</span>
         {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
       </Button>
 
       {!collapsed ? (
         <div className="space-y-3">
           <DropdownSelector
-            label="Branch"
+            label={t("common.branch")}
             value={branch}
             options={branchOptions}
-            placeholder="Select branch…"
+            placeholder={t("history.selectBranch")}
             disabled={loading || branches.length === 0}
             icon={<GitBranch className="h-4 w-4" />}
             onChange={handleBranchChange}
           />
 
           <DropdownSelector
-            label="Commit"
+            label={t("common.commit")}
             value={selectedCommit}
             options={commitOptions}
-            placeholder={loading ? "Loading…" : "No commits for this file"}
+            placeholder={loading ? `${t("common.loading")}…` : t("history.noCommitsForFile")}
             disabled={loading || commits.length === 0}
             onChange={handleCommitChange}
           />
@@ -284,7 +286,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
                 setRevertOpen(true);
               })()}
             >
-              Revert
+              {t("commit.revertAction")}
             </Button>
             <Toggle
               variant="outline"
@@ -294,7 +296,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
               onPressedChange={(pressed) => void handleCompareToggle(pressed)}
             >
               {acting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Compare
+              {t("common.compare")}
             </Toggle>
           </div>
         </div>
@@ -302,9 +304,9 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
 
       <ConfirmAlertDialog
         open={revertOpen}
-        title="Revert file"
-        description={`Overwrite file in working directory with version from commit ${shortHash(selectedCommit)}?`}
-        confirmLabel="Revert"
+        title={t("history.revertFile")}
+        description={t("history.revertFileDescription", { hash: shortHash(selectedCommit) })}
+        confirmLabel={t("commit.revertAction")}
         loading={acting}
         onConfirm={() => void handleRevertConfirm()}
         onCancel={() => setRevertOpen(false)}

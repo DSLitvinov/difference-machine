@@ -1,10 +1,12 @@
 import { InfoFilePreviewTile } from "@/components/info/InfoFilePreviewTile";
+import { useT } from "@/lib/i18n";
 
 interface InfoFilePreviewMultiProps {
   paths: string[];
 }
 
 export function InfoFilePreviewMulti({ paths }: InfoFilePreviewMultiProps) {
+  const t = useT();
   const count = paths.length;
 
   return (
@@ -25,7 +27,7 @@ export function InfoFilePreviewMulti({ paths }: InfoFilePreviewMultiProps) {
         </div>
       </div>
       <p className="text-sm text-muted-foreground">
-        {count} {count === 1 ? "file" : "files"} selected
+        {t("info.filesSelected", { count })}
       </p>
     </div>
   );

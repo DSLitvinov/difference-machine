@@ -3,6 +3,7 @@ import { Copy, GitBranch, GitMerge, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { parseCommitMessage } from "@/lib/commitMessage";
 import { shortHash } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import type { CommitLogEntry } from "@/wails/forester";
 
 interface PreviewCommitHeaderProps {
@@ -20,6 +21,7 @@ export function PreviewCommitHeader({
   stats,
   onCopy,
 }: PreviewCommitHeaderProps) {
+  const t = useT();
   if (loading || !commit) {
     return (
       <div className="space-y-2 border-b border-border bg-background px-4 py-3">
@@ -47,7 +49,7 @@ export function PreviewCommitHeader({
       <div className="flex items-center gap-1">
         {isMerge ? <GitMerge className="h-4 w-4 shrink-0 text-muted-foreground" /> : null}
         {isHead ? (
-          <span title="Branch tip (HEAD)">
+          <span title={t("preview.branchTip")}>
             <GitBranch className="h-4 w-4 shrink-0 text-muted-foreground" />
           </span>
         ) : null}
@@ -63,7 +65,9 @@ export function PreviewCommitHeader({
         </div>
         {stats ? (
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">{stats.files_changed} files changed</span>
+            <span className="text-muted-foreground">
+              {t("commit.filesChanged", { count: stats.files_changed })}
+            </span>
             {stats.insertions > 0 ? (
               <span className="text-emerald-700">+{stats.insertions}</span>
             ) : null}

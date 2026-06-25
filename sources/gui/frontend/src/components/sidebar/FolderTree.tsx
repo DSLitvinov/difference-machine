@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { flattenVisibleFolderTree } from "@/lib/flattenFolderTree";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useProjectStore } from "@/stores/projectStore";
 import type { FolderNode } from "@/wails/forester";
@@ -83,6 +84,7 @@ interface FolderTreeProps {
 }
 
 export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
+  const t = useT();
   const folderTree = useProjectStore((s) => s.folderTree);
   const selectedFolderPath = useProjectStore((s) => s.selectedFolderPath);
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
@@ -125,11 +127,11 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
   };
 
   if (treeLoading && !folderTree) {
-    return <p className="p-4 text-sm text-muted-foreground">Loading folders…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("folder.loading")}</p>;
   }
 
   if (!folderTree) {
-    return <p className="p-4 text-sm text-muted-foreground">No folders</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("folder.noFolders")}</p>;
   }
 
   const rootVisible =
@@ -184,9 +186,9 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
           })}
         </div>
       ) : rootVisible ? (
-        <p className="px-2 py-1 text-xs text-muted-foreground">No subfolders</p>
+        <p className="px-2 py-1 text-xs text-muted-foreground">{t("folder.noSubfolders")}</p>
       ) : (
-        <p className="px-2 py-1 text-xs text-muted-foreground">No changed folders</p>
+        <p className="px-2 py-1 text-xs text-muted-foreground">{t("folder.noChangedFolders")}</p>
       )}
     </div>
   );

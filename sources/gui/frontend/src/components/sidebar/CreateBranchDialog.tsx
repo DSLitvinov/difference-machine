@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useT } from "@/lib/i18n";
 import { createBranch } from "@/wails/forester";
 
 interface CreateBranchDialogProps {
@@ -28,6 +29,7 @@ export function CreateBranchDialog({
   onError,
   onNotice,
 }: CreateBranchDialogProps) {
+  const t = useT();
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,7 +51,7 @@ export function CreateBranchDialog({
     try {
       await createBranch(trimmedName);
       await onCreated();
-      onNotice(`Branch ${trimmedName} created`);
+      onNotice(t("branch.created", { branch: trimmedName }));
       onOpenChange(false);
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
@@ -62,11 +64,11 @@ export function CreateBranchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Do you really want to create a new branch?</DialogTitle>
+          <DialogTitle>{t("branch.createTitle")}</DialogTitle>
         </DialogHeader>
         <div>
           <Label className="mb-1 text-muted-foreground" htmlFor="branch-name">
-            Branch name
+            {t("branch.name")}
           </Label>
           <Input
             id="branch-name"
@@ -90,16 +92,16 @@ export function CreateBranchDialog({
             disabled={submitting}
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="button" disabled={!canSubmit} onClick={() => void handleCreate()}>
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating…
+                {t("common.creating")}
               </>
             ) : (
-              "Create"
+              t("common.create")
             )}
           </Button>
         </DialogFooter>

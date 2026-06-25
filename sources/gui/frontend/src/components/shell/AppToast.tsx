@@ -72,7 +72,7 @@ export function AppToast() {
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            aria-label="Dismiss error"
+            aria-label={t("common.dismissError")}
             onClick={dismissErrors}
           >
             <X className="h-4 w-4" />
@@ -109,7 +109,7 @@ export function AppToast() {
             variant="ghost"
             size="icon"
             className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            aria-label="Dismiss error"
+            aria-label={t("common.dismissError")}
             onClick={() => setError(null)}
           >
             <X className="h-4 w-4" />

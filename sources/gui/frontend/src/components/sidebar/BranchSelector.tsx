@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { branchDeleteBlockReason } from "@/lib/branchDelete";
+import { useT, type TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface BranchSelectorProps {
@@ -34,10 +35,20 @@ export function BranchSelector({
   onDeleteClick,
   mergeDisabled,
 }: BranchSelectorProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const label = isDetached
-    ? `${currentBranch || "HEAD"} (detached)`
-    : currentBranch || "No branches";
+    ? `${currentBranch || "HEAD"} (${t("branch.detached")})`
+    : currentBranch || t("branch.noBranchesLabel");
+
+  const deleteBlockKeys: Record<string, TranslationKey> = {
+    "Cannot delete the only branch": "branch.cannotDeleteOnly",
+    "This branch is protected": "branch.protected",
+    "Switch to another branch before deleting this one": "branch.switchBeforeDelete",
+    "Cannot delete the current branch during a merge": "branch.cannotDeleteCurrentDuringMerge",
+    "Cannot delete a branch involved in an active merge": "branch.cannotDeleteActiveMerge",
+    "Delete unavailable": "branch.deleteUnavailable",
+  };
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
@@ -88,7 +99,7 @@ export function BranchSelector({
       >
         <div className="max-h-56 overflow-auto">
           {branches.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">No branches</p>
+            <p className="px-3 py-2 text-xs text-muted-foreground">{t("branch.noBranches")}</p>
           ) : (
             branches.map((branch) => {
               const deleteBlockReason = onDeleteClick
@@ -101,6 +112,9 @@ export function BranchSelector({
                     mergeBranch,
                   })
                 : "Delete unavailable";
+              const deleteTitle = deleteBlockReason
+                ? t(deleteBlockKeys[deleteBlockReason] ?? "branch.deleteUnavailable")
+                : t("branch.deleteBranch", { branch });
               const isCurrent = !isDetached && currentBranch === branch;
 
               return (
@@ -129,7 +143,7 @@ export function BranchSelector({
                       size="icon"
                       className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
                       disabled={Boolean(deleteBlockReason)}
-                      title={deleteBlockReason ?? `Delete branch ${branch}`}
+                      title={deleteTitle}
                       onClick={() => handleDeleteClick(branch)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -150,7 +164,7 @@ export function BranchSelector({
               onClick={handleCreateClick}
             >
               <Plus className="h-4 w-4" />
-              Create new branch…
+              {t("branch.createNew")}
             </Button>
           </>
         ) : null}
@@ -163,7 +177,7 @@ export function BranchSelector({
             onClick={handleMergeClick}
           >
             <GitMerge className="h-4 w-4" />
-            Merge into current branch…
+            {t("merge.intoCurrent")}…
           </Button>
         ) : null}
       </PopoverContent>

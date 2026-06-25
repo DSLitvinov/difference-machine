@@ -5,6 +5,7 @@ import { DeletedDiffStub } from "@/components/preview/DeletedDiffStub";
 import { ImageDiffPanel } from "@/components/preview/ImageDiffPanel";
 import { LayoutToggle } from "@/components/preview/LayoutToggle";
 import { TextDiffPanel } from "@/components/preview/TextDiffPanel";
+import { useT } from "@/lib/i18n";
 import type { HistoryImageLayout, HistoryTextLayout } from "@/lib/storage";
 import type { DiffFileEntry } from "@/wails/forester";
 
@@ -45,10 +46,11 @@ export function DiffView({
   onRetryImage,
   onOpenBinary,
 }: DiffViewProps) {
+  const t = useT();
   if (!file) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Select a file to view changes
+        {t("preview.selectFileChanges")}
       </div>
     );
   }
@@ -68,8 +70,8 @@ export function DiffView({
             <LayoutToggle
               value={textLayout}
               options={[
-                { value: "unified", label: "Unified" },
-                { value: "split", label: "Split" },
+                { value: "unified", label: t("preview.layoutUnified") },
+                { value: "split", label: t("preview.layoutSplit") },
               ]}
               onChange={onTextLayoutChange}
             />
@@ -79,8 +81,8 @@ export function DiffView({
               value={imageLayout}
               options={[
                 { value: "2up", label: "2-up" },
-                { value: "swipe", label: "Swipe" },
-                { value: "overlay", label: "Overlay" },
+                { value: "swipe", label: t("preview.layoutSwipe") },
+                { value: "overlay", label: t("preview.layoutOverlay") },
               ]}
               onChange={onImageLayoutChange}
             />

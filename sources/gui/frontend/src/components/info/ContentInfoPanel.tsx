@@ -16,6 +16,7 @@ import { InfoHistorySection } from "@/components/info/InfoHistorySection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { classifyInfoPreview } from "@/lib/fileKinds";
+import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { fetchRepoUser } from "@/wails/bridge";
@@ -28,6 +29,7 @@ import {
 } from "@/wails/forester";
 
 export function ContentInfoPanel() {
+  const t = useT();
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const selectedFilePaths = useProjectStore((s) => s.selectedFilePaths);
@@ -97,7 +99,7 @@ export function ContentInfoPanel() {
   if (selectedFilePaths.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-        <p className="text-sm text-muted-foreground">Select a file to view details</p>
+        <p className="text-sm text-muted-foreground">{t("info.selectFile")}</p>
       </div>
     );
   }
@@ -111,9 +113,19 @@ export function ContentInfoPanel() {
         <footer className="border-t border-border p-4">
           <Button
             className="w-full"
-            onClick={() => void openCreateCommit(selectedFilePaths, committable, setError, setNotice, setCommitPaths, setCommitOpen)}
+            onClick={() =>
+              void openCreateCommit(
+                selectedFilePaths,
+                committable,
+                setError,
+                setNotice,
+                setCommitPaths,
+                setCommitOpen,
+                t,
+              )
+            }
           >
-            Create commit
+            {t("commit.create")}
           </Button>
         </footer>
         <CreateCommitDialog
@@ -143,7 +155,7 @@ export function ContentInfoPanel() {
         />
 
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">name file</label>
+          <label className="mb-1 block text-xs text-muted-foreground">{t("info.nameFile")}</label>
           <Input value={fileName} disabled title={selectedFilePath!} />
         </div>
 
@@ -171,11 +183,12 @@ export function ContentInfoPanel() {
               setNotice,
               setCommitPaths,
               setCommitOpen,
+              t,
             )
           }
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          Create commit
+          {t("commit.create")}
         </Button>
       </footer>
 
@@ -196,8 +209,9 @@ async function openCreateCommit(
   setNotice: (notice: string | null) => void,
   setCommitPaths: (paths: string[]) => void,
   setCommitOpen: (open: boolean) => void,
+  t: ReturnType<typeof useT>,
 ) {
-  const { toStage, error, warning } = prepareCommitPaths(paths, committable);
+  const { toStage, error, warning } = prepareCommitPaths(paths, committable, t);
   if (error) {
     setError(error);
     return;

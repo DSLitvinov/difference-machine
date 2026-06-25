@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { fileExtension } from "@/lib/fileKinds";
 import { shortHash } from "@/lib/format";
+import { translate, useT, type TranslationKey } from "@/lib/i18n";
 import { diffStatusBadgeClass } from "@/lib/vcsBadge";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/stores/appStore";
 import {
   fetchBranchList,
   fetchDiffNameStatusBetween,
@@ -25,13 +27,13 @@ import {
   type MergeStatusPayload,
 } from "@/wails/forester";
 
-function objectTagLabel(tags: string[] | undefined): string {
-  if (!tags?.length) return "changed";
+function objectTagKey(tags: string[] | undefined): TranslationKey {
+  if (!tags?.length) return "merge.objectChanged";
   const upper = tags.map((t) => t.toUpperCase());
-  if (upper.includes("DELETE")) return "delete";
-  if (upper.includes("RENAME")) return "rename";
-  if (upper.includes("MERGE")) return "merge";
-  return "changed";
+  if (upper.includes("DELETE")) return "merge.objectDelete";
+  if (upper.includes("RENAME")) return "merge.objectRename";
+  if (upper.includes("MERGE")) return "merge.objectMerge";
+  return "merge.objectChanged";
 }
 
 function isBlendPath(path: string): boolean {
@@ -61,6 +63,7 @@ export function MergeDialog({
   onCompleted,
   onError,
 }: MergeDialogProps) {
+  const t = useT();
   const [files, setFiles] = useState<DiffFileEntry[]>([]);
   const [diffToHead, setDiffToHead] = useState("");
   const [loadingFiles, setLoadingFiles] = useState(false);
@@ -181,26 +184,25 @@ export function MergeDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitMerge className="h-5 w-5" />
-            Merge commit
+            {t("merge.title")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Merging <span className="font-medium text-foreground">{targetBranch}</span> into{" "}
-            <span className="font-medium text-foreground">{currentBranch}</span>
+            {t("merge.mergingBranches", { target: targetBranch, current: currentBranch })}
           </p>
           <div>
-            <p className="text-sm text-muted-foreground">Author</p>
-            <p className="text-sm">{author || "Unknown"}</p>
+            <p className="text-sm text-muted-foreground">{t("commit.author")}</p>
+            <p className="text-sm">{author || t("common.unknown")}</p>
           </div>
         </DialogHeader>
 
         <div className="flex min-h-[280px] max-h-[420px] overflow-hidden rounded-md border border-border">
           <div className="flex min-w-0 flex-1 flex-col border-r border-border">
             <div className="flex h-[38px] shrink-0 items-center bg-accent px-2 text-xs font-medium">
-              {loadingFiles ? "Loading…" : `${files.length} files changed`}
+              {loadingFiles ? `${t("common.loading")}…` : t("commit.filesChanged", { count: files.length })}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {files.length === 0 && !loadingFiles ? (
-                <p className="p-4 text-sm text-muted-foreground">No files to merge</p>
+                <p className="p-4 text-sm text-muted-foreground">{t("merge.noFiles")}</p>
               ) : (
                 files.map((file) => {
                   const selected = selectedPath === file.path;
@@ -219,7 +221,7 @@ export function MergeDialog({
                       <span className="min-w-0 flex-1 truncate">/{file.path}</span>
                       {selected && isBlendPath(file.path) && blendObjects > 0 ? (
                         <Badge variant="secondary" className="shrink-0 rounded-full">
-                          view object
+                          {t("merge.viewObject")}
                         </Badge>
                       ) : file.status ? (
                         <span
@@ -242,15 +244,15 @@ export function MergeDialog({
             <div className="flex h-[38px] shrink-0 items-center bg-accent px-2 text-xs font-medium">
               {objectsVisible
                 ? selectedObjectCount === 1
-                  ? "1 object in .blend"
-                  : `${selectedObjectCount} objects in .blend`
-                : "Objects not detected"}
+                  ? t("merge.oneObjectBlend")
+                  : t("merge.objectsBlend", { count: selectedObjectCount })
+                : t("merge.objectsNotDetected")}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {loadingObjects ? (
                 <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading objects…
+                  {t("merge.loadingObjects")}
                 </div>
               ) : objectsVisible ? (
                 objects.map((obj) => (
@@ -261,7 +263,7 @@ export function MergeDialog({
                   >
                     <span className="truncate text-base">{obj.object_name}</span>
                     <Badge variant="default" className="shrink-0 rounded-full capitalize">
-                      {objectTagLabel(obj.tags)}
+                      {t(objectTagKey(obj.tags))}
                     </Badge>
                   </div>
                 ))
@@ -272,16 +274,16 @@ export function MergeDialog({
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button type="button" disabled={mergeDisabled} onClick={() => void handleMerge()}>
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Merging…
+                {t("merge.merging")}
               </>
             ) : (
-              "Merge"
+              t("merge.action")
             )}
           </Button>
         </DialogFooter>
@@ -292,5 +294,6 @@ export function MergeDialog({
 
 export async function mergeSuccessNotice(hash: string): Promise<string> {
   const short = shortHash(hash);
-  return short ? `Merge commit ${short} created` : "Merge completed";
+  const language = useAppStore.getState().language;
+  return short ? translate(language, "merge.successCommit", { hash: short }) : translate(language, "merge.completed");
 }

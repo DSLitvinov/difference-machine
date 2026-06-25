@@ -1,6 +1,7 @@
 import { FileArchive, FileCode, FileImage, Loader2 } from "lucide-react";
 
 import { useWorkdirPreview } from "@/hooks/useWorkdirPreview";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { vcsStatusBadgeClass } from "@/lib/vcsBadge";
 import type { InfoPreviewKind } from "@/lib/fileKinds";
@@ -35,6 +36,7 @@ export function InfoFilePreviewSingle({
   kind,
   loading: metadataLoading,
 }: InfoFilePreviewSingleProps) {
+  const t = useT();
   const statusLabel = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
   const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
   const { previewUrl, textPreview } = useWorkdirPreview(dimmed ? null : path, kind);
@@ -75,9 +77,9 @@ export function InfoFilePreviewSingle({
       {lockUser ? (
         <span
           className="absolute bottom-2 right-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
-          title={`Locked by ${lockUser}`}
+          title={t("info.lockedBy", { user: lockUser })}
         >
-          lock
+          {t("info.lock")}
         </span>
       ) : null}
     </div>

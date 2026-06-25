@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 interface MergeBranchPickDialogProps {
@@ -24,6 +25,7 @@ export function MergeBranchPickDialog({
   currentBranch,
   onSelect,
 }: MergeBranchPickDialogProps) {
+  const t = useT();
   const targets = branches.filter((b) => b !== currentBranch);
 
   return (
@@ -32,15 +34,15 @@ export function MergeBranchPickDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitMerge className="h-5 w-5" />
-            Merge into current branch
+            {t("merge.intoCurrent")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Select a branch to merge into <span className="font-medium text-foreground">{currentBranch}</span>.
+            {t("merge.intoCurrentDescription", { branch: currentBranch })}
           </p>
         </DialogHeader>
         <div className="max-h-64 overflow-y-auto rounded-md border border-border">
           {targets.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">No other branches</p>
+            <p className="p-4 text-sm text-muted-foreground">{t("merge.noOtherBranches")}</p>
           ) : (
             targets.map((branch) => (
               <Button

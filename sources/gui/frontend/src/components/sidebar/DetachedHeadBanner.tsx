@@ -2,6 +2,7 @@ import { GitBranch } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { shortHash } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 interface DetachedHeadBannerProps {
   branch: string;
@@ -16,6 +17,7 @@ export function DetachedHeadBanner({
   returning,
   onReturnToBranch,
 }: DetachedHeadBannerProps) {
+  const t = useT();
   const short = shortHash(commitHash);
 
   return (
@@ -23,8 +25,8 @@ export function DetachedHeadBanner({
       <div className="flex min-w-0 items-center gap-2 text-foreground">
         <GitBranch className="h-4 w-4 shrink-0 text-sky-600" />
         <span className="truncate">
-          Detached HEAD at {short}
-          {branch ? ` (from ${branch})` : ""}
+          {t("branch.detachedAt", { hash: short })}
+          {branch ? ` (${t("branch.detachedFrom", { branch })})` : ""}
         </span>
       </div>
       {branch ? (
@@ -36,7 +38,7 @@ export function DetachedHeadBanner({
           disabled={returning}
           onClick={onReturnToBranch}
         >
-          {returning ? "Switching…" : `Return to ${branch}`}
+          {returning ? t("common.switchingBranch") : t("branch.returnTo", { branch })}
         </Button>
       ) : null}
     </div>

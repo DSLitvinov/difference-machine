@@ -3,6 +3,7 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { useT } from "@/lib/i18n";
 import type { HistoryImageLayout } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
@@ -43,28 +44,29 @@ function ImageDiffTwoUp({
   afterUrl,
   status,
 }: Pick<ImageDiffPanelProps, "beforeUrl" | "afterUrl" | "status">) {
+  const t = useT();
   return (
     <div className="flex h-full min-h-[240px] w-full divide-x divide-border">
       <Checkerboard className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <span className="shrink-0 px-2 py-1.5 text-xs text-muted-foreground">Before</span>
+        <span className="shrink-0 px-2 py-1.5 text-xs text-muted-foreground">{t("preview.before")}</span>
         <div className="relative min-h-0 flex-1">
           {beforeUrl ? (
             <img src={beforeUrl} alt="" className="h-full w-full object-contain" draggable={false} />
           ) : (
             <div className="flex h-full items-center justify-center px-2 text-center text-xs text-muted-foreground">
-              {status === "A" ? "No previous version" : "No image"}
+              {status === "A" ? t("preview.noPreviousVersion") : t("preview.noImage")}
             </div>
           )}
         </div>
       </Checkerboard>
       <Checkerboard className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <span className="shrink-0 px-2 py-1.5 text-xs text-muted-foreground">After</span>
+        <span className="shrink-0 px-2 py-1.5 text-xs text-muted-foreground">{t("preview.after")}</span>
         <div className="relative min-h-0 flex-1">
           {afterUrl ? (
             <img src={afterUrl} alt="" className="h-full w-full object-contain" draggable={false} />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              No image
+              {t("preview.noImage")}
             </div>
           )}
         </div>
@@ -79,6 +81,7 @@ function ImageDiffSwipe({
   afterUrl,
   status,
 }: Pick<ImageDiffPanelProps, "beforeUrl" | "afterUrl" | "status">) {
+  const t = useT();
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const [position, setPosition] = useState(50);
@@ -143,13 +146,13 @@ function ImageDiffSwipe({
       {/* Before (parent) — full layer underneath */}
       <div className="pointer-events-none absolute inset-0">
         <span className="absolute right-2 top-2 z-[1] rounded bg-background/70 px-1.5 py-0.5 text-xs text-muted-foreground">
-          Before
+          {t("preview.before")}
         </span>
         {beforeUrl ? (
           <img src={beforeUrl} alt="" className="h-full w-full object-contain" draggable={false} />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            {status === "A" ? "No previous version" : "No image"}
+            {status === "A" ? t("preview.noPreviousVersion") : t("preview.noImage")}
           </div>
         )}
       </div>
@@ -160,7 +163,7 @@ function ImageDiffSwipe({
         style={{ width: `${position}%` }}
       >
         <span className="absolute left-2 top-2 z-[1] rounded bg-background/70 px-1.5 py-0.5 text-xs text-muted-foreground">
-          After
+          {t("preview.after")}
         </span>
         <div className="relative h-full" style={{ width: containerWidth || "100%" }}>
           {afterUrl ? (
@@ -173,7 +176,7 @@ function ImageDiffSwipe({
             />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              No image
+              {t("preview.noImage")}
             </div>
           )}
         </div>
@@ -206,6 +209,7 @@ function ImageDiffOverlay({
   beforeUrl,
   afterUrl,
 }: Pick<ImageDiffPanelProps, "beforeUrl" | "afterUrl">) {
+  const t = useT();
   const [opacity, setOpacity] = useState(50);
 
   return (
@@ -230,7 +234,7 @@ function ImageDiffOverlay({
         ) : null}
       </Checkerboard>
       <div className="flex shrink-0 items-center gap-3 border-t border-border px-4 py-2">
-        <Label className="text-xs font-normal text-muted-foreground">Opacity</Label>
+        <Label className="text-xs font-normal text-muted-foreground">{t("preview.opacity")}</Label>
         <Slider
           min={0}
           max={100}
@@ -253,6 +257,7 @@ export function ImageDiffPanel({
   error,
   onRetry,
 }: ImageDiffPanelProps) {
+  const t = useT();
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -264,9 +269,9 @@ export function ImageDiffPanel({
   if (error) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
-        <p className="text-sm text-destructive">Failed to load image</p>
+        <p className="text-sm text-destructive">{t("preview.failedLoadImage")}</p>
         <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-          Retry
+          {t("common.retry")}
         </Button>
       </div>
     );
