@@ -1,24 +1,23 @@
-Difference Machine Usage Guide
-==============================
+# Difference Machine Usage Guide
 
-This document explains how to use Forester (CLI) and the Blender addon
-from repository creation to branch merging.
+This guide covers the three user-facing entry points: the Forester CLI, the Difference Machine GUI, and the Blender addon.
 
----
+## 1. Setup And Configuration
 
-1) Setup and Configuration
---------------------------
+### Requirements
 
-### 1.1 Requirements
-- Forester binary available in PATH or configured in `~/.dfm/setup.cfg`.
-- Blender installed for object-level operations (.blend).
-- Blender addon installed (see below).
+- Forester binary in `PATH` or configured in `~/.dfm/setup.cfg`.
+- Blender 4.5.0+ for `.blend` object workflows.
+- Difference Machine GUI for desktop repository browsing and configuration.
+- Blender addon for object tags, compare, asset, lock, and merge workflows.
 
-### 1.2 Global config file
+### Global Config
+
 File: `~/.dfm/setup.cfg`
 
-Recommended sections:
-```
+Common sections:
+
+```ini
 [forester]
 path=/path/to/forester
 
@@ -26,157 +25,163 @@ path=/path/to/forester
 path=/path/to/libforester.so
 
 [addons]
-diffmachine_path=/path/to/addons/blender/difference_machine
+diffmachine_path=/path/to/difference_machine/addon
 
 [blender]
 path=/path/to/blender
 merge_apply_script=/path/to/merge_apply_background.py
+
+[current repo]
+path=/path/to/current/project
 ```
 
-Notes:
-- `merge_apply_script` is used for object-level merge (DELETE/RENAME/MERGE).
-- See `builder/setup.cfg.example` for a fuller example.
+The builder can write a development config:
 
----
-
-2) Forester CLI: Repository Lifecycle
--------------------------------------
-
-### 2.1 Create repository
+```bash
+./builder/build.sh --gui --write-local-config
 ```
+
+See `builder/setup.cfg.example` for the full set of sections, including `[gc]`, `[python_bindings]`, `[plugins]`, and `[user]`.
+
+## 2. Forester CLI
+
+Create a repository:
+
+```bash
 forester init /path/to/project
 ```
 
-### 2.2 Status, add, commit
-```
+Create a commit:
+
+```bash
+cd /path/to/project
 forester status
 forester add .
 forester commit "Initial commit" --author "Name"
 ```
 
-### 2.3 Branches and switching
-```
-forester branch                   # list
-forester branch feature/ui        # create
-forester switch feature/ui        # switch
-forester switch -a main           # auto-stash changes
+Work with branches:
+
+```bash
+forester branch
+forester branch feature/ui
+forester switch feature/ui
+forester switch -a main
 ```
 
-### 2.4 Merge
-```
+Merge and recover:
+
+```bash
 forester merge feature/ui
 forester merge --abort
 forester merge --continue
+forester reflog
 ```
 
-### 2.5 Stash
-```
-forester stash list
-forester stash save "WIP"
-forester stash pop
-forester stash clear
-```
+Other common commands:
 
-### 2.6 Other useful commands
-```
+```bash
 forester log
 forester diff
 forester show <commit>
 forester restore <file>
-forester restore-version <commit>   # full overwrite of working dir to match commit
+forester restore-version <commit>
 forester reset --mixed <commit>
+forester api status.get --args '{}'
 ```
 
-Short and full CLI references:
+References:
+
 - `doc/forester_command_short.md`
 - `doc/forester_comand.md`
 
----
+## 3. Difference Machine GUI
 
-3) Blender Addon: Install
--------------------------
+The GUI is a Wails desktop application in `sources/gui`.
 
-1. Open Blender → Preferences → Add-ons → Install.
-2. Select addon folder: `addons/blender/difference_machine`.
-3. Enable the addon.
+Typical use:
 
-After enabling:
-- Panel appears in the **3D View > Sidebar > Difference Machine**.
+1. Launch the built app from `builder/dist/payload/apps/` or a release package.
+2. Configure Forester, Blender, addon, and repository paths in Settings.
+3. Open or initialize a repository.
+4. Use the sidebar for branch status and history.
+5. Use preview, info, diff, merge, reset, restore, and commit dialogs for daily work.
 
-### 3.1 Compare panel (Version History)
-- **Load Commits** — load commit list for the current branch.
-- **Project** tab: for the selected commit — **Compare** (extract to tmp and open in another Blender), **Restore This Version** (full overwrite of working folder to that commit, create a new commit with message like "Restore version DD.MM.YYYY HH:MM from commit <hash>", then reload the current file).
-- **Selected Object** tab: compare or replace the selected object with the version from the chosen commit.
+The GUI stores global settings in `~/.dfm/setup.cfg` and calls Forester through the JSON API.
 
----
+## 4. Blender Addon
 
-4) Blender Addon: Mark To Workflow
-----------------------------------
+Install from a built payload:
 
-### 4.1 How tags work
-Tags are stored in `scene.df_objects` and synced to Forester DB.
-Tags supported:
-- `MERGE`
-- `DELETE`
-- `RENAME` (stores `metadata.new_name`)
+1. Build the project: `./builder/build.sh`.
+2. In Blender, open Preferences -> Add-ons -> Install.
+3. Select `builder/dist/payload/addons/blender/difference_machine`.
+4. Enable the addon.
 
-### 4.2 Mark objects
-1. Select objects.
-2. Choose tag in **Mark To** panel.
-3. Click **Mark**.
+For development, use `sources/addons/blender/difference_machine`.
 
-### 4.3 Sync tagged objects to DB
-Click **Sync Objects to DB**.
-This now syncs **all tagged objects** for the selected commit.
+After enabling, panels appear in **3D View -> Sidebar -> Difference Machine**.
 
-If there are old records for the same commit+file, they are cleared first.
+Main panels:
 
----
+- **Save Version**: create Forester commits from Blender.
+- **Save Asset**: save selected objects as linked assets and update `.DFM/assets_registry.json`.
+- **Compare**: load history, compare commits, retrieve objects, or restore project versions.
+- **Object History**: inspect changes for selected objects.
+- **Mark To**: mark selected objects as MERGE, DELETE, or RENAME.
+- **Lock**: acquire or release collaborative file locks.
 
-5) Object-level Merge (Delete/Rename/Merge)
--------------------------------------------
+## 5. Object Tags And Manifests
 
-### 5.1 Requirements
-- .blend objects must be tagged and synced to DB.
-- Blender path and `merge_apply_background.py` must be configured in `~/.dfm/setup.cfg`.
+Object tags are stored in Blender scene properties and synchronized to Forester manifest files under `.DFM/manifests/`. There is no Forester database file.
 
-### 5.2 Behavior
-During merge with object tags:
-1. `forester merge --no-commit`
-2. `merge_apply_background.py` applies:
-   - DELETE (removes objects)
-   - RENAME (renames objects)
-   - MERGE (imports objects from "theirs")
-3. File is staged and merge continues (`forester add`, then `forester merge --continue`).
+Supported merge tags:
 
----
+- `MERGE`: import the tagged object from the merged branch.
+- `DELETE`: remove the tagged object.
+- `RENAME`: rename the object; the new name is stored in metadata.
 
-6) Conflicts and Manual Resolve
--------------------------------
+Workflow:
 
-If a merge conflict occurs on `.blend`:
-- Open Blender with ours/theirs for manual review.
-- Or use automatic resolve if `merge_apply_background.py` is configured.
+1. Select objects in Blender.
+2. Apply tags in the **Mark To** panel.
+3. Sync tagged objects to Forester manifests.
+4. Commit the changes.
 
----
+If records already exist for the same commit and file, the addon refreshes the manifest data for that scope.
 
-7) Recommended Workflow (End to End)
-------------------------------------
+## 6. Object-Level Merge
 
-1. Init repo (`forester init` or via addon).
-2. Add files and commit.
-3. Create feature branch.
-4. Edit files / Blender objects.
-5. In Blender: mark objects (MERGE/DELETE/RENAME).
-6. Sync tagged objects to DB.
-7. Merge via CLI (`forester merge`) or addon.
-8. If needed, resolve conflicts in Blender.
+Requirements:
 
----
+- `.blend` objects are tagged and synced to manifests before merge.
+- `blender.path` and `blender.merge_apply_script` are configured in `~/.dfm/setup.cfg`.
+- Default merge script: `sources/addons/blender/difference_machine/scripts/merge_apply_background.py`.
 
-8) Notes and Limitations
-------------------------
+High-level flow:
 
-- Object-level operations depend on Blender and `merge_apply_background.py`.
-- Object lists for merge come from the Forester DB; no DB sync = no object list.
-- For object merge to work, tagged objects must be synced before merge.
+1. `forester merge --no-commit <branch>`
+2. Forester prepares merge state and conflict data under `.DFM/`.
+3. `merge_apply_background.py` opens Blender in background mode and applies DELETE, RENAME, and MERGE decisions.
+4. Forester stages the resulting file.
+5. `forester merge --continue` creates the merge commit.
+
+If automatic object-level merge cannot resolve a conflict, open ours/theirs in Blender and resolve manually.
+
+## 7. Recommended Workflow
+
+1. Initialize a repository with the CLI, GUI, or addon.
+2. Commit a clean starting point.
+3. Create a feature branch.
+4. Edit files and Blender objects.
+5. In Blender, mark objects for MERGE, DELETE, or RENAME when needed.
+6. Sync tags to manifests and commit.
+7. Merge through the CLI or GUI.
+8. Resolve any `.blend` conflicts with Blender.
+
+## 8. Notes
+
+- `.DFM/` contains all Forester repository state: objects, refs, index, manifests, reviews, locks, stash, reflog, and merge state.
+- `.dfmignore` in the project root controls ignored files.
+- Object-level operations require Blender; ordinary file operations do not.
+- `restore-version` fully overwrites the working tree to match a commit but does not touch `.DFM/`.

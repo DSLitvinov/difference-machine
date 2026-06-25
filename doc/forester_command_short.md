@@ -28,6 +28,7 @@ Core commands
 - `forester cherry-pick <commit>`
 - `forester merge <branch> [options] | --abort | --continue`
 - `forester move-to <base-branch>`
+- `forester reflog [ref_name] [--limit|-n <count>]`
 - `forester tag | -d|--delete <name> | -a|--annotate -m <message> <name>`
 - `forester stash [list|save|pop|apply|drop|show|clear|branch] [...]`
 - `forester clean -l|--list | -n|--dry-run | -f|--force | -d|--dirs`
@@ -38,6 +39,7 @@ Core commands
 - `forester compare <full_hash> [full_hash] [--cleanup] [--editor <path>]`
 - `forester rebuild`
 - `forester review <comment|list|approve|reject|resolve> [...]`
+- `forester api <method> [--args <json>] [-C <path>]` or stdin JSON envelope
 - `forester lol`
 
 Key rules
@@ -55,6 +57,7 @@ Key rules
 - `clean --dry-run` and `--force` are mutually exclusive.
 - `lock --shared` and `--exclusive` are mutually exclusive.
 - `compare` requires full 64-character commit hashes.
+- `api` calls Forester JSON API methods and returns a JSON response envelope.
 
 Common errors
 -------------

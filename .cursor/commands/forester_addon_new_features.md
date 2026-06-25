@@ -6,7 +6,7 @@
 
 Этот документ описывает план добавления новых функций в **Forester** (Go) и **Blender Addon** (Python), выделенных из общего roadmap. Задачи сгруппированы по компонентам и приоритетам.
 
-**Связь с roadmap:** см. `.cursor/commands/roadmap.md`. Этапы roadmap: 9 (Replace/Retrieve), 10 (Ghost), 11 (History), 12 (screenshots), 13 (Save Asset), 14 (Mark To), 16 (Review) — соответствуют разделам 1.x и 2.x ниже.
+Этапы старого roadmap: 9 (Replace/Retrieve), 10 (Ghost), 11 (History), 12 (screenshots), 13 (Save Asset), 14 (Mark To), 16 (Review) — соответствуют разделам 1.x и 2.x ниже.
 
 ---
 
@@ -16,8 +16,8 @@
 
 #### 1.1 Синхронизация screenshot_hash ↔ screenshot_path ✅
 **Файлы:**
-- `forester/internal/core/storage.go`, `forester/internal/commands/commit.go` (обновить)
-- `forester/api/capi.go` (обновить, если нужно)
+- `sources/forester/internal/core/storage.go`, `sources/forester/internal/commands/commit.go`
+- `sources/forester/api/capi.go` (если нужно)
 
 **Задачи:**
 - [x] Добавить поле `screenshot_path` в структуру Commit (если еще нет) ✅
@@ -34,16 +34,16 @@
 
 #### 1.2 Manifest store `objects` для реестра объектов и Mark To ✅
 **Файлы:**
-- `forester/internal/core/manifest_store.go`
-- `forester/internal/models/object.go` (новый, опционально)
+- `sources/forester/internal/core/manifest_store.go`
+- `sources/forester/internal/models/object.go` (опционально)
 
 **Задачи:**
 
-**Создание таблицы:**
-- [x] Создать таблицу `objects` со структурой ✅
-- [x] Создать индексы ✅
+**Manifest store:**
+- [x] Создать файловое хранилище объектов в `.DFM/manifests/` ✅
+- [x] Добавить валидацию и поиск по manifest files ✅
 
-**Методы Database:**
+**Методы manifest store:**
 - [x] `AddObject(obj *Object) error` - добавить объект ✅
 - [x] `UpdateObject(obj *Object) error` - обновить объект ✅
 - [x] `GetObject(commit_hash, file_path, object_name string) (*Object, error)` - получить объект ✅
@@ -71,16 +71,16 @@
 
 #### 1.3 Review store для Review системы ✅
 **Файлы:**
-- `forester/internal/core/review_store.go`
-- `forester/internal/models/review.go` (новый, опционально)
+- `sources/forester/internal/core/review_store.go`
+- `sources/forester/internal/models/review.go` (опционально)
 
 **Задачи:**
 
-**Создание таблицы:**
-- [x] Создать таблицу `reviews` ✅
-- [x] Создать индексы ✅
+**Review store:**
+- [x] Создать файловое хранилище review данных в `.DFM/reviews/` ✅
+- [x] Добавить хранение комментариев и approvals ✅
 
-**Методы Database:**
+**Методы review store:**
 - [x] `AddReview(review *Review) error` - добавить review ✅
 - [x] `GetReviews() ([]*Review, error)` - все reviews ✅
 - [x] `GetReviewsByCommit(commit_hash string) ([]*Review, error)` - reviews для коммита ✅
@@ -274,7 +274,7 @@
 - [x] Добавлены Python bindings для всех функций ✅
 - [x] Обновлен forester_api.py в аддоне ✅
 
-**Зависимости:** 1.2 (Forester - таблица objects)
+**Зависимости:** 1.2 (Forester - manifest store objects)
 
 **Оценка:** 11-15 часов (13.1: 3-4ч, 13.2: 3-4ч, 13.3: 2-3ч, 13.4: 3-4ч)
 
@@ -339,23 +339,23 @@
 - [ ] Загружать объекты из manifest store при открытии панели
 - [ ] Фильтрация объектов по тегам
 
-**Зависимости:** 1.2 (Forester - таблица objects)
+**Зависимости:** 1.2 (Forester - manifest store objects)
 
 **Оценка:** 15-20 часов (14.1 JSON: 3-4ч, 14.2: 2-3ч, 14.3: 4-5ч, 14.4: 3-4ч, синхронизация: 3-4ч)
 
 ---
 
-#### 2.7 Background скрипты для merge операций
+#### 2.7 Background скрипты для merge операций ✅
 **Файлы:**
-- `addons/blender/difference_machine/scripts/merge_apply_background.py` (новый)
+- `sources/addons/blender/difference_machine/scripts/merge_apply_background.py`
 
 **Задачи:**
-- [ ] Создать скрипт для выполнения merge операций в background Blender
-- [ ] Принимает аргументы:
+- [x] Создать скрипт для выполнения merge операций в background Blender ✅
+- [x] Принимает аргументы: ✅
   - `--blend_file` - путь к .blend файлу
   - `--objects_json` - JSON файл с объектами и их тегами
   - `--output_file` - путь для сохранения результата (опционально)
-- [ ] Логика выполнения:
+- [x] Логика выполнения: ✅
   1. Открыть .blend файл
   2. Прочитать объекты с тегами из JSON
   3. Применить в порядке: Delete → Rename → Merge
@@ -363,8 +363,8 @@
      - Rename: переименовать объекты с тегом 'RENAME' (использовать metadata.new_name)
      - Merge: заменить/добавить объекты с тегом 'MERGE' (использовать retrieve логику)
   4. Сохранить результат
-- [ ] Обработка ошибок и логирование
-- [ ] Возврат кода ошибки для обработки в addon UI
+- [x] Обработка ошибок и логирование ✅
+- [x] Возврат кода ошибки для обработки в addon UI ✅
 
 **Зависимости:** 2.1 (Replace Object), 2.6 (Mark To операторы)
 
@@ -390,7 +390,7 @@
 - [ ] Список review комментариев с автором и датой
 - [ ] Синхронизация с manifest store через Forester API
 
-**Зависимости:** 1.3 (Forester - таблица reviews)
+**Зависимости:** 1.3 (Forester - review store)
 
 **Оценка:** 3-4 часа
 
@@ -433,7 +433,7 @@
 - **Addon 2.4** - Улучшенная работа со скриншотами ✅ (выполнено)
 - **Addon 2.5** - Улучшение Save Asset ✅ (выполнено)
 - **Addon 2.6** - Реестр объектов и Mark To панель ✅ (выполнено)
-- **Addon 2.7** - Background скрипты для merge (6-7ч)
+- **Addon 2.7** - Background скрипты для merge ✅ (выполнено)
 
 ### Низкий приоритет:
 
@@ -492,8 +492,7 @@
 9. ✅ **Addon 2.6** — Mark To: manifest store, объекты, операторы, панель (roadmap 14). Остаётся: DF_OT_tag_object, загрузка при открытии, фильтр по тегам, универсальный селектор тегов
 
 **В работе / приоритет:**
-10. **Addon 2.7** — Background скрипты для merge (roadmap 15.3)
-11. **Addon 2.8** — Review UI в Addon (roadmap 16.3)
-12. **Addon 2.9** — Скрипт focus_object (roadmap 16.4)
-13. **Addon 2.5** — секция "Asset Registry" в UI, интеграция реестра с коммитами (roadmap 13.3–13.4)
-14. **Addon 2.6** — универсальный селектор тегов, загрузка из manifest store при открытии панели, фильтрация по тегам
+10. **Addon 2.8** — Review UI в Addon
+11. **Addon 2.9** — Скрипт focus_object
+12. **Addon 2.5** — секция "Asset Registry" в UI, интеграция реестра с коммитами
+13. **Addon 2.6** — универсальный селектор тегов, загрузка из manifest store при открытии панели, фильтрация по тегам

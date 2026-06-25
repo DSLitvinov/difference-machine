@@ -48,7 +48,7 @@ path_1 = /Users/me/projects/scene-a
 path_2 = /Users/me/projects/scene-b
 
 [forester]
-path = /opt/DiffMachine/bin/forester
+path = "/opt/Difference Machine/bin/forester"
 
 [user]
 name = Artist
@@ -65,7 +65,7 @@ path_1 = C:\Users\me\projects\scene-a
 path_2 = "C:\Users\me\My Projects\scene-b"
 
 [forester]
-path = C:\DiffMachine\bin\forester.exe
+path = "C:\Program Files\Difference Machine\bin\forester.exe"
 
 [user]
 name = Artist

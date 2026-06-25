@@ -42,7 +42,7 @@
 | `A` | Added | `bg-emerald-600 text-white` |
 | `M` | Modified | `bg-amber-500 text-white` |
 | `D` | Deleted | `bg-destructive text-destructive-foreground` |
-| `R` | Renamed | `bg-blue-600 text-white` | **v2** — когда `diff.name_status` отдаёт rename |
+| `R` | Renamed | `bg-blue-600 text-white` | Когда `diff.name_status` отдаёт rename |
 
 - `Badge` compact, mono letter, `text-xs font-semibold`.
 - `Tooltip`: полное слово (`Added`, `Modified`, `Deleted`, `Renamed`).

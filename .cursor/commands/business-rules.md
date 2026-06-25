@@ -24,7 +24,7 @@ Forester использует двухэтапный процесс коммит
 ```
 1. forester add .              # Добавить файлы в staging
 2. forester status             # Проверить что добавлено
-3. forester commit -m "..."    # Создать коммит из staged файлов
+3. forester commit "..."       # Создать коммит из staged файлов
 ```
 
 ## Дедупликация объектов
@@ -40,9 +40,9 @@ Forester использует двухэтапный процесс коммит
 ### Структура хранения
 ```
 .DFM/objects/
-├── blobs/sha256/ab/cdef...     # Бинарные объекты
-├── trees/sha256/78/90ab...     # Деревья файлов
-└── commits/sha256/cd/ef12...   # Коммиты
+├── ab/cdef...                  # Объект; тип хранится в payload
+├── 78/90ab...
+└── cd/ef12...
 ```
 
 ### Преимущества
@@ -139,7 +139,7 @@ commitHash := HashString(commitJSON)
    ```
    - Сериализовать Tree в JSON
    - Вычислить хеш дерева
-   - Сохранить в .DFM/objects/trees/sha256/
+   - Сохранить в `.DFM/objects/<prefix>/<suffix>`
    ```
 
 4. **Создание объекта коммита**
@@ -186,13 +186,14 @@ commitHash := HashString(commitJSON)
 
 ### Структура ссылок
 ```
-.DFM/refs/
-├── heads/          # Ветки
-│   ├── main
-│   └── feature-branch
-├── tags/           # Теги
-│   └── v1.0.0
-└── HEAD            # Текущая ветка
+.DFM/
+├── HEAD            # Текущая ветка
+└── refs/
+    ├── heads/      # Ветки
+    │   ├── main
+    │   └── feature-branch
+    └── tags/       # Теги
+        └── v1.0.0
 ```
 
 ### Создание ветки
@@ -201,7 +202,7 @@ commitHash := HashString(commitJSON)
 2. Создать файл .DFM/refs/heads/<name> с хешем коммита
 ```
 
-### Переключение ветки (Checkout)
+### Переключение ветки (`switch`)
 ```
 1. Определить тип (ветка или коммит)
 2. Получить коммит и его дерево
@@ -554,7 +555,7 @@ build/
 ## Работа с 3D-моделями
 
 ### Хранение .blend файлов
-3D-модели (Blender файлы) хранятся как обычные blob объекты в `.DFM/objects/blobs/sha256/`.
+3D-модели (Blender файлы) хранятся как обычные blob объекты в unified object store `.DFM/objects/`.
 
 ### Правила
 - .blend файлы коммитятся как обычные файлы через `forester add`

@@ -666,6 +666,7 @@ func TestDetachedHeadAfterRestoreVersion(t *testing.T) {
 	if len(logResult.Commits) < 2 {
 		t.Fatalf("expected at least 2 commits, got %d", len(logResult.Commits))
 	}
+	branchHead := logResult.Commits[0].Hash
 	parentCommit := logResult.Commits[1].Hash
 
 	mustOK(t, h, "restore.version", `{"commit_hash":"`+parentCommit+`"}`)
@@ -689,11 +690,18 @@ func TestDetachedHeadAfterRestoreVersion(t *testing.T) {
 		t.Fatalf("current_branch = %q want main", status.CurrentBranch)
 	}
 
-	mustOK(t, h, "repo.switch", `{"target":"main"}`)
+	writeFile(t, dir, "a.txt", "detached edit")
+	mustOK(t, h, "index.add", `{"files":["a.txt"]}`)
+	mustFail(t, h, "commit.create", `{"message":"detached commit"}`)
+
+	mustOK(t, h, "repo.switch", `{"target":"main","auto_stash":true}`)
 	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &status); err != nil {
 		t.Fatalf("decode status after switch: %v", err)
 	}
 	if status.IsDetached {
 		t.Fatal("expected detached cleared after switching to branch")
+	}
+	if status.HeadCommit != branchHead {
+		t.Fatalf("head after failed detached commit = %s, want %s", status.HeadCommit, branchHead)
 	}
 }

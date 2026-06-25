@@ -6,7 +6,7 @@
 
 **Стек:** React + shadcn/ui (`Card`, `Badge`, `Tooltip`, `DropdownMenu`, `Button`)
 
-**Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [architecture.md](./architecture.md) · [design-tokens.md](./design-tokens.md) · [decisions.md §6](./decisions.md) (v1.0 menu scope)
+**Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [architecture.md](./architecture.md) · [design-tokens.md](./design-tokens.md) · [decisions.md §6](./decisions.md)
 
 ---
 
@@ -176,7 +176,7 @@ function parseCommitMessage(message: string) {
 |------|----------|
 | base | `log.get` |
 | `tags` | extend `log.get` or `tag.list` |
-| `files_*` | `diff.stat` — **v1.1**; v1.0 строка **скрыта** ([decisions.md §5](./decisions.md)) |
+| `files_*` | `diff.stat` for `CommitCardStats` |
 
 ---
 
@@ -187,13 +187,13 @@ function parseCommitMessage(message: string) {
 | Click card (not ⋮) | `onSelectionChange({ kind: 'commit', hash, branch })` |
 | Click ⋮ | Open `DropdownMenu`, `e.stopPropagation()` |
 | Click Date Badge | No-op (tooltip only) |
-| Double-click card | v2: open Preview fullscreen |
+| Double-click card | Reserved: open Preview fullscreen if implemented later |
 
 ---
 
 ## 6. Context menu (⋮)
 
-**v1.0:** только View in Preview, Copy hash, Copy message — [decisions.md §6](./decisions.md). Остальные пункты — v1.1.
+Full shipped menu. Destructive actions require confirmation.
 
 `DropdownMenuContent` `align="end"` `side="bottom"`
 

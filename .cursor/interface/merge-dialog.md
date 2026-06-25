@@ -6,7 +6,7 @@
 - Dialog — [`4039:1093`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4039-1093)
 - Merge list states (objects visible / not detected) — [`4039:1041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4039-1041)
 
-**API:** [api-contract.md](./api-contract.md) — `merge.status`, `merge.continue`, `objects.by_file`, `diff.name_status`
+**API:** [api-contract.md](./api-contract.md) — `merge.status`, `merge.continue`, `object.list_by_file`, `diff.name_status`
 
 **Связанные документы:** [sidebar-history-view.md](./sidebar-history-view.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [create-commit-dialog.md](./create-commit-dialog.md)
 
@@ -125,7 +125,7 @@ VCS status codes — как [history-changed-file-item.md](./history-changed-fil
 **Условие** (все true):
 
 1. `selectedFilePath` ends with `.blend` (`isBlendPath`)
-2. `objects.by_file` вернул `objects.length > 0` для merge commit hash
+2. `object.list_by_file` вернул `objects.length > 0` для merge commit hash
 
 **Header:** `{n} object in .blend` (singular: `1 object in .blend`)
 
@@ -155,7 +155,7 @@ VCS status codes — как [history-changed-file-item.md](./history-changed-fil
 **Условие** (любое):
 
 - Выбран **не** `.blend` файл
-- Выбран `.blend`, но `objects.by_file` → `[]`
+- Выбран `.blend`, но `object.list_by_file` → `[]`
 - `.blend` без object metadata в `.DFM/objects/` (addon не пометил объекты)
 - API error / loading failed
 
@@ -205,7 +205,7 @@ const { files } = await diff.name_status({
 ### 6.2 Объекты `.blend`
 
 ```json
-// objects.by_file
+// object.list_by_file
 { "path": "assets/scene.blend", "commit_hash": "<merge_commit_or_head>" }
 → {
   "objects": [
@@ -269,10 +269,10 @@ await merge.start({ branch: targetBranch })  // CLI: merge <branch> --no-commit
 | `.blend` без object tags | `Objects not detected` |
 | `.blend` с objects, другой файл selected | Переключить на `Objects not detected` или objects list |
 | Первый файл при open | Auto-select first row in file list |
-| `objects.by_file` loading | Right header skeleton; rows skeleton × 2 |
-| `objects.by_file` error | `Objects not detected` + toast |
+| `object.list_by_file` loading | Right header skeleton; rows skeleton × 2 |
+| `object.list_by_file` error | `Objects not detected` + toast |
 | Merge conflicts unresolved | Dialog read-only preview OR block Merge button |
-| Fast click между `.blend` files | Cancel stale `objects.by_file` responses |
+| Fast click между `.blend` files | Cancel stale `object.list_by_file` responses |
 | Unicode paths / object names | UTF-8 display, truncate + tooltip |
 | 0 files in merge | Empty state в левой колонке: «No files to merge»; Merge disabled |
 | User closes mid-merge | Merge state сохраняется (`MERGE_HEAD`); banner остаётся |
@@ -334,4 +334,4 @@ frontend/src/components/merge/
 | 2 | `view object` badge | Только на selected `.blend` с objects > 0 |
 | 3 | File row selected style | `bg-primary` + `text-primary-foreground` (как Figma) |
 | 4 | Object status labels | Lowercase tag: `delete`, `rename`, `merge` |
-| 5 | Scope v1 | Dialog spec + API stubs; branch merge menu — v2 в [sidebar-history-view.md](./sidebar-history-view.md) |
+| 5 | Scope | Dialog spec + shipped API; branch merge menu linked from [sidebar-history-view.md](./sidebar-history-view.md) |

@@ -79,9 +79,9 @@ Override path: `DFM_DIST=/custom/path ./builder/macos/build.sh`
 
 ### Release artifacts (`builder/dist/`)
 
-- macOS: `DifferenceMachine-<version>-macos.dmg` — [macos-installer.md](../.cursor/interface/macos-installer.md)
+- macOS: `DifferenceMachine-<version>-macos.dmg`
 - Linux: `DifferenceMachine-<version>-linux.tar.gz`
-- Windows: `DifferenceMachine-<version>-windows-setup.exe` — [windows-installer.md](../.cursor/interface/windows-installer.md)
+- Windows: `DifferenceMachine-<version>-windows-setup.exe`
 - Windows portable: `DifferenceMachine-<version>-windows.zip`
 
 ---
@@ -101,7 +101,16 @@ Each `*/build.sh` runs:
 
 ## Requirements
 
-See [scripts/README.md](scripts/README.md) for per-platform dependencies.
+| Component | Requirement |
+|-----------|-------------|
+| Forester CLI | Go 1.22+ |
+| Native API | Go 1.22+ and a C compiler for cgo |
+| GUI (`--gui`) | Go 1.22+, Node.js 20+, npm, Wails v2 CLI |
+| Blender addon | Blender 4.5.0+ for runtime use |
+| macOS DMG | `hdiutil` (macOS system tool) |
+| Windows installer | NSIS `makensis` |
+
+See [scripts/README.md](scripts/README.md) for script-level details.
 
 ---
 

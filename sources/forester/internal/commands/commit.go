@@ -83,6 +83,11 @@ func Commit(args []string) error {
 	if err != nil {
 		return fmt.Errorf("not a Forester repository")
 	}
+	if detached, _, err := core.ReadDetachedHead(repoPath); err != nil {
+		return fmt.Errorf("failed to read detached HEAD: %w", err)
+	} else if detached {
+		return fmt.Errorf("cannot commit while HEAD is detached; switch to a branch or create one from the detached commit first")
+	}
 
 	repo, err := core.OpenRepository(repoPath)
 	if err != nil {

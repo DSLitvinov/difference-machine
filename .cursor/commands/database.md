@@ -8,10 +8,8 @@ Content (blobs, trees, commits) lives in the object store; refs, index, manifest
 
 ```
 .DFM/
-├── objects/              # Content-addressable storage (source of truth for commits)
-│   ├── blobs/sha256/
-│   ├── trees/sha256/
-│   └── commits/sha256/
+├── objects/              # Unified content-addressable storage
+│   └── ab/cdef...        # Object file; type is encoded in the object payload
 ├── refs/
 │   ├── heads/            # Branch tips (one file per branch)
 │   └── tags/             # Tag refs
@@ -32,7 +30,7 @@ Content (blobs, trees, commits) lives in the object store; refs, index, manifest
 
 | Component | File(s) | Go package |
 |-----------|---------|------------|
-| Commits, trees, blobs | `.DFM/objects/` | `internal/core/storage.go` |
+| Commits, trees, blobs | `.DFM/objects/<prefix>/<suffix>` | `internal/core/storage.go` |
 | Branches, tags, HEAD | `.DFM/refs/`, `.DFM/HEAD` | `internal/core/refs.go` |
 | Staging index | `.DFM/index` | `internal/core/index.go` |
 | Reflog | `.DFM/logs/refs/heads/` | `internal/core/reflog.go` |
@@ -43,7 +41,7 @@ Content (blobs, trees, commits) lives in the object store; refs, index, manifest
 
 ## Commit objects
 
-Commits are JSON files in the object store. Fields include `hash`, `parent_hashes`, `tree_hash`, `author`, `message`, `timestamp`, `screenshot_path`, etc. Branch history is resolved by walking parent links from branch refs — not from a separate commits table.
+Commits are typed JSON payloads in the unified object store. Fields include `hash`, `parent_hashes`, `tree_hash`, `author`, `message`, `timestamp`, `screenshot_path`, etc. Branch history is resolved by walking parent links from branch refs — not from a separate commits table.
 
 ## Manifests (object-level metadata)
 

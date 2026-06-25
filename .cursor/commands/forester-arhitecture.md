@@ -7,15 +7,14 @@ Forester - это гибридная система контроля верси�
 Forester использует гибридную архитектуру хранения данных:
 - **Object store** — commits, trees, blobs (content-addressable storage)
 - **Файловые метаданные** — refs, index, manifests, reviews, locks, stash, reflog (JSON/текст в `.DFM/`)
+- **JSON API** — основной программный интерфейс для GUI, Blender addon и `forester api`
 
 ### Структура репозитория
 
 ```
 .DFM/
-├── objects/             # Content-addressable storage
-│   ├── blobs/sha256/
-│   ├── trees/sha256/
-│   └── commits/sha256/
+├── objects/             # Unified content-addressable storage
+│   └── ab/cdef...       # Object file; type is encoded in payload
 ├── refs/                # Ссылки на коммиты
 │   ├── heads/           # Ветки
 │   └── tags/            # Теги
@@ -144,6 +143,30 @@ Staging area для файлов, готовых к коммиту. Хранит
 - Блокировки привязаны к ветке
 - Поддержка времени истечения
 - Автоматическая проверка истечения
+
+### 8. JSON API
+
+**Папка:** `internal/jsonapi/`
+
+JSON API открывает репозиторий как session handle и выполняет методы через единый envelope:
+
+```json
+{"ok": true, "result": {}}
+```
+
+Ключевые группы методов:
+- Repository: `repo.init`, `repo.switch`, `repo.rebuild`
+- Status/index: `status.get`, `index.add`, `index.drop`
+- Commits/history: `commit.create`, `commit.get`, `commit.files`, `commit.revert`, `commit.reset`, `log.get`
+- Branches: `branch.list`, `branch.create`, `branch.delete`, `branch.rename`
+- Workdir/diff/blob: `workdir.*`, `diff.*`, `blob.get`
+- Merge: `merge.status`, `merge.start`, `merge.continue`, `merge.abort`
+- Locks and objects: `lock.*`, `object.*`
+
+Публичные entrypoints:
+- `pkg/jsonapi` — используется GUI напрямую в процессе
+- `api/capi_json.go` — native JSON API для Blender addon
+- `forester api` — CLI wrapper для вызовов JSON API
 
 ## Модели данных
 
@@ -464,7 +487,7 @@ forester branch -m <old> <new>     # Переименовать ветку
 **Особенности:**
 - Текущая ветка выделяется символом `*`
 - `-v` показывает короткий хеш и сообщение последнего коммита
-- Переименование обновляет ветку в базе данных и refs
+- Переименование обновляет файловые refs
 
 ### tag
 
@@ -793,7 +816,7 @@ forester cherry-pick <short-hash>
 6. Обновляет HEAD текущей ветки
 
 **Множественные родители:**
-- Merge commit хранит оба родителя в таблице `commit_parents`
+- Merge commit хранит родителей в поле `parent_hashes`
 - Первый родитель - текущая ветка (для обратной совместимости также в `parent_hash`)
 - Второй родитель - вливаемая ветка
 - Функции обхода истории учитывают все родители
@@ -1022,19 +1045,18 @@ forester lol
 
 ### Хранение объектов
 
-Объекты хранятся в структуре:
+Объекты хранятся в unified object store:
 ```
 objects/
-└── <type>/sha256/
-    └── <prefix>/<suffix>
+└── <prefix>/<suffix>
 ```
 
 Где:
-- `<type>` - `blobs`, `trees`, или `commits`
 - `<prefix>` - первые 2 символа хеша
 - `<suffix>` - остальные 62 символа хеша
+- тип объекта (`blob`, `tree`, `commit`) хранится в payload
 
-Пример: хеш `abc123...` → `objects/blobs/sha256/ab/c123...`
+Пример: хеш `abc123...` → `objects/ab/c123...`
 
 ### Дедупликация
 
@@ -1073,7 +1095,7 @@ Blobs автоматически сжимаются перед сохранен�
 1. **Хуки** - возможность выполнения скриптов на разных этапах
 2. **Модульная архитектура** - легко добавлять новые команды
 3. **Модели данных** - легко расширяемые структуры
-4. **API** - через forester_api для интеграции с другими инструментами
+4. **API** - через JSON API и bindings в `sources/forester/api` для интеграции с другими инструментами
 
 ## Полный список команд
 

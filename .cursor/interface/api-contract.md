@@ -42,9 +42,9 @@ Committable paths = union всех непустых списков (см. [sideb
 
 Badge priority: staged > unstaged для одного path.
 
-Detached HEAD (v2): `is_detached`, `detached_commit`; `head_commit` = checked-out commit (detached or branch tip). State file: `.DFM/DETACHED_HEAD`.
+Detached HEAD: `is_detached`, `detached_commit`; `head_commit` = checked-out commit (detached or branch tip). State file: `.DFM/DETACHED_HEAD`.
 
-### 2.2 Merge (v2)
+### 2.2 Merge
 
 | JSON method | CLI | GUI |
 |-------------|-----|-----|
@@ -52,7 +52,7 @@ Detached HEAD (v2): `is_detached`, `detached_commit`; `head_commit` = checked-ou
 | `merge.start` | `merge <branch>` | pre-merge preview |
 | `merge.continue` | `merge --continue` | Merge button in dialog |
 | `merge.abort` | `merge --abort` | banner action |
-| `objects.by_file` | objects DB / JSON | object list in merge dialog — **канон:** `object.list_by_file` ([decisions.md §7.1](./decisions.md)) |
+| `object.list_by_file` | manifest store | object list in merge dialog |
 
 #### `merge.status`
 
@@ -66,7 +66,7 @@ Detached HEAD (v2): `is_detached`, `detached_commit`; `head_commit` = checked-ou
 }
 ```
 
-#### `object.list_by_file` (alias в docs: `objects.by_file`)
+#### `object.list_by_file`
 
 ```json
 { "path": "assets/scene.blend", "commit_hash": "abc…" }
@@ -102,7 +102,7 @@ Detached HEAD (v2): `is_detached`, `detached_commit`; `head_commit` = checked-ou
 |---------|----------|
 | `from` | **first parent** коммита (merge — как в History spec); **`null`** = initial commit (empty baseline) |
 | `to` | hash выбранного коммита |
-| `status` | `A` \| `M` \| `D` (v1.0); `R` — v2 |
+| `status` | `A` \| `M` \| `D` \| `R` |
 | `path` | relative `/` |
 
 History Preview: список changed files. Commit card stats: **v1.1** — `diff.stat` (§3.2); v1.0 строка stats **скрыта** ([decisions.md §5](./decisions.md)).
@@ -352,16 +352,15 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 
 ---
 
-## 8. Отложено
+## 8. Status Notes
 
-| Тема | Версия |
+| Тема | Статус |
 |------|--------|
-| Rename `R` в `diff.name_status` | v2 |
-| `diff.stat` на commit cards | v1.1 |
-| `diff` rename detection | v2 |
-| Fs watcher | v2 | `workdir:changed` — `sources/gui/internal/workdirwatch` |
-| Tree collapse + fully expanded tree | v1.1 / v2 |
-| Branch merge UI | v2 — [merge-dialog.md](./merge-dialog.md) |
-| `EvalSymlinks` для repo paths | v1.1 |
-| Virtual scroll (Preview) | v1.1 |
-| Init repository wizard | v1.1 |
+| Rename `R` в `diff.name_status` | Реализовано |
+| `diff.stat` на commit cards | Реализовано |
+| Fs watcher | Реализовано: `workdir:changed` из `sources/gui/internal/workdirwatch` |
+| Branch merge UI | Реализовано — [merge-dialog.md](./merge-dialog.md) |
+| Init repository wizard | Реализовано |
+| Tree collapse / large repo behavior | Реализовано частично; perf polish tracked in [implementation-plan-v2.md](./implementation-plan-v2.md) |
+| `EvalSymlinks` для repo paths | Backlog polish |
+| Virtual scroll edge cases | Backlog polish |

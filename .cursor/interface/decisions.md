@@ -4,17 +4,18 @@
 
 **Связанные:** [plan.md](./plan.md) · [architecture.md](./architecture.md) · [api-contract.md](./api-contract.md)
 
-**Статус:** принято для старта реализации (2025-06).
+**Статус:** historical decision log, refreshed against shipped v1.1/v2 scope on 2026-06-25. Active release hardening is tracked in [implementation-plan-v2.md](./implementation-plan-v2.md).
 
 ---
 
-## 1. Версии релиза
+## 1. Версии и текущий статус
 
-| Версия | Цель |
-|--------|------|
-| **v1.0** | Сквозной сценарий: open repo → browse → commit → history → diff |
-| **v1.1** | Polish: UX из Figma, не блокирующий ship |
-| **v2** | Manual smoke (macOS) + QA; Merge UI, fs watcher, detached HEAD, Windows/Linux |
+| Scope | Status |
+|-------|--------|
+| **v1.0** | Закрыто: open repo → browse → commit → history → diff |
+| **v1.1** | Закрыто: polish, settings, commit card stats/menu, native menu |
+| **v2 feature scope** | Закрыто: Merge UI, fs watcher, detached HEAD, rename `R`, branch delete, init wizard |
+| **Release hardening** | Активно: Windows smoke and Linux build/QA |
 
 ---
 
@@ -26,7 +27,7 @@
 | Project | Sidebar folder tree (lazy), Preview grid, Info **single file** |
 | History | Branch switch, commit list, diff (text / image / binary stub) |
 | Dialogs | Create commit, create branch, dirty branch switch |
-| Commit card | Select + **урезанное** ⋮ menu (§6) |
+| Commit card | Select + full ⋮ menu (§6) |
 | Backend | Новые `jsonapi` обёртки — [api-contract.md §7](./api-contract.md) |
 | Settings | Profile (author), Repositories, Forester (read-only paths) |
 | Polling | `status.get` каждые 5s в Project mode + window focus |
@@ -49,27 +50,27 @@ Forester CLI — **не bundle** в v1.0; путь из `~/.dfm/setup.cfg` `[for
 
 ---
 
-## 3. Scope v1.0 (OUT) → когда
+## 3. Shipped / Backlog Matrix
 
-| Фича | Версия | Примечание |
+| Фича | Status | Примечание |
 |------|--------|------------|
-| [merge-dialog.md](./merge-dialog.md) | **v2** | API `merge.*` в api-contract §2.2 |
-| Marquee multiselect | v1.1 | [content-preview-project-view.md §9.3](./content-preview-project-view.md) |
-| Virtual scroll (Preview grid) | v1.1 | Пагинация API в v1.0 |
-| Real `workdir.thumbnail` | **v1.0+** | Images + `.blend` (OS cache + embedded); остальные типы — placeholder |
-| External editors (Settings tab) | v1.1 | `workdir.open` + OS default |
-| Init repository wizard | v1.1 | Toast + hint `forester init` |
-| Dark theme | v1.1 | Light only в v1.0 |
-| Detached HEAD indicator | v2 | `status.is_detached` + banner |
-| Branch create (GUI) | v1.0 | History dropdown — [create-branch-dialog.md](./create-branch-dialog.md) |
-| Branch delete (GUI) | v2 | CLI / Blender |
-| `commit.reset` submenu | v1.1 | Destructive |
-| Commit card destructive ⋮ | v1.1 | Revert, Restore version, Compare |
-| `diff.stat` на каждой commit card | v1.1 | Строка stats скрыта в v1.0 |
-| Fully expanded folder tree | v1.1 | v1.0: lazy expand (§5) |
-| Native app menu (macOS) | v1.1 | [application-menu.md](./application-menu.md) |
-| Fs watcher | v2 | |
-| Rename `R` в diff | v2 | History badges A/M/D; Project badges A/M/D/N |
+| [merge-dialog.md](./merge-dialog.md) | Shipped | API `merge.*` in [api-contract.md §2.2](./api-contract.md) |
+| Marquee multiselect | Shipped | [content-preview-project-view.md §9.3](./content-preview-project-view.md) |
+| Virtual scroll / large repo handling | Shipped with backlog polish | Pagination remains the backend guard |
+| Real `workdir.thumbnail` | Shipped | Images + `.blend` preview fallback |
+| External editors / OS open | Shipped | `workdir.open` |
+| Init repository wizard | Shipped | [init-repository-dialog.md](./init-repository-dialog.md) |
+| Dark theme | Shipped | Settings |
+| Detached HEAD indicator | Shipped | `status.is_detached` + banner |
+| Branch create/delete (GUI) | Shipped | History dropdown/actions |
+| `commit.reset` submenu | Shipped | Destructive confirmation |
+| Commit card full ⋮ | Shipped | Compare, restore, revert, reset, copy |
+| `diff.stat` на каждой commit card | Shipped | `CommitCardStats` |
+| Native app menu (macOS) | Shipped | [application-menu.md](./application-menu.md) |
+| Fs watcher | Shipped | `sources/gui/internal/workdirwatch` |
+| Rename `R` в diff | Shipped | History changed-file badge |
+| Windows smoke | Active | [implementation-plan-v2.md](./implementation-plan-v2.md) |
+| Linux build + QA | Active | [implementation-plan-v2.md](./implementation-plan-v2.md) |
 
 ---
 
@@ -99,17 +100,17 @@ Backend для slice 2–4 — **до или вместе** с UI по [api-cont
 
 ---
 
-## 6. Commit card ⋮ menu (v1.0)
+## 6. Commit card ⋮ menu
 
-| Item | v1.0 |
-|------|------|
-| View in Preview | да |
-| Copy hash | да |
-| Copy message | да |
-| Compare with working tree | v1.1 (shipped) |
-| Restore this version | v1.1 (shipped) |
-| Revert commit | v1.1 (shipped) |
-| Reset to this commit | v1.1 (optional, не в UI) |
+| Item | Status |
+|------|--------|
+| View in Preview | Shipped |
+| Compare with working tree | Shipped |
+| Restore this version | Shipped |
+| Revert commit | Shipped |
+| Reset to this commit | Shipped |
+| Copy hash | Shipped |
+| Copy message | Shipped |
 
 Compare для файла — только Content Info History ([info-history-section.md](./info-history-section.md)).
 
@@ -121,7 +122,7 @@ Compare для файла — только Content Info History ([info-history-s
 
 | Документ (старое) | Канон в коде |
 |-------------------|--------------|
-| `objects.by_file` (merge, v2) | **`object.list_by_file`** — `dispatch.go` |
+| old object-by-file alias | **`object.list_by_file`** — `dispatch.go` |
 
 ### 7.2 `diff.name_status` — initial commit
 
@@ -139,8 +140,7 @@ Compare для файла — только Content Info History ([info-history-s
 
 ### 7.4 `diff.stat`
 
-- v1.1 для commit cards.
-- v1.0: stats только в **PreviewCommitHeader** после выбора коммита (один вызов).
+- Shipped for commit cards and preview header.
 
 ### 7.5 `workdir.entries` — пагинация (v1.0)
 
@@ -204,10 +204,10 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ### 8.3 Add repository без `.DFM`
 
-- [init-repository-dialog.md](./init-repository-dialog.md): **AlertDialog** «This folder is not a repository».
+- [init-repository-dialog.md](./init-repository-dialog.md): init wizard for folders without `.DFM`.
 - **Cancel** → error `not a Forester repository` (inline / toast).
-- **Create** → `InitRepository` (`repo.init`) → `AddKnownRepo` / append в Settings list.
-- CLI `forester init` — альтернатива вне GUI; wizard в v1.0 не нужен.
+- **Create** → `repo.init` → add known repo / append in Settings list.
+- CLI `forester init` remains the non-GUI alternative.
 
 ### 8.4 После `commit.create`
 
@@ -234,10 +234,10 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 | # | Было | Решение | Секция |
 |---|------|---------|--------|
-| 1 | Merge dialog в plan vs v2 в architecture | **v2** | §3 |
+| 1 | Merge dialog в plan vs old v2 architecture | **Shipped** | §3 |
 | 2 | Try anyway в flowchart `sidebar-history-view` | Удалено из flowchart | §8.2 |
 | 3 | v1 full scope vs v1 polish | **v1.0 + v1.1** | §1 |
-| 4 | `objects.by_file` vs `object.list_by_file` | **`object.list_by_file`** | §7.1 |
+| 4 | Old object-by-file alias vs canonical method | **`object.list_by_file`** | §7.1 |
 | 5 | Index metadata storage | **JSON** `.DFM/index` (SQLite removed) | — |
 | 6 | Fully expanded tree vs performance | **Lazy v1.0** | §5 |
 
@@ -245,10 +245,10 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ## 10. Связанные документы (обновлены под этот log)
 
-- [plan.md](./plan.md) — v1.0 / v1.1 scope
+- [plan.md](./plan.md) — original doc map plus current scope summary
 - [api-contract.md](./api-contract.md) — API дополнения
 - [sidebar-history-view.md](./sidebar-history-view.md) — branch flowchart
 - [sidebar-project-view.md](./sidebar-project-view.md) — lazy tree v1.0
 - [architecture.md](./architecture.md) — фазы реализации
 - [implementation-plan.md](./implementation-plan.md) — v1.0 / v1.1 (закрыт)
-- [implementation-plan-v2.md](./implementation-plan-v2.md) — v2: smoke, платформы, фичи
+- [implementation-plan-v2.md](./implementation-plan-v2.md) — active platform QA and release hardening

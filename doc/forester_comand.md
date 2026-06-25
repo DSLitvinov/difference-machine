@@ -221,6 +221,20 @@ Move current branch commits on top of another branch.
 Syntax:
 - `forester move-to <base-branch>`
 
+reflog
+~~~~~~
+Show reference update history.
+
+Syntax:
+- `forester reflog`
+- `forester reflog <ref_name>`
+- `forester reflog [ref_name] --limit <count>`
+- `forester reflog [ref_name] -n <count>`
+
+Notes:
+- Useful for recovery after branch movement, reset, amend, and merge operations.
+- Reflog files are stored under `.DFM/logs/refs/`.
+
 tag
 ~~~
 Create, delete, or list tags.
@@ -324,6 +338,22 @@ Syntax:
 - `forester review approve <asset_type> <asset_id>`
 - `forester review reject <asset_type> <asset_id> [reason]`
 - `forester review resolve <comment_id>`
+
+api
+~~~
+Call the Forester JSON API from the CLI.
+
+Syntax:
+- `forester api <method> [--args <json>] [-C <path>]`
+- `forester api` with a JSON request on stdin
+
+Examples:
+- `forester api status.get --args '{}'`
+- `forester api branch.list -C /path/to/repo`
+
+Notes:
+- The response is a JSON envelope: `{"ok":true,"result":...}` or `{"ok":false,"error":"..."}`.
+- Methods are implemented by `sources/forester/internal/jsonapi/dispatch.go`.
 
 lol
 ~~~

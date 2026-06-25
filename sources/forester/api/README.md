@@ -1,60 +1,94 @@
-# Forester C API (Structured)
+# Forester API
 
-Структурированный C API для интеграции Forester с другими приложениями через ctypes (Python) или напрямую из C/C++.
-Все функции возвращают структуры, которые нужно освобождать через `ForesterFree*`.
+Forester exposes two native API layers:
 
-## Сборка
+- **JSON API**: the primary integration surface used by the Blender addon, GUI, and `forester api`.
+- **Structured C API**: typed C structs for lower-level integrations that prefer direct function calls.
 
-### Linux
+Prefer the JSON API for new integrations. It stays closest to the GUI/addon contract and covers repository, status, index, commit, branch, workdir, diff, merge, lock, object metadata, and maintenance operations.
+
+## Build
+
+From the repository root:
+
 ```bash
-cd forester
+./builder/build.sh
+```
+
+The native library is staged into `builder/dist/payload/lib/`:
+
+- Linux: `libforester.so`
+- macOS: `libforester.dylib`
+- Windows: `forester.dll`
+
+For component-only development:
+
+```bash
+cd sources/forester
 make build-lib
 ```
 
-Библиотека будет создана в `build/libforester.so`
+## JSON API
 
-### macOS
-```bash
-cd forester
-make build-lib
+The native JSON API has a small C surface:
+
+```c
+int64_t ForesterOpen(const char* workPath);
+char* ForesterCall(int64_t handle, const char* method, const char* argsJSON);
+void ForesterClose(int64_t handle);
+void ForesterFreeCString(char* ptr);
 ```
 
-Библиотека будет создана в `build/libforester.dylib`
+The response is always a JSON envelope:
 
-### Windows
-```bash
-cd forester
-make build-lib
+```json
+{"ok":true,"result":{}}
 ```
 
-Библиотека будет создана в `build/forester.dll`
+or:
 
-## Использование из Python (structured)
+```json
+{"ok":false,"error":"message"}
+```
+
+Python usage:
 
 ```python
-from python_bindings_structured import ForesterAPI
+from python_bindings_json import ForesterAPI
 
-api = ForesterAPI()  # Автоматически найдет библиотеку
-
-repo_path = "/path/to/repo"
-api.init(repo_path)
-
-status = api.get_status(repo_path)
-if status:
-    print(status.to_dict())
-
-commits = api.get_log(repo_path, max_count=10)
-if commits:
-    print([c.to_dict() for c in commits])
-
-branches = api.get_branches(repo_path)
-if branches:
-    print([b.to_dict() for b in branches])
+api = ForesterAPI()
+handle = api.open("/path/to/repo")
+try:
+    status = api.call(handle, "status.get", {})
+    print(status)
+finally:
+    api.close(handle)
 ```
 
-Пример с дополнительными проверками см. в `test_structured_api.py`.
+CLI usage:
 
-## Использование из C/C++
+```bash
+forester api status.get --args '{}' -C /path/to/repo
+```
+
+Method categories are implemented in `sources/forester/internal/jsonapi/dispatch.go`:
+
+- Repository: `repo.init`, `repo.switch`, `repo.rebuild`
+- Status and index: `status.get`, `index.add`, `index.drop`
+- Commits and history: `commit.create`, `commit.get`, `commit.files`, `commit.revert`, `commit.reset`, `log.get`
+- Branches: `branch.list`, `branch.create`, `branch.delete`, `branch.rename`
+- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.metadata`, `workdir.thumbnail`, `workdir.open`, `workdir.search`
+- Diff and blobs: `diff.name_status`, `diff.stat`, `diff.text`, `blob.get`
+- Merge: `merge.status`, `merge.start`, `merge.continue`, `merge.abort`
+- Locks: `lock.list`, `lock.acquire`, `lock.release`
+- Objects: `object.add`, `object.get`, `object.list`, `object.list_by_file`, `object.delete`, `object.delete_by_file`, tag and metadata methods
+- Maintenance: `gc.run`
+
+## Structured C API
+
+The structured API remains available for C/C++ or ctypes users that want typed structs and explicit free functions.
+
+Example:
 
 ```c
 #include "forester.h"
@@ -73,92 +107,37 @@ int main() {
         ForesterFreeStatus(status);
     }
 
-    ForesterCommitList* log = ForesterGetLog("/path/to/repo", 10, NULL);
-    if (log) {
-        printf("Commits: %d\n", log->count);
-        ForesterFreeCommitList(log);
-    }
-
     return 0;
 }
 ```
 
-Компиляция:
+Compile example:
+
 ```bash
 gcc -o example example.c -L./build -lforester -I./api
 ```
 
-## API функции
+Common structured functions include:
 
-### Репозиторий
 ```c
 ForesterResult* ForesterInit(const char* repoPath);
 ForesterResult* ForesterAdd(const char* repoPath, const char* files);
 ForesterResult* ForesterCreateCommit(const char* repoPath, const char* message, const char* author);
-ForesterResult* ForesterSwitch(const char* repoPath, const char* target, int autoStash);
-```
-
-### Статус и история
-```c
 ForesterStatus* ForesterGetStatus(const char* repoPath);
 ForesterCommitList* ForesterGetLog(const char* repoPath, int maxCount, const char* branch);
-ForesterCommit* ForesterGetCommit(const char* repoPath, const char* hash);
 ForesterBranchList* ForesterGetBranches(const char* repoPath);
-```
-
-### Сравнение, восстановление версии, GC и scan
-```c
 ForesterPathResult* ForesterCompareExtract(const char* repoPath, const char* commitHash, int cleanup, const char* editorPath);
-ForesterResult* ForesterRestoreVersion(const char* repoPath, const char* commitHash);  /* full overwrite of working dir to match commit */
+ForesterResult* ForesterRestoreVersion(const char* repoPath, const char* commitHash);
 ForesterGcResult* ForesterGC(const char* repoPath, int dryRun, int reflogExpireDays);
-ForesterRebuildResult* ForesterRebuild(const char* repoPath);  /* scan object store */
+ForesterRebuildResult* ForesterRebuild(const char* repoPath);
 ```
 
-### Локи
-```c
-ForesterLockList* ForesterListLocks(const char* repoPath);
-ForesterResult* ForesterAcquireLock(const char* repoPath, const char* filePath, const char* user, int lockType, int expireHours);
-ForesterResult* ForesterReleaseLock(const char* repoPath, const char* filePath, const char* user);
-```
+Every structured result returned from C must be freed with the matching `ForesterFree*` function. Python structured bindings handle this automatically.
 
-### Файлы коммита
-```c
-ForesterFileList* ForesterGetCommitFiles(const char* repoPath, const char* commitHash);
-```
+## Files
 
-### Объекты (metadata)
-```c
-ForesterResult* ForesterAddObject(const char* repoPath, const char* editorType, const char* filePath,
-    const char* objectName, const char* objectType, const char* commitHash,
-    const char* objectDataJSON, const char* tagsJSON, const char* metadataJSON);
-ForesterObject* ForesterGetObject(const char* repoPath, const char* commitHash, const char* filePath, const char* objectName);
-ForesterObjectList* ForesterGetObjectsByCommit(const char* repoPath, const char* commitHash);
-ForesterResult* ForesterAddTagToObject(const char* repoPath, const char* commitHash, const char* filePath, const char* objectName, const char* tag);
-ForesterResult* ForesterRemoveTagFromObject(const char* repoPath, const char* commitHash, const char* filePath, const char* objectName, const char* tag);
-ForesterResult* ForesterSetObjectMetadata(const char* repoPath, const char* commitHash, const char* filePath, const char* objectName, const char* key, const char* value);
-```
-
-## Управление памятью
-
-Все структуры, полученные из API, нужно освобождать:
-
-```c
-void ForesterFreeResult(ForesterResult* r);
-void ForesterFreeStatus(ForesterStatus* s);
-void ForesterFreeCommit(ForesterCommit* c);
-void ForesterFreeCommitList(ForesterCommitList* list);
-void ForesterFreeBranchList(ForesterBranchList* list);
-void ForesterFreeGcResult(ForesterGcResult* r);
-void ForesterFreeRebuildResult(ForesterRebuildResult* r);
-void ForesterFreePathResult(ForesterPathResult* r);
-void ForesterFreeLockList(ForesterLockList* list);
-void ForesterFreeFileList(ForesterFileList* list);
-void ForesterFreeObject(ForesterObject* obj);
-void ForesterFreeObjectList(ForesterObjectList* list);
-```
-
-## Примечания
-
-- Все пути должны быть абсолютными или относительными к текущей рабочей директории.
-- Функции автоматически меняют рабочую директорию на `repoPath` перед выполнением команд.
-- В Python обертке освобождение памяти выполняется автоматически.
+- `capi_json.go`: JSON C API.
+- `capi_structured.go`: structured C API.
+- `forester.h`: exported C declarations.
+- `python_bindings_json.py`: Python JSON API wrapper.
+- `python_bindings_structured.py`: Python structured wrapper.

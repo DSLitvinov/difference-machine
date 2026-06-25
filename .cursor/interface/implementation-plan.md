@@ -48,17 +48,17 @@
 
 | Поле | Значение |
 |------|----------|
-| **Последнее обновление** | 2025-06-24 |
-| **Статус** | **v1.0 / v1.1 code complete** · **v2 фаза 1 smoke macOS complete** |
-| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — фаза **3** Merge UI |
-| **Заметки** | Smoke перенесён в v2; auto: `npm build` + `go test jsonapi` + `wails build` macOS |
+| **Последнее обновление** | 2026-06-25 |
+| **Статус** | **v1.0 / v1.1 archived** · v2 feature scope complete |
+| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — release hardening: Windows smoke + Linux build/QA |
+| **Заметки** | Historical checklist; do not use as active next-step source |
 
 ### Прогресс v1.0
 
 | Фаза | Название | Статус |
 |------|----------|--------|
 | 0 | Подготовка | `[x]` 6/6 |
-| 1 | Backend API | `[~]` 16/17 |
+| 1 | Backend API | `[x]` 17/17 |
 | 2 | Slice 1 — Shell + OpenRepo | `[x]` 12/12 |
 | 3 | Slice 2 — Project browse | `[x]` 15/15 |
 | 4 | Slice 3 — Create commit | `[x]` 10/10 |
@@ -224,7 +224,7 @@
 - [x] **5.1.2** `BranchSelector` — checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md)
 - [x] **5.1.3** `DirtyBranchSwitchDialog` — [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md)
 - [x] **5.1.4** `CommitList` + `CommitCard` — [commit-card.md](./commit-card.md)
-- [x] **5.1.5** v1.0: **без** files-changed row; ⋮ menu урезанное — [decisions.md §6](./decisions.md)
+- [x] **5.1.5** Historical v1.0: без files-changed row; later scope shipped full menu — [decisions.md §6](./decisions.md)
 - [x] **5.1.6** `log.get` cap 100 + hint
 - [x] **5.1.7** persist `selectedCommitHash` per repo; auto-select first commit on History enter (saved or newest)
 - [x] **5.1.8** Rail → History: скрыть Content Info
@@ -283,7 +283,7 @@
 
 ## Фаза 8 — v1.1 polish
 
-Спеки: [plan.md §v1.1](./plan.md) · [decisions.md §3 OUT](./decisions.md)
+Спеки: [plan.md](./plan.md) · [decisions.md §3](./decisions.md)
 
 ### 8.1 Commit card stats
 
@@ -311,8 +311,8 @@
 - [x] **8.4.5** Global errors → Toast (`AppToast`)
 - [x] **8.4.6** Project sidebar header `bg-sidebar` (как History)
 - [x] **8.4.7** Native application menu (macOS) — [application-menu.md](./application-menu.md)
-- [—] **8.4.8** Init repository wizard — отложено
-- [—] **8.4.9** Linux build + QA — отложено
+- [x] **8.4.8** Init repository wizard — shipped in v2 feature scope
+- [—] **8.4.9** Linux build + QA — active in [implementation-plan-v2.md §9](./implementation-plan-v2.md)
 
 **Проверка:** код и автосборка; ручной smoke — [implementation-plan-v2.md §1](./implementation-plan-v2.md).
 

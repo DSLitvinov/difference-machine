@@ -14,6 +14,16 @@ Common flags: `--gui`, `--write-local-config`
 
 Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 
+## Toolchain
+
+| Target | Required tools |
+|--------|----------------|
+| Forester CLI | Go 1.22+ |
+| Native API | Go 1.22+, C compiler for cgo |
+| GUI (`--gui`) | Go 1.22+, Node.js 20+, npm, Wails v2 CLI |
+| macOS DMG | macOS `hdiutil` |
+| Windows installer | NSIS `makensis` |
+
 ---
 
 ## Shared scripts (`scripts/`)
@@ -26,7 +36,7 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | **package_blender_addon_zip.sh** | Zip addon for release archives |
 | **write_setup_cfg.sh** | Dev `~/.dfm/setup.cfg` |
 | **clean_build.sh** | Remove staging artifacts |
-| **verify_smoke_prereqs.sh** | Smoke prerequisites §1.1 |
+| **verify_smoke_prereqs.sh** | Checks local smoke-test prerequisites |
 | **copy_addons.sh** | Copy addons into distribution |
 | **lib/detect_platform.sh** | OS detection |
 | **lib/dfm_dist.sh** | Default `DFM_DIST` resolution |

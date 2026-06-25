@@ -145,13 +145,13 @@ path_1 = /Users/me/projects/scene-a
 path_2 = "/Users/me/My Projects/scene-b"
 
 [forester]
-path = /opt/DiffMachine/bin/forester
+path = "/opt/Difference Machine/bin/forester"
 
 [blender]
 path = /Applications/Blender.app/Contents/MacOS/Blender
 
 [addons]
-diffmachine_path = /opt/DiffMachine/addons/blender/difference_machine
+diffmachine_path = "/opt/Difference Machine/addons/blender/difference_machine"
 
 [gui]
 theme = light
@@ -177,7 +177,7 @@ path_1 = C:\Users\me\projects\scene-a
 path_2 = "C:\Users\me\My Projects\scene-b"
 
 [forester]
-path = C:\DiffMachine\bin\forester.exe
+path = "C:\Program Files\Difference Machine\bin\forester.exe"
 ```
 
 Тот же репозиторий в UI: label `scene-a` на обеих ОС; relative файлы в Preview: `assets/hero.blend`.

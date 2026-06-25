@@ -381,7 +381,7 @@ interface SidebarEvents {
 
 ### 6.5 Конкурентные изменения на диске
 
-- **Fs watcher (v2):** OS `fsnotify` на workdir → Wails event `workdir:changed` → debounced refresh `status.get` + `workdir.tree` / entries (Project mode).
+- **Fs watcher:** OS `fsnotify` на workdir → Wails event `workdir:changed` → debounced refresh `status.get` + `workdir.tree` / entries (Project mode). Реализация: `sources/gui/internal/workdirwatch/`.
 - **Polling fallback:** `status.get` каждые 5s + window focus ([decisions.md §8.6](./decisions.md)).
 - При расхождении selection (файл удалён) → сбросить selection, toast.
 
@@ -452,15 +452,20 @@ sources/gui/
 
 ---
 
-## 8. Фазы реализации
+## 8. Статус реализации
 
-Канон scope: [decisions.md](./decisions.md).
+Канон активного статуса: [implementation-plan-v2.md](./implementation-plan-v2.md). Этот раздел фиксирует, какие крупные блоки уже реализованы, а не будущий roadmap.
 
-| Фаза | Scope |
-|------|-------|
-| **v1.0 (ship)** | Shell · multi-repo · resize · Project (lazy tree) · History + diff · Info single-file · Create commit · dirty dialog · commit card (урезанное ⋮) |
-| **v1.1 (polish)** | Fully expanded tree · virtual scroll · multiselect · dark theme · commit card stats + full ⋮ · Settings · **native app menu (macOS)** |
-| **v2** | Fs watcher · rename `R` · detached HEAD · **branch merge** ([merge-dialog.md](./merge-dialog.md)) |
+| Scope | Status |
+|-------|--------|
+| v1.0/v1.1 shell, Project, History, diff, Content Info, Settings, commit flow | Реализовано |
+| Commit card stats + full menu | Реализовано |
+| Merge UI | Реализовано — [merge-dialog.md](./merge-dialog.md) |
+| Fs watcher | Реализовано — `sources/gui/internal/workdirwatch/` |
+| Detached HEAD banner | Реализовано |
+| Rename `R` in diff | Реализовано |
+| Branch delete and init repository wizard | Реализовано |
+| Platform hardening | Windows smoke and Linux build/QA remain tracked in [implementation-plan-v2.md](./implementation-plan-v2.md) |
 
 **Порядок:** [decisions.md §4](./decisions.md) · backend ([api-contract.md §7](./api-contract.md)) → UI slices.
 
@@ -470,9 +475,9 @@ sources/gui/
 
 ## 9. Связанные документы
 
-- [decisions.md](./decisions.md) — decision log (scope v1.0/v1.1, API, UX)
+- [decisions.md](./decisions.md) — decision log and shipped scope summary
 - [implementation-plan.md](./implementation-plan.md) — чеклист v1.0 / v1.1 (закрыт)
-- [implementation-plan-v2.md](./implementation-plan-v2.md) — v2: smoke, DMG, фичи
+- [implementation-plan-v2.md](./implementation-plan-v2.md) — active platform QA and release hardening checklist
 - [macos-installer.md](./macos-installer.md) — macOS DMG + `setup.cfg` bootstrap
 - [api-contract.md](./api-contract.md) — JSON API + UI events
 - [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)

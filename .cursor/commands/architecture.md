@@ -1,272 +1,141 @@
-# Difference Machine - Архитектура проекта
+# Difference Machine - Project Architecture
 
-## Стек технологий
+Agent-facing overview of the current monorepo. Public user documentation starts at `README.md`; build details live in `builder/README.md`; repository metadata details live in `.cursor/commands/database.md`.
 
-### Backend (Forester CLI)
-- **Язык программирования**: Go 1.22+
-- **Метаданные**: файлы в `.DFM/` (refs, index, manifests, reviews, locks, stash, reflog)
-- **Сборка**: Статический бинарник без внешних Go-зависимостей
-- **Платформы**: Linux, macOS, Windows (кросс-компиляция)
+## Product Components
 
-### Blender Addon
-- **Язык программирования**: Python 3.10+ (встроен в Blender)
-- **Фреймворк**: Blender Python API (bpy)
-- **Версия Blender**: 4.5.0+
-- **Зависимости**: Только стандартная библиотека Python (subprocess, configparser, pathlib, logging)
+| Component | Path | Purpose |
+|-----------|------|---------|
+| Forester CLI/Core | `sources/forester` | Go VCS engine, CLI commands, `.DFM` storage, JSON API, native bindings |
+| Difference Machine GUI | `sources/gui` | Wails desktop app with Go backend and React frontend |
+| Blender addon | `sources/addons/blender/difference_machine` | Blender UI panels, object tags, compare/retrieve, asset and merge workflows |
+| Builder | `builder` | Platform build scripts, staging, payload assembly, release packaging |
+| User docs | `doc` | Usage guide and CLI references |
+| Agent docs | `.cursor` | Architecture, GUI specs, implementation notes, rules |
 
-### Инструменты сборки
-- **Go**: `go build`, `go mod`
-- **Make**: Makefile для автоматизации сборки
-- **Скрипты**: Bash (Linux/macOS), Batch (Windows)
-- **Установщик**: Shell/Batch скрипты для автоматической установки
+## Technology Stack
 
-## Структура папок
+| Layer | Stack |
+|-------|-------|
+| Forester | Go 1.22+, standard library plus `github.com/klauspost/compress` |
+| Native API | Go c-shared library plus C header, optional C compiler for builds |
+| GUI backend | Go, Wails v2, `github.com/difference-machine/forester/pkg/jsonapi` |
+| GUI frontend | React 18, Vite, TypeScript, Tailwind, Radix UI, Zustand |
+| Blender addon | Blender 4.5.0+ built-in Python, `bpy`, ctypes JSON bindings |
+| Builder | Bash on Unix-like platforms, Git Bash/MSYS2 on Windows, NSIS for Windows installer |
 
-```
+## Repository Layout
+
+```text
 difference-machine/
-├── forester/                          # Ядро VCS (Go)
-│   ├── cmd/forester/                  # Точка входа CLI
-│   │   └── main.go                    # Главный файл CLI
-│   ├── internal/                      # Внутренние пакеты
-│   │   ├── commands/                  # Команды CLI (add, commit, branch, etc.)
-│   │   │   ├── init.go
-│   │   │   ├── add.go
-│   │   │   ├── commit.go
-│   │   │   ├── branch.go
-│   │   │   ├── checkout.go
-│   │   │   ├── status.go
-│   │   │   ├── log.go
-│   │   │   ├── diff.go
-│   │   │   ├── stash.go
-│   │   │   ├── tag.go
-│   │   │   ├── gc.go
-│   │   │   ├── reflog.go
-│   │   │   ├── review.go
-│   │   │   ├── lock.go
-│   │   │   ├── hook.go
-│   │   │   ├── compare.go
-│   │   │   └── rebuild.go
-│   │   ├── core/                      # Ядро системы
-│   │   │   ├── storage.go             # Хранилище объектов
-│   │   │   ├── refs.go                # Ветки, теги, HEAD
-│   │   │   ├── index.go               # Staging area
-│   │   │   ├── manifest_store.go      # Метаданные Blender-объектов
-│   │   │   ├── review_store.go        # Review комментарии
-│   │   │   ├── stash_store.go         # Stash
-│   │   │   ├── reflog.go              # Reflog
-│   │   │   ├── hashing.go             # Хеширование (SHA256)
-│   │   │   ├── compression.go         # Сжатие данных
-│   │   │   ├── index.go               # Индекс файлов (staging area)
-│   │   │   ├── refs.go                # Управление ссылками (ветки, теги)
-│   │   │   ├── locking.go             # Блокировка файлов
-│   │   │   └── hooks.go               # Система хуков
-│   │   ├── models/                    # Модели данных
-│   │   │   ├── commit.go              # Модель коммита
-│   │   │   ├── tree.go                # Модель дерева файлов
-│   │   │   └── blob.go                # Модель бинарного объекта
-│   │   └── utils/                     # Утилиты
-│   │       ├── filesystem.go          # Файловые операции
-│   │       ├── config.go              # Конфигурация
-│   │       ├── validation.go          # Валидация данных
-│   │       ├── diff.go                # Алгоритмы diff
-│   │       ├── patterns.go            # Паттерны игнорирования
-│   │       ├── color.go               # Цветной вывод
-│   │       └── mesh_utils.go          # Утилиты для мешей
-│   ├── go.mod                         # Go модуль
-│   ├── go.sum                         # Checksums зависимостей
-│   ├── Makefile                       # Автоматизация сборки
-│   ├── LINUX_build.sh                 # Скрипт сборки для Linux
-│   ├── MACOS_build.sh                 # Скрипт сборки для macOS
-│   └── WINDOWS_build.bat              # Скрипт сборки для Windows
-│
-├── addons/blender/difference_machine/ # Blender Addon
-│   ├── __init__.py                    # Точка входа аддона
-│   ├── blender_manifest.toml          # Манифест для Blender
-│   ├── preferences.py                 # Настройки аддона
-│   ├── operators/                     # Операторы (команды Blender)
-│   │   ├── __init__.py
-│   │   ├── init_operators.py          # Инициализация репозитория
-│   │   ├── commit_operators.py        # Операции с коммитами
-│   │   ├── branch_operators.py        # Операции с ветками
-│   │   ├── history_operators.py       # Просмотр истории
-│   │   ├── stash_operators.py         # Операции со stash
-│   │   ├── gc_operators.py            # Garbage Collection
-│   │   ├── review_operators.py        # Система review
-│   │   ├── lock_operators.py          # Блокировка файлов
-│   │   ├── mesh_io.py                 # Импорт/экспорт мешей
-│   │   ├── object_export_background.py # Фоновый экспорт объектов
-│   │   ├── object_import_background.py # Фоновый импорт объектов
-│   │   ├── operator_helpers.py        # Вспомогательные функции
-│   │   └── operator_name.py           # Имена операторов
-│   ├── properties/                    # Свойства (данные Blender)
-│   │   ├── __init__.py
-│   │   ├── properties.py              # Основные свойства
-│   │   ├── commit_item.py             # Модель элемента коммита
-│   │   └── review_properties.py       # Свойства review
-│   ├── ui/                            # Пользовательский интерфейс
-│   │   ├── __init__.py
-│   │   ├── ui_main.py                 # Главный UI
-│   │   ├── ui_panels.py               # Панели интерфейса
-│   │   └── ui_lists.py                # Списки (коммиты, ветки)
-│   └── utils/                         # Утилиты
-│       ├── __init__.py
-│       ├── forester_cli.py            # Обертка для Forester CLI
-│       ├── config_loader.py            # Загрузка конфигурации
-│       ├── helpers.py                  # Вспомогательные функции
-│       ├── logging_config.py          # Настройка логирования
-│       └── viewport_capture.py        # Захват изображений viewport
-│
-├── forester_api/                      # Python API
-│   ├── forester_api/                  # Пакет API
-│   │   ├── __init__.py                # Экспорт API
-│   │   ├── api.py                     # Главный класс Repository
-│   │   ├── backend.py                 # Выбор backend
-│   │   ├── backend_cli.py             # Реализация через CLI
-│   │   ├── cli_wrapper.py            # Обертка для CLI команд
-│   │   └── models.py                  # Dataclasses моделей
-│   └── setup.py                       # Установочный скрипт
-│
-├── builder/                           # Сборка дистрибутива (payload)
-│   ├── build.sh                       # Delegate → macos|linux|windows/build.sh
-│   ├── dist/payload/                  # Сборка forester, addon, API, GUI
-│   ├── setup.cfg.template             # Шаблон конфига для установщика
+├── sources/
+│   ├── forester/
+│   │   ├── cmd/forester/              # CLI entrypoint
+│   │   ├── internal/commands/         # CLI command implementations
+│   │   ├── internal/core/             # Storage, refs, index, manifests, locks, gc
+│   │   ├── internal/jsonapi/          # JSON API dispatch and handlers
+│   │   ├── internal/models/           # Commit/tree/blob models
+│   │   ├── internal/utils/            # Filesystem, config, diff, patterns
+│   │   ├── pkg/jsonapi/               # Public in-process JSON API package for GUI
+│   │   └── api/                       # Native C API and Python bindings
+│   ├── gui/
+│   │   ├── internal/                  # Wails backend packages
+│   │   └── frontend/src/              # React app
+│   └── addons/blender/difference_machine/
+│       ├── operators/
+│       ├── properties/
+│       ├── scripts/
+│       ├── ui/
+│       └── utils/
+├── builder/
+│   ├── macos/
+│   ├── linux/
+│   ├── windows/
 │   └── scripts/
-│       ├── build_forester.sh          # Forester CLI + API → .staging/
-│       ├── stage_dist.sh              # Stage → builder/dist/payload
-│       ├── copy_addons.sh             # Копирование addons/
-│       └── lib/detect_platform.sh     # Определение платформы
-│
-└── [документация]                     # README, GUIDE, BUILD.md и т.д.
+├── doc/
+└── .cursor/
 ```
 
-### Структура репозитория Forester (после инициализации)
+## Runtime Data Model
 
-```
-project/
-├── .DFM/                              # Служебная директория Forester
-│   ├── objects/                       # Хранилище объектов (commits, trees, blobs)
-│   │   ├── blobs/sha256/
-│   │   ├── commits/sha256/
-│   │   └── trees/sha256/
-│   ├── refs/                          # Ссылки (ветки, теги)
-│   │   ├── heads/
-│   │   └── tags/
-│   ├── index                          # Staging area (JSON)
-│   ├── manifests/                     # Метаданные Blender-объектов
-│   ├── reviews/                       # Review комментарии и approvals
-│   ├── locks/                         # Блокировки файлов
-│   ├── stash/                         # Stash
-│   └── logs/refs/heads/               # Reflog
-├── .dfmignore                         # Файлы для игнорирования (опционально)
-└── [файлы проекта]                     # Ваши файлы проекта
-```
+Forester repositories are identified by a `.DFM/` directory in the project root. Metadata is plain files, not SQLite. The canonical storage map is `.cursor/commands/database.md`.
 
-## Ключевые зависимости
+High-level categories:
 
-### Forester CLI (Go)
-- **Стандартная библиотека Go** — единственная зависимость (`go.mod` без сторонних модулей):
-  - `crypto/sha256` — хеширование
-  - `compress/gzip` — сжатие
-  - `encoding/json` — сериализация
-  - `os`, `path/filepath` — файловые операции
-  - `sync` — синхронизация и блокировки
+- Content-addressed objects: `.DFM/objects/`
+- Refs and current branch: `.DFM/refs/`, `.DFM/HEAD`
+- Staging index: `.DFM/index`
+- Blender object metadata: `.DFM/manifests/`
+- Reviews and approvals: `.DFM/reviews/`
+- Locks, stash, hooks, reflog, merge state: `.DFM/locks/`, `.DFM/stash/`, `.DFM/hooks/`, `.DFM/logs/`, `.DFM/MERGE_HEAD`
 
+## Integration Flow
 
-### Системные зависимости
-- **Go 1.22+** — компилятор Go
-- **C compiler** (опционально) — для сборки native API library
-- **Blender 4.5.0+** — для аддона (Python 3.10+ встроен в Blender)
+```text
+GUI React UI
+  -> Wails Go backend
+  -> sources/gui/internal/forester
+  -> sources/forester/pkg/jsonapi
+  -> sources/forester/internal/jsonapi
+  -> Forester core and .DFM
 
+Blender addon
+  -> api/python/python_bindings_json.py
+  -> native Forester library
+  -> Forester JSON API
+  -> Forester core and .DFM
 
-## Внешние интеграции
-
-### 1. Forester CLI ↔ Blender Addon
-**Тип**: API
-
-**Механизм**:
-- Аддон вызывает forester API
-
-**Конфигурация**:
-- Путь к forester CLI и native API читаются из `~/.dfm/setup.cfg`
-- Путь к Blender addon читается из `~/.dfm/setup.cfg` (секция `[addons]`)
-
-**Примеры команд**:
-- `forester init` — инициализация репозитория
-- `forester status` — статус репозитория
-- `forester commit -m "message"` — создание коммита
-- `forester log --json` — история коммитов (JSON)
-
-
-### 4. Файловые метаданные ↔ Forester Core
-**Тип**: JSON и текстовые файлы в `.DFM/`
-
-**Использование**:
-- Refs (ветки, теги, HEAD) — `.DFM/refs/`
-- Staging index — `.DFM/index`
-- Reflog — `.DFM/logs/refs/heads/`
-- Blender object manifests — `.DFM/manifests/`
-- Locks, reviews, stash — отдельные JSON-файлы
-
-
-### 5. Файловая система ↔ Forester Storage
-**Тип**: Прямой доступ к файлам
-
-**Хранилище объектов**:
-- Объекты хранятся по хешам SHA256
-- Структура: `.DFM/objects/{type}/sha256/{hash}`
-- Дедупликация — одинаковые файлы хранятся один раз
-- Поддержка типов: blobs, commits, trees
-
-**Индекс (staging area)**:
-- Хранится в `.DFM/index` (JSON)
-- Отслеживает файлы, готовые к коммиту
-- Двухэтапный процесс: `add` → `commit`
-
-
-### 6. Конфигурация системы
-**Тип**: Конфигурационные файлы
-
-**Локации**:
-- `~/.dfm/setup.cfg` — путь к Forester CLI
-- `.dfmignore` — файлы для игнорирования (в корне репозитория)
-- Настройки аддона — хранятся в Blender preferences
-
-**Формат setup.cfg**:
-
-<Системная папка>:
-- Linux: `/opt/DiffMachine/`
-- macOS: `/Applications/DiffMachine/`
-- Windows: `C:\Program Files\DiffMachine\`
-
-```
-[forester]
-path = /<Системная папка>/DiffMachine/bin/forester
-installed = true
-
-[api]
-path = /<Системная папка>/DiffMachine/lib/libforester.so
-installed = true
-
-[addons]
-diffmachine_path = /<Системная папка>/DiffMachine/addons/blender/difference_machine
-
-[plugins]
-blender_enabled = true
+CLI
+  -> sources/forester/internal/commands
+  -> Forester core and .DFM
 ```
 
-### 7. Установщик ↔ Система
-**Тип**: Shell/Batch скрипты
+## Build And Distribution
 
-**Функции**:
-- Сборка Forester CLI из исходников
-- Установка бинарника в системную директорию
-- Копирование аддона в директорию Blender
-- Создание конфигурационных файлов
-- Настройка путей
+Canonical build entry points are platform scripts under `builder/`:
 
-**Платформы**:
-- Linux: `/opt/DiffMachine/bin/forester`
-- macOS: `/Applications/DiffMachine/bin/forester`
-- Windows: `C:\Program Files\DiffMachin\bin\forester.exe`
+```bash
+./builder/build.sh
+./builder/macos/build.sh --gui --dmg
+./builder/linux/build.sh --gui --tar
+./builder/windows/build.sh --gui --installer
+```
 
+The default payload is `builder/dist/payload`:
 
+```text
+payload/
+├── bin/                 # Forester CLI
+├── lib/                 # Native API library
+├── apps/                # GUI when built with --gui
+├── addons/blender/difference_machine/
+├── manifest.json
+├── setup.cfg.template
+└── VERSION
+```
+
+Build scripts do not install into system paths and do not write `~/.dfm/setup.cfg` unless `--write-local-config` is passed.
+
+## Configuration
+
+Global configuration is `~/.dfm/setup.cfg`. It can be written by the GUI or by `./builder/build.sh --write-local-config`.
+
+Common sections:
+
+- `[forester] path`
+- `[api] path`
+- `[addons] diffmachine_path`
+- `[blender] path`, `merge_apply_script`
+- `[current repo] path`
+- `[repo] path_N`
+- `[user] name`, `email`
+
+Repository-local configuration is `.DFM/config` and is created by `forester init`.
+
+## Important References
+
+- `.cursor/commands/database.md`: canonical `.DFM` storage layout.
+- `.cursor/commands/business-rules.md`: VCS semantics and invariants.
+- `.cursor/commands/forester-arhitecture.md`: detailed Forester core and CLI notes.
+- `.cursor/interface/api-contract.md`: GUI/JSON API contract.
+- `builder/README.md`: canonical build and release documentation.
