@@ -27,10 +27,10 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 | Поле | Значение |
 |------|----------|
-| **Последнее обновление** | 2025-06-24 |
-| **Активная фаза** | **9 — Linux build + QA** |
-| **Следующий шаг** | **9.1** `wails build` Linux |
-| **Заметки** | Фаза **8 Init wizard** закрыта: 3-step dialog, author + `.dfmignore` |
+| **Последнее обновление** | 2026-06-25 |
+| **Активная фаза** | **Release hardening — platform build + QA** |
+| **Следующий шаг** | **9.1** `./builder/linux/build.sh --tar` на Linux / WSL / CI Linux runner |
+| **Заметки** | Windows installer/zip build verified locally; Linux build blocked on this Windows host by platform guard |
 
 ### Прогресс v2
 
@@ -38,14 +38,14 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 |------|----------|--------|
 | 0 | macOS DMG packaging | `[x]` 4/4 |
 | 1 | Manual smoke (macOS) | `[x]` |
-| 2 | Windows build + smoke | `[—]` 0/2 |
+| 2 | Windows build + smoke | `[~]` 1/2 |
 | 3 | Merge UI | `[x]` 3/3 |
 | 4 | Fs watcher | `[x]` 2/2 |
 | 5 | Detached HEAD | `[x]` 2/2 |
 | 6 | Diff rename `R` | `[x]` 2/2 |
 | 7 | Branch delete (GUI) | `[x]` 2/2 |
 | 8 | Init repository wizard | `[x]` 3/3 |
-| 9 | Linux build + QA | `[—]` 0/2 |
+| 9 | Linux build + QA | `[~]` 0/2 |
 
 ---
 
@@ -54,7 +54,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 Спека: [macos-installer.md](./macos-installer.md)
 
 - [x] **0.1** `Forester.app` wrapper (`wrap_forester_app.sh`)
-- [x] **0.2** `package_macos_dmg.sh` + `./builder/build.sh --dmg`
+- [x] **0.2** `builder/macos/package_dmg.sh` + `./builder/macos/build.sh --dmg`
 - [x] **0.3** GUI bootstrap `~/.dfm/setup.cfg` (`internal/install/bootstrap.go`)
 - [x] **0.4** Builder + spec docs
 
@@ -105,10 +105,10 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 2 — Windows build + smoke
 
-- [—] **2.1** `wails build` Windows — интеграция в `builder/` (аналог `--gui`)
-- [—] **2.2** Smoke subset на Windows — core §1.2.1–1.2.4 + init dialog
+- [x] **2.1** `wails build` Windows + `builder/windows/build.sh --installer` / `--zip`
+- [ ] **2.2** Smoke subset на Windows — install, first launch bootstrap, core §1.2.1–1.2.4 + init dialog
 
-**Проверка:** `.exe` из `builder/dist/payload`; open repo + diff на тестовом репо.
+**Проверка:** `builder/dist/DifferenceMachine-0.8-windows-setup.exe`, `builder/dist/DifferenceMachine-0.8-windows.zip`; install → first launch writes `%USERPROFILE%\.dfm\setup.cfg`; open repo + diff на тестовом репо.
 
 ---
 
@@ -164,8 +164,10 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 9 — Linux build + QA
 
-- [—] **9.1** `wails build` Linux + `builder/` staging
-- [—] **9.2** Smoke subset Linux
+- [ ] **9.1** `wails build` Linux + `builder/` staging + `DifferenceMachine-0.8-linux.tar.gz`
+- [ ] **9.2** Smoke subset Linux — unpack, first launch bootstrap, core §1.2.1–1.2.4 + init dialog
+
+**Статус 2026-06-25:** Linux build must run on Linux / WSL / CI Linux runner. Windows host guard проверен: `ERROR: Run on Linux (current: windows)`.
 
 ---
 
@@ -186,3 +188,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | 3 | Merge UI: `merge.*` jsonapi, `MergeDialog`, History banner + branch menu | **4.1** fs watcher |
 | 2025-06-24 | 4 | Fs watcher: `internal/workdirwatch`, `workdir:changed`, debounced UI refresh | **5.1** detached HEAD |
 | 2025-06-24 | 8 | Init wizard: 3-step dialog, `repo.init` author/dfmignore, `InitRepositoryWithOptions` | **9.1** Linux build |
+| 2026-06-25 | Release hardening | Windows installer/zip build verified; Linux runner unavailable on host | **9.1** Linux build on Linux / WSL / CI |
