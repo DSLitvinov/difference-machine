@@ -37,11 +37,13 @@ function sortFiles(files: DiffFileEntry[]): DiffFileEntry[] {
 
 export function HistoryPreviewPanel() {
   const repoPath = useAppStore((s) => s.repoPath);
+  const currentBranch = useAppStore((s) => s.currentBranch);
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const selectedCommitHash = useHistoryStore((s) => s.selectedCommitHash);
   const selectedChangedFilePath = useHistoryStore((s) => s.selectedChangedFilePath);
   const setSelectedChangedFilePath = useHistoryStore((s) => s.setSelectedChangedFilePath);
+  const restoreSelection = useHistoryStore((s) => s.restoreSelection);
 
   const [commit, setCommit] = useState<CommitLogEntry | null>(null);
   const [headHash, setHeadHash] = useState<string | null>(null);
@@ -79,6 +81,31 @@ export function HistoryPreviewPanel() {
     setTextLayout(loadHistoryTextLayout(repoPath));
     setImageLayout(loadHistoryImageLayout(repoPath));
   }, [repoPath]);
+
+  useEffect(() => {
+    if (!repoPath || !currentBranch || selectedCommitHash) return;
+
+    let cancelled = false;
+    const restoreCommitSelection = async () => {
+      try {
+        const log = await fetchBranchLog(currentBranch);
+        if (cancelled) return;
+        restoreSelection(
+          repoPath,
+          (log.commits ?? []).map((c) => c.hash),
+        );
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : String(err));
+        }
+      }
+    };
+
+    void restoreCommitSelection();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentBranch, repoPath, restoreSelection, selectedCommitHash, setError]);
 
   const handleTextLayoutChange = (layout: HistoryTextLayout) => {
     setTextLayout(layout);
