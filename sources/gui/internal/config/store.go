@@ -398,9 +398,13 @@ func (s *Store) Language() string {
 
 // SetLanguage updates [gui].language.
 func (s *Store) SetLanguage(lang string) error {
+	lang = strings.TrimSpace(lang)
+	if lang != "ru" {
+		lang = "en"
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.setUnlocked("gui", "language", strings.TrimSpace(lang))
+	s.setUnlocked("gui", "language", lang)
 	return s.saveUnlocked()
 }
 

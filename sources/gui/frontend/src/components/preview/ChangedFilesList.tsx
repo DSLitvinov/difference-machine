@@ -9,16 +9,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useT } from "@/lib/i18n";
 import { diffStatusBadgeClass } from "@/lib/vcsBadge";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import type { DiffFileEntry } from "@/wails/forester";
 
-const STATUS_LABELS: Record<DiffFileEntry["status"], string> = {
-  A: "Added",
-  M: "Modified",
-  D: "Deleted",
-  R: "Renamed",
+const STATUS_TRANSLATION_KEYS: Record<DiffFileEntry["status"], Parameters<ReturnType<typeof useT>>[0]> = {
+  A: "status.added",
+  M: "status.modified",
+  D: "status.deleted",
+  R: "status.renamed",
 };
 
 function formatChangedFilePath(file: DiffFileEntry): string {
@@ -80,6 +81,7 @@ export function ChangedFilesList({
   onSelect,
   onOpenFile,
 }: ChangedFilesListProps) {
+  const t = useT();
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const [contextMenu, setContextMenu] = useState<{
@@ -96,7 +98,7 @@ export function ChangedFilesList({
   const copyText = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setNotice(`${label} copied`);
+      setNotice(label);
     } catch {
       setError("Failed to copy to clipboard");
     }
@@ -129,7 +131,7 @@ export function ChangedFilesList({
       style={{ width, minWidth: width, maxWidth: width }}
     >
       <div className="shrink-0 bg-accent px-3 py-2 text-sm font-medium text-foreground">
-        {loading ? "Loading…" : `${files.length} files changed`}
+        {loading ? `${t("common.loading")}…` : t("preview.filesChangedCount", { count: files.length })}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
@@ -138,7 +140,7 @@ export function ChangedFilesList({
             <div className="h-8 animate-pulse rounded bg-muted" />
           </div>
         ) : files.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">No files changed in this commit</p>
+          <p className="p-4 text-sm text-muted-foreground">{t("preview.noFilesChangedInCommit")}</p>
         ) : (
           files.map((file) => (
             <ChangedFileItem
@@ -183,7 +185,7 @@ export function ChangedFilesList({
             }}
           >
             <FileText className="h-3.5 w-3.5" />
-            Show diff
+            {t("changedFile.showDiff")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-2"
@@ -191,53 +193,57 @@ export function ChangedFilesList({
             onClick={() => void handleOpenFile()}
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            Open from commit
+            {t("changedFile.openFromCommit")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="gap-2"
             disabled={!menuFile}
             onClick={() => {
-              if (menuFile) void copyText(menuFile.path, "Path");
+              if (menuFile) void copyText(menuFile.path, t("changedFile.pathCopied"));
               closeContextMenu();
             }}
           >
             <Copy className="h-3.5 w-3.5" />
-            Copy path
+            {t("changedFile.copyPath")}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="gap-2"
             disabled={!menuFile || !menuFileName}
             onClick={() => {
-              if (menuFileName) void copyText(menuFileName, "File name");
+              if (menuFileName) void copyText(menuFileName, t("changedFile.fileNameCopied"));
               closeContextMenu();
             }}
           >
             <Copy className="h-3.5 w-3.5" />
-            Copy file name
+            {t("changedFile.copyFileName")}
           </DropdownMenuItem>
           {menuFile?.old_path ? (
             <DropdownMenuItem
               className="gap-2"
               onClick={() => {
-                if (menuFile.old_path) void copyText(menuFile.old_path, "Previous path");
+                if (menuFile.old_path) {
+                  void copyText(menuFile.old_path, t("changedFile.previousPathCopied"));
+                }
                 closeContextMenu();
               }}
             >
               <Copy className="h-3.5 w-3.5" />
-              Copy previous path
+              {t("changedFile.copyPreviousPath")}
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuItem
             className="gap-2"
             disabled={!menuFile}
             onClick={() => {
-              if (menuFile) void copyText(STATUS_LABELS[menuFile.status], "Status");
+              if (menuFile) {
+                void copyText(t(STATUS_TRANSLATION_KEYS[menuFile.status]), t("changedFile.statusCopied"));
+              }
               closeContextMenu();
             }}
           >
             <Copy className="h-3.5 w-3.5" />
-            Copy status
+            {t("changedFile.copyStatus")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <div className="max-w-[18rem] truncate px-2 py-1.5 text-xs text-muted-foreground" title={menuDisplayPath}>

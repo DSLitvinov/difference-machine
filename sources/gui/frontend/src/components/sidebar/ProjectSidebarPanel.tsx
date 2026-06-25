@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
+import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { addRepository, openRepository } from "@/wails/bridge";
@@ -15,6 +16,7 @@ import { addRepository, openRepository } from "@/wails/bridge";
 const EXPAND_ALL_FILE_LIMIT = 10000;
 
 export function EmptyRepoState() {
+  const t = useT();
   const setLoading = useAppStore((s) => s.setLoading);
   const setError = useAppStore((s) => s.setError);
   const setRepo = useAppStore((s) => s.setRepo);
@@ -44,20 +46,21 @@ export function EmptyRepoState() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">Open repository</h2>
+        <h2 className="text-lg font-semibold">{t("common.openRepository")}</h2>
         <p className="max-w-sm text-sm text-muted-foreground">
-          Add a Forester repository to browse files, commits, and diffs.
+          {t("repo.emptyHint")}
         </p>
       </div>
       <Button onClick={handleAdd} disabled={loading}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Add repository
+        {t("common.addRepository")}
       </Button>
     </div>
   );
 }
 
 export function ProjectSidebarPanel() {
+  const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
   const currentBranch = useAppStore((s) => s.currentBranch);
   const sidebarMode = useAppStore((s) => s.sidebarMode);
@@ -91,10 +94,10 @@ export function ProjectSidebarPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex shrink-0 items-center justify-between border-b border-sidebar-border px-4 py-3">
-        <h1 className="text-base font-semibold">Project view</h1>
+        <h1 className="text-base font-semibold">{t("common.projectView")}</h1>
         <div className="flex items-center gap-2">
           <Label htmlFor="changed-only" className="text-sm font-normal text-muted-foreground">
-            Changed
+            {t("common.changed")}
           </Label>
           <Switch
             id="changed-only"
@@ -116,7 +119,7 @@ export function ProjectSidebarPanel() {
 
       <div ref={setTreeScrollElement} className="min-h-0 flex-1 overflow-auto bg-background">
         <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-3">
-          <p className="text-xs font-semibold uppercase text-muted-foreground">Folders</p>
+          <p className="text-xs font-semibold uppercase text-muted-foreground">{t("common.folders")}</p>
           <div className="flex items-center gap-1">
             <Button
               type="button"
@@ -126,12 +129,12 @@ export function ProjectSidebarPanel() {
               disabled={expandAllDisabled}
               title={
                 folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT
-                  ? "Disabled for large repositories"
+                  ? t("repo.largeDisabled")
                   : undefined
               }
               onClick={() => void expandAllFolders()}
             >
-              Expand all
+              {t("common.expandAll")}
             </Button>
             <Button
               type="button"
@@ -140,7 +143,7 @@ export function ProjectSidebarPanel() {
               className="h-6 px-2 text-[10px] font-medium"
               onClick={collapseAllFolders}
             >
-              Collapse
+              {t("common.collapse")}
             </Button>
           </div>
         </div>

@@ -6,12 +6,14 @@ import {
   reopenRepositoryFromPicker,
   retryForesterConnection,
 } from "@/hooks/useProjectStatusPolling";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 
 const NOTICE_DISMISS_MS = 4000;
 
 export function AppToast() {
+  const t = useT();
   const notice = useAppStore((s) => s.notice);
   const error = useAppStore((s) => s.error);
   const foresterError = useAppStore((s) => s.foresterError);
@@ -38,7 +40,7 @@ export function AppToast() {
         <div className="flex gap-2">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 flex-1 space-y-2">
-            <p className="font-medium">Forester unavailable</p>
+            <p className="font-medium">{t("common.foresterUnavailable")}</p>
             <p className="text-sm">{foresterError}</p>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -50,7 +52,7 @@ export function AppToast() {
                 onClick={() => void reopenRepositoryFromPicker()}
               >
                 <FolderOpen className="h-3 w-3" />
-                Re-open
+                {t("common.reOpen")}
               </Button>
               <Button
                 type="button"
@@ -61,7 +63,7 @@ export function AppToast() {
                 onClick={() => void retryForesterConnection()}
               >
                 <RotateCcw className="h-3 w-3" />
-                Retry
+                {t("common.retry")}
               </Button>
             </div>
           </div>
@@ -86,7 +88,7 @@ export function AppToast() {
         <div className="flex gap-2">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 flex-1 space-y-2">
-            <p className="font-medium">Error</p>
+            <p className="font-medium">{t("common.error")}</p>
             <p className="text-sm">{error}</p>
             {!repoPath ? (
               <Button
@@ -98,7 +100,7 @@ export function AppToast() {
                 onClick={() => void reopenRepositoryFromPicker()}
               >
                 <FolderOpen className="h-3 w-3" />
-                Re-open…
+                {t("common.reOpen")}…
               </Button>
             ) : null}
           </div>

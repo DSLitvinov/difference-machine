@@ -8,6 +8,7 @@ import {
 } from "@/lib/storage";
 
 export type SidebarMode = "project" | "history";
+export type GuiLanguage = "en" | "ru";
 
 interface AppState {
   sidebarMode: SidebarMode;
@@ -16,6 +17,7 @@ interface AppState {
   repoName: string | null;
   currentBranch: string | null;
   userName: string;
+  language: GuiLanguage;
   loading: boolean;
   error: string | null;
   foresterError: string | null;
@@ -24,6 +26,7 @@ interface AppState {
   setSidebarCollapsed: (collapsed: boolean) => void;
   setRepo: (repoPath: string | null, repoName: string | null, currentBranch?: string | null) => void;
   setUserName: (userName: string) => void;
+  setLanguage: (language: GuiLanguage) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setForesterError: (error: string | null) => void;
@@ -38,6 +41,7 @@ export const useAppStore = create<AppState>((set) => ({
   repoName: null,
   currentBranch: null,
   userName: "",
+  language: "en",
   loading: false,
   error: null,
   foresterError: null,
@@ -64,6 +68,7 @@ export const useAppStore = create<AppState>((set) => ({
       return { repoPath, repoName, currentBranch, error: null, foresterError: null };
     }),
   setUserName: (userName) => set({ userName }),
+  setLanguage: (language) => set({ language }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setForesterError: (foresterError) => set({ foresterError }),

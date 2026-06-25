@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n";
 import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
 import { userDisplayInitials } from "@/lib/userInitials";
 import { cn } from "@/lib/utils";
@@ -47,9 +48,10 @@ function RailButton({
 }
 
 export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
+  const t = useT();
   const sidebarMode = useAppStore((s) => s.sidebarMode);
   const userName = useAppStore((s) => s.userName);
-  const avatarLabel = userName.trim() || "User";
+  const avatarLabel = userName.trim() || t("common.user");
   const avatarInitials = userDisplayInitials(userName);
 
   const switchMode = (mode: SidebarMode) => {
@@ -59,19 +61,19 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
   return (
     <aside className="flex h-full w-12 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
       <div className="flex flex-col items-center gap-1 p-2">
-        <RailButton label="Home" onClick={() => {}}>
+        <RailButton label={t("common.home")} onClick={() => {}}>
           <GalleryVerticalEnd className="h-4 w-4" />
         </RailButton>
         <RailButton
           active={sidebarMode === "project"}
-          label="Project view"
+          label={t("common.projectView")}
           onClick={() => switchMode("project")}
         >
           <FolderGit2 className="h-4 w-4" />
         </RailButton>
         <RailButton
           active={sidebarMode === "history"}
-          label="History"
+          label={t("common.history")}
           onClick={() => switchMode("history")}
         >
           <GitFork className="h-4 w-4" />
@@ -81,7 +83,7 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
       <div className="flex-1" />
 
       <div className="flex flex-col items-center gap-1 p-2">
-        <RailButton label="Settings" onClick={() => onSettingsClick?.()}>
+        <RailButton label={t("common.settings")} onClick={() => onSettingsClick?.()}>
           <Settings className="h-4 w-4" />
         </RailButton>
         <div
@@ -97,6 +99,7 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
 }
 
 export function SidebarCollapseButton({ onClick }: { onClick: () => void }) {
+  const t = useT();
   return (
     <Button
       type="button"
@@ -104,8 +107,8 @@ export function SidebarCollapseButton({ onClick }: { onClick: () => void }) {
       size="icon"
       className="absolute -right-3 top-3 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-sm"
       onClick={onClick}
-      title="Collapse sidebar"
-      aria-label="Collapse sidebar"
+      title={t("common.collapseSidebar")}
+      aria-label={t("common.collapseSidebar")}
     >
       <PanelLeft className="h-3.5 w-3.5" />
     </Button>

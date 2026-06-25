@@ -23,6 +23,7 @@ import {
   MIN_WINDOW_PROJECT_COLLAPSED,
   PREVIEW_MIN,
 } from "@/lib/layout";
+import { useT } from "@/lib/i18n";
 import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
@@ -38,6 +39,7 @@ function PlaceholderPanel({ title, subtitle }: { title: string; subtitle: string
 }
 
 export function AppShell() {
+  const t = useT();
   const sidebarMode = useAppStore((s) => s.sidebarMode);
   const sidebarCollapsed = useAppStore((s) => s.sidebarCollapsed);
   const repoPath = useAppStore((s) => s.repoPath);
@@ -128,7 +130,7 @@ export function AppShell() {
         style={{ width: previewWidth, minWidth: PREVIEW_MIN }}
       >
         {loading && !repoPath ? (
-          <PlaceholderPanel title="Loading" subtitle="Opening repository…" />
+          <PlaceholderPanel title={t("common.loading")} subtitle={t("common.openingRepository")} />
         ) : sidebarMode === "project" ? (
           <ProjectPreviewPanel />
         ) : (
@@ -156,7 +158,7 @@ export function AppShell() {
           className="fixed bottom-4 left-14 z-20 h-auto px-3 py-1 text-xs shadow-sm"
           onClick={() => setSidebarCollapsed(false)}
         >
-          Expand sidebar
+          {t("common.expandSidebar")}
         </Button>
       ) : null}
 

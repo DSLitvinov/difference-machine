@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { LANGUAGE_LABELS, normalizeLanguage, translate, useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { GuiFont, GuiTheme } from "@/lib/applyAppearance";
 import { applyAppearance, persistAppearanceLocal } from "@/lib/applyAppearance";
-import { useAppStore } from "@/stores/appStore";
+import { useAppStore, type GuiLanguage } from "@/stores/appStore";
 import {
   fetchSettings,
   pickSettingsFile,
@@ -38,7 +39,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const setUserNameInStore = useAppStore((s) => s.setUserName);
+  const setLanguageInStore = useAppStore((s) => s.setLanguage);
   const repoPath = useAppStore((s) => s.repoPath);
+  const t = useT();
 
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [loading, setLoading] = useState(false);
@@ -52,6 +55,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [configPath, setConfigPath] = useState("");
   const [theme, setTheme] = useState<GuiTheme>("light");
   const [font, setFont] = useState<GuiFont>("inter");
+  const [language, setLanguage] = useState<GuiLanguage>("en");
   const { pickRepositoryPath } = useRepositoryAdd();
 
   useEffect(() => {
@@ -64,6 +68,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         if (cancelled) return;
         setUserName(data.userName ?? "");
         setUserNameInStore(data.userName ?? "");
+        const nextLanguage = normalizeLanguage(data.language);
+        setLanguage(nextLanguage);
+        setLanguageInStore(nextLanguage);
+        document.documentElement.lang = nextLanguage;
         setRepos(data.repos ?? []);
         setEditors(data.editors ?? []);
         setForesterCli(data.foresterCli ?? "");
@@ -86,14 +94,16 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     return () => {
       cancelled = true;
     };
-  }, [open, setError, setUserNameInStore]);
+  }, [open, setError, setLanguageInStore, setUserNameInStore]);
 
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      await saveSettingsProfile(userName, "en");
+      await saveSettingsProfile(userName, language);
       setUserNameInStore(userName);
-      setNotice("Profile saved");
+      setLanguageInStore(language);
+      document.documentElement.lang = language;
+      setNotice(translate(language, "common.profileSaved"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -105,7 +115,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setSaving(true);
     try {
       await saveSettingsRepos(repos);
-      setNotice("Repository list saved");
+      setNotice(t("common.repositoryListSaved"));
       const data = await fetchSettings();
       if (repoPath) {
         const stillCurrent = data.repos.some((p) => p === repoPath);
@@ -135,7 +145,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setSaving(true);
     try {
       await saveSettingsEditors(editors.filter((path) => path.trim() !== ""));
-      setNotice("External editors saved");
+      setNotice(t("settings.externalEditorsSaved"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -147,7 +157,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setSaving(true);
     try {
       await saveSettingsForester(foresterCli, blenderPath, addonPath);
-      setNotice("Forester settings saved");
+      setNotice(t("common.foresterSettingsSaved"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -160,7 +170,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     try {
       await saveSettingsAppearance(theme, font);
       persistAppearanceLocal(theme, font);
-      setNotice("Appearance saved");
+      setNotice(t("settings.appearanceSaved"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -173,12 +183,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     applyAppearance(next, font);
   };
 
-  const tabs: { id: SettingsTab; label: string }[] = [
-    { id: "profile", label: "Profile" },
-    { id: "appearance", label: "Appearance" },
-    { id: "repositories", label: "Repositories" },
-    { id: "external-editors", label: "External editors" },
-    { id: "forester", label: "Forester" },
+  const tabs: { id: SettingsTab; label: string; disabled?: boolean; title?: string }[] = [
+    { id: "profile", label: t("common.profile") },
+    { id: "appearance", label: t("settings.appearance") },
+    { id: "repositories", label: t("settings.repositories") },
+    {
+      id: "external-editors",
+      label: t("settings.externalEditors"),
+      disabled: true,
+      title: t("settings.externalEditorsDeferred"),
+    },
+    { id: "forester", label: t("common.forester") },
   ];
 
   return (
@@ -186,10 +201,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       <DialogContent className="max-w-6xl gap-0 p-0">
         <div className="flex h-[80vh] min-h-[640px] flex-col px-10 pb-10 pt-10">
           <DialogHeader className="space-y-0">
-            <DialogTitle className="text-xl">Settings</DialogTitle>
+            <DialogTitle className="text-xl">{t("common.settings")}</DialogTitle>
           </DialogHeader>
           <p className="mb-6 mt-2 text-sm text-muted-foreground">
-            Manage repository and your account settings
+            {t("settings.manageSettings")}
           </p>
           <div className="flex min-h-0 flex-1 gap-8 border-t border-border pt-6">
             <nav className="w-[184px] shrink-0 space-y-1">
@@ -201,7 +216,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                   className={cn(
                     "h-10 w-full justify-start px-3 text-sm font-medium",
                     tab === item.id ? "bg-accent text-foreground" : "text-muted-foreground",
+                    item.disabled && "cursor-not-allowed opacity-50",
                   )}
+                  disabled={item.disabled}
+                  title={item.title}
                   onClick={() => setTab(item.id)}
                 >
                   {item.label}
@@ -218,32 +236,44 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 <>
                   {tab === "profile" ? (
                     <>
-                      <h3 className="text-lg font-semibold">Profile</h3>
+                      <h3 className="text-lg font-semibold">{t("common.profile")}</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        This is how others will see you on the site.
+                        {t("settings.profileDescription")}
                       </p>
                       <Separator className="my-4" />
                       <div className="max-w-md space-y-4">
                         <div>
-                          <Label className="mb-2 block">Username</Label>
+                          <Label className="mb-2 block">{t("settings.username")}</Label>
                           <Input
                             value={userName}
-                            placeholder="Your name"
+                            placeholder={t("settings.yourName")}
                             onChange={(e) => setUserName(e.target.value)}
                           />
                         </div>
                         <div>
-                          <Label className="mb-2 block">Language</Label>
-                          <Input value="English" disabled />
+                          <Label className="mb-2 block">{t("common.language")}</Label>
+                          <div className="flex gap-2">
+                            {(["en", "ru"] as const).map((item) => (
+                              <Button
+                                key={item}
+                                type="button"
+                                variant={language === item ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setLanguage(item)}
+                              >
+                                {LANGUAGE_LABELS[item]}
+                              </Button>
+                            ))}
+                          </div>
                           <p className="mt-2 text-sm text-muted-foreground">
-                            This is the language that will be used in the dashboard.
+                            {t("settings.dashboardLanguageHint")}
                           </p>
                         </div>
                       </div>
                       <div className="mt-auto flex justify-end pt-6">
                         <Button disabled={saving} onClick={() => void handleSaveProfile()}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          Save profile
+                          {t("common.saveProfile")}
                         </Button>
                       </div>
                     </>
@@ -251,24 +281,23 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
                   {tab === "appearance" ? (
                     <>
-                      <h3 className="text-lg font-semibold">Appearance</h3>
+                      <h3 className="text-lg font-semibold">{t("settings.appearance")}</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Customize the appearance of the app. Automatically switch between day and night
-                        themes.
+                        {t("settings.appearanceDescription")}
                       </p>
                       <Separator className="my-4" />
                       <div className="max-w-md space-y-6">
                         <div>
-                          <Label className="mb-2 block">Font</Label>
+                          <Label className="mb-2 block">{t("settings.font")}</Label>
                           <Input value="Inter" disabled className="max-w-[348px]" />
                           <p className="mt-2 text-sm text-muted-foreground">
-                            Set the font you want to use in the dashboard.
+                            {t("settings.dashboardFontHint")}
                           </p>
                         </div>
                         <div>
-                          <Label className="mb-2 block">Theme</Label>
+                          <Label className="mb-2 block">{t("settings.theme")}</Label>
                           <p className="mb-4 text-sm text-muted-foreground">
-                            Select the theme for the dashboard.
+                            {t("settings.dashboardThemeHint")}
                           </p>
                           <div className="flex flex-wrap gap-6">
                             <ThemePreviewCard
@@ -287,7 +316,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <div className="mt-auto flex justify-end pt-6">
                         <Button disabled={saving} onClick={() => void handleSaveAppearance()}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          Save appearance
+                          {t("common.saveAppearance")}
                         </Button>
                       </div>
                     </>
@@ -295,8 +324,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
                   {tab === "repositories" ? (
                     <>
-                      <h3 className="text-lg font-semibold">Repositories</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">Manage your repository list.</p>
+                      <h3 className="text-lg font-semibold">{t("settings.repositories")}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{t("settings.manageRepos")}</p>
                       <Separator className="my-4" />
                       <div className="min-h-0 flex-1 space-y-2 overflow-auto">
                         {repos.map((path, index) => (
@@ -322,11 +351,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                             })
                           }
                         >
-                          Add repository
+                          {t("common.addRepository")}
                         </Button>
                         <Button disabled={saving} onClick={() => void handleSaveRepos()}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          Save list
+                          {t("common.saveList")}
                         </Button>
                       </div>
                     </>
@@ -334,8 +363,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
                   {tab === "external-editors" ? (
                     <>
-                      <h3 className="text-lg font-semibold">External editors</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">Manage your editors.</p>
+                      <h3 className="text-lg font-semibold">{t("settings.externalEditors")}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{t("settings.manageEditors")}</p>
                       <Separator className="my-4" />
                       <div className="min-h-0 flex-1 space-y-2 overflow-auto">
                         {editors.map((path, index) => (
@@ -357,11 +386,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                           variant="secondary"
                           onClick={() => setEditors((list) => [...list, ""])}
                         >
-                          Add application
+                          {t("settings.addApplication")}
                         </Button>
                         <Button disabled={saving} onClick={() => void handleSaveEditors()}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          Save list
+                          {t("common.saveList")}
                         </Button>
                       </div>
                     </>
@@ -369,16 +398,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
                   {tab === "forester" ? (
                     <>
-                      <h3 className="text-lg font-semibold">Forester</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">Manage your repository backend.</p>
+                      <h3 className="text-lg font-semibold">{t("common.forester")}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{t("settings.foresterDescription")}</p>
                       <Separator className="my-4" />
                       <div className="space-y-4">
                         <div>
-                          <Label className="mb-2 block text-sm text-muted-foreground">Config file</Label>
+                          <Label className="mb-2 block text-sm text-muted-foreground">
+                            {t("common.configFile")}
+                          </Label>
                           <Input value={configPath} readOnly className="font-mono text-xs" />
                         </div>
                         <SettingsLabeledPathRow
-                          label="Forester CLI"
+                          label={t("common.foresterCli")}
                           value={foresterCli}
                           onChange={setForesterCli}
                           onSelect={async () => {
@@ -387,7 +418,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                           }}
                         />
                         <SettingsLabeledPathRow
-                          label="Blender executable"
+                          label={t("common.blenderExecutable")}
                           value={blenderPath}
                           optional
                           onChange={setBlenderPath}
@@ -398,7 +429,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                           onClear={() => setBlenderPath("")}
                         />
                         <SettingsLabeledPathRow
-                          label="Blender addon"
+                          label={t("common.blenderAddon")}
                           value={addonPath}
                           optional
                           onChange={setAddonPath}
@@ -412,7 +443,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <div className="mt-auto flex justify-end pt-6">
                         <Button disabled={saving} onClick={() => void handleSaveForester()}>
                           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          Save settings
+                          {t("common.saveSettings")}
                         </Button>
                       </div>
                     </>

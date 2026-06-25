@@ -7,6 +7,7 @@ import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar"
 import { measureAsync } from "@/lib/performance";
 import { gridMinCellSize } from "@/lib/previewScale";
 import { isEditableElement, isSelectAllShortcut } from "@/lib/keyboard";
+import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useWorkdirFolderEntries } from "@/hooks/useWorkdirFolderEntries";
@@ -78,6 +79,7 @@ export async function loadProjectData() {
 }
 
 export function ProjectPreviewPanel() {
+  const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
   const setError = useAppStore((s) => s.setError);
   const setNotice = useAppStore((s) => s.setNotice);
@@ -161,7 +163,7 @@ export function ProjectPreviewPanel() {
         setSearchResults(entries);
         setSearchCapped(result.capped);
         if (result.capped) {
-          setNotice("Showing first 200 search results");
+          setNotice(t("preview.showingFirstSearchResults"));
         }
       } catch (err) {
         if (!cancelled) {
@@ -176,7 +178,7 @@ export function ProjectPreviewPanel() {
     return () => {
       cancelled = true;
     };
-  }, [repoPath, debouncedSearch, showChangedOnly, committable, isSearchActive, setError, setNotice]);
+  }, [repoPath, debouncedSearch, showChangedOnly, committable, isSearchActive, setError, setNotice, t]);
 
   const openFile = async (path: string) => {
     try {
@@ -226,7 +228,7 @@ export function ProjectPreviewPanel() {
   if (!repoPath) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Select a repository from the sidebar
+        {t("common.selectRepositoryFromSidebar")}
       </div>
     );
   }
@@ -254,16 +256,17 @@ export function ProjectPreviewPanel() {
       <div ref={setScrollElement} className="flex-1 overflow-auto px-4 py-3">
         {folderTree && folderTree.item_count >= LARGE_REPO_FILE_COUNT ? (
           <p className="mb-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-            Large repository: {folderTree.item_count.toLocaleString()} files. Preview uses
-            pagination and virtualization; enable `localStorage["dfm.debug.performance"] = "true"`
-            for timing logs.
+            {t("preview.largeRepository", { count: folderTree.item_count.toLocaleString() })}
           </p>
         ) : null}
         {isSearchActive ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-medium">
-                Search results for &ldquo;{debouncedSearch.trim()}&rdquo; ({searchResults.length})
+                {t("preview.searchResults", {
+                  query: debouncedSearch.trim(),
+                  count: searchResults.length,
+                })}
               </p>
               <Button
                 type="button"
@@ -271,24 +274,24 @@ export function ProjectPreviewPanel() {
                 size="sm"
                 onClick={() => setPreviewSearchQuery("")}
               >
-                Clear
+                {t("common.clear")}
               </Button>
             </div>
             {searchLoading ? (
-              <p className="text-sm text-muted-foreground">Searching…</p>
+              <p className="text-sm text-muted-foreground">{t("common.searching")}</p>
             ) : searchResults.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No results for &ldquo;{debouncedSearch.trim()}&rdquo;
+                {t("preview.noResults", { query: debouncedSearch.trim() })}
               </p>
             ) : (
               <>
                 {searchCapped ? (
-                  <p className="text-xs text-muted-foreground">Showing first 200 matches</p>
+                  <p className="text-xs text-muted-foreground">{t("preview.showingFirstMatches")}</p>
                 ) : null}
                 {!showChangedOnly && searchFolders.length > 0 ? (
                   <div>
                     <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                      Folders ({searchFolders.length})
+                      {t("common.folders")} ({searchFolders.length})
                     </p>
                     <ul
                       className="grid gap-2"
@@ -312,7 +315,7 @@ export function ProjectPreviewPanel() {
                 {searchFiles.length > 0 ? (
                   <div>
                     <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                      Files ({searchFiles.length})
+                      {t("common.files")} ({searchFiles.length})
                     </p>
                     <FilePreviewGrid
                       files={searchFiles}
@@ -330,12 +333,14 @@ export function ProjectPreviewPanel() {
             )}
           </div>
         ) : loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">{t("common.loading")}…</p>
         ) : (
           <div className="space-y-6">
             {!showChangedOnly && subfolders.length > 0 ? (
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Folders</p>
+                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                  {t("common.folders")}
+                </p>
                 <ul
                   className="grid gap-2"
                   style={{
@@ -357,28 +362,30 @@ export function ProjectPreviewPanel() {
 
             {sortedEntries.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                {showChangedOnly ? "No changed files" : "No files in this folder"}
+                {showChangedOnly ? t("common.noChangedFiles") : t("common.noFilesInFolder")}
               </p>
             ) : (
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                   {showChangedOnly
-                    ? `Changed files (${sortedEntries.length})`
-                    : `Files${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}${
+                    ? t("preview.changedFilesCount", { count: sortedEntries.length })
+                    : `${t("common.files")}${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}${
                         entriesTotal > sortedEntries.length
-                          ? ` — showing ${sortedEntries.length} of ${entriesTotal}`
+                          ? ` — ${t("preview.showingFilesOfTotal", {
+                              shown: sortedEntries.length,
+                              total: entriesTotal,
+                            })}`
                           : ""
                       }`}
                 </p>
                 {entriesHasMore && !showChangedOnly ? (
                   <p className="mb-2 text-xs text-muted-foreground">
-                    {loadingMore ? "Loading more files…" : "Scroll down to load more files"}
+                    {loadingMore ? t("common.loadingMoreFiles") : t("preview.scrollToLoadMore")}
                   </p>
                 ) : null}
                 {entriesTotal >= LARGE_FOLDER_ENTRY_COUNT && !showChangedOnly ? (
                   <p className="mb-2 text-xs text-muted-foreground">
-                    Large folder: {entriesTotal.toLocaleString()} entries. Files are loaded in
-                    pages of 200.
+                    {t("preview.largeFolder", { count: entriesTotal.toLocaleString() })}
                   </p>
                 ) : null}
                 <FilePreviewGrid

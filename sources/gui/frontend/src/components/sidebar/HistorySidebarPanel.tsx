@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { parseCommitMessage } from "@/lib/commitMessage";
 import { clearCommitStatsCache } from "@/lib/commitStatsCache";
+import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -34,6 +35,7 @@ import {
 } from "@/wails/forester";
 
 export function HistorySidebarPanel() {
+  const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
   const currentBranch = useAppStore((s) => s.currentBranch);
   const sidebarMode = useAppStore((s) => s.sidebarMode);
@@ -193,7 +195,9 @@ export function HistorySidebarPanel() {
       await loadBranches();
       await loadLog();
       await loadProjectData();
-      setNotice(autoStash ? "Switched branch (changes stashed)" : `Switched to ${target}`);
+      setNotice(
+        autoStash ? t("common.switchedBranchStashed") : t("branch.switchedTo", { branch: target }),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -205,12 +209,12 @@ export function HistorySidebarPanel() {
 
   const handleBranchSelect = async (target: string) => {
     if (mergeStatus?.in_progress) {
-      setNotice("Finish or abort the merge in progress before switching branches");
+      setNotice(t("merge.finishOrAbortFirst"));
       return;
     }
     if (!currentBranch) return;
     if (target === currentBranch && !isDetached) {
-      setNotice(`Already on branch ${target}`);
+      setNotice(t("common.alreadyOnBranch", { branch: target }));
       return;
     }
     try {
@@ -242,7 +246,7 @@ export function HistorySidebarPanel() {
     try {
       const status = await fetchStatus();
       if (isDirtyWorktree(status)) {
-        setError("Commit or stash changes before starting a merge");
+        setError(t("merge.commitOrStashFirst"));
         return;
       }
     } catch (err) {
@@ -263,7 +267,7 @@ export function HistorySidebarPanel() {
       await mergeAbort();
       setMergeStatus(null);
       await refreshAfterMerge();
-      setNotice("Merge aborted");
+      setNotice(t("merge.aborted"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -277,7 +281,7 @@ export function HistorySidebarPanel() {
     try {
       await deleteBranch(deleteBranchTarget);
       await loadBranches();
-      setNotice(`Deleted branch ${deleteBranchTarget}`);
+      setNotice(t("branch.deleted", { branch: deleteBranchTarget }));
       setDeleteBranchTarget(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -293,7 +297,7 @@ export function HistorySidebarPanel() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="shrink-0 space-y-3 border-b border-sidebar-border px-3 py-3">
-        <h2 className="text-base font-semibold">History</h2>
+        <h2 className="text-base font-semibold">{t("common.history")}</h2>
         <BranchSelector
           branches={branches}
           currentBranch={currentBranch ?? branches[0] ?? ""}
@@ -309,7 +313,7 @@ export function HistorySidebarPanel() {
         />
         <Input
           value={searchQuery}
-          placeholder="Type to search..."
+          placeholder={t("history.searchPlaceholder")}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </header>
@@ -336,7 +340,7 @@ export function HistorySidebarPanel() {
         {switchingBranch ? (
           <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Switching branch…
+            {t("common.switchingBranch")}
           </div>
         ) : null}
         <CommitList
@@ -345,7 +349,7 @@ export function HistorySidebarPanel() {
           headHash={headHash}
           loading={loadingLog}
           capped={logCapped}
-          emptyLabel={headHash ? "No commits on this branch" : "No commits yet"}
+          emptyLabel={headHash ? t("history.noCommitsOnBranch") : t("history.noCommitsYet")}
           onSelect={(hash) => selectCommit(repoPath, hash)}
           onAfterCommitAction={() => void handleAfterCommitAction()}
         />
@@ -410,7 +414,7 @@ export function HistorySidebarPanel() {
           if (result?.hash) {
             setNotice(await mergeSuccessNotice(result.hash));
           } else {
-            setNotice("Merge completed");
+            setNotice(t("merge.completed"));
           }
         }}
       />

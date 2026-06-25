@@ -5,6 +5,7 @@ import { DiffView } from "@/components/preview/DiffView";
 import { PreviewCommitHeader } from "@/components/preview/PreviewCommitHeader";
 import { useResizableWidth } from "@/hooks/useResizableWidth";
 import { classifyHistoryDiff } from "@/lib/fileKinds";
+import { useT } from "@/lib/i18n";
 import {
   loadHistoryFilesPanelWidth,
   loadHistoryImageLayout,
@@ -36,6 +37,7 @@ function sortFiles(files: DiffFileEntry[]): DiffFileEntry[] {
 }
 
 export function HistoryPreviewPanel() {
+  const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
   const currentBranch = useAppStore((s) => s.currentBranch);
   const setNotice = useAppStore((s) => s.setNotice);
@@ -326,7 +328,7 @@ export function HistoryPreviewPanel() {
   if (!repoPath) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Open a repository to view commit history
+        {t("preview.openRepoToViewHistory")}
       </div>
     );
   }
@@ -334,7 +336,7 @@ export function HistoryPreviewPanel() {
   if (!selectedCommitHash) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Select a commit to view changes
+        {t("preview.selectCommit")}
       </div>
     );
   }
