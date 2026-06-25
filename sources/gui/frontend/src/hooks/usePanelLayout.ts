@@ -131,7 +131,7 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
 
       const onMove = (moveEvent: MouseEvent) => {
         const delta = moveEvent.clientX - startX;
-        const next = normalizeProjectLayout(clientWidth, sidebarColumnWidth, startInfo + delta);
+        const next = normalizeProjectLayout(clientWidth, sidebarColumnWidth, startInfo - delta);
         setInfoWidth(next.infoWidth);
         saveLayoutInfoWidth(next.infoWidth);
         if (next.sidebarColumnWidth !== sidebarColumnWidth) {
