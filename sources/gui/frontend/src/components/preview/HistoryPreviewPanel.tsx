@@ -314,6 +314,15 @@ export function HistoryPreviewPanel() {
     }
   };
 
+  const handleOpenChangedFile = async (path: string) => {
+    if (!selectedCommitHash) return;
+    try {
+      await openCommitFile(selectedCommitHash, path);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
   if (!repoPath) {
     return (
       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
@@ -346,6 +355,7 @@ export function HistoryPreviewPanel() {
           loading={loadingFiles}
           width={filesPanelWidth}
           onSelect={setSelectedChangedFilePath}
+          onOpenFile={handleOpenChangedFile}
         />
         <div
           className="relative w-1 shrink-0 cursor-col-resize bg-border hover:bg-ring"

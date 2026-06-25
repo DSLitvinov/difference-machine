@@ -4,7 +4,7 @@
 
 **Figma (shadcn kit):** в составе [text diff `4028:5655`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4028-5655)
 
-**Стек:** React + shadcn/ui (`Badge`, `Tooltip`)  
+**Стек:** React + shadcn/ui (`Badge`, `Tooltip`, `DropdownMenu`)
 **Связанные документы:** [content-preview-history-view.md](./content-preview-history-view.md) · [design-tokens.md](./design-tokens.md) §3.5
 
 ---
@@ -80,8 +80,24 @@ Selected + hover: без изменений (остаётся `bg-primary`).
 | Жест | Действие |
 |------|----------|
 | Click | `onSelect(file.path)` → обновить Diff view |
+| Right-click | Select row + open context menu (§6.1) |
 | `↑` / `↓` | prev/next row (когда фокус в списке файлов Preview) |
 | Double-click | **не используется** в v1 |
+
+### 6.1 Context menu
+
+Меню открывается по правому клику на строке и не содержит destructive-действий, потому что файл находится внутри исторического commit snapshot.
+
+| Item | Action | Disabled |
+|------|--------|----------|
+| Show diff | Select file and show Diff view | never |
+| Open from commit | `openCommitFile(commitHash, path)` | deleted file |
+| Copy path | Copy current repo-relative path | never |
+| Copy file name | Copy basename | empty path |
+| Copy previous path | Copy `old_path` | only shown for rename |
+| Copy status | Copy status label (`Added`, `Modified`, etc.) | never |
+
+Footer: truncated full display path (`old → new` for rename).
 
 ---
 
@@ -119,4 +135,5 @@ interface HistoryChangedFileItemProps {
 |----|-----------|
 | Badge | `Badge` |
 | Tooltip | `Tooltip` + `TooltipTrigger` + `TooltipContent` |
+| Context menu | `DropdownMenu` at pointer position |
 | Row | `div` / `button` role=`option` в listbox |
