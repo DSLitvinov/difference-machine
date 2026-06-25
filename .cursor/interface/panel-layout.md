@@ -60,6 +60,21 @@ sidebar + preview = W
 
 При переключении Project ↔ History: ширины Sidebar и Preview **сохраняются**; Content Info unmount — её ширина остаётся в state для возврата в Project.
 
+### 2.4 Collapsed Sidebar
+
+При Sidebar collapse сохранённая ширина Sidebar **не перезаписывается**. Для расчётов используется только Rail:
+
+```text
+visibleSidebar = 48
+```
+
+| Режим | Формула |
+|-------|---------|
+| Project | `preview = W − 48 − info` |
+| History | `preview = W − 48` |
+
+Preview всегда забирает остаток ширины; справа не должно оставаться пустой неиспользованной области.
+
 ### 2.3 TypeScript helpers
 
 ```ts
@@ -123,8 +138,8 @@ function clamp(width: number, min: number, max: number): number {
 |----------|-----------|
 | `W < 1435` (Project) | **Enforce** min window 1435×… (Wails `SetMinSize`) |
 | `W < 1081` (History) | **Enforce** min window 1081×… |
-| Sidebar collapsed (Project) | min `W`: **48 + 747 + 354 = 1149** |
-| Sidebar collapsed (History) | min `W`: **48 + 747 = 795** |
+| Sidebar collapsed (Project) | min `W`: **48 + 747 + 354 = 1149**; Preview = `W − 48 − info` |
+| Sidebar collapsed (History) | min `W`: **48 + 747 = 795**; Preview = `W − 48` |
 | Resize окна ОС | Пересчитать max; clamp сохранённые ширины; Preview забирает delta |
 | History mode | Info panel width не меняется в layout, только в persisted state |
 | Sidebar collapsed | Preview + Info делят `W − railCollapsedWidth` (v1: collapsed = только Rail 48px; **Settings** остаётся на Rail) |

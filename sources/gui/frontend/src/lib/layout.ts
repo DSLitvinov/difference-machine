@@ -6,6 +6,8 @@ export const INFO_MIN = 354;
 export const MIN_WINDOW_HEIGHT = 720;
 export const MIN_WINDOW_PROJECT = SIDEBAR_COLUMN_MIN + PREVIEW_MIN + INFO_MIN;
 export const MIN_WINDOW_HISTORY = SIDEBAR_COLUMN_MIN + PREVIEW_MIN;
+export const MIN_WINDOW_PROJECT_COLLAPSED = RAIL_WIDTH + PREVIEW_MIN + INFO_MIN;
+export const MIN_WINDOW_HISTORY_COLLAPSED = RAIL_WIDTH + PREVIEW_MIN;
 
 export function clamp(width: number, min: number, max: number): number {
   return Math.min(Math.max(width, min), Math.max(min, max));
@@ -79,4 +81,22 @@ export function normalizeHistoryLayout(
   }
 
   return { sidebarColumnWidth: sidebar, previewWidth: preview };
+}
+
+export function normalizeCollapsedProjectLayout(
+  clientWidth: number,
+  infoWidth: number,
+): { infoWidth: number; previewWidth: number } {
+  const maxInfo = clientWidth - RAIL_WIDTH - PREVIEW_MIN;
+  const info = clamp(infoWidth, INFO_MIN, maxInfo);
+  return {
+    infoWidth: info,
+    previewWidth: clientWidth - RAIL_WIDTH - info,
+  };
+}
+
+export function normalizeCollapsedHistoryLayout(clientWidth: number): { previewWidth: number } {
+  return {
+    previewWidth: clientWidth - RAIL_WIDTH,
+  };
 }

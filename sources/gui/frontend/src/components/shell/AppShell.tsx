@@ -15,7 +15,14 @@ import { PanelResizeHandle } from "@/components/shell/PanelResizeHandle";
 import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
 import { usePanelLayout } from "@/hooks/usePanelLayout";
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
-import { MIN_WINDOW_HEIGHT, MIN_WINDOW_HISTORY, MIN_WINDOW_PROJECT, PREVIEW_MIN } from "@/lib/layout";
+import {
+  MIN_WINDOW_HEIGHT,
+  MIN_WINDOW_HISTORY,
+  MIN_WINDOW_HISTORY_COLLAPSED,
+  MIN_WINDOW_PROJECT,
+  MIN_WINDOW_PROJECT_COLLAPSED,
+  PREVIEW_MIN,
+} from "@/lib/layout";
 import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
@@ -61,9 +68,16 @@ export function AppShell() {
   }, [repoPath]);
 
   useEffect(() => {
-    const minWidth = sidebarMode === "project" ? MIN_WINDOW_PROJECT : MIN_WINDOW_HISTORY;
+    const minWidth =
+      sidebarMode === "project"
+        ? sidebarCollapsed
+          ? MIN_WINDOW_PROJECT_COLLAPSED
+          : MIN_WINDOW_PROJECT
+        : sidebarCollapsed
+          ? MIN_WINDOW_HISTORY_COLLAPSED
+          : MIN_WINDOW_HISTORY;
     WindowSetMinSize(minWidth, MIN_WINDOW_HEIGHT);
-  }, [sidebarMode]);
+  }, [sidebarMode, sidebarCollapsed]);
 
   useProjectStatusPolling();
 

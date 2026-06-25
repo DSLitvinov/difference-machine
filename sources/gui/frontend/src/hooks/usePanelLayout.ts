@@ -5,6 +5,8 @@ import {
   RAIL_WIDTH,
   SIDEBAR_COLUMN_MIN,
   SIDEBAR_MAIN_MIN,
+  normalizeCollapsedHistoryLayout,
+  normalizeCollapsedProjectLayout,
   normalizeHistoryLayout,
   normalizeProjectLayout,
 } from "@/lib/layout";
@@ -34,6 +36,17 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
   }, []);
 
   useEffect(() => {
+    if (sidebarCollapsed) {
+      if (mode === "project") {
+        const normalized = normalizeCollapsedProjectLayout(clientWidth, infoWidth);
+        if (normalized.infoWidth !== infoWidth) {
+          setInfoWidth(normalized.infoWidth);
+          saveLayoutInfoWidth(normalized.infoWidth);
+        }
+      }
+      return;
+    }
+
     if (mode === "project") {
       const normalized = normalizeProjectLayout(clientWidth, sidebarColumnWidth, infoWidth);
       if (
@@ -53,14 +66,20 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
       setSidebarColumnWidth(normalized.sidebarColumnWidth);
       saveLayoutSidebarWidth(normalized.sidebarColumnWidth);
     }
-  }, [clientWidth, mode, sidebarColumnWidth, infoWidth]);
+  }, [clientWidth, mode, sidebarCollapsed, sidebarColumnWidth, infoWidth]);
 
   const projectLayout =
     mode === "project"
-      ? normalizeProjectLayout(clientWidth, sidebarColumnWidth, infoWidth)
+      ? sidebarCollapsed
+        ? normalizeCollapsedProjectLayout(clientWidth, infoWidth)
+        : normalizeProjectLayout(clientWidth, sidebarColumnWidth, infoWidth)
       : null;
   const historyLayout =
-    mode === "history" ? normalizeHistoryLayout(clientWidth, sidebarColumnWidth) : null;
+    mode === "history"
+      ? sidebarCollapsed
+        ? normalizeCollapsedHistoryLayout(clientWidth)
+        : normalizeHistoryLayout(clientWidth, sidebarColumnWidth)
+      : null;
 
   const effectiveSidebarColumn = sidebarCollapsed ? RAIL_WIDTH : sidebarColumnWidth;
   const sidebarMainWidth = sidebarCollapsed
