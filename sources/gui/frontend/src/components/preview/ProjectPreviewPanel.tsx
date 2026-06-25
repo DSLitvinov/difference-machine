@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
 import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar";
+import { measureAsync } from "@/lib/performance";
 import { gridMinCellSize } from "@/lib/previewScale";
 import { isEditableElement, isSelectAllShortcut } from "@/lib/keyboard";
 import { useAppStore } from "@/stores/appStore";
@@ -20,6 +21,9 @@ import {
   vcsFileStatus,
   type DirEntry,
 } from "@/wails/forester";
+
+const LARGE_REPO_FILE_COUNT = 10000;
+const LARGE_FOLDER_ENTRY_COUNT = 1000;
 
 function sortByPath<T extends { path: string }>(items: T[], locale: SortLocale): T[] {
   const collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
@@ -53,14 +57,17 @@ export async function loadProjectData() {
   }
   store.setTreeLoading(true);
   try {
-    const [tree, status, locks] = await Promise.all([
-      fetchWorkdirTree("", 1),
-      fetchStatus(),
-      fetchLockList(),
-    ]);
+    const [tree, status, locks] = await measureAsync("project.load", () =>
+      Promise.all([
+        fetchWorkdirTree("", 1),
+        fetchStatus(),
+        fetchLockList(),
+      ]),
+    );
     store.setFolderTree(tree);
     store.setStatus(status);
     store.setLocks(locksByPath(locks));
+    await measureAsync("project.hydrateExpandedFolders", () => store.hydrateExpandedFolders());
     useAppStore.getState().setForesterError(null);
   } catch (err) {
     useAppStore.getState().setForesterError(err instanceof Error ? err.message : String(err));
@@ -83,6 +90,7 @@ export function ProjectPreviewPanel() {
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const status = useProjectStore((s) => s.status);
+  const folderTree = useProjectStore((s) => s.folderTree);
   const lockedByPath = useProjectStore((s) => s.lockedByPath);
   const sortLocale = useProjectStore((s) => s.sortLocale);
   const setSortLocale = useProjectStore((s) => s.setSortLocale);
@@ -141,7 +149,9 @@ export function ProjectPreviewPanel() {
     const load = async () => {
       setSearchLoading(true);
       try {
-        const result = await fetchWorkdirSearch(debouncedSearch.trim(), 200);
+        const result = await measureAsync(`workdir.search:${debouncedSearch.trim()}`, () =>
+          fetchWorkdirSearch(debouncedSearch.trim(), 200),
+        );
         if (cancelled) return;
         let entries = result.entries;
         if (showChangedOnly) {
@@ -242,6 +252,13 @@ export function ProjectPreviewPanel() {
       />
 
       <div ref={setScrollElement} className="flex-1 overflow-auto px-4 py-3">
+        {folderTree && folderTree.item_count >= LARGE_REPO_FILE_COUNT ? (
+          <p className="mb-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            Large repository: {folderTree.item_count.toLocaleString()} files. Preview uses
+            pagination and virtualization; enable `localStorage["dfm.debug.performance"] = "true"`
+            for timing logs.
+          </p>
+        ) : null}
         {isSearchActive ? (
           <div className="space-y-6">
             <div className="flex items-center justify-between gap-2">
@@ -356,6 +373,12 @@ export function ProjectPreviewPanel() {
                 {entriesHasMore && !showChangedOnly ? (
                   <p className="mb-2 text-xs text-muted-foreground">
                     {loadingMore ? "Loading more files…" : "Scroll down to load more files"}
+                  </p>
+                ) : null}
+                {entriesTotal >= LARGE_FOLDER_ENTRY_COUNT && !showChangedOnly ? (
+                  <p className="mb-2 text-xs text-muted-foreground">
+                    Large folder: {entriesTotal.toLocaleString()} entries. Files are loaded in
+                    pages of 200.
                   </p>
                 ) : null}
                 <FilePreviewGrid

@@ -171,11 +171,11 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ---
 
-## v2.1+ — backlog
+## v2.1 — backlog polish
 
-- Tree collapse persistence improvements
-- `commit.reset` submenu (destructive)
-- Performance profiling large repos (>10k files)
+- [x] Tree collapse persistence improvements — per-repo expanded folder state + lazy hydration
+- [x] `commit.reset` submenu (destructive) — soft/mixed/hard with confirm dialog
+- [x] Performance profiling large repos (>10k files) — opt-in timings + large repo/folder guardrails
 
 ---
 
@@ -189,3 +189,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | 4 | Fs watcher: `internal/workdirwatch`, `workdir:changed`, debounced UI refresh | **5.1** detached HEAD |
 | 2025-06-24 | 8 | Init wizard: 3-step dialog, `repo.init` author/dfmignore, `InitRepositoryWithOptions` | **9.1** Linux build |
 | 2026-06-25 | Release hardening | Windows installer/zip build verified; Linux runner unavailable on host | **9.1** Linux build on Linux / WSL / CI |
+| 2026-06-25 | v2.1 | Tree persistence, destructive reset submenu, large-repo perf hints/timings | Linux build + platform smoke |

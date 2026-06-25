@@ -2,6 +2,7 @@ import type { SidebarMode } from "@/stores/appStore";
 
 const SIDEBAR_COLLAPSED = "dfm.sidebar.collapsed";
 const SIDEBAR_MODE = "dfm.sidebar.mode";
+const MAX_PERSISTED_EXPANDED_PATHS = 512;
 
 function perRepoKey(base: string, repoPath: string): string {
   return `${base}::${repoPath}`;
@@ -67,6 +68,37 @@ export function loadSelectedFolderPath(repoPath: string): string {
 export function saveSelectedFolderPath(repoPath: string, path: string): void {
   try {
     localStorage.setItem(perRepoKey("dfm.sidebar.selectedFolderPath", repoPath), path);
+  } catch {
+    // ignore
+  }
+}
+
+export function loadExpandedFolderPaths(repoPath: string): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(perRepoKey("dfm.sidebar.expandedPaths", repoPath));
+    if (!raw) return {};
+    const value = JSON.parse(raw) as unknown;
+    if (!Array.isArray(value)) return {};
+
+    const expanded: Record<string, boolean> = {};
+    for (const path of value) {
+      if (typeof path === "string" && path.length > 0) {
+        expanded[path] = true;
+      }
+    }
+    return expanded;
+  } catch {
+    return {};
+  }
+}
+
+export function saveExpandedFolderPaths(repoPath: string, expandedPaths: Record<string, boolean>): void {
+  try {
+    const paths = Object.keys(expandedPaths)
+      .filter((path) => expandedPaths[path])
+      .sort((a, b) => a.localeCompare(b, "en-US"))
+      .slice(0, MAX_PERSISTED_EXPANDED_PATHS);
+    localStorage.setItem(perRepoKey("dfm.sidebar.expandedPaths", repoPath), JSON.stringify(paths));
   } catch {
     // ignore
   }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { measureAsync } from "@/lib/performance";
 import { useProjectStore } from "@/stores/projectStore";
 import {
   committableFilesInSubtree,
@@ -62,7 +63,9 @@ export function useWorkdirFolderEntries({
             setHasMore(false);
           }
         } else {
-          const result = await fetchWorkdirEntries(folderPath, 0, PAGE_SIZE);
+          const result = await measureAsync(`workdir.entries:${folderPath || "root"}:0`, () =>
+            fetchWorkdirEntries(folderPath, 0, PAGE_SIZE),
+          );
           if (!cancelled) {
             setEntries(result.entries.filter((entry) => !entry.is_dir));
             setSubfolders(result.entries.filter((entry) => entry.is_dir));
@@ -88,7 +91,9 @@ export function useWorkdirFolderEntries({
 
     setLoadingMore(true);
     try {
-      const result = await fetchWorkdirEntries(folderPath, entries.length, PAGE_SIZE);
+      const result = await measureAsync(`workdir.entries:${folderPath || "root"}:${entries.length}`, () =>
+        fetchWorkdirEntries(folderPath, entries.length, PAGE_SIZE),
+      );
       setEntries((prev) => [...prev, ...result.entries.filter((entry) => !entry.is_dir)]);
       setHasMore(result.has_more);
       setTotal(result.total);

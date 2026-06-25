@@ -262,6 +262,8 @@ interface SidebarEvents {
 | `localStorage` `dfm.sidebar.mode` | `project` \| `history` |
 | per-repo `dfm.sidebar.showChangedOnly` | boolean |
 | per-repo `dfm.sidebar.selectedFolderPath` | string (`''` = root) |
+| per-repo `dfm.sidebar.expandedPaths` | JSON string array, capped at 512 expanded folder paths |
+| `localStorage` `dfm.debug.performance` | `"true"` enables `[dfm:perf]` console timings |
 
 Полная спека multi-repo: [multi-repo.md](./multi-repo.md). Пути: [paths.md](./paths.md). Resize: [panel-layout.md](./panel-layout.md).
 

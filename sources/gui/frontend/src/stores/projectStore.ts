@@ -2,10 +2,12 @@ import { create } from "zustand";
 
 import { DEFAULT_THUMB_SCALE, type ThumbScalePx } from "@/lib/previewScale";
 import {
+  loadExpandedFolderPaths,
   loadShowChangedOnly,
   loadSortLocale,
   loadSelectedFolderPath,
   loadThumbScale,
+  saveExpandedFolderPaths,
   saveSelectedFolderPath,
   saveShowChangedOnly,
   saveSortLocale,
@@ -70,6 +72,7 @@ interface ProjectState {
   toggleExpanded: (path: string) => void;
   expandAllFolders: () => Promise<void>;
   collapseAllFolders: () => void;
+  hydrateExpandedFolders: () => Promise<void>;
   setFolderTree: (tree: FolderNode | null) => void;
   mergeFolderChildren: (path: string, children: FolderNode[]) => void;
   setStatus: (status: StatusPayload | null) => void;
@@ -107,6 +110,11 @@ const initialState = {
 function persistFolderPath(path: string) {
   const repoPath = useAppStore.getState().repoPath;
   if (repoPath) saveSelectedFolderPath(repoPath, path);
+}
+
+function persistExpandedPaths(expandedPaths: Record<string, boolean>) {
+  const repoPath = useAppStore.getState().repoPath;
+  if (repoPath) saveExpandedFolderPaths(repoPath, expandedPaths);
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -220,9 +228,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ showChangedOnly: value });
   },
   toggleExpanded: (path) =>
-    set((s) => ({
-      expandedPaths: { ...s.expandedPaths, [path]: !s.expandedPaths[path] },
-    })),
+    set((s) => {
+      const expandedPaths = { ...s.expandedPaths, [path]: !s.expandedPaths[path] };
+      persistExpandedPaths(expandedPaths);
+      return { expandedPaths };
+    }),
   expandAllFolders: async () => {
     set({ treeLoading: true });
     try {
@@ -231,12 +241,34 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       for (const path of collectFolderPaths(tree)) {
         expandedPaths[path] = true;
       }
+      persistExpandedPaths(expandedPaths);
       set({ folderTree: tree, expandedPaths });
     } finally {
       set({ treeLoading: false });
     }
   },
-  collapseAllFolders: () => set({ expandedPaths: {} }),
+  collapseAllFolders: () => {
+    persistExpandedPaths({});
+    set({ expandedPaths: {} });
+  },
+  hydrateExpandedFolders: async () => {
+    const state = get();
+    if (!state.folderTree) return;
+
+    const expandedPaths = Object.keys(state.expandedPaths)
+      .filter((path) => state.expandedPaths[path])
+      .sort((a, b) => a.split("/").length - b.split("/").length);
+
+    for (const path of expandedPaths) {
+      const currentTree = get().folderTree;
+      const existing = currentTree ? findNode(currentTree, path) : null;
+      if (!existing || existing.children.length > 0 || existing.item_count === 0) {
+        continue;
+      }
+      const subtree = await fetchWorkdirTree(path, 1);
+      get().mergeFolderChildren(path, subtree.children);
+    }
+  },
   setFolderTree: (tree) => set({ folderTree: tree }),
   mergeFolderChildren: (path, children) => {
     const tree = get().folderTree;
@@ -279,6 +311,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const savedThumb = loadThumbScale(repoPath);
     set({
       selectedFolderPath: folderPath,
+      expandedPaths: loadExpandedFolderPaths(repoPath),
       showChangedOnly: loadShowChangedOnly(repoPath),
       sortLocale: loadSortLocale(repoPath),
       thumbScale: (savedThumb as ThumbScalePx | null) ?? DEFAULT_THUMB_SCALE,
@@ -301,4 +334,13 @@ function mergeChildren(node: FolderNode, targetPath: string, children: FolderNod
     ...node,
     children: node.children.map((child) => mergeChildren(child, targetPath, children)),
   };
+}
+
+function findNode(node: FolderNode, path: string): FolderNode | null {
+  if (node.path === path) return node;
+  for (const child of node.children) {
+    const found = findNode(child, path);
+    if (found) return found;
+  }
+  return null;
 }

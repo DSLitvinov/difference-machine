@@ -12,6 +12,8 @@ import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { addRepository, openRepository } from "@/wails/bridge";
 
+const EXPAND_ALL_FILE_LIMIT = 10000;
+
 export function EmptyRepoState() {
   const setLoading = useAppStore((s) => s.setLoading);
   const setError = useAppStore((s) => s.setError);
@@ -68,8 +70,10 @@ export function ProjectSidebarPanel() {
   const expandAllFolders = useProjectStore((s) => s.expandAllFolders);
   const collapseAllFolders = useProjectStore((s) => s.collapseAllFolders);
   const treeLoading = useProjectStore((s) => s.treeLoading);
+  const folderTree = useProjectStore((s) => s.folderTree);
   const [repoMenuOpen, setRepoMenuOpen] = useState(false);
   const [treeScrollElement, setTreeScrollElement] = useState<HTMLElement | null>(null);
+  const expandAllDisabled = treeLoading || Boolean(folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT);
 
   useEffect(() => {
     if (repoPath && sidebarMode === "project") {
@@ -119,7 +123,12 @@ export function ProjectSidebarPanel() {
               variant="ghost"
               size="sm"
               className="h-6 px-2 text-[10px] font-medium"
-              disabled={treeLoading}
+              disabled={expandAllDisabled}
+              title={
+                folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT
+                  ? "Disabled for large repositories"
+                  : undefined
+              }
               onClick={() => void expandAllFolders()}
             >
               Expand all

@@ -8,6 +8,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { shortHash } from "@/lib/format";
@@ -17,12 +20,14 @@ import {
   openWorkdirPath,
   restoreVersion,
   revertCommit,
+  resetCommit,
+  type CommitResetMode,
   type CommitLogEntry,
 } from "@/wails/forester";
 
 const TMP_REVIEW_PATH = ".DFM/tmp_review";
 
-type PendingAction = "restore" | "revert" | null;
+type PendingAction = "restore" | "revert" | { kind: "reset"; mode: CommitResetMode } | null;
 
 interface CommitCardMenuProps {
   commit: CommitLogEntry;
@@ -73,9 +78,12 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
       if (pendingAction === "restore") {
         await restoreVersion(commit.hash);
         setNotice(`Working tree restored to ${hashShort}`);
-      } else {
+      } else if (pendingAction === "revert") {
         await revertCommit(commit.hash);
         setNotice(`Reverted commit ${hashShort}`);
+      } else {
+        await resetCommit(commit.hash, pendingAction.mode);
+        setNotice(`Reset ${pendingAction.mode} to ${hashShort}`);
       }
       setPendingAction(null);
       await onAfterAction?.();
@@ -86,20 +94,41 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
     }
   };
 
-  const dialogCopy =
-    pendingAction === "restore"
-      ? {
-          title: `Restore version ${hashShort}?`,
-          description:
-            "Replace the entire working directory with the contents of this commit. Uncommitted changes may be lost.",
-          confirmLabel: "Restore",
-        }
-      : {
-          title: `Revert commit ${hashShort}?`,
-          description:
-            "Create a new commit that undoes the changes introduced by this commit. Merge commits may require manual resolution.",
-          confirmLabel: "Revert",
-        };
+  const dialogCopy = (() => {
+    if (pendingAction === "restore") {
+      return {
+        title: `Restore version ${hashShort}?`,
+        description:
+          "Replace the entire working directory with the contents of this commit. Uncommitted changes may be lost.",
+        confirmLabel: "Restore",
+      };
+    }
+    if (pendingAction === "revert") {
+      return {
+        title: `Revert commit ${hashShort}?`,
+        description:
+          "Create a new commit that undoes the changes introduced by this commit. Merge commits may require manual resolution.",
+        confirmLabel: "Revert",
+      };
+    }
+    if (pendingAction && typeof pendingAction === "object" && pendingAction.kind === "reset") {
+      const modeDescriptions: Record<CommitResetMode, string> = {
+        soft: "Move HEAD to this commit and keep all changes staged.",
+        mixed: "Move HEAD to this commit, keep file changes in the working tree, and reset the index.",
+        hard: "Move HEAD to this commit and discard tracked working tree and index changes.",
+      };
+      return {
+        title: `Reset ${pendingAction.mode} to ${hashShort}?`,
+        description: `${modeDescriptions[pendingAction.mode]}\n\nThis rewrites the current branch pointer. Use only when you intentionally want to move the branch back to this commit.`,
+        confirmLabel: pendingAction.mode === "hard" ? "Hard reset" : `Reset ${pendingAction.mode}`,
+      };
+    }
+    return {
+      title: "",
+      description: "",
+      confirmLabel: "Confirm",
+    };
+  })();
 
   return (
     <>
@@ -147,6 +176,41 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
           >
             Revert commit
           </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger
+              disabled={acting || isHead}
+              title={isHead ? "Already at this commit" : undefined}
+            >
+              Reset branch to commit
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="min-w-[12rem]">
+              <DropdownMenuItem
+                onClick={() => {
+                  setMenuOpen(false);
+                  setPendingAction({ kind: "reset", mode: "soft" });
+                }}
+              >
+                Soft reset
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setMenuOpen(false);
+                  setPendingAction({ kind: "reset", mode: "mixed" });
+                }}
+              >
+                Mixed reset
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setPendingAction({ kind: "reset", mode: "hard" });
+                }}
+              >
+                Hard reset
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="gap-2"

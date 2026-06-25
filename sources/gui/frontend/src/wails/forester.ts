@@ -350,6 +350,12 @@ export async function revertCommit(commitHash: string): Promise<void> {
   await foresterCall("commit.revert", { commit_hash: commitHash });
 }
 
+export type CommitResetMode = "soft" | "mixed" | "hard";
+
+export async function resetCommit(commitHash: string, mode: CommitResetMode): Promise<void> {
+  await foresterCall("commit.reset", { commit_hash: commitHash, mode });
+}
+
 export async function compareExtract(commitHash: string): Promise<string | null> {
   const result = await foresterCall<{ success: boolean; path?: string }>("compare.extract", {
     commit_hash: commitHash,
