@@ -54,6 +54,11 @@ if [ ! -d "${BUILD_BIN}" ]; then
     exit 1
 fi
 
+FORESTER_BIN_STAGING="${BUILDER_DIR}/.staging/forester/bin"
+# shellcheck source=lib/copy_ffmpeg_sidecar.sh
+. "${SCRIPT_DIR}/lib/copy_ffmpeg_sidecar.sh"
+copy_ffmpeg_sidecar "${FORESTER_BIN_STAGING}" "${BUILD_BIN}"
+
 echo ""
 echo "=== Stage GUI ==="
 rm -rf "${STAGING_GUI}"
@@ -88,6 +93,7 @@ case "${CURRENT_OS}" in
             exit 1
         fi
         cp "${GUI_EXE}" "${STAGING_GUI}/${GUI_STAGE_NAME}"
+        copy_ffmpeg_sidecar "${FORESTER_BIN_STAGING}" "${STAGING_GUI}"
         ;;
 esac
 

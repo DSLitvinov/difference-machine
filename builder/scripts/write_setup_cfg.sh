@@ -16,6 +16,7 @@ CONFIG_DIR="${HOME}/.dfm"
 CONFIG_FILE="${CONFIG_DIR}/setup.cfg"
 
 FORESTER_BIN="${DFM_DIST}/bin/${FORESTER_CLI_NAME}"
+FFMPEG_BIN="${DFM_DIST}/bin/${FFMPEG_BIN_NAME}"
 API_LIB="${DFM_DIST}/lib/${API_LIB_NAME}"
 ADDON_PATH="${DFM_DIST}/addons/blender/difference_machine"
 
@@ -30,6 +31,7 @@ cat > "${CONFIG_FILE}" << EOF
 [forester]
 installed = true
 path = ${FORESTER_BIN}
+ffmpeg_path = ${FFMPEG_BIN}
 
 [api]
 installed = true

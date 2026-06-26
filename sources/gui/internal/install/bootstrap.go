@@ -135,6 +135,10 @@ func installRootFromExecutable() (string, bool) {
 	if layoutLooksValid(root) {
 		return root, true
 	}
+	parent := filepath.Dir(root)
+	if layoutLooksValid(parent) {
+		return parent, true
+	}
 	return "", false
 }
 

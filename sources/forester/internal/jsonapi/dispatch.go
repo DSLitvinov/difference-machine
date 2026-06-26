@@ -84,7 +84,9 @@ func callWorkPath(workPath, method, argsJSON string) []byte {
 		return marshalErr(fmt.Sprintf("invalid args JSON: %s", err))
 	}
 
-	result, err := fn(workPath, args)
+	result, err := withSilencedCLIOutput(func() (interface{}, error) {
+		return fn(workPath, args)
+	})
 	if err != nil {
 		return marshalErr(err.Error())
 	}

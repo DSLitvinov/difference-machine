@@ -1,8 +1,13 @@
 package jsonapi_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"image"
+	"image/color"
+	"image/png"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -68,6 +73,16 @@ func writeFile(t *testing.T, dir, relPath, content string) {
 	if err := os.WriteFile(full, []byte(content), 0o644); err != nil {
 		t.Fatalf("write file: %v", err)
 	}
+}
+
+func writeTestPNG(path string, width, height int) error {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	img.Set(0, 0, color.RGBA{R: 200, G: 40, B: 40, A: 255})
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		return err
+	}
+	return os.WriteFile(path, buf.Bytes(), 0o644)
 }
 
 func TestInvalidHandle(t *testing.T) {
@@ -459,23 +474,37 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 		t.Fatalf("search entries = %+v, want readme.txt", searchResult.Entries)
 	}
 
-	pngBytes := []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d}
-	writeFile(t, dir, "assets/preview.png", string(pngBytes))
+	pngPath := filepath.Join(dir, "assets", "preview.png")
+	if err := os.MkdirAll(filepath.Dir(pngPath), 0o755); err != nil {
+		t.Fatalf("mkdir assets: %v", err)
+	}
+	if err := writeTestPNG(pngPath, 8, 8); err != nil {
+		t.Fatalf("write preview.png: %v", err)
+	}
 
 	var thumbResult struct {
-		Kind           string `json:"kind"`
-		Mime           string `json:"mime"`
-		ContentBase64  string `json:"content_base64"`
-		TextPreview    string `json:"text_preview"`
+		Kind          string `json:"kind"`
+		Mime          string `json:"mime"`
+		ContentBase64 string `json:"content_base64"`
+		TextPreview   string `json:"text_preview"`
 	}
-	if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"assets/preview.png"}`), &thumbResult); err != nil {
-		t.Fatalf("decode workdir.thumbnail image: %v", err)
-	}
-	if thumbResult.Kind != "image" {
-		t.Fatalf("thumbnail kind = %q, want image", thumbResult.Kind)
-	}
-	if thumbResult.ContentBase64 == "" {
-		t.Fatal("expected content_base64 for image thumbnail")
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
+		if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"assets/preview.png"}`), &thumbResult); err != nil {
+			t.Fatalf("decode workdir.thumbnail image: %v", err)
+		}
+		if thumbResult.Kind != "placeholder" {
+			t.Fatalf("thumbnail kind = %q, want placeholder without ffmpeg", thumbResult.Kind)
+		}
+	} else {
+		if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"assets/preview.png"}`), &thumbResult); err != nil {
+			t.Fatalf("decode workdir.thumbnail image: %v", err)
+		}
+		if thumbResult.Kind != "image" {
+			t.Fatalf("thumbnail kind = %q, want image", thumbResult.Kind)
+		}
+		if thumbResult.ContentBase64 == "" {
+			t.Fatal("expected content_base64 for image thumbnail")
+		}
 	}
 
 	if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"readme.txt"}`), &thumbResult); err != nil {

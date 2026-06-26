@@ -52,6 +52,7 @@ func (a *App) startup(ctx context.Context) {
 	if err := install.BootstrapConfig(store); err != nil {
 		runtime.LogWarningf(ctx, "install bootstrap: %v", err)
 	}
+	install.EnsureFFmpegEnv()
 
 	current := store.CurrentRepoPath()
 	if current == "" {

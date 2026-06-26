@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -98,16 +99,15 @@ func (s *Store) parseLine(line string, section *string) {
 }
 
 func unquote(value string) string {
-	if len(value) >= 2 {
-		if (value[0] == '"' && value[len(value)-1] == '"') ||
-			(value[0] == '\'' && value[len(value)-1] == '\'') {
-			return value[1 : len(value)-1]
-		}
+	value = strings.TrimSpace(value)
+	for len(value) >= 2 && value[0] == '"' && value[len(value)-1] == '"' {
+		value = strings.TrimSpace(value[1 : len(value)-1])
 	}
 	return value
 }
 
 func quoteIfNeeded(value string) string {
+	value = unquote(value)
 	if strings.ContainsAny(value, " \t#=") {
 		return `"` + value + `"`
 	}
@@ -575,6 +575,11 @@ func (s *Store) SetInstallToolchainPaths(cliPath, apiPath, addonPath string) err
 	s.setUnlocked("forester", "installed", "true")
 	s.setUnlocked("forester", "path", cliCanonical)
 
+	ffmpegPath := filepath.Join(filepath.Dir(cliCanonical), ffmpegBinaryName())
+	if st, err := os.Stat(ffmpegPath); err == nil && !st.IsDir() {
+		s.setUnlocked("forester", "ffmpeg_path", ffmpegPath)
+	}
+
 	if apiCanonical != "" {
 		s.setUnlocked("api", "installed", "true")
 		s.setUnlocked("api", "path", apiCanonical)
@@ -642,4 +647,11 @@ func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
 	}
 
 	return s.saveUnlocked()
+}
+
+func ffmpegBinaryName() string {
+	if runtime.GOOS == "windows" {
+		return "ffmpeg.exe"
+	}
+	return "ffmpeg"
 }

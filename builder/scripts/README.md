@@ -20,6 +20,7 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 |--------|----------------|
 | Forester CLI | Go 1.22+ |
 | Native API | Go 1.22+, C compiler for cgo |
+| Image previews | Bundled `bin/ffmpeg` (auto-fetched on build) |
 | GUI (`--gui`) | Go 1.22+, Node.js 20+, npm, Wails v2 CLI |
 | macOS DMG | macOS `hdiutil` |
 | Windows installer | NSIS `makensis` |
@@ -30,7 +31,9 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 
 | Script | Description |
 |--------|-------------|
-| **build_forester.sh** | Forester CLI + c-shared API → `builder/.staging/forester/` |
+| **build_forester.sh** | Forester CLI + c-shared API + bundled ffmpeg → `builder/.staging/forester/` |
+| **fetch_ffmpeg.sh** | Download ffmpeg static build (macOS/Linux, Git Bash) |
+| **fetch_ffmpeg.ps1** | Download ffmpeg static build (Windows PowerShell) |
 | **build_gui.sh** | Wails GUI → staging (`.app` / binary / `.exe`) |
 | **stage_dist.sh** | Assemble `DFM_DIST` (default `builder/dist/payload`) |
 | **package_blender_addon_zip.sh** | Zip addon for release archives |
@@ -68,5 +71,8 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | `VERSION` | `0.8` | Forester version (ldflags) |
 | `INSTALL_FOLDER_NAME` | `Difference Machine` | Install folder in releases |
 | `INSTALL_WAILS` | `true` | Auto-install Wails CLI |
+| `FFMPEG_SKIP` | `false` | Skip downloading bundled ffmpeg |
+| `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if already staged |
+| `FFMPEG_RELEASE_TAG` | `latest` | BtbN/FFmpeg-Builds release tag |
 
 See `../README.md` for layout and Blender addon setup.

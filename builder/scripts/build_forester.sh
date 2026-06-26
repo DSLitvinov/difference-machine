@@ -82,3 +82,14 @@ echo "${GIT_COMMIT}" >> "${STAGING_DIR}/VERSION"
 
 echo ""
 echo -e "${GREEN}✓ Forester staged: ${STAGING_DIR}${NC}"
+
+echo ""
+if [ "${CURRENT_OS}" = "windows" ]; then
+    if command -v powershell.exe >/dev/null 2>&1; then
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${SCRIPT_DIR}/fetch_ffmpeg.ps1"
+    else
+        bash "${SCRIPT_DIR}/fetch_ffmpeg.sh"
+    fi
+else
+    bash "${SCRIPT_DIR}/fetch_ffmpeg.sh"
+fi

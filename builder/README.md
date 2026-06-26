@@ -66,7 +66,7 @@ builder/
 
 ```
 payload/
-├── bin/                 Forester CLI
+├── bin/                 Forester CLI + bundled ffmpeg
 ├── lib/                 Native API
 ├── apps/                GUI (optional --gui)
 ├── addons/blender/difference_machine/
@@ -105,6 +105,7 @@ Each `*/build.sh` runs:
 |-----------|-------------|
 | Forester CLI | Go 1.22+ |
 | Native API | Go 1.22+ and a C compiler for cgo |
+| Image previews | Bundled `ffmpeg` in `bin/` (fetched automatically during build) |
 | GUI (`--gui`) | Go 1.22+, Node.js 20+, npm, Wails v2 CLI |
 | Blender addon | Blender 4.5.0+ for runtime use |
 | macOS DMG | `hdiutil` (macOS system tool) |

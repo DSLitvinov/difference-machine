@@ -107,6 +107,9 @@ if [ "${BUILD_GUI}" = true ] && [ -d "${STAGING_GUI}" ]; then
                 if [ "${CURRENT_OS}" = "linux" ]; then
                     chmod +x "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
                 fi
+                # shellcheck source=lib/copy_ffmpeg_sidecar.sh
+                . "${SCRIPT_DIR}/lib/copy_ffmpeg_sidecar.sh"
+                copy_ffmpeg_sidecar "${DFM_DIST}/bin" "${DFM_DIST}/apps"
                 echo -e "${GREEN}✓ apps/${GUI_STAGE_NAME}${NC}"
                 GUI_MANIFEST_ENTRY="\"gui_app\": \"apps/${GUI_STAGE_NAME}\""
             else
@@ -132,6 +135,7 @@ if [ -n "${GUI_MANIFEST_ENTRY}" ]; then
     MANIFEST_COMPONENTS=$(cat << EOF
     "forester_cli": "bin/${FORESTER_CLI_NAME}",
     "forester_api": "lib/${API_LIB_NAME}",
+    "ffmpeg": "bin/${FFMPEG_BIN_NAME}",
     "blender_addon": "${ADDON_REL}",
     ${GUI_MANIFEST_ENTRY}
 EOF
@@ -140,6 +144,7 @@ else
     MANIFEST_COMPONENTS=$(cat << EOF
     "forester_cli": "bin/${FORESTER_CLI_NAME}",
     "forester_api": "lib/${API_LIB_NAME}",
+    "ffmpeg": "bin/${FFMPEG_BIN_NAME}",
     "blender_addon": "${ADDON_REL}"
 EOF
 )
@@ -169,7 +174,7 @@ This folder is a self-contained build output. A separate installer will
 copy forester and the Blender addon to system paths.
 
 Layout:
-  bin/     Forester CLI
+  bin/     Forester CLI and bundled ffmpeg (GPL, BtbN/FFmpeg-Builds)
   lib/     Forester API native library
   addons/  Blender addon (API embedded in addons/blender/difference_machine/api/)
   apps/    Difference Machine GUI (macOS .app, Linux binary, Windows .exe when built with --gui)

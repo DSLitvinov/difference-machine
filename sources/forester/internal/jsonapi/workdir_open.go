@@ -24,6 +24,8 @@ func openWithOSDefault(absPath string) error {
 		cmd = exec.Command("xdg-open", absPath)
 	}
 
+	configureHiddenExec(cmd)
+
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open file: %w", err)
 	}

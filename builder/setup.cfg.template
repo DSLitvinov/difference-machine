@@ -2,11 +2,13 @@
 # Placeholders:
 #   {PREFIX}           — forester install root (parent of bin/ and lib/)
 #   {FORESTER_CLI_NAME} — forester | forester.exe
+#   {FFMPEG_BIN_NAME}  — ffmpeg | ffmpeg.exe
 #   {API_LIB_NAME}     — libforester.so | libforester.dylib | forester.dll
 
 [forester]
 installed = true
 path = {PREFIX}/bin/{FORESTER_CLI_NAME}
+ffmpeg_path = {PREFIX}/bin/{FFMPEG_BIN_NAME}
 
 [api]
 installed = true

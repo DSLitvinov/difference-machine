@@ -146,20 +146,16 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 		ext := strings.ToLower(filepath.Ext(rel))
 
 		if isImageExt(ext) {
-			if info.Size() > maxThumbnailBytes {
+			if thumb, thumbMime, err := buildImageThumbnail(abs, ext); err == nil && len(thumb) > 0 {
 				return map[string]interface{}{
-					"kind": "placeholder",
-					"mime": mime,
+					"kind":           "image",
+					"mime":           thumbMime,
+					"content_base64": base64.StdEncoding.EncodeToString(thumb),
 				}, nil
 			}
-			raw, err := os.ReadFile(abs)
-			if err != nil {
-				return nil, err
-			}
 			return map[string]interface{}{
-				"kind":            "image",
-				"mime":            mime,
-				"content_base64":  base64.StdEncoding.EncodeToString(raw),
+				"kind": "placeholder",
+				"mime": mime,
 			}, nil
 		}
 

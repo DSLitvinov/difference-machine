@@ -1,3 +1,24 @@
+_zip_is_valid() {
+    local zip_path="$1"
+    [ -f "${zip_path}" ] || return 1
+    # ZIP local file header starts with "PK" (0x50 0x4B).
+    local magic
+    magic="$(head -c 2 "${zip_path}" 2>/dev/null || true)"
+    [ "${magic}" = "PK" ]
+}
+
+_python_for_zip() {
+    local py
+    for py in python3 python; do
+        if command -v "${py}" >/dev/null 2>&1 \
+                && "${py}" -c "import zipfile" >/dev/null 2>&1; then
+            printf '%s' "${py}"
+            return 0
+        fi
+    done
+    return 1
+}
+
 create_zip_archive() {
     OUTPUT_ZIP="${1:?output zip path required}"
     TOP_LEVEL_DIR="${2:?top-level directory required}"
@@ -31,11 +52,7 @@ create_zip_archive() {
 
     _zip_with_python() {
         local py=""
-        if command -v python3 >/dev/null 2>&1; then
-            py="python3"
-        elif command -v python >/dev/null 2>&1; then
-            py="python"
-        else
+        if ! py="$(_python_for_zip)"; then
             return 1
         fi
 
@@ -78,25 +95,44 @@ PY
             "Compress-Archive -LiteralPath '${src_ps}' -DestinationPath '${out_ps}' -Force"
     }
 
+    # Prefer python over tar: Git Bash ships GNU tar, which writes a non-ZIP
+    # stream when asked for .zip (-a) and breaks Blender "Install from Disk".
     if command -v zip >/dev/null 2>&1; then
         _zip_with_zip
-    elif command -v tar >/dev/null 2>&1 && _zip_with_tar; then
-        :
     elif _zip_with_python; then
         :
+    elif command -v tar >/dev/null 2>&1; then
+        _zip_with_tar || true
+        if ! _zip_is_valid "${OUTPUT_ZIP}"; then
+            rm -f "${OUTPUT_ZIP}"
+            if _zip_with_python; then
+                :
+            elif _zip_with_powershell; then
+                :
+            else
+                echo "tar produced an invalid zip (common with GNU tar on Git Bash)." >&2
+                echo "Install python3 or zip, then rebuild." >&2
+                return 1
+            fi
+        fi
     elif _zip_with_powershell; then
         :
     else
         echo "No zip tool found. Install one of:" >&2
         echo "  - zip (MSYS2: pacman -S zip)" >&2
-        echo "  - tar with zip support (Git for Windows)" >&2
         echo "  - python3" >&2
+        echo "  - tar with zip support (bsdtar / libarchive)" >&2
         echo "  - PowerShell (Windows)" >&2
         return 1
     fi
 
     if [ ! -f "${OUTPUT_ZIP}" ]; then
         echo "Failed to create zip: ${OUTPUT_ZIP}" >&2
+        return 1
+    fi
+
+    if ! _zip_is_valid "${OUTPUT_ZIP}"; then
+        echo "Output is not a valid zip archive: ${OUTPUT_ZIP}" >&2
         return 1
     fi
 }
