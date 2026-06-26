@@ -47,6 +47,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [repos, setRepos] = useState<string[]>([]);
   const [editors, setEditors] = useState<string[]>([]);
   const [foresterCli, setForesterCli] = useState("");
@@ -67,6 +68,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         const data = await fetchSettings();
         if (cancelled) return;
         setUserName(data.userName ?? "");
+        setUserEmail(data.userEmail ?? "");
         setUserNameInStore(data.userName ?? "");
         const nextLanguage = normalizeLanguage(data.language);
         setLanguage(nextLanguage);
@@ -99,7 +101,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const handleSaveProfile = async () => {
     setSaving(true);
     try {
-      await saveSettingsProfile(userName, language);
+      await saveSettingsProfile(userName, userEmail, language);
       setUserNameInStore(userName);
       setLanguageInStore(language);
       document.documentElement.lang = language;
@@ -249,6 +251,19 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                             placeholder={t("settings.yourName")}
                             onChange={(e) => setUserName(e.target.value)}
                           />
+                        </div>
+                        <div>
+                          <Label className="mb-2 block">{t("settings.email")}</Label>
+                          <Input
+                            type="email"
+                            value={userEmail}
+                            placeholder={t("settings.yourEmail")}
+                            onChange={(e) => setUserEmail(e.target.value)}
+                            autoComplete="email"
+                          />
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {t("settings.profileEmailHint")}
+                          </p>
                         </div>
                         <div>
                           <Label className="mb-2 block">{t("common.language")}</Label>

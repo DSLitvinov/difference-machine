@@ -10,6 +10,7 @@ import (
 // SettingsSnapshot is returned to the settings UI.
 type SettingsSnapshot struct {
 	UserName    string   `json:"userName"`
+	UserEmail   string   `json:"userEmail"`
 	Language    string   `json:"language"`
 	Repos       []string `json:"repos"`
 	CurrentRepo string   `json:"currentRepo"`
@@ -37,6 +38,7 @@ func (a *App) GetSettings() (*SettingsSnapshot, error) {
 	}
 	return &SettingsSnapshot{
 		UserName:    a.cfg.UserName(),
+		UserEmail:   a.cfg.UserEmail(),
 		Language:    a.cfg.Language(),
 		Repos:       repos,
 		CurrentRepo: a.cfg.CurrentRepoPath(),
@@ -50,12 +52,15 @@ func (a *App) GetSettings() (*SettingsSnapshot, error) {
 	}, nil
 }
 
-// SaveSettingsProfile persists author name and language.
-func (a *App) SaveSettingsProfile(userName, language string) error {
+// SaveSettingsProfile persists author name, email, and language.
+func (a *App) SaveSettingsProfile(userName, userEmail, language string) error {
 	if a.cfg == nil {
 		return fmt.Errorf("config not loaded")
 	}
 	if err := a.cfg.SetUserName(userName); err != nil {
+		return err
+	}
+	if err := a.cfg.SetUserEmail(userEmail); err != nil {
 		return err
 	}
 	if language == "" {

@@ -14,6 +14,7 @@ import { loadStoredFont, loadStoredTheme, normalizeFont, normalizeTheme } from "
 
 export interface SettingsSnapshot {
   userName: string;
+  userEmail: string;
   language: string;
   repos: string[];
   currentRepo: string;
@@ -50,8 +51,12 @@ export function resolveAppearanceFromSettings(snapshot: SettingsSnapshot): {
   return { theme: cfgTheme, font: cfgFont };
 }
 
-export async function saveSettingsProfile(userName: string, language: string): Promise<void> {
-  await SaveSettingsProfile(userName, language);
+export async function saveSettingsProfile(
+  userName: string,
+  userEmail: string,
+  language: string,
+): Promise<void> {
+  await SaveSettingsProfile(userName, userEmail, language);
 }
 
 export async function saveSettingsRepos(repos: string[]): Promise<void> {

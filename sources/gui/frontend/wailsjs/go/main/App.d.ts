@@ -38,7 +38,7 @@ export function SaveSettingsEditors(arg1:Array<string>):Promise<void>;
 
 export function SaveSettingsForester(arg1:string,arg2:string,arg3:string):Promise<void>;
 
-export function SaveSettingsProfile(arg1:string,arg2:string):Promise<void>;
+export function SaveSettingsProfile(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function SaveSettingsRepos(arg1:Array<string>):Promise<void>;
 

@@ -365,6 +365,19 @@ func (s *Store) SetUserName(name string) error {
 	return s.saveUnlocked()
 }
 
+// UserEmail returns the author email from [user].
+func (s *Store) UserEmail() string {
+	return s.Get("user", "email")
+}
+
+// SetUserEmail updates [user].email.
+func (s *Store) SetUserEmail(email string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked("user", "email", strings.TrimSpace(email))
+	return s.saveUnlocked()
+}
+
 // SetKnownReposList replaces [repo] with an ordered deduplicated list.
 func (s *Store) SetKnownReposList(repoPaths []string) error {
 	s.mu.Lock()

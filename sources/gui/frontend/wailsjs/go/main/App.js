@@ -74,8 +74,8 @@ export function SaveSettingsForester(arg1, arg2, arg3) {
   return window['go']['main']['App']['SaveSettingsForester'](arg1, arg2, arg3);
 }
 
-export function SaveSettingsProfile(arg1, arg2) {
-  return window['go']['main']['App']['SaveSettingsProfile'](arg1, arg2);
+export function SaveSettingsProfile(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveSettingsProfile'](arg1, arg2, arg3);
 }
 
 export function SaveSettingsRepos(arg1) {

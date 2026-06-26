@@ -18,6 +18,7 @@ export namespace main {
 	}
 	export class SettingsSnapshot {
 	    userName: string;
+	    userEmail: string;
 	    language: string;
 	    repos: string[];
 	    currentRepo: string;
@@ -36,6 +37,7 @@ export namespace main {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.userName = source["userName"];
+	        this.userEmail = source["userEmail"];
 	        this.language = source["language"];
 	        this.repos = source["repos"];
 	        this.currentRepo = source["currentRepo"];
