@@ -6,5 +6,6 @@ export function isEditableElement(target: EventTarget | null): boolean {
 }
 
 export function isSelectAllShortcut(event: KeyboardEvent): boolean {
-  return event.key.toLowerCase() === "a" && (event.ctrlKey || event.metaKey) && !event.altKey;
+  const isAKey = event.code === "KeyA" || event.key.toLowerCase() === "a";
+  return isAKey && (event.ctrlKey || event.metaKey) && !event.altKey;
 }
