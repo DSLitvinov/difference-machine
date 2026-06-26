@@ -253,7 +253,7 @@ func CherryPick(args []string) error {
 	}
 
 	// Get author
-	author := core.DefaultAuthor()
+	author := core.AuthorForRepo(repoPath)
 
 	// Execute pre-commit hook
 	envVars := []string{

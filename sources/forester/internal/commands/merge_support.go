@@ -167,7 +167,7 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 func performMergeCommitAfterContinue(repoPath string, repo *core.Repository, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
 	currentBranch, currentHead, targetHead, branchToMerge string, opts MergeOptions, index *core.Index) error {
 
-	author := core.DefaultAuthor()
+	author := core.AuthorForRepo(repoPath)
 
 	// Execute pre-commit hook
 	envVars := []string{

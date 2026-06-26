@@ -131,9 +131,9 @@ func Commit(args []string) error {
 		}
 	}
 
-	// Get author (from arguments or environment variable)
+	// Get author (from arguments or repository / global config)
 	if author == "" {
-		author = core.DefaultAuthor()
+		author = core.AuthorForRepo(repoPath)
 	}
 
 	// Execute pre-commit hook

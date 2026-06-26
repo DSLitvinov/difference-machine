@@ -362,7 +362,7 @@ func Stash(args []string) error {
 		}
 
 		// Create commit from stash tree
-		author := core.DefaultAuthor()
+		author := core.AuthorForRepo(repoPath)
 
 		commit := models.NewCommit()
 		commit.ParentHash = "" // Stash branch starts from empty

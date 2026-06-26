@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/difference-machine/forester/internal/core"
@@ -107,10 +106,7 @@ func Tag(args []string) error {
 		return fmt.Errorf("no commits yet")
 	}
 
-	author := "Unknown"
-	if envAuthor := os.Getenv("FORESTER_AUTHOR"); envAuthor != "" {
-		author = envAuthor
-	}
+	author := core.AuthorForRepo(repoPath)
 
 	if annotated && message == "" {
 		return fmt.Errorf("annotated tag requires a message (-m)")

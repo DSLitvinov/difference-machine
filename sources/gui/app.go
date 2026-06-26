@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/difference-machine/forester/pkg/author"
 	"github.com/difference-machine/forester/pkg/jsonapi"
 	"github.com/difference-machine/gui/internal/config"
 	"github.com/difference-machine/gui/internal/forester"
@@ -104,12 +106,16 @@ func (a *App) GetCurrentRepoPath() (string, error) {
 	return a.cfg.CurrentRepoPath(), nil
 }
 
-// GetRepoUser returns the configured author name.
+// GetRepoUser returns the configured commit author (Git-style "Name <email>").
 func (a *App) GetRepoUser() (string, error) {
 	if a.cfg == nil {
 		return "", fmt.Errorf("config not loaded")
 	}
-	return a.cfg.UserName(), nil
+	repoPath := a.cfg.CurrentRepoPath()
+	if repoPath != "" {
+		return author.AuthorForRepo(repoPath), nil
+	}
+	return author.FormatAuthor(a.cfg.UserName(), a.cfg.UserEmail()), nil
 }
 
 // SetRepoUser updates the author name in setup.cfg.
@@ -177,7 +183,7 @@ func (a *App) InitRepository(path string) error {
 }
 
 // InitRepositoryWithOptions initializes a repository and applies optional author / .dfmignore.
-func (a *App) InitRepositoryWithOptions(path, author, dfmignore string) error {
+func (a *App) InitRepositoryWithOptions(path, authorInput, dfmignore string) error {
 	canonical, err := paths.CanonicalAbsPath(path)
 	if err != nil {
 		return err
@@ -192,8 +198,19 @@ func (a *App) InitRepositoryWithOptions(path, author, dfmignore string) error {
 	if isForesterRepo(canonical) {
 		return nil
 	}
+	authorName, authorEmail := author.ParseAuthor(strings.TrimSpace(authorInput))
+	if authorName == "" && strings.TrimSpace(authorInput) != "" {
+		authorName = strings.TrimSpace(authorInput)
+	}
+	if authorName == "" {
+		authorName = a.cfg.UserName()
+	}
+	if authorEmail == "" {
+		authorEmail = a.cfg.UserEmail()
+	}
+	formattedAuthor := author.FormatAuthor(authorName, authorEmail)
 	args, err := json.Marshal(map[string]string{
-		"author":    author,
+		"author":    formattedAuthor,
 		"dfmignore": dfmignore,
 	})
 	if err != nil {

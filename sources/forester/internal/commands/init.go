@@ -185,7 +185,8 @@ func createDefaultIgnoreFile(repoPath string) error {
 // ApplyRepositoryInitOptions updates author and .dfmignore after repo.init.
 func ApplyRepositoryInitOptions(repoPath, author, dfmignore string) error {
 	if strings.TrimSpace(author) != "" {
-		if err := setRepositoryUserName(repoPath, strings.TrimSpace(author)); err != nil {
+		name, email := utils.ParseAuthor(strings.TrimSpace(author))
+		if err := setRepositoryUserIdentity(repoPath, name, email); err != nil {
 			return err
 		}
 	}
@@ -198,7 +199,7 @@ func ApplyRepositoryInitOptions(repoPath, author, dfmignore string) error {
 	return nil
 }
 
-func setRepositoryUserName(repoPath, name string) error {
+func setRepositoryUserIdentity(repoPath, name, email string) error {
 	configPath := filepath.Join(repoPath, ".DFM", "config")
 	if !utils.Exists(configPath) {
 		return fmt.Errorf("repository config not found")
@@ -208,7 +209,8 @@ func setRepositoryUserName(repoPath, name string) error {
 		return fmt.Errorf("failed to read repository config: %w", err)
 	}
 	lines := strings.Split(string(content), "\n")
-	updated := false
+	nameUpdated := false
+	emailUpdated := false
 	inUserSection := false
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
@@ -219,15 +221,42 @@ func setRepositoryUserName(repoPath, name string) error {
 		if strings.HasPrefix(trimmed, "[") && trimmed != "[user]" {
 			inUserSection = false
 		}
-		if inUserSection && strings.HasPrefix(trimmed, "name") {
+		if !inUserSection {
+			continue
+		}
+		if strings.HasPrefix(trimmed, "name") {
 			lines[i] = "    name = " + name
-			updated = true
+			nameUpdated = true
+		}
+		if strings.HasPrefix(trimmed, "email") {
+			lines[i] = "    email = " + email
+			emailUpdated = true
 		}
 	}
-	if !updated {
+	if !nameUpdated {
 		return fmt.Errorf("user name field not found in repository config")
 	}
+	if !emailUpdated && email != "" {
+		for i, line := range lines {
+			if strings.TrimSpace(line) == "[user]" {
+				insertAt := i + 1
+				for insertAt < len(lines) && strings.TrimSpace(lines[insertAt]) != "" && !strings.HasPrefix(strings.TrimSpace(lines[insertAt]), "[") {
+					insertAt++
+				}
+				updated := make([]string, 0, len(lines)+1)
+				updated = append(updated, lines[:insertAt]...)
+				updated = append(updated, "    email = "+email)
+				updated = append(updated, lines[insertAt:]...)
+				lines = updated
+				break
+			}
+		}
+	}
 	return utils.WriteFileString(configPath, strings.Join(lines, "\n"))
+}
+
+func setRepositoryUserName(repoPath, name string) error {
+	return setRepositoryUserIdentity(repoPath, name, "")
 }
 
 func createHooksDirectory(repoPath string) error {

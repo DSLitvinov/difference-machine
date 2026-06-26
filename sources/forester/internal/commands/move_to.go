@@ -314,7 +314,7 @@ func MoveTo(args []string) error {
 			continue
 		}
 
-		author := core.DefaultAuthor()
+		author := core.AuthorForRepo(repoPath)
 		if author == "Unknown" && commitToMove.Author != "" {
 			author = commitToMove.Author
 		}

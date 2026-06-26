@@ -266,7 +266,7 @@ func performMergeCommit(repoPath string, repo *core.Repository, storage *core.St
 		return performSquashMerge(repoPath, repo, storage, refs, hooks, currentBranch, currentHead, targetHead, branchToMerge, index)
 	}
 
-	author := core.DefaultAuthor()
+	author := core.AuthorForRepo(repoPath)
 
 	// Execute pre-commit hook
 	envVars := []string{
@@ -348,7 +348,7 @@ func performMergeCommit(repoPath string, repo *core.Repository, storage *core.St
 func performSquashMerge(repoPath string, repo *core.Repository, storage *core.Storage, refs *core.Refs, hooks *core.Hooks,
 	currentBranch, currentHead, targetHead, branchToMerge string, index *core.Index) error {
 
-	author := core.DefaultAuthor()
+	author := core.AuthorForRepo(repoPath)
 
 	// Execute pre-commit hook
 	envVars := []string{

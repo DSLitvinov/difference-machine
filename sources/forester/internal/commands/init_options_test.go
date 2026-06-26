@@ -16,7 +16,7 @@ func TestApplyRepositoryInitOptions(t *testing.T) {
 	}
 
 	customIgnore := "# custom\n*.bak\n"
-	if err := commands.ApplyRepositoryInitOptions(dir, "Ada Lovelace", customIgnore); err != nil {
+	if err := commands.ApplyRepositoryInitOptions(dir, "Ada Lovelace <ada@example.com>", customIgnore); err != nil {
 		t.Fatal(err)
 	}
 
@@ -24,8 +24,12 @@ func TestApplyRepositoryInitOptions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(configBytes), "name = Ada Lovelace") {
-		t.Fatalf("config missing author: %s", configBytes)
+	configText := string(configBytes)
+	if !strings.Contains(configText, "name = Ada Lovelace") {
+		t.Fatalf("config missing author name: %s", configBytes)
+	}
+	if !strings.Contains(configText, "email = ada@example.com") {
+		t.Fatalf("config missing author email: %s", configBytes)
 	}
 
 	ignoreBytes, err := os.ReadFile(filepath.Join(dir, ".dfmignore"))
