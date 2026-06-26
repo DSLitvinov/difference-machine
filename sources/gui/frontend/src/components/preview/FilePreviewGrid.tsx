@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 import { FilePreviewItem } from "@/components/preview/FilePreviewItem";
@@ -84,12 +84,20 @@ export function FilePreviewGrid({
   });
 
   const virtualRows = rowVirtualizer.getVirtualItems();
+  const nearEndRequestedRef = useRef(false);
+
+  useEffect(() => {
+    nearEndRequestedRef.current = false;
+  }, [files.length]);
 
   useEffect(() => {
     if (!onNearEnd || files.length === 0) return;
     const last = virtualRows[virtualRows.length - 1];
     if (last && last.index >= rowCount - 2) {
-      onNearEnd();
+      if (!nearEndRequestedRef.current) {
+        nearEndRequestedRef.current = true;
+        onNearEnd();
+      }
     }
   }, [virtualRows, rowCount, onNearEnd, files.length]);
 

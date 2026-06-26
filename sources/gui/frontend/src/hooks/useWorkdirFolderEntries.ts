@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { measureAsync } from "@/lib/performance";
 import { useProjectStore } from "@/stores/projectStore";
@@ -40,6 +40,8 @@ export function useWorkdirFolderEntries({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const workdirGeneration = useProjectStore((s) => s.workdirGeneration);
+  const loadGenerationRef = useRef(0);
+  const loadingMoreRef = useRef(false);
 
   useEffect(() => {
     if (!enabled) {
@@ -50,13 +52,18 @@ export function useWorkdirFolderEntries({
       return;
     }
 
+    loadGenerationRef.current += 1;
+    const loadGeneration = loadGenerationRef.current;
+    loadingMoreRef.current = false;
+    setLoadingMore(false);
+
     let cancelled = false;
     const load = async () => {
       setLoading(true);
       try {
         if (showChangedOnly) {
           const paths = committableFilesInSubtree(folderPath, committable);
-          if (!cancelled) {
+          if (!cancelled && loadGeneration === loadGenerationRef.current) {
             setEntries(dirEntriesFromPaths(paths));
             setSubfolders([]);
             setTotal(paths.length);
@@ -66,7 +73,7 @@ export function useWorkdirFolderEntries({
           const result = await measureAsync(`workdir.entries:${folderPath || "root"}:0`, () =>
             fetchWorkdirEntries(folderPath, 0, PAGE_SIZE),
           );
-          if (!cancelled) {
+          if (!cancelled && loadGeneration === loadGenerationRef.current) {
             setEntries(result.entries.filter((entry) => !entry.is_dir));
             setSubfolders(result.entries.filter((entry) => entry.is_dir));
             setTotal(result.total);
@@ -85,20 +92,41 @@ export function useWorkdirFolderEntries({
   }, [enabled, folderPath, showChangedOnly, committable, workdirGeneration]);
 
   const loadMore = useCallback(async () => {
-    if (!enabled || showChangedOnly || !hasMore || loadingMore || loading) {
+    if (
+      !enabled ||
+      showChangedOnly ||
+      !hasMore ||
+      loadingMore ||
+      loading ||
+      loadingMoreRef.current
+    ) {
       return;
     }
 
+    const loadGeneration = loadGenerationRef.current;
+    const offset = entries.length;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
-      const result = await measureAsync(`workdir.entries:${folderPath || "root"}:${entries.length}`, () =>
-        fetchWorkdirEntries(folderPath, entries.length, PAGE_SIZE),
+      const result = await measureAsync(`workdir.entries:${folderPath || "root"}:${offset}`, () =>
+        fetchWorkdirEntries(folderPath, offset, PAGE_SIZE),
       );
-      setEntries((prev) => [...prev, ...result.entries.filter((entry) => !entry.is_dir)]);
+      if (loadGeneration !== loadGenerationRef.current) {
+        return;
+      }
+      const pageFiles = result.entries.filter((entry) => !entry.is_dir);
+      setEntries((prev) => {
+        const seen = new Set(prev.map((entry) => entry.path));
+        const fresh = pageFiles.filter((entry) => !seen.has(entry.path));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
       setHasMore(result.has_more);
       setTotal(result.total);
     } finally {
-      setLoadingMore(false);
+      if (loadGeneration === loadGenerationRef.current) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
     }
   }, [enabled, showChangedOnly, hasMore, loadingMore, loading, folderPath, entries.length]);
 
