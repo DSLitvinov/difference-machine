@@ -16,7 +16,6 @@ import {
   DEFAULT_DFMIGNORE_TEMPLATE,
   type InitRepositoryWizardStep,
 } from "@/lib/initRepository";
-import { authorDisplayName } from "@/lib/author";
 import { useT } from "@/lib/i18n";
 import { basename } from "@/lib/utils";
 import { fetchRepoUser } from "@/wails/bridge";
@@ -49,7 +48,7 @@ export function InitRepositoryWizard({
       return;
     }
     void fetchRepoUser()
-      .then((value) => setAuthor(authorDisplayName(value)))
+      .then((value) => setAuthor(value.trim()))
       .catch(() => setAuthor(""));
   }, [open]);
 

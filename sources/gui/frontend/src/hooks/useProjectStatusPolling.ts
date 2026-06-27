@@ -60,7 +60,9 @@ async function refreshWorkdirFromWatcher() {
   await refreshStatus();
   await loadProjectData();
   await validateSelectedFiles();
-  useProjectStore.getState().bumpWorkdirGeneration();
+  const projectStore = useProjectStore.getState();
+  projectStore.bumpWorkdirGeneration();
+  projectStore.bumpPreviewGeneration();
 }
 
 export function useProjectStatusPolling() {
@@ -69,6 +71,7 @@ export function useProjectStatusPolling() {
   const setForesterError = useAppStore((s) => s.setForesterError);
   const ticking = useRef(false);
   const watcherDebounceRef = useRef<number | undefined>(undefined);
+  const pendingWorkdirChangeRef = useRef(false);
 
   const poll = useCallback(async () => {
     if (!repoPath || ticking.current) return;
@@ -113,17 +116,25 @@ export function useProjectStatusPolling() {
     if (!repoPath) return;
 
     const onFocus = () => {
+      if (pendingWorkdirChangeRef.current) {
+        pendingWorkdirChangeRef.current = false;
+        void refreshFromWatcher();
+        return;
+      }
       void poll();
     };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
-  }, [poll, repoPath]);
+  }, [poll, refreshFromWatcher, repoPath]);
 
   useEffect(() => {
     if (!repoPath) return;
 
     const cleanup = EventsOn("workdir:changed", () => {
-      if (!document.hasFocus()) return;
+      if (!document.hasFocus()) {
+        pendingWorkdirChangeRef.current = true;
+        return;
+      }
       window.clearTimeout(watcherDebounceRef.current);
       watcherDebounceRef.current = window.setTimeout(() => {
         void refreshFromWatcher();
