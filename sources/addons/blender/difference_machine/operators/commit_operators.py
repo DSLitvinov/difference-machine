@@ -381,19 +381,6 @@ class DF_OT_save_asset(Operator):
             # Replace with linked version if requested
             if self.replace_with_link:
                 try:
-                    # 3. Remove original object (use fresh reference)
-                    obj_to_remove = bpy.data.objects.get(original_name)
-                    if obj_to_remove:
-                        # Unlink from all collections first
-                        collections_to_unlink = list(obj_to_remove.users_collection)
-                        for coll in collections_to_unlink:
-                            coll.objects.unlink(obj_to_remove)
-                        # Delete object (automatically removes from all view layers)
-                        bpy.data.objects.remove(obj_to_remove)
-                        # Clear reference
-                        obj_to_remove = None
-                    
-                    # 4. Link asset from saved file
                     linked_obj = None
                     target_obj_name = None
                     
@@ -411,11 +398,7 @@ class DF_OT_save_asset(Operator):
                         if not target_obj_name and data_from.objects:
                             target_obj_name = data_from.objects[0]
                             data_to.objects = [target_obj_name]
-                    
-                    # Wait for object to load
-                    import time
-                    time.sleep(0.3)
-                    
+
                     # Find the linked object - check newly added objects
                     current_objects = set(bpy.data.objects.keys())
                     new_object_names = current_objects - existing_objects
@@ -452,6 +435,12 @@ class DF_OT_save_asset(Operator):
                                         break
                     
                     if linked_obj:
+                        obj_to_remove = bpy.data.objects.get(original_name)
+                        if obj_to_remove:
+                            for coll in list(obj_to_remove.users_collection):
+                                coll.objects.unlink(obj_to_remove)
+                            bpy.data.objects.remove(obj_to_remove)
+
                         # Add to original collections (this also adds to view layer)
                         for coll_name in original_collections:
                             coll = bpy.data.collections.get(coll_name)
@@ -497,10 +486,10 @@ class DF_OT_save_asset(Operator):
                         logger.warning(f"Could not find linked object after loading from {saved_file_path}")
                         logger.debug(f"Target obj name: {target_obj_name}, Original type: {original_obj_type}")
                         logger.debug(f"New objects: {new_object_names}")
-                        self.report({'WARNING'}, "Asset saved but linked object not found.")
+                        self.report({'WARNING'}, "Asset saved but original object was kept because linked object was not found.")
                 except Exception as e:
                     logger.error(f"Failed to replace with linked version: {e}", exc_info=True)
-                    self.report({'WARNING'}, f"Asset saved but failed to replace with link: {e}")
+                    self.report({'WARNING'}, f"Asset saved but original object was kept because linking failed: {e}")
             
             # Report success (use original_obj_type, not active_obj.type - object may be deleted)
             try:

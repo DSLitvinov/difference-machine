@@ -331,11 +331,8 @@ class DF_OT_compare_object(Operator):
                             break
                     
                     if not obj_found:
-                        # Try to load any object of matching type
-                        for obj_name in data_from.objects:
-                            if obj_name in data_from.objects:
-                                data_to.objects = [obj_name]
-                                break
+                        logger.warning("Object '%s' not found in %s", base_name, target_blend)
+                        continue
                 
                 # Find the linked object
                 for linked_obj in data_to.objects:
@@ -384,10 +381,6 @@ class DF_OT_compare_object(Operator):
         else:
             # Multiple objects - store collection name
             scene.df_compare_object_linked_name = compare_collection_name if compare_collection else ""
-        
-        # Cleanup
-        api = get_api()
-        api.compare_extract(repo_path, commit_hash, cleanup=True)
         
         self.report({'INFO'}, f"Linked {len(linked_objects)} object(s) for comparison")
         return {'FINISHED'}
@@ -646,12 +639,8 @@ class DF_OT_replace_mesh(Operator):
                             break
                     
                     if not obj_found:
-                        # Try to load any object of matching type
-                        for obj_name in data_from.objects:
-                            # Check if object type matches (we'd need to check in the blend file, but for now just load first)
-                            data_to.objects = [obj_name]
-                            target_obj_name = obj_name
-                            break
+                        logger.warning("Object '%s' not found in %s", base_name, target_blend)
+                        continue
                 
                 # Find the loaded object (it will be in bpy.data.objects after the with block)
                 if target_obj_name:
@@ -669,14 +658,6 @@ class DF_OT_replace_mesh(Operator):
                         if obj and obj.type == object_type:
                             # Check if it matches our target
                             if _normalize_object_name(obj_name) == base_name or obj_name == target_obj_name:
-                                new_obj = obj
-                                break
-                    
-                    # If still not found, use first new object of matching type
-                    if not new_obj:
-                        for obj_name in new_object_names:
-                            obj = bpy.data.objects.get(obj_name)
-                            if obj and obj.type == object_type:
                                 new_obj = obj
                                 break
                     
@@ -763,9 +744,9 @@ def _select_replace_blend(
     if candidate.exists():
         return candidate
 
-    for blend_file in tmp_review_path.rglob("*.blend"):
-        if blend_file.is_file():
-            return blend_file
+    matches = [path for path in tmp_review_path.rglob(current_blend.name) if path.is_file()]
+    if len(matches) == 1:
+        return matches[0]
 
     return None
 

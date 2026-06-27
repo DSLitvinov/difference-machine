@@ -71,13 +71,20 @@ class DF_OT_sync_objects_to_db(Operator):
         objects_dir.mkdir(parents=True, exist_ok=True)
         json_path = objects_dir / f"{target_commit}_objects.json"
         all_data = {}
+        if json_path.exists():
+            try:
+                import json
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    loaded_data = json.load(f)
+                if isinstance(loaded_data, dict):
+                    all_data = loaded_data
+            except Exception as e:
+                self.report({'ERROR'}, f"Refusing to overwrite unreadable object JSON: {e}")
+                return {'CANCELLED'}
 
         depsgraph = bpy.context.evaluated_depsgraph_get() if bpy.context else None
         n = 0
         skipped = 0
-        deleted = 0
-
-        cleared_files = set()
         for entry in tagged_entries:
             obj_name = entry.object_name
             if not obj_name:
@@ -101,14 +108,6 @@ class DF_OT_sync_objects_to_db(Operator):
                 all_data[file_path_key] = {}
             all_data[file_path_key][obj.name] = obj_data
 
-            if file_path_key not in cleared_files:
-                ok, err = api.delete_objects_by_file(repo_path, target_commit, file_path_key)
-                if ok:
-                    deleted += 1
-                elif err and "No objects found" not in err:
-                    self.report({'WARNING'}, f"Failed to clear objects for {file_path_key}: {err}")
-                cleared_files.add(file_path_key)
-
             ok, _ = api.add_object(
                 repo_path,
                 "blender",
@@ -125,14 +124,14 @@ class DF_OT_sync_objects_to_db(Operator):
 
         # Save tagged-only JSON
         try:
-            import json
-            with open(json_path, 'w', encoding='utf-8') as f:
-                json.dump(all_data, f, indent=2, ensure_ascii=False)
+            from ..utils.object_data import _atomic_write_json, load_object_data
+            _atomic_write_json(json_path, all_data)
+            load_object_data.cache_clear()
         except Exception:
             self.report({'WARNING'}, "Failed to save tagged objects JSON")
 
-        if skipped or deleted:
-            self.report({'INFO'}, f"Synced {n} tagged object(s) to DB; deleted {deleted}; skipped {skipped}")
+        if skipped:
+            self.report({'INFO'}, f"Synced {n} tagged object(s) to DB; skipped {skipped}")
         else:
             self.report({'INFO'}, f"Synced {n} tagged object(s) to DB for commit {target_commit[:16]}...")
         return {'FINISHED'}

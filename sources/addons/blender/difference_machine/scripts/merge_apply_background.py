@@ -78,13 +78,39 @@ def _apply_rename(objects: list[dict]) -> None:
         log.info("Renamed %s -> %s", name, new_name)
 
 
+def _validate_merge_inputs(objects: list[dict], theirs_blend: Path) -> bool:
+    merge_names = [
+        (o.get("object_name") or "").strip()
+        for o in objects
+        if "MERGE" in (o.get("tags") or [])
+    ]
+    merge_names = [name for name in merge_names if name]
+    if not merge_names:
+        return True
+    if not theirs_blend.exists():
+        log.error("Theirs blend not found: %s", theirs_blend)
+        return False
+
+    try:
+        with bpy.data.libraries.load(str(theirs_blend), link=False) as (data_from, _data_to):
+            available = set(data_from.objects)
+    except Exception as e:
+        log.error("Failed to inspect theirs blend: %s", e)
+        return False
+
+    missing = [name for name in merge_names if name not in available]
+    if missing:
+        log.error("Missing MERGE object(s) in theirs blend: %s", ", ".join(missing))
+        return False
+    return True
+
+
 def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> None:
     merge_objects = [o for o in objects if "MERGE" in (o.get("tags") or [])]
     if not merge_objects:
         return
     if not theirs_blend.exists():
-        log.warning("Theirs blend not found: %s", theirs_blend)
-        return
+        raise FileNotFoundError(f"Theirs blend not found: {theirs_blend}")
 
     existing = set(bpy.data.objects.keys())
     loaded_for_fix = []
@@ -97,20 +123,16 @@ def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> No
 
         with bpy.data.libraries.load(str(theirs_blend), link=False) as (data_from, data_to):
             if name not in data_from.objects:
-                log.warning("Object %s not in theirs blend", name)
-                continue
+                raise RuntimeError(f"Object {name} not in theirs blend")
             data_to.objects = [name]
 
-        current = set(bpy.data.objects.keys())
-        new_names = current - existing
-        new_obj = None
-        for n in new_names:
-            o = bpy.data.objects.get(n)
-            if o and o.type == obj_type:
-                new_obj = o
-                break
+        loaded_objects = [obj for obj in data_to.objects if obj]
+        new_obj = loaded_objects[0] if loaded_objects else None
         if not new_obj:
-            continue
+            raise RuntimeError(f"Failed to load MERGE object {name}")
+        if new_obj.type != obj_type:
+            bpy.data.objects.remove(new_obj)
+            raise RuntimeError(f"MERGE object {name} type mismatch: expected {obj_type}, got {new_obj.type}")
 
         existing.add(new_obj.name)
         replace_mode = name in bpy.data.objects
@@ -166,9 +188,16 @@ def main() -> int:
         log.error("Failed to load objects JSON: %s", e)
         return 1
 
-    _apply_delete(objects)
-    _apply_rename(objects)
-    _apply_merge(objects, theirs_blend, repo_path)
+    if not _validate_merge_inputs(objects, theirs_blend):
+        return 1
+
+    try:
+        _apply_delete(objects)
+        _apply_rename(objects)
+        _apply_merge(objects, theirs_blend, repo_path)
+    except Exception as e:
+        log.error("Failed to apply merge operations: %s", e)
+        return 1
 
     try:
         bpy.ops.wm.save_as_mainfile(filepath=str(output))

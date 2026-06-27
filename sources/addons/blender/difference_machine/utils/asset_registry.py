@@ -5,6 +5,8 @@ Provides functions to maintain a registry of saved assets.
 
 import json
 import logging
+import os
+import tempfile
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -35,10 +37,26 @@ def save_registry(repo_path: Path, registry: Dict[str, Any]) -> bool:
     try:
         registry_path = get_registry_path(repo_path)
         registry_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        with open(registry_path, 'w', encoding='utf-8') as f:
-            json.dump(registry, f, indent=2, ensure_ascii=False)
-        
+
+        fd, tmp_name = tempfile.mkstemp(
+            prefix=f".{registry_path.name}.",
+            suffix=".tmp",
+            dir=str(registry_path.parent),
+        )
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(registry, f, indent=2, ensure_ascii=False)
+                f.write("\n")
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_name, registry_path)
+        except Exception:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+            raise
+
         return True
     except Exception as e:
         logger.error(f"Failed to save asset registry: {e}")
@@ -53,7 +71,16 @@ def add_asset_to_registry(
     category: str
 ) -> bool:
     """Add or update asset in registry."""
-    registry = load_registry(repo_path)
+    registry_path = get_registry_path(repo_path)
+    if registry_path.exists():
+        try:
+            with open(registry_path, 'r', encoding='utf-8') as f:
+                registry = json.load(f)
+        except Exception as e:
+            logger.error(f"Refusing to overwrite unreadable asset registry: {e}")
+            return False
+    else:
+        registry = {}
     
     # Make path relative to repo
     try:

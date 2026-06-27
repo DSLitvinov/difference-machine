@@ -73,7 +73,30 @@ def export_object_to_blend(args):
     # Open empty.blend
     bpy.ops.wm.open_mainfile(filepath=str(empty_blend_path))
     
-    # Load object from library
+    # Prefer loading the complete object datablock. Rebuilding from only mesh/light
+    # data drops modifiers, constraints, animation data, and custom properties.
+    with bpy.data.libraries.load(args.library_file, link=False) as (data_from, data_to):
+        if args.obj_name in data_from.objects:
+            data_to.objects = [args.obj_name]
+
+    if data_to.objects:
+        obj = data_to.objects[0]
+        if obj and obj.type == args.obj_type:
+            obj.location = tuple(args.obj_location)
+            obj.rotation_euler = tuple(args.obj_rotation)
+            obj.scale = tuple(args.obj_scale)
+            bpy.context.collection.objects.link(obj)
+            bpy.context.view_layer.objects.active = obj
+            obj.select_set(True)
+
+            output_path = Path(args.output_file)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            bpy.ops.wm.save_as_mainfile(filepath=str(output_path), check_existing=False)
+            return
+        if obj:
+            bpy.data.objects.remove(obj)
+
+    # Fallback for libraries that only contain raw data blocks.
     with bpy.data.libraries.load(args.library_file, link=False) as (data_from, data_to):
         # Load object data based on type
         obj_type = args.obj_type

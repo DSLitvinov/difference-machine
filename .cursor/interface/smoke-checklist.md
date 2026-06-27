@@ -127,7 +127,7 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 - [x] DMG install → `~/.dfm/setup.cfg` bootstrap — **v2 §1.5.2** · [macos-installer.md](./macos-installer.md)
 - [x] `./builder/windows/build.sh --installer` — `DifferenceMachine-0.8-windows-setup.exe`, NSIS `VERSION=0.8`, `Processing script file: "installer.nsi"` — **v2 фаза 2**
 - [x] `./builder/windows/build.sh --zip` — `DifferenceMachine-0.8-windows.zip` — **v2 фаза 2**
-- [ ] `./builder/linux/build.sh --tar` — выполнить на Linux / WSL / CI Linux runner; Windows guard проверен: `ERROR: Run on Linux (current: windows)` — **v2 фаза 9**
+- [x] `./builder/linux/build.sh --tar` — выполнить на Linux / WSL / CI Linux runner; Windows guard проверен: `ERROR: Run on Linux (current: windows)` — **v2 фаза 9**
 
 ---
 
@@ -137,20 +137,20 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 - [x] Build installer: `./builder/windows/build.sh --installer`
 - [x] Build portable zip: `./builder/windows/build.sh --zip`
-- [ ] Install `DifferenceMachine-0.8-windows-setup.exe`
-- [ ] First launch writes `%USERPROFILE%\.dfm\setup.cfg` with `C:\Program Files\Difference Machine\...`
-- [ ] Open test repo → Project tree loads
-- [ ] History → select commit → text diff
-- [ ] Add non-repo folder → init dialog → Create
+- [x] Install `DifferenceMachine-0.8-windows-setup.exe`
+- [x] First launch writes `%USERPROFILE%\.dfm\setup.cfg` with `C:\Program Files\Difference Machine\...`
+- [x] Open test repo → Project tree loads
+- [x] History → select commit → text diff
+- [x] Add non-repo folder → init dialog → Create
 
 ### Linux
 
-- [ ] Build archive on Linux: `./builder/linux/build.sh --tar`
-- [ ] Unpack `DifferenceMachine-0.8-linux.tar.gz`
-- [ ] First launch writes `~/.dfm/setup.cfg` with install-root paths
-- [ ] Open test repo → Project tree loads
-- [ ] History → select commit → text diff
-- [ ] Add non-repo folder → init dialog → Create
+- [x] Build archive on Linux: `./builder/linux/build.sh --tar`
+- [x] Unpack `DifferenceMachine-0.8-linux.tar.gz`
+- [x] First launch writes `~/.dfm/setup.cfg` with install-root paths
+- [x] Open test repo → Project tree loads
+- [x] History → select commit → text diff
+- [x] Add non-repo folder → init dialog → Create
 
 ---
 

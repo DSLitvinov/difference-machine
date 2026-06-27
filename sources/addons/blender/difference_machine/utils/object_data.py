@@ -5,6 +5,8 @@ Provides functions to extract, save, and load object data for history tracking.
 
 import json
 import logging
+import os
+import tempfile
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from functools import lru_cache
@@ -20,6 +22,25 @@ CHANGE_TYPE_MAJOR = "MAJOR"
 CHANGE_TYPE_MINOR = "MINOR"
 CHANGE_TYPE_MOVED = "MOVED"
 CHANGE_TYPE_RECORD = "RECORD"
+
+
+def _atomic_write_json(path: Path, data: Dict[str, Any]) -> None:
+    """Write JSON through a same-directory temp file, then atomically replace."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_name, path)
+    except Exception:
+        try:
+            os.unlink(tmp_name)
+        except OSError:
+            pass
+        raise
 
 
 def extract_object_data(obj: bpy.types.Object, depsgraph: Optional[bpy.types.Depsgraph] = None) -> Dict[str, Any]:
@@ -140,7 +161,8 @@ def save_object_data(commit_hash: str, objects: List[bpy.types.Object], file_pat
                 with open(json_path, 'r', encoding='utf-8') as f:
                     all_data = json.load(f)
             except Exception as e:
-                logger.warning(f"Failed to load existing object data: {e}")
+                logger.error(f"Refusing to overwrite unreadable object data: {e}")
+                return False
         
         # Update with new data
         if file_path_str not in all_data:
@@ -148,8 +170,8 @@ def save_object_data(commit_hash: str, objects: List[bpy.types.Object], file_pat
         all_data[file_path_str].update(objects_data)
         
         # Save to JSON
-        with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(all_data, f, indent=2, ensure_ascii=False)
+        _atomic_write_json(json_path, all_data)
+        load_object_data.cache_clear()
         
         logger.debug(f"Saved object data for {len(objects)} objects to {json_path}")
         return True

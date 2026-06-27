@@ -35,6 +35,20 @@ def _transform_path_from_history(path: str) -> str:
     return path
 
 
+def _resolve_repo_asset_path(repo_path: Path, asset_path: str) -> Optional[Path]:
+    """Resolve an asset path and reject paths outside the repository."""
+    transformed_path = _transform_path_from_history(asset_path)
+    repo_root = repo_path.resolve()
+    candidate = Path(transformed_path)
+    absolute_path = candidate.resolve() if candidate.is_absolute() else (repo_root / candidate).resolve()
+    try:
+        absolute_path.relative_to(repo_root)
+    except ValueError:
+        logger.warning("Skipping asset path outside repository: %s", asset_path)
+        return None
+    return absolute_path
+
+
 def fix_retrieved_assets(assets: List[Dict[str, Any]], repo_path: Path) -> None:
     """
     Fix asset paths for retrieved objects from commit history.
@@ -63,15 +77,10 @@ def fix_retrieved_assets(assets: List[Dict[str, Any]], repo_path: Path) -> None:
             continue
         
         try:
-            # Transform path
-            transformed_path = _transform_path_from_history(asset_path)
-            
-            # Resolve absolute path relative to repo
-            if not Path(transformed_path).is_absolute():
-                absolute_path = (repo_path / transformed_path).resolve()
-            else:
-                absolute_path = Path(transformed_path).resolve()
-            
+            absolute_path = _resolve_repo_asset_path(repo_path, asset_path)
+            if absolute_path is None:
+                continue
+
             # Update asset based on type
             if asset_type == 'IMAGE':
                 _fix_image_path(absolute_path, asset_info)
