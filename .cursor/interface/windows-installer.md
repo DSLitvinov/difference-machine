@@ -14,8 +14,10 @@ Default install path (64-bit):
 
 ```
 C:\Program Files\Difference Machine\
-├── difference-machine.exe      GUI
-├── bin\forester.exe            Forester CLI
+├── difference-machine.exe      GUI (embedded icon from build/windows/icon.ico)
+├── bin\forester.exe            Forester CLI (embedded icon via go-winres)
+├── bin\forester.ico            Forester icon resource (reference copy)
+├── bin\ffmpeg.exe              bundled ffmpeg (BtbN static build)
 ├── lib\forester.dll            Forester API
 ├── addons\blender\
 │   └── difference_machine.zip
@@ -39,7 +41,8 @@ Built by `builder/windows/package_nsis.sh` using `builder/windows/installer.nsi`
 |---------|--------|
 | Install dir | `$PROGRAMFILES64\Difference Machine` |
 | Start menu | Shortcut to GUI + Uninstall |
-| Uninstall | Settings → Apps, or Start menu |
+| Desktop | Shortcut to GUI (`$DESKTOP\Difference Machine.lnk`, icon from exe) |
+| Uninstall | Settings → Apps, Start menu, or desktop shortcut removed on uninstall |
 | Admin | `RequestExecutionLevel admin` |
 
 **Requires:** [NSIS](https://nsis.sourceforge.io/Download) (`makensis` on PATH, or default install path).
@@ -53,6 +56,7 @@ Created on first launch of **difference-machine.exe** (`internal/install/bootstr
 ```ini
 [forester]
 path = C:\Program Files\Difference Machine\bin\forester.exe
+ffmpeg_path = C:\Program Files\Difference Machine\bin\ffmpeg.exe
 
 [api]
 path = C:\Program Files\Difference Machine\lib\forester.dll
@@ -65,7 +69,18 @@ Paths use native Windows separators after `CanonicalAbsPath`.
 
 ---
 
-## 4. Forester CLI
+## 4. App icons
+
+| App | Build output | Where it appears |
+|-----|--------------|------------------|
+| **GUI** | `sources/gui/build/windows/icon.ico` (from `npm run icons:generate`) | Embedded in `difference-machine.exe`; Start menu + desktop shortcuts |
+| **Forester CLI** | `sources/forester/icons/build/forester.ico` (go-winres at build time) | Embedded in `forester.exe`; `bin\forester.ico` copy in payload |
+
+Both use a macOS-style **squircle** background (superellipse n=5, 824px live area on 1024 canvas). Regenerate: GUI — `cd sources/gui/frontend && npm run icons:generate`; Forester — `bash builder/scripts/generate_forester_icons.sh`.
+
+---
+
+## 5. Forester CLI
 
 | Approach | How |
 |----------|-----|
@@ -74,22 +89,22 @@ Paths use native Windows separators after `CanonicalAbsPath`.
 
 ---
 
-## 5. User steps
+## 6. User steps
 
 1. Run **DifferenceMachine-*-windows-setup.exe** and complete the wizard.
-2. Launch **Difference Machine** from the Start menu once (extracts addon zip, writes `setup.cfg`).
+2. Launch **Difference Machine** from the Start menu or desktop shortcut once (extracts addon zip, writes `setup.cfg`).
 3. Install Blender addon from **`addons\blender\difference_machine.zip`** (Install from Disk in Blender), or symlink after step 2.
 4. Open Blender and enable the **Difference Machine** extension.
 
 ---
 
-## 6. Code signing
+## 7. Code signing
 
 `builder/windows/package_nsis.sh` does **not** Authenticode-sign the installer. For distribution outside your machine, sign `*-windows-setup.exe` before release to reduce SmartScreen warnings.
 
 ---
 
-## 7. Build commands
+## 8. Build commands
 
 ```bash
 ./builder/windows/build.sh --installer

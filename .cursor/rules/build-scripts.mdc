@@ -16,9 +16,10 @@ Platform installers (DMG, tar.gz, NSIS) live under `builder/macos/`, `builder/li
 
 ```
 builder/dist/payload/
-├── bin/           Forester CLI
+├── bin/           Forester CLI + ffmpeg (+ forester.ico on Windows)
 ├── lib/           Native API library
 ├── apps/          Forester GUI (macOS .app, Linux binary, Windows .exe, optional --gui)
+├── share/icons/   Forester hicolor icons (Linux)
 ├── addons/blender/difference_machine/
 │   └── api/       Native lib + python/ bindings (embedded at build time)
 ├── manifest.json

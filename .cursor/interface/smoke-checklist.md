@@ -138,17 +138,30 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 - [x] Build installer: `./builder/windows/build.sh --installer`
 - [x] Build portable zip: `./builder/windows/build.sh --zip`
 - [x] Install `DifferenceMachine-0.8-windows-setup.exe`
+- [x] Start menu + **desktop** shortcuts to GUI
+- [x] GUI / Forester exe icons visible in Explorer (embedded `.ico`)
 - [x] First launch writes `%USERPROFILE%\.dfm\setup.cfg` with `C:\Program Files\Difference Machine\...`
 - [x] Open test repo → Project tree loads
+- [x] Raster image file → thumbnail in grid (requires bundled `bin\ffmpeg.exe`)
 - [x] History → select commit → text diff
 - [x] Add non-repo folder → init dialog → Create
+
+### macOS
+
+- [x] Build DMG: `./builder/macos/build.sh --dmg`
+- [x] Dock icons: squircle sizing matches adjacent apps (GUI + Forester)
+- [x] `Forester.app` double-click → Terminal with `forester` on PATH
+- [x] Image previews work with bundled ffmpeg in `.app/Contents/Resources/bin/`
+- [x] First launch → `~/.dfm/setup.cfg` bootstrap
 
 ### Linux
 
 - [x] Build archive on Linux: `./builder/linux/build.sh --tar`
 - [x] Unpack `DifferenceMachine-0.8-linux.tar.gz`
+- [x] `sudo ./install.sh` → symlinks, menu `.desktop`, Forester icons in share
 - [x] First launch writes `~/.dfm/setup.cfg` with install-root paths
 - [x] Open test repo → Project tree loads
+- [x] Raster image file → thumbnail in grid (requires bundled `bin/ffmpeg`)
 - [x] History → select commit → text diff
 - [x] Add non-repo folder → init dialog → Create
 
@@ -159,3 +172,5 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 **2025-06-24 — smoke complete.** Критичных блокеров не зафиксировано. Доп. UI после smoke-прогона: lock badge в Content Preview, `FolderIcon` (Figma 4026:5054), untracked badge `N`, цветные VCS badges (`vcsBadge.ts`).
 
 **2026-06-25 — release hardening.** Windows installer/zip build verified locally on Windows via Git Bash. Linux release build requires a Linux runtime; WSL and Docker are not available on this host.
+
+**2026-06-27 — packaging polish.** Specs updated for squircle app icons, Windows desktop shortcut, macOS ffmpeg via Homebrew, Linux Forester icon install. See [implementation-plan-v2.md §v2.3](./implementation-plan-v2.md).

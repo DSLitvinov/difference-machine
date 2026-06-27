@@ -53,6 +53,17 @@ for lib in "${STAGING_DIR}/lib/"*.so "${STAGING_DIR}/lib/"*.dylib "${STAGING_DIR
 done
 chmod +x "${DFM_DIST}/bin/"* 2>/dev/null || true
 chmod +x "${DFM_DIST}/lib/"*.so "${DFM_DIST}/lib/"*.dylib 2>/dev/null || true
+
+if [ -d "${STAGING_DIR}/icons/share" ]; then
+    mkdir -p "${DFM_DIST}/share"
+    cp -R "${STAGING_DIR}/icons/share/." "${DFM_DIST}/share/"
+    echo -e "${GREEN}✓ share/icons/ (Forester)${NC}"
+fi
+if [ "${CURRENT_OS}" = "windows" ] && [ -f "${STAGING_DIR}/icons/forester.ico" ]; then
+    cp "${STAGING_DIR}/icons/forester.ico" "${DFM_DIST}/bin/forester.ico"
+    echo -e "${GREEN}✓ bin/forester.ico${NC}"
+fi
+
 echo -e "${GREEN}✓ bin/ and lib/${NC}"
 
 echo ""

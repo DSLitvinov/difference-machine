@@ -45,7 +45,9 @@ cd "Difference Machine"
 sudo ./install.sh                     # → /opt/Difference Machine/
 ```
 
-`install.sh` copies the payload to `/opt`, writes Forester/API paths in `~/.dfm/setup.cfg`, and creates `/usr/local/bin` symlinks plus a `.desktop` entry. Install the Blender addon from `addons/blender/difference_machine.zip` in Blender. Use `./install.sh --user` for a home-directory install without sudo.
+`install.sh` copies the payload to `/opt`, writes Forester/API paths in `~/.dfm/setup.cfg`, and creates `/usr/local/bin` symlinks, a **applications menu** `.desktop` entry, and Forester hicolor icons. Install the Blender addon from `addons/blender/difference_machine.zip` in Blender. Use `./install.sh --user` for a home-directory install without sudo.
+
+See [.cursor/interface/linux-installer.md](../.cursor/interface/linux-installer.md) for install layout and icon paths.
 
 ### Windows (Git Bash / MSYS2)
 
@@ -76,9 +78,10 @@ builder/
 
 ```
 payload/
-├── bin/                 Forester CLI + bundled ffmpeg
+├── bin/                 Forester CLI + bundled ffmpeg (+ forester.ico on Windows)
 ├── lib/                 Native API
 ├── apps/                GUI (optional --gui)
+├── share/icons/         Forester hicolor icons (Linux)
 ├── addons/blender/difference_machine/
 ├── manifest.json
 ├── setup.cfg.template
@@ -120,9 +123,10 @@ Build targets are layered: **base** (Forester CLI + addon staging), **GUI** (`--
 | **Go 1.22+** | Forester CLI, native API (`c-shared`), Wails backend |
 | **C compiler** | Native API library (`libforester`); optional for CLI-only if API build is skipped |
 | **git** | Version metadata in binaries (optional; falls back to `unknown`) |
-| **curl** or **wget** | Download bundled `ffmpeg` into `bin/` (auto-fetched during build) |
-| **unzip** (macOS/Windows ffmpeg) | Extract ffmpeg zip archives |
+| **curl** or **wget** | Download bundled `ffmpeg` into `bin/` (Windows/Linux; auto-fetched during build) |
+| **unzip** (Windows ffmpeg) | Extract ffmpeg zip archives |
 | **tar** + **xz** (Linux ffmpeg) | Extract ffmpeg `.tar.xz` archives |
+| **ffmpeg** (macOS only) | Stage from Homebrew or `DFM_FFMPEG_PATH` — BtbN has no macOS builds |
 
 Runtime (not a build dependency): **Blender 4.5.0+** to use the staged addon.
 
@@ -132,7 +136,7 @@ Adds a Wails v2 desktop app (`sources/gui`). Checked by `scripts/lib/wails_toolc
 
 | Tool | Used for |
 |------|----------|
-| **Node.js 20+** | Frontend build (React/Vite) |
+| **Node.js 20+** | Frontend build (React/Vite) + icon generation (`npm run icons:generate`) |
 | **npm** | Frontend dependencies |
 | **Wails v2 CLI** | `wails build` (auto-installed via `go install` when `INSTALL_WAILS=true`, default) |
 
@@ -151,7 +155,7 @@ Platform-specific GUI dependencies come from **Wails on Linux** (GTK + WebKitGTK
 ```bash
 # Typical dev setup
 xcode-select --install
-brew install go node
+brew install go node ffmpeg   # ffmpeg required for release build + image previews
 ```
 
 ### Linux
@@ -210,9 +214,19 @@ wails doctor
 | `INSTALL_WAILS` | `true` | Auto-install Wails CLI when missing |
 | `FFMPEG_SKIP` | `false` | Skip downloading bundled ffmpeg |
 | `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if cached |
+| `DFM_FFMPEG_PATH` | — | macOS: explicit ffmpeg binary to stage into payload |
 | `DFM_DIST` | `builder/dist/payload` | Override staging output path |
 
-**ffmpeg cache:** `builder/.cache/ffmpeg/` — archives + extracted binary; preserved across `clean_build.sh`. Reused from `dist/payload/bin/` when staging is empty.
+**ffmpeg cache:** `builder/.cache/ffmpeg/` — archives + extracted binary (Windows/Linux); preserved across `clean_build.sh`. Reused from `dist/payload/bin/` when staging is empty. **macOS:** no BtbN download — copies from Homebrew (`brew install ffmpeg`) or `DFM_FFMPEG_PATH`.
+
+### App icons
+
+| App | Regenerate | Output |
+|-----|------------|--------|
+| GUI | `cd sources/gui/frontend && npm run icons:generate` | `sources/gui/build/appicon.png`, `build/windows/icon.ico` |
+| Forester | `bash builder/scripts/generate_forester_icons.sh` | `sources/forester/icons/build/` (PNG, `.ico`, `.icns`, Linux hicolor) |
+
+Both use squircle masking via `builder/scripts/lib/icon-squircle.mjs`. GUI icons run automatically in `build_gui.sh`; Forester icons run in `build_forester.sh`.
 
 See [scripts/README.md](scripts/README.md) for script-level details.
 

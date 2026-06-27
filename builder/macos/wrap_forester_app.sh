@@ -5,6 +5,7 @@ set -euo pipefail
 
 PLATFORM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILDER_DIR="$(cd "${PLATFORM_DIR}/.." && pwd)"
+PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
 SCRIPTS_DIR="${BUILDER_DIR}/scripts"
 
 # shellcheck source=../scripts/lib/detect_platform.sh
@@ -32,6 +33,17 @@ VERSION="$(head -1 "${DFM_DIST}/VERSION" 2>/dev/null || echo "1.0")"
 APP_BUNDLE_VERSION="${VERSION}"
 
 mkdir -p "${OUT_DIR}"
+
+FORESTER_APP_ICON="${BUILDER_DIR}/.staging/forester/icons/AppIcon.icns"
+if [ ! -f "${FORESTER_APP_ICON}" ]; then
+    FORESTER_APP_ICON="${PROJECT_ROOT}/sources/forester/icons/build/AppIcon.icns"
+fi
+if [ -f "${FORESTER_APP_ICON}" ]; then
+    export FORESTER_APP_ICON
+    echo "Using Forester app icon: ${FORESTER_APP_ICON}"
+else
+    echo "Warning: Forester AppIcon.icns not found (run build_forester.sh on macOS first)"
+fi
 
 create_forester_console_app "${OUT_DIR}" "${FORESTER_BIN}"
 

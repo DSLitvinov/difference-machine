@@ -79,9 +79,9 @@ History:
 
 Вертикальный stack `flex flex-col h-full` (сверху вниз):
 
-| # | Элемент | Иконка (lucide) | Действие |
-|---|---------|-----------------|----------|
-| 1 | App / home | `GalleryVerticalEnd` | Зарезервировано (About — [application-menu.md](./application-menu.md) §2.1) |
+| # | Элемент | Иконка | Действие |
+|---|---------|--------|----------|
+| 1 | App / home | `32.svg` app icon (`SidebarRail`) | Зарезервировано (About — [application-menu.md](./application-menu.md) §2.1) |
 | 2 | Project view | `FolderGit2` | `sidebarMode = 'project'` |
 | 3 | History | `GitFork` | `sidebarMode = 'history'` |
 | — | *(spacer)* | — | `flex-1` между **header** (home + modes) и **footer** |

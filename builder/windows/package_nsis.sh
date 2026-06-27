@@ -71,7 +71,7 @@ Difference Machine — Windows install
 
 Installed to: C:\\Program Files\\${INSTALL_FOLDER_NAME}\\
 
-1. Launch ${GUI_DEST_NAME} from the Start menu once.
+1. Launch ${GUI_DEST_NAME} from the Start menu or desktop shortcut once.
 2. Install Blender addon from addons\\blender\\difference_machine.zip.
 3. Uninstall: Settings → Apps → Difference Machine.
 

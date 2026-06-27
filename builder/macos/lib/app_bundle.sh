@@ -118,13 +118,21 @@ open "${TMP_SCRIPT}"
 LAUNCHER
 
     chmod +x "${macos_dir}/${launcher_name}"
-    write_app_info_plist "${contents}/Info.plist" "${bundle_name}" "${launcher_name}"
+
+    local icon_name=""
+    if [ -n "${FORESTER_APP_ICON:-}" ] && [ -f "${FORESTER_APP_ICON}" ]; then
+        cp "${FORESTER_APP_ICON}" "${resources_dir}/AppIcon.icns"
+        icon_name="AppIcon"
+    fi
+
+    write_app_info_plist "${contents}/Info.plist" "${bundle_name}" "${launcher_name}" "${icon_name}"
 }
 
 write_app_info_plist() {
     local plist_path="$1"
     local bundle_name="$2"
     local exec_name="$3"
+    local icon_name="${4:-}"
 
     cat > "${plist_path}" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -145,6 +153,16 @@ write_app_info_plist() {
     <string>${APP_BUNDLE_VERSION:-1.0}</string>
     <key>CFBundleVersion</key>
     <string>${APP_BUNDLE_VERSION:-1}</string>
+EOF
+
+    if [ -n "${icon_name}" ]; then
+        cat >> "${plist_path}" << EOF
+    <key>CFBundleIconFile</key>
+    <string>${icon_name}</string>
+EOF
+    fi
+
+    cat >> "${plist_path}" << EOF
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.developer-tools</string>
     <key>LSMinimumSystemVersion</key>

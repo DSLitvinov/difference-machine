@@ -1,19 +1,18 @@
 /**
- * Renders app icons from the master SVG (256 viewBox, 12% glyph safe zone).
- * Outputs: build/appicon.png, build/windows/icon.ico, PNG sizes for Linux packaging.
- *
- * Requires: npm install (includes @resvg/resvg-js as devDependency)
+ * Sync SVG icon sizes and render Wails / Windows raster assets.
  */
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
 import pngToIco from "png-to-ico";
+import { buildIconSvg, ICON_SIZES } from "./icon-assets.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const frontendDir = join(__dirname, "..");
 const guiDir = join(frontendDir, "..");
-const masterSvg = join(frontendDir, "src/assets/images/256.svg");
+const imagesDir = join(frontendDir, "src/assets/images");
+const masterSvgPath = join(imagesDir, "256.svg");
 
 function renderPng(svg, size) {
   const resvg = new Resvg(svg, {
@@ -23,26 +22,30 @@ function renderPng(svg, size) {
   return resvg.render().asPng();
 }
 
-const svg = readFileSync(masterSvg, "utf8");
+for (const size of ICON_SIZES) {
+  const svg = buildIconSvg(size);
+  writeFileSync(join(imagesDir, `${size}.svg`), svg);
+}
+writeFileSync(join(frontendDir, "public/icon.svg"), buildIconSvg(32));
+console.log(`Synced SVG icons (${ICON_SIZES.join(", ")}px + favicon)`);
+
+const svg = readFileSync(masterSvgPath, "utf8");
 
 const buildDir = join(guiDir, "build");
 const windowsDir = join(buildDir, "windows");
-const shareIconsDir = join(guiDir, "frontend/src/assets/images/export");
+const exportDir = join(imagesDir, "export");
 mkdirSync(windowsDir, { recursive: true });
-mkdirSync(shareIconsDir, { recursive: true });
+mkdirSync(exportDir, { recursive: true });
 
-const appicon = renderPng(svg, 1024);
-writeFileSync(join(buildDir, "appicon.png"), appicon);
+writeFileSync(join(buildDir, "appicon.png"), renderPng(svg, 1024));
 console.log("Wrote build/appicon.png (1024x1024)");
 
 const icoSizes = [16, 24, 32, 48, 64, 128, 256];
 for (const size of icoSizes) {
-  const png = renderPng(svg, size);
-  writeFileSync(join(shareIconsDir, `${size}.png`), png);
+  writeFileSync(join(exportDir, `${size}.png`), renderPng(svg, size));
 }
 console.log(`Wrote PNG exports (${icoSizes.join(", ")}px)`);
 
-const icoInputs = icoSizes.map((size) => join(shareIconsDir, `${size}.png`));
-const ico = await pngToIco(icoInputs);
+const ico = await pngToIco(icoSizes.map((size) => join(exportDir, `${size}.png`)));
 writeFileSync(join(windowsDir, "icon.ico"), ico);
 console.log("Wrote build/windows/icon.ico");

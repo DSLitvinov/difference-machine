@@ -377,6 +377,25 @@ if [ "${CREATE_DESKTOP}" = true ]; then
     create_desktop_entry
 fi
 
+install_forester_icons() {
+    local src="${INSTALL_ROOT}/share/icons"
+    if [ ! -d "${src}" ]; then
+        return 0
+    fi
+    local dest
+    if [ "${USER_MODE}" = true ]; then
+        dest="$(resolve_target_home)/.local/share/icons"
+    else
+        dest="/usr/local/share/icons"
+        mkdir -p "${dest}"
+    fi
+    mkdir -p "${dest}"
+    cp -R "${src}/." "${dest}/"
+    echo "Forester icons: ${dest}/"
+}
+
+install_forester_icons
+
 echo ""
 echo "Install complete: ${INSTALL_ROOT}"
 echo "Launch GUI: ${INSTALL_ROOT}/${GUI_BIN_NAME}"

@@ -13,10 +13,12 @@ User drags the **`Difference Machine`** folder from the DMG into **Applications*
 
 ```
 /Applications/Difference Machine/
-├── Difference Machine.app      GUI
-├── Forester.app                CLI (Terminal console app)
+├── Difference Machine.app      GUI (AppIcon.icns from Wails build)
+├── Forester.app                CLI console app (AppIcon.icns, Terminal launcher)
 └── addons/blender/difference_machine.zip
 ```
+
+**Bundled ffmpeg:** copied into `Forester.app/Contents/Resources/bin/ffmpeg` and `Difference Machine.app/Contents/Resources/bin/ffmpeg` during release build. On macOS, BtbN static builds are unavailable — the build stages ffmpeg from Homebrew (`brew install ffmpeg`) or `DFM_FFMPEG_PATH`. GUI startup also sets `DFM_FFMPEG_PATH` and writes `[forester] ffmpeg_path` in `setup.cfg` when detected.
 
 After first launch of **Difference Machine.app**, the zip is extracted to `addons/blender/difference_machine/` for `~/.dfm/setup.cfg` bootstrap.
 
@@ -57,9 +59,28 @@ diffmachine_path = /Applications/Difference Machine/addons/blender/difference_ma
 
 Legacy layouts (`Contents/MacOS/Forester` launcher or `Contents/MacOS/forester` binary) are still detected if the `bin` wrapper is absent.
 
+Optional explicit ffmpeg path (written by GUI on startup when bundled ffmpeg is found):
+
+```ini
+ffmpeg_path = /Applications/Difference Machine/Forester.app/Contents/Resources/bin/ffmpeg
+```
+
 ---
 
-## 4. Forester CLI in Terminal
+## 4. App icons
+
+| App | Source | Bundle |
+|-----|--------|--------|
+| **GUI** | `sources/gui/frontend/src/assets/images/*.svg` → `build/appicon.png` | `Difference Machine.app` Dock / Finder icon |
+| **Forester** | `sources/forester/icons/source.svg` → `AppIcon.icns` | `Forester.app` (`CFBundleIconFile`) |
+
+Both icons use a macOS **squircle** clip (superellipse n=5) with 824px glyph live area on a 1024px canvas so Dock sizing matches system apps. Regenerate: GUI — `npm run icons:generate` in `sources/gui/frontend`; Forester — `bash builder/scripts/generate_forester_icons.sh`.
+
+In-app: Rail home button shows `32.svg`; favicon `frontend/public/icon.svg`.
+
+---
+
+## 5. Forester CLI in Terminal
 
 Industry pattern (VS Code `code`, Docker `docker`, Kumo `kumo`):
 
@@ -73,7 +94,7 @@ Industry pattern (VS Code `code`, Docker `docker`, Kumo `kumo`):
 
 ---
 
-## 5. User steps (README at DMG root)
+## 6. User steps (README at DMG root)
 
 1. Drag **`Difference Machine`** folder to Applications.
 2. Install Blender addon from **`addons/blender/difference_machine.zip`** (Install from Disk in Blender), or symlink after step 3.
@@ -84,6 +105,6 @@ Industry pattern (VS Code `code`, Docker `docker`, Kumo `kumo`):
 
 ---
 
-## 6. Related specs
+## 7. Related specs
 
 - [paths.md §2](./paths.md) · [multi-repo.md](./multi-repo.md)

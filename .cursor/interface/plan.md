@@ -21,6 +21,8 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 - [settings-dialog.md](./settings-dialog.md) — настройки (Rail ⚙)
 - [application-menu.md](./application-menu.md) — нативное меню macOS (View / Edit / Window)
 - [macos-installer.md](./macos-installer.md) — DMG, `Forester.app`, `~/.dfm/setup.cfg` bootstrap
+- [windows-installer.md](./windows-installer.md) — NSIS, Start menu + desktop shortcuts
+- [linux-installer.md](./linux-installer.md) — tar.gz, `install.sh`, menu `.desktop`, Forester icons
 - архитектура side bar в двух версиях:
   - [sidebar-project-view.md](./sidebar-project-view.md) — папки рабочей директории
   - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
@@ -65,6 +67,6 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 
 **v1.1 (polish):** multiselect (Shift/marquee), virtual scroll, dark theme, commit card stats + full ⋮ menu, fully expanded tree, Settings (Appearance + External editors). Thumbnails (images + `.blend`) — v1.0+.
 
-**Текущий статус:** v1/v1.1 и v2 feature scope закрыты; добавлено: External editors (активная вкладка, Blender paths), file context menu (rename / edit in / trash delete), ffmpeg build cache. Активно: Windows smoke и Linux build/QA ([implementation-plan-v2.md](./implementation-plan-v2.md)).
+**Текущий статус:** v1/v1.1 и v2 feature scope закрыты; добавлено: External editors, file context menu, ffmpeg build cache + macOS Homebrew staging, app icons (GUI + Forester, squircle), Windows desktop shortcut. Активно: platform smoke ([implementation-plan-v2.md](./implementation-plan-v2.md)).
 
 Канон API/events: [api-contract.md](./api-contract.md). Порядок реализации: [decisions.md §4](./decisions.md) · [api-contract.md §7](./api-contract.md).

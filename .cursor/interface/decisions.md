@@ -185,6 +185,13 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 - Пути кэша по платформе совпадают с `get_thumb_dir` в Blender (`~/.thumbnails` на Win/macOS; `$XDG_CACHE_HOME/thumbnails` на Linux).
 - History diff для `.blend` — по-прежнему `commit.get` screenshot ([§7.8](#78-screenshot-для-blend)), не `workdir.thumbnail`.
 
+### 7.10 Raster image thumbnails (ffmpeg)
+
+- **v2.3+:** все raster previews (`workdir.thumbnail`, `kind: image`) генерируются через **ffmpeg** (max edge 512px), не raw file bytes.
+- Без ffmpeg → `kind: placeholder` (stub icon в grid/Info).
+- Bundled `bin/ffmpeg` в release; macOS build требует Homebrew ffmpeg или `DFM_FFMPEG_PATH`.
+- См. [api-contract.md §4.3.1](./api-contract.md).
+
 ---
 
 ## 8. UX — зафиксированные правила

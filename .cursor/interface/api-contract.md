@@ -269,8 +269,20 @@ Default `limit`: 200.
 
 Расширения: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.exr`, `.tiff`, `.tif`, `.bmp`.
 
-- Файл ≤ 5 MB → `kind: "image"`, raw bytes в base64.
-- Файл > 5 MB → `kind: "placeholder"`.
+- Файл ≤ 64 MiB → **ffmpeg** масштабирует до max edge 512px → `kind: "image"`, PNG в base64.
+- Файл > 64 MiB или ffmpeg недоступен → `kind: "placeholder"`.
+
+**ffmpeg resolution order** (backend `resolveFFmpegPath` / GUI `EnsureFFmpegEnv`):
+
+1. `DFM_FFMPEG_PATH` env
+2. `[forester] ffmpeg_path` or sibling of `[forester] path` in `~/.dfm/setup.cfg`
+3. Bundled `bin/ffmpeg` next to Forester / GUI executable
+4. macOS Homebrew: `/opt/homebrew/bin/ffmpeg`, `/usr/local/bin/ffmpeg`
+5. `PATH` (`exec.LookPath`)
+
+Release builds bundle ffmpeg in `bin/` (Windows/Linux via BtbN; macOS via Homebrew at build time). Без ffmpeg raster previews показывают stub icon.
+
+Реализация: `workdir_thumbnail_ffmpeg.go`.
 
 #### 4.3.2 `.blend` — Blender thumbnails (cross-platform)
 

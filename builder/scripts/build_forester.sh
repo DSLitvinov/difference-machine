@@ -47,6 +47,9 @@ echo ""
 
 mkdir -p "${STAGING_DIR}/bin" "${STAGING_DIR}/lib"
 
+echo "=== Generate Forester icons ==="
+bash "${SCRIPT_DIR}/generate_forester_icons.sh"
+
 cd "${FORESTER_DIR}"
 go mod download
 go mod tidy
@@ -57,7 +60,26 @@ LDFLAGS="-X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitC
 
 CLI_OUT="${STAGING_DIR}/bin/${FORESTER_CLI_NAME}"
 echo "=== Building CLI ==="
+
+FORESTER_ICO="${FORESTER_DIR}/icons/build/forester.ico"
+WINDOWS_SYSO=""
+if [ "${CURRENT_OS}" = "windows" ] && [ -f "${FORESTER_ICO}" ]; then
+    WINDOWS_SYSO="${FORESTER_DIR}/cmd/forester/forester_windows.syso"
+    echo "=== Embed Windows icon ==="
+    if GO111MODULE=on go run github.com/tc-hib/go-winres@v0.3.3 simply \
+        --icon "${FORESTER_ICO}" \
+        --out "${WINDOWS_SYSO}" 2>/dev/null; then
+        echo -e "${GREEN}✓ Windows resource: ${WINDOWS_SYSO}${NC}"
+    else
+        echo -e "${YELLOW}⚠ go-winres failed — building forester.exe without embedded icon${NC}"
+        WINDOWS_SYSO=""
+    fi
+fi
+
 go build -ldflags "${LDFLAGS}" -o "${CLI_OUT}" ./cmd/forester
+if [ -n "${WINDOWS_SYSO}" ] && [ -f "${WINDOWS_SYSO}" ]; then
+    rm -f "${WINDOWS_SYSO}"
+fi
 chmod +x "${CLI_OUT}" 2>/dev/null || true
 
 echo "=== Building API (c-shared) ==="
@@ -92,4 +114,10 @@ if [ "${CURRENT_OS}" = "windows" ]; then
     fi
 else
     bash "${SCRIPT_DIR}/fetch_ffmpeg.sh"
+fi
+
+if [ -d "${FORESTER_DIR}/icons/build" ]; then
+    mkdir -p "${STAGING_DIR}/icons"
+    cp -R "${FORESTER_DIR}/icons/build/." "${STAGING_DIR}/icons/"
+    echo -e "${GREEN}✓ Forester icons staged${NC}"
 fi
