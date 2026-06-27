@@ -46,6 +46,17 @@ ensure_wails_cli || exit 1
 
 echo -e "${GREEN}✓ Wails: $(wails version 2>/dev/null | head -1 || wails --version 2>/dev/null || echo wails)${NC}"
 run_wails_doctor_summary
+
+echo ""
+echo "=== Generate app icons ==="
+(
+    cd "${GUI_DIR}/frontend"
+    if [ ! -d node_modules ]; then
+        npm install
+    fi
+    npm run icons:generate
+)
+
 run_wails_build "${GUI_DIR}"
 
 BUILD_BIN="${GUI_DIR}/build/bin"

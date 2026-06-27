@@ -28,6 +28,13 @@ From the project root:
 # Output: builder/dist/payload/apps/
 ```
 
+App icons (SVG sources in `frontend/src/assets/images/`, Wails `build/appicon.png` and `build/windows/icon.ico`) are regenerated automatically during `./builder/scripts/build_gui.sh`. To refresh manually:
+
+```bash
+cd sources/gui/frontend
+npm run icons:generate
+```
+
 Platform release examples:
 
 ```bash

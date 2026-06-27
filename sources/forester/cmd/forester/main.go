@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/difference-machine/forester/internal/commands"
+	"github.com/difference-machine/forester/internal/completion"
 	"github.com/difference-machine/forester/internal/jsonapi"
 )
 
@@ -83,6 +84,7 @@ var subcommands = map[string]func([]string) error{
 	"clean":        commands.Clean,
 	"cherry-pick":  commands.CherryPick,
 	"api":          jsonapi.RunCLI,
+	"completion":   completion.Run,
 }
 
 func printUsage() {
