@@ -21,10 +21,12 @@ import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { fetchRepoUser } from "@/wails/bridge";
 import {
+  fetchStatus,
   fetchLockList,
   fetchFileLog,
   fetchWorkdirMetadata,
   indexAddFiles,
+  type StatusPayload,
   vcsFileStatus,
 } from "@/wails/forester";
 
@@ -218,10 +220,31 @@ async function openCreateCommit(
   }
   if (warning) setNotice(warning);
   try {
+    const status = await fetchStatus();
+    const stagedOutsideSelection = stagedPaths(status).filter((path) => !toStage.includes(path));
+    if (stagedOutsideSelection.length > 0) {
+      setError(t("commit.stagedOutsideSelection", { count: stagedOutsideSelection.length }));
+      return;
+    }
     await indexAddFiles(toStage);
     setCommitPaths(toStage);
     setCommitOpen(true);
   } catch (err) {
     setError(err instanceof Error ? err.message : String(err));
   }
+}
+
+function stagedPaths(status: StatusPayload): string[] {
+  const out = new Set<string>();
+  for (const list of [
+    status.staged_new_files,
+    status.staged_modified_files,
+    status.staged_deleted_files,
+  ]) {
+    for (const path of list ?? []) out.add(path);
+  }
+  for (const entry of status.renamed_files ?? []) {
+    if (entry.path) out.add(entry.path);
+  }
+  return [...out];
 }

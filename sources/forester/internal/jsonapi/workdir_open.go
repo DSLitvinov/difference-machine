@@ -22,14 +22,7 @@ func openWithExecutable(editorPath, absPath string) error {
 
 	var cmd *exec.Cmd
 	if editorPath == "" {
-		switch runtime.GOOS {
-		case "darwin":
-			cmd = exec.Command("open", absPath)
-		case "windows":
-			cmd = exec.Command("cmd", "/c", "start", "", absPath)
-		default:
-			cmd = exec.Command("xdg-open", absPath)
-		}
+		cmd = openDefaultCommand(absPath, runtime.GOOS)
 	} else {
 		cmd = exec.Command(editorPath, absPath)
 	}
@@ -40,4 +33,15 @@ func openWithExecutable(editorPath, absPath string) error {
 		return fmt.Errorf("open file: %w", err)
 	}
 	return nil
+}
+
+func openDefaultCommand(absPath, goos string) *exec.Cmd {
+	switch goos {
+	case "darwin":
+		return exec.Command("open", absPath)
+	case "windows":
+		return exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", absPath)
+	default:
+		return exec.Command("xdg-open", absPath)
+	}
 }

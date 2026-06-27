@@ -5,6 +5,7 @@ import { ConfirmAlertDialog } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DropdownSelector } from "@/components/ui/dropdown-selector";
 import { Toggle } from "@/components/ui/toggle";
+import { authorDisplayName } from "@/lib/author";
 import { formatTimestamp, shortHash } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { loadFileHistoryBranch, saveFileHistoryBranch } from "@/lib/storage";
@@ -173,7 +174,7 @@ export function InfoHistorySection({ filePath, currentUser, onRestored }: InfoHi
     const locks = await fetchLockList();
     const lock = locks.find((entry) => entry.file_path === filePath);
     if (!lock) return true;
-    if (lock.user === currentUser || !currentUser) return true;
+    if (lock.user === currentUser || lock.user === authorDisplayName(currentUser)) return true;
     setError(t("history.fileLockedBy", { user: lock.user }));
     return false;
   };

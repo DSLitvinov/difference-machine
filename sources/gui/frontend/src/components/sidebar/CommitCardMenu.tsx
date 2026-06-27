@@ -13,11 +13,13 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { authorDisplayName } from "@/lib/author";
 import { shortHash } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import {
   compareExtract,
+  fetchLockList,
   openWorkdirPath,
   restoreVersion,
   revertCommit,
@@ -41,6 +43,7 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
   const t = useT();
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
+  const currentUser = useAppStore((s) => s.userName);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
@@ -78,6 +81,14 @@ export function CommitCardMenu({ commit, isHead, onSelect, onAfterAction }: Comm
     setError(null);
     try {
       if (pendingAction === "restore") {
+        const locks = await fetchLockList();
+        const blocked = locks.find(
+          (lock) => lock.user !== currentUser && lock.user !== authorDisplayName(currentUser),
+        );
+        if (blocked) {
+          setError(t("history.fileLockedBy", { user: blocked.user }));
+          return;
+        }
         await restoreVersion(commit.hash);
         setNotice(t("commit.restoredWorkingTree", { hash: hashShort }));
       } else if (pendingAction === "revert") {

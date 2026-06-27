@@ -73,6 +73,26 @@ export function useProjectStatusPolling() {
   const watcherDebounceRef = useRef<number | undefined>(undefined);
   const pendingWorkdirChangeRef = useRef(false);
 
+  const refreshFromWatcher = useCallback(async () => {
+    if (!repoPath) return;
+    if (ticking.current) {
+      pendingWorkdirChangeRef.current = true;
+      return;
+    }
+    ticking.current = true;
+    try {
+      await refreshWorkdirFromWatcher();
+    } catch (err) {
+      setForesterError(err instanceof Error ? err.message : String(err));
+    } finally {
+      ticking.current = false;
+      if (pendingWorkdirChangeRef.current && document.hasFocus()) {
+        pendingWorkdirChangeRef.current = false;
+        void refreshFromWatcher();
+      }
+    }
+  }, [repoPath, setForesterError]);
+
   const poll = useCallback(async () => {
     if (!repoPath || ticking.current) return;
     ticking.current = true;
@@ -85,20 +105,12 @@ export function useProjectStatusPolling() {
       setForesterError(err instanceof Error ? err.message : String(err));
     } finally {
       ticking.current = false;
+      if (pendingWorkdirChangeRef.current && document.hasFocus()) {
+        pendingWorkdirChangeRef.current = false;
+        void refreshFromWatcher();
+      }
     }
-  }, [repoPath, sidebarMode, setForesterError]);
-
-  const refreshFromWatcher = useCallback(async () => {
-    if (!repoPath || ticking.current) return;
-    ticking.current = true;
-    try {
-      await refreshWorkdirFromWatcher();
-    } catch (err) {
-      setForesterError(err instanceof Error ? err.message : String(err));
-    } finally {
-      ticking.current = false;
-    }
-  }, [repoPath, setForesterError]);
+  }, [repoPath, sidebarMode, setForesterError, refreshFromWatcher]);
 
   useEffect(() => {
     if (!repoPath) return;
