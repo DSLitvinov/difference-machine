@@ -94,8 +94,12 @@ func handleWorkdirMetadata(workPath string, args json.RawMessage) (interface{}, 
 	}
 
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
 		rel := canonicalRelPath(params.Path)
-		abs := filepath.Join(repoPath, filepath.FromSlash(rel))
+		abs, err := scanner.absFile(rel)
+		if err != nil {
+			return nil, err
+		}
 		info, err := os.Stat(abs)
 		if err != nil {
 			return nil, err
@@ -132,8 +136,12 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 	}
 
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
 		rel := canonicalRelPath(params.Path)
-		abs := filepath.Join(repoPath, filepath.FromSlash(rel))
+		abs, err := scanner.absFile(rel)
+		if err != nil {
+			return nil, err
+		}
 		info, err := os.Stat(abs)
 		if err != nil {
 			return nil, err
@@ -268,7 +276,7 @@ func handleWorkdirRename(workPath string, args json.RawMessage) (interface{}, er
 		} else {
 			newRel = parentRel + "/" + newName
 		}
-		newAbs, err := scanner.absFile(newRel)
+		newAbs, err := scanner.absFilePath(newRel)
 		if err != nil {
 			return nil, err
 		}
@@ -281,8 +289,8 @@ func handleWorkdirRename(workPath string, args json.RawMessage) (interface{}, er
 			return nil, fmt.Errorf("workdir.rename: %w", err)
 		}
 		return map[string]interface{}{
-			"success":   true,
-			"new_path":  newRel,
+			"success":  true,
+			"new_path": newRel,
 		}, nil
 	})
 }

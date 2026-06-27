@@ -73,8 +73,8 @@ func (s *workdirScanner) shouldSkipName(name string, rel string, isDir bool) boo
 	return false
 }
 
-// absFile resolves a relative workdir file path and rejects directories and internal paths.
-func (s *workdirScanner) absFile(rel string) (string, error) {
+// absFilePath resolves a relative workdir file path and rejects internal paths.
+func (s *workdirScanner) absFilePath(rel string) (string, error) {
 	rel = canonicalRelPath(rel)
 	if rel == "" {
 		return "", fmt.Errorf("path is required")
@@ -87,7 +87,15 @@ func (s *workdirScanner) absFile(rel string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	abs = filepath.Join(abs, name)
+	return filepath.Join(abs, name), nil
+}
+
+// absFile resolves a relative workdir file path and rejects directories and internal paths.
+func (s *workdirScanner) absFile(rel string) (string, error) {
+	abs, err := s.absFilePath(rel)
+	if err != nil {
+		return "", err
+	}
 	info, err := os.Stat(abs)
 	if err != nil {
 		return "", err

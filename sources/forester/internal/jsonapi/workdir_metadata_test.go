@@ -40,3 +40,14 @@ func TestWorkdirMetadataImageDimensions(t *testing.T) {
 		t.Fatalf("expected positive size, got %d", result.Size)
 	}
 }
+
+func TestWorkdirPreviewEndpointsRejectTraversal(t *testing.T) {
+	dir, h := initTestRepo(t)
+	outsidePath := filepath.Join(filepath.Dir(dir), "outside.txt")
+	if err := os.WriteFile(outsidePath, []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	mustFail(t, h, "workdir.metadata", `{"path":"../outside.txt"}`)
+	mustFail(t, h, "workdir.thumbnail", `{"path":"../outside.txt"}`)
+}
