@@ -22,6 +22,29 @@ func (r *Repository) CollectUsedObjects() (map[string]bool, error) {
 		}
 	}
 
+	if err := r.Storage.ListObjects(func(hash, objectType string) error {
+		if objectType != ObjectTypeCommit {
+			return nil
+		}
+		if err := r.markCommitReachable(hash, used); err != nil {
+			return fmt.Errorf("mark stored commit %s reachable: %w", hash, err)
+		}
+		return nil
+	}); err != nil {
+		return used, err
+	}
+
+	index, err := NewIndex(r.Path)
+	if err != nil {
+		return used, err
+	}
+	for _, hash := range index.GetEntries() {
+		if hash == "" || IsDeletedHash(hash) {
+			continue
+		}
+		used[hash] = true
+	}
+
 	tagNames, err := r.Refs.ListTags()
 	if err != nil {
 		return used, err

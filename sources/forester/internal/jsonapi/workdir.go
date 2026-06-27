@@ -3,12 +3,18 @@ package jsonapi
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/difference-machine/forester/internal/core"
 	"github.com/difference-machine/forester/internal/utils"
 )
 
+var workDirMu sync.Mutex
+
 func withWorkDir(workPath string, fn func() (interface{}, error)) (interface{}, error) {
+	workDirMu.Lock()
+	defer workDirMu.Unlock()
+
 	path := workPath
 	if path == "" {
 		path = "."

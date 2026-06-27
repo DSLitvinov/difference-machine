@@ -2,6 +2,7 @@ package core
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -52,6 +53,91 @@ func TestCollectUsedObjects_StashTree(t *testing.T) {
 	}
 	if !used[blobHash] {
 		t.Errorf("stash blob %s not pinned", blobHash)
+	}
+}
+
+func TestCollectUsedObjects_IndexBlob(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "forester_gc_test_*")
+	if err != nil {
+		t.Fatalf("create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	repo, err := OpenRepository(tmpDir)
+	if err != nil {
+		t.Fatalf("open repository: %v", err)
+	}
+	defer repo.Close()
+
+	blobHash, err := repo.Storage.StoreBlob([]byte("staged content"))
+	if err != nil {
+		t.Fatalf("store blob: %v", err)
+	}
+	index, err := NewIndex(tmpDir)
+	if err != nil {
+		t.Fatalf("new index: %v", err)
+	}
+	if err := index.Add(filepath.Join(tmpDir, "staged.txt"), blobHash); err != nil {
+		t.Fatalf("add index: %v", err)
+	}
+
+	used, err := repo.CollectUsedObjects()
+	if err != nil {
+		t.Fatalf("collect used objects: %v", err)
+	}
+	if !used[blobHash] {
+		t.Fatalf("staged blob %s not pinned", blobHash)
+	}
+}
+
+func TestCollectUsedObjects_StoredCommitContent(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "forester_gc_test_*")
+	if err != nil {
+		t.Fatalf("create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	repo, err := OpenRepository(tmpDir)
+	if err != nil {
+		t.Fatalf("open repository: %v", err)
+	}
+	defer repo.Close()
+
+	blobHash, err := repo.Storage.StoreBlob([]byte("orphan content"))
+	if err != nil {
+		t.Fatalf("store blob: %v", err)
+	}
+	tree := models.NewTree()
+	tree.AddEntry(models.NewTreeEntry(blobHash, "orphan.txt", "blob"))
+	treeJSON, err := tree.ToJSON()
+	if err != nil {
+		t.Fatalf("tree json: %v", err)
+	}
+	treeHash, err := repo.Storage.StoreTree(treeJSON)
+	if err != nil {
+		t.Fatalf("store tree: %v", err)
+	}
+	commit := models.NewCommit()
+	commit.TreeHash = treeHash
+	commit.Author = "author"
+	commit.Message = "orphan"
+	commitJSON, err := commit.ToJSON()
+	if err != nil {
+		t.Fatalf("commit json: %v", err)
+	}
+	commitHash, err := repo.Storage.StoreCommit(commitJSON)
+	if err != nil {
+		t.Fatalf("store commit: %v", err)
+	}
+
+	used, err := repo.CollectUsedObjects()
+	if err != nil {
+		t.Fatalf("collect used objects: %v", err)
+	}
+	for _, hash := range []string{commitHash, treeHash, blobHash} {
+		if !used[hash] {
+			t.Fatalf("stored commit object content %s not pinned", hash)
+		}
 	}
 }
 

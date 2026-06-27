@@ -189,6 +189,7 @@ func Switch(args []string) error {
 			if err != nil {
 				continue
 			}
+			relPath = filepath.ToSlash(relPath)
 
 			if patterns.Matches(relPath) {
 				continue
@@ -325,7 +326,7 @@ func hasUncommittedChanges(repoPath string, repo *core.Repository, branch string
 		if err != nil {
 			continue
 		}
-		
+
 		// Normalize path separators to match BuildTreeMapRecursive
 		normalizedPath := filepath.ToSlash(relPath)
 

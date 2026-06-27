@@ -97,6 +97,38 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 		currentBranch = "main"
 	}
 
+	currentCommit, err := repo.GetCommit(currentHead)
+	if err != nil {
+		return fmt.Errorf("failed to get current merge head: %w", err)
+	}
+	targetCommit, err := repo.GetCommit(targetHead)
+	if err != nil {
+		return fmt.Errorf("failed to get target merge head: %w", err)
+	}
+	currentTreeContent, err := storage.GetTreeContent(currentCommit.TreeHash)
+	if err != nil {
+		return fmt.Errorf("failed to get current merge tree: %w", err)
+	}
+	targetTreeContent, err := storage.GetTreeContent(targetCommit.TreeHash)
+	if err != nil {
+		return fmt.Errorf("failed to get target merge tree: %w", err)
+	}
+	var currentTree, targetTree models.Tree
+	if err := json.Unmarshal([]byte(currentTreeContent), &currentTree); err != nil {
+		return fmt.Errorf("failed to parse current merge tree: %w", err)
+	}
+	if err := json.Unmarshal([]byte(targetTreeContent), &targetTree); err != nil {
+		return fmt.Errorf("failed to parse target merge tree: %w", err)
+	}
+	currentTreeMap := make(map[string]*models.TreeEntry)
+	if err := core.BuildTreeMapRecursive(storage, &currentTree, "", currentTreeMap); err != nil {
+		return fmt.Errorf("build current merge tree map: %w", err)
+	}
+	targetTreeMap := make(map[string]*models.TreeEntry)
+	if err := core.BuildTreeMapRecursive(storage, &targetTree, "", targetTreeMap); err != nil {
+		return fmt.Errorf("build target merge tree map: %w", err)
+	}
+
 	// Rebuild index from working directory
 	index, err := core.NewIndex(repoPath)
 	if err != nil {
@@ -104,23 +136,26 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 	}
 	index.Clear()
 
-	// Add all files from working directory
-	if err := filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
+	mergePaths := make(map[string]bool)
+	for path := range currentTreeMap {
+		mergePaths[path] = true
+	}
+	for path := range targetTreeMap {
+		mergePaths[path] = true
+	}
+	for relPath := range mergePaths {
+		path, err := utils.JoinRepoPath(repoPath, relPath)
 		if err != nil {
-			return err
+			return fmt.Errorf("invalid merge path %s: %w", relPath, err)
 		}
-		if info.IsDir() {
-			if strings.HasPrefix(filepath.Base(path), ".") && path != repoPath {
-				return filepath.SkipDir
+		if !utils.Exists(path) {
+			if err := index.MarkDeleted(path); err != nil {
+				return err
 			}
-			return nil
+			continue
 		}
-		relPath, err := filepath.Rel(repoPath, path)
-		if err != nil {
-			return err
-		}
-		if strings.HasPrefix(relPath, ".DFM") {
-			return nil
+		if utils.IsDirectory(path) {
+			continue
 		}
 		hash, err := core.HashFile(path)
 		if err != nil {
@@ -130,9 +165,6 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 			return err
 		}
 		index.Add(path, hash)
-		return nil
-	}); err != nil {
-		return fmt.Errorf("failed to rebuild index: %w", err)
 	}
 
 	// Check if there are still conflicts (files with conflict markers)

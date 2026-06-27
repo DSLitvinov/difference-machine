@@ -122,17 +122,16 @@ func Branch(args []string) error {
 
 		commitHash, _ := repo.GetBranchHead(oldName)
 
-		if err := repo.DeleteBranch(oldName); err != nil {
-			return fmt.Errorf("failed to delete old branch: %w", err)
-		}
 		if err := repo.CreateBranch(newName, commitHash); err != nil {
 			return fmt.Errorf("failed to create new branch: %w", err)
 		}
-
 		if oldName == currentBranch {
 			if err := refs.SetCurrentBranch(newName); err != nil {
 				return fmt.Errorf("failed to update current branch: %w", err)
 			}
+		}
+		if err := repo.DeleteBranch(oldName); err != nil {
+			return fmt.Errorf("failed to delete old branch: %w", err)
 		}
 
 		fmt.Printf("Renamed branch '%s' to '%s'\n", oldName, newName)

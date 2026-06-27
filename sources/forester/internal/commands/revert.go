@@ -90,13 +90,13 @@ func Revert(args []string) error {
 
 	// Build maps
 	treeToRevertMap := make(map[string]*models.TreeEntry)
-	for _, entry := range treeToRevert.Entries {
-		treeToRevertMap[entry.Name] = entry
+	if err := core.BuildTreeMapRecursive(storage, &treeToRevert, "", treeToRevertMap); err != nil {
+		return fmt.Errorf("build tree map for commit to revert: %w", err)
 	}
 
 	parentTreeMap := make(map[string]*models.TreeEntry)
-	for _, entry := range parentTree.Entries {
-		parentTreeMap[entry.Name] = entry
+	if err := core.BuildTreeMapRecursive(storage, &parentTree, "", parentTreeMap); err != nil {
+		return fmt.Errorf("build tree map for parent commit: %w", err)
 	}
 
 	// Get current HEAD tree for applying changes
@@ -112,8 +112,8 @@ func Revert(args []string) error {
 	}
 
 	currentTreeMap := make(map[string]*models.TreeEntry)
-	for _, entry := range currentTree.Entries {
-		currentTreeMap[entry.Name] = entry
+	if err := core.BuildTreeMapRecursive(storage, &currentTree, "", currentTreeMap); err != nil {
+		return fmt.Errorf("build tree map for current commit: %w", err)
 	}
 
 	// Load .dfmignore
@@ -138,11 +138,14 @@ func Revert(args []string) error {
 		if _, existsInParent := parentTreeMap[name]; !existsInParent {
 			// File was added in commitToRevert, should be deleted
 			relPath := name
-			fullPath := filepath.Join(repoPath, relPath)
-			
+			fullPath, err := utils.JoinRepoPath(repoPath, relPath)
+			if err != nil {
+				return fmt.Errorf("invalid tree path %s: %w", relPath, err)
+			}
+
 			// Remove from index (mark as deleted)
 			index.MarkDeleted(fullPath)
-			
+
 			// Delete file if it exists
 			if utils.Exists(fullPath) {
 				if err := utils.RemoveRecursive(fullPath); err != nil {
@@ -158,7 +161,10 @@ func Revert(args []string) error {
 		if _, existsInRevert := treeToRevertMap[name]; !existsInRevert {
 			// File was deleted in commitToRevert, should be restored
 			relPath := name
-			fullPath := filepath.Join(repoPath, relPath)
+			fullPath, err := utils.JoinRepoPath(repoPath, relPath)
+			if err != nil {
+				return fmt.Errorf("invalid tree path %s: %w", relPath, err)
+			}
 
 			// Ensure directory exists
 			if err := utils.EnsureDirectory(filepath.Dir(fullPath)); err != nil {
@@ -188,7 +194,10 @@ func Revert(args []string) error {
 			if revertEntry.Hash != parentEntry.Hash {
 				// File was modified in commitToRevert, should be reverted
 				relPath := name
-				fullPath := filepath.Join(repoPath, relPath)
+				fullPath, err := utils.JoinRepoPath(repoPath, relPath)
+				if err != nil {
+					return fmt.Errorf("invalid tree path %s: %w", relPath, err)
+				}
 
 				// Restore file from parent
 				if err := storage.WriteBlobToFile(parentEntry.Hash, fullPath); err != nil {
@@ -226,14 +235,25 @@ func Revert(args []string) error {
 		return fmt.Errorf("pre-commit hook failed")
 	}
 
-	// Create tree from index
-	tree := models.NewTree()
+	// Merge staged revert entries into the current HEAD tree.
 	indexEntries := index.GetEntries()
+	finalMap := make(map[string]string)
+	for relPath, entry := range currentTreeMap {
+		if entry.Type == "blob" {
+			finalMap[filepath.ToSlash(relPath)] = entry.Hash
+		}
+	}
 
 	for relPath, hash := range indexEntries {
 		if core.IsDeletedHash(hash) {
+			delete(finalMap, filepath.ToSlash(relPath))
 			continue
 		}
+		finalMap[filepath.ToSlash(relPath)] = hash
+	}
+
+	tree := models.NewTree()
+	for relPath, hash := range finalMap {
 		entry := models.NewTreeEntry(hash, relPath, "blob")
 		tree.AddEntry(entry)
 	}

@@ -60,10 +60,10 @@ func handleBranchList(workPath string, _ json.RawMessage) (interface{}, error) {
 		for _, name := range names {
 			commitHash, _ := repo.GetBranchHead(name)
 			branches = append(branches, map[string]interface{}{
-				"name":         name,
-				"commit_hash":  commitHash,
-				"created_at":   0,
-				"is_current":   name == currentBranch,
+				"name":        name,
+				"commit_hash": commitHash,
+				"created_at":  0,
+				"is_current":  name == currentBranch,
 			})
 		}
 		return map[string]interface{}{"branches": branches}, nil
@@ -189,9 +189,6 @@ func handleBranchRename(workPath string, args json.RawMessage) (interface{}, err
 			currentBranch = "main"
 		}
 		commitHash, _ := repo.GetBranchHead(params.OldName)
-		if err := repo.DeleteBranch(params.OldName); err != nil {
-			return nil, fmt.Errorf("failed to delete old branch: %w", err)
-		}
 		if err := repo.CreateBranch(params.NewName, commitHash); err != nil {
 			return nil, fmt.Errorf("failed to create new branch: %w", err)
 		}
@@ -199,6 +196,9 @@ func handleBranchRename(workPath string, args json.RawMessage) (interface{}, err
 			if err := repo.Refs.SetCurrentBranch(params.NewName); err != nil {
 				return nil, fmt.Errorf("failed to update current branch: %w", err)
 			}
+		}
+		if err := repo.DeleteBranch(params.OldName); err != nil {
+			return nil, fmt.Errorf("failed to delete old branch: %w", err)
 		}
 		return successResult(), nil
 	})

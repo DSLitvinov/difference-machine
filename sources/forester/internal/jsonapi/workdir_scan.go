@@ -53,6 +53,24 @@ func (s *workdirScanner) absDir(rel string) (string, error) {
 	return abs, nil
 }
 
+func (s *workdirScanner) ensureInsideRepo(abs string) (string, error) {
+	repoAbs, err := filepath.Abs(s.repoPath)
+	if err != nil {
+		return "", err
+	}
+	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
+		abs = resolved
+	}
+	abs, err = filepath.Abs(abs)
+	if err != nil {
+		return "", err
+	}
+	if abs != repoAbs && !strings.HasPrefix(abs, repoAbs+string(filepath.Separator)) {
+		return "", fmt.Errorf("path is not accessible")
+	}
+	return abs, nil
+}
+
 func (s *workdirScanner) shouldSkipName(name string, rel string, isDir bool) bool {
 	if name == ".DFM" || name == ".dfmignore" {
 		return true
@@ -93,6 +111,10 @@ func (s *workdirScanner) absFilePath(rel string) (string, error) {
 // absFile resolves a relative workdir file path and rejects directories and internal paths.
 func (s *workdirScanner) absFile(rel string) (string, error) {
 	abs, err := s.absFilePath(rel)
+	if err != nil {
+		return "", err
+	}
+	abs, err = s.ensureInsideRepo(abs)
 	if err != nil {
 		return "", err
 	}

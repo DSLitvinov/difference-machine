@@ -188,6 +188,7 @@ func Reset(args []string) error {
 			if err != nil {
 				continue
 			}
+			relPath = filepath.ToSlash(relPath)
 
 			// Skip ignored files
 			if patterns.Matches(relPath) {

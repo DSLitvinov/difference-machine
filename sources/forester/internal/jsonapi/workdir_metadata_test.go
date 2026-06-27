@@ -51,3 +51,24 @@ func TestWorkdirPreviewEndpointsRejectTraversal(t *testing.T) {
 	mustFail(t, h, "workdir.metadata", `{"path":"../outside.txt"}`)
 	mustFail(t, h, "workdir.thumbnail", `{"path":"../outside.txt"}`)
 }
+
+func TestWorkdirEndpointsRejectSymlinkEscape(t *testing.T) {
+	dir, h := initTestRepo(t)
+	outsidePath := filepath.Join(filepath.Dir(dir), "outside.txt")
+	if err := os.WriteFile(outsidePath, []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	linkPath := filepath.Join(dir, "outside-link.txt")
+	if err := os.Symlink(outsidePath, linkPath); err != nil {
+		t.Skipf("symlink not available: %v", err)
+	}
+
+	mustFail(t, h, "workdir.metadata", `{"path":"outside-link.txt"}`)
+	mustFail(t, h, "workdir.thumbnail", `{"path":"outside-link.txt"}`)
+	mustFail(t, h, "workdir.open", `{"path":"outside-link.txt"}`)
+	mustFail(t, h, "workdir.delete", `{"path":"outside-link.txt"}`)
+
+	if got, err := os.ReadFile(outsidePath); err != nil || string(got) != "secret" {
+		t.Fatalf("outside file changed: %q, %v", string(got), err)
+	}
+}

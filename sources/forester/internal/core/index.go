@@ -81,7 +81,7 @@ func (idx *Index) Save() error {
 		return fmt.Errorf("failed to create index directory: %w", err)
 	}
 
-	if err := os.WriteFile(idx.indexPath, data, 0644); err != nil {
+	if err := utils.WriteFileAtomic(idx.indexPath, data); err != nil {
 		return fmt.Errorf("failed to write index: %w", err)
 	}
 
