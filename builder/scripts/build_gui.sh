@@ -59,6 +59,23 @@ FORESTER_BIN_STAGING="${BUILDER_DIR}/.staging/forester/bin"
 . "${SCRIPT_DIR}/lib/copy_ffmpeg_sidecar.sh"
 copy_ffmpeg_sidecar "${FORESTER_BIN_STAGING}" "${BUILD_BIN}"
 
+copy_ffmpeg_into_macos_app() {
+    local app_bundle="$1"
+    local source_bin="$2"
+    local resources_bin="${app_bundle}/Contents/Resources/bin"
+
+    if [ ! -d "${app_bundle}" ] || [ ! -d "${source_bin}" ]; then
+        return 0
+    fi
+    if [ ! -f "${source_bin}/${FFMPEG_BIN_NAME}" ]; then
+        return 0
+    fi
+
+    mkdir -p "${resources_bin}"
+    cp "${source_bin}/${FFMPEG_BIN_NAME}" "${resources_bin}/${FFMPEG_BIN_NAME}"
+    chmod +x "${resources_bin}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
+}
+
 echo ""
 echo "=== Stage GUI ==="
 rm -rf "${STAGING_GUI}"
@@ -76,6 +93,8 @@ case "${CURRENT_OS}" in
         fi
 
         cp -R "${APP_BUNDLES[0]}" "${STAGING_GUI}/${GUI_STAGE_NAME}"
+        copy_ffmpeg_into_macos_app "${APP_BUNDLES[0]}" "${FORESTER_BIN_STAGING}"
+        copy_ffmpeg_into_macos_app "${STAGING_GUI}/${GUI_STAGE_NAME}" "${FORESTER_BIN_STAGING}"
         ;;
     linux)
         GUI_BIN="${BUILD_BIN}/${GUI_WAILS_OUTPUT}"

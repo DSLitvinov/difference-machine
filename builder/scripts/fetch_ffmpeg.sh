@@ -59,18 +59,56 @@ resolve_ffmpeg_archive() {
                     ;;
             esac
             ;;
-        macos)
-            case "$(uname -m)" in
-                arm64)
-                    echo "ffmpeg-${label}-macosarm64-gpl.zip"
-                    ;;
-                *)
-                    echo "ffmpeg-${label}-macos64-gpl.zip"
-                    ;;
-            esac
-            ;;
     esac
 }
+
+stage_ffmpeg_from_system_path() {
+    local src=""
+    if [ -n "${DFM_FFMPEG_PATH:-}" ]; then
+        src="${DFM_FFMPEG_PATH}"
+    elif command -v ffmpeg >/dev/null 2>&1; then
+        src="$(command -v ffmpeg)"
+    fi
+    if [ -z "${src}" ] || [ ! -f "${src}" ]; then
+        return 1
+    fi
+    cp "${src}" "${STAGING_BIN}/${FFMPEG_BIN_NAME}"
+    chmod +x "${STAGING_BIN}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
+    ffmpeg_persist_bin_cache "${STAGING_BIN}"
+    echo -e "${GREEN}✓ ffmpeg staged from system: ${src}${NC}"
+}
+
+if [ "${CURRENT_OS}" = "macos" ]; then
+    if [ -f "${STAGING_BIN}/${FFMPEG_BIN_NAME}" ] && [ "${FFMPEG_FORCE:-false}" != "true" ]; then
+        echo -e "${GREEN}✓ Bundled ffmpeg already present: ${STAGING_BIN}/${FFMPEG_BIN_NAME}${NC}"
+        exit 0
+    fi
+
+    if [ "${FFMPEG_FORCE:-false}" != "true" ]; then
+        reuse_source="$(ffmpeg_stage_from_previous_builds "${STAGING_BIN}" "${BUILDER_DIR}" || true)"
+        if [ -n "${reuse_source}" ] && [ -f "${STAGING_BIN}/${FFMPEG_BIN_NAME}" ]; then
+            ffmpeg_persist_bin_cache "${STAGING_BIN}"
+            case "${reuse_source}" in
+                cache)
+                    echo -e "${GREEN}✓ Reused ffmpeg from build cache: ${STAGING_BIN}/${FFMPEG_BIN_NAME}${NC}"
+                    ;;
+                dist)
+                    echo -e "${GREEN}✓ Reused ffmpeg from previous dist payload: ${STAGING_BIN}/${FFMPEG_BIN_NAME}${NC}"
+                    ;;
+            esac
+            exit 0
+        fi
+    fi
+
+    echo "=== Fetch ffmpeg (macos) ==="
+    echo -e "${YELLOW}BtbN/FFmpeg-Builds has no macOS builds; staging ffmpeg from PATH (e.g. Homebrew)${NC}"
+    if stage_ffmpeg_from_system_path; then
+        exit 0
+    fi
+    echo -e "${RED}ffmpeg not found — install with: brew install ffmpeg${NC}"
+    echo -e "${RED}Or set FFMPEG_SKIP=true to build without bundling ffmpeg${NC}"
+    exit 1
+fi
 
 ARCHIVE_NAME="$(resolve_ffmpeg_archive)"
 ARCHIVE_PATH="${CACHE_DIR}/${ARCHIVE_NAME}"

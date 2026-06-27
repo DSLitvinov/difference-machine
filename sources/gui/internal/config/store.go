@@ -603,6 +603,24 @@ func (s *Store) SetInstallToolchainPaths(cliPath, apiPath, addonPath string) err
 	return s.saveUnlocked()
 }
 
+// SetForesterFFmpegPath updates [forester].ffmpeg_path in setup.cfg.
+func (s *Store) SetForesterFFmpegPath(ffmpegPath string) error {
+	ffmpegPath = strings.TrimSpace(ffmpegPath)
+	if ffmpegPath == "" {
+		return fmt.Errorf("ffmpeg path is required")
+	}
+	if st, err := os.Stat(ffmpegPath); err != nil {
+		return fmt.Errorf("ffmpeg not found: %w", err)
+	} else if st.IsDir() {
+		return fmt.Errorf("ffmpeg path must be a file")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setUnlocked("forester", "ffmpeg_path", ffmpegPath)
+	return s.saveUnlocked()
+}
+
 // SetForesterPaths updates backend toolchain paths in setup.cfg.
 func (s *Store) SetForesterPaths(cliPath, blenderPath, addonPath string) error {
 	if strings.TrimSpace(cliPath) == "" {

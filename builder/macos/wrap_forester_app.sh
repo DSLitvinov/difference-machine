@@ -19,6 +19,7 @@ ensure_dfm_dist "${BUILDER_DIR}"
 OUT_DIR="${OUT_DIR:-${BUILDER_DIR}/.staging/macos_installer}"
 
 FORESTER_BIN="${DFM_DIST}/bin/${FORESTER_CLI_NAME}"
+FFMPEG_BIN="${DFM_DIST}/bin/${FFMPEG_BIN_NAME}"
 API_LIB="${DFM_DIST}/lib/${API_LIB_NAME}"
 
 if [ ! -f "${FORESTER_BIN}" ]; then
@@ -33,6 +34,16 @@ APP_BUNDLE_VERSION="${VERSION}"
 mkdir -p "${OUT_DIR}"
 
 create_forester_console_app "${OUT_DIR}" "${FORESTER_BIN}"
+
+FORESTER_RESOURCES_BIN="${OUT_DIR}/Forester.app/Contents/Resources/bin"
+if [ -f "${FFMPEG_BIN}" ]; then
+    mkdir -p "${FORESTER_RESOURCES_BIN}"
+    cp "${FFMPEG_BIN}" "${FORESTER_RESOURCES_BIN}/${FFMPEG_BIN_NAME}"
+    chmod +x "${FORESTER_RESOURCES_BIN}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
+    echo "Bundled ffmpeg → Forester.app/Contents/Resources/bin/${FFMPEG_BIN_NAME}"
+else
+    echo "Warning: ffmpeg not found at ${FFMPEG_BIN} (thumbnail previews will not work)"
+fi
 
 if [ -f "${API_LIB}" ]; then
     cp "${API_LIB}" "${OUT_DIR}/Forester.app/Contents/Frameworks/${API_LIB_NAME}"
