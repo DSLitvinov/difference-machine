@@ -8,6 +8,13 @@ export function authorDisplayName(formatted: string): string {
   return trimmed;
 }
 
+export function isLockOwner(lockUser: string | null | undefined, currentAuthor: string): boolean {
+  if (!lockUser) return false;
+  const trimmed = currentAuthor.trim();
+  if (!trimmed) return false;
+  return lockUser === trimmed || lockUser === authorDisplayName(trimmed);
+}
+
 export function formatAuthor(name: string, email: string): string {
   const trimmedName = name.trim();
   const trimmedEmail = email.trim();

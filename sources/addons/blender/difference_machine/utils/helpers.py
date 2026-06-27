@@ -5,7 +5,7 @@ Helper functions for Difference Machine addon.
 import time
 import bpy
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Optional, Tuple, List, Dict, Any, Union
 from ..utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -188,6 +188,84 @@ def get_addon_preferences(
         auto_save_interval = 5
     
     return DefaultPreferences()
+
+
+def repo_relative_path(repo_path: Path, file_path: Union[Path, str]) -> str:
+    """Return a repo-relative path with forward slashes for Forester API calls."""
+    path = Path(file_path)
+    if not path.is_absolute():
+        return str(path).replace("\\", "/")
+
+    resolved_repo = Path(repo_path).resolve()
+    try:
+        return str(path.resolve().relative_to(resolved_repo)).replace("\\", "/")
+    except ValueError:
+        return path.name
+
+
+def author_display_name(formatted: str) -> str:
+    trimmed = (formatted or "").strip()
+    lt = trimmed.rfind("<")
+    gt = trimmed.rfind(">")
+    if lt >= 0 and gt > lt:
+        return trimmed[:lt].strip()
+    return trimmed
+
+
+def format_author_name(name: str, email: str = "") -> str:
+    trimmed_name = (name or "").strip()
+    trimmed_email = (email or "").strip()
+    if trimmed_name and trimmed_email:
+        return f"{trimmed_name} <{trimmed_email}>"
+    if trimmed_email:
+        return f"<{trimmed_email}>"
+    return trimmed_name or "Unknown"
+
+
+def get_lock_author(context: bpy.types.Context) -> str:
+    prefs = get_addon_preferences(context)
+    name = getattr(prefs, "default_author", None) or "Unknown"
+    email = getattr(prefs, "user_email", None) or ""
+    return format_author_name(name, email)
+
+
+def is_lock_owner(lock_user: str, current_author: str) -> bool:
+    if not lock_user or not current_author:
+        return False
+    current = current_author.strip()
+    if lock_user == current:
+        return True
+    if lock_user == author_display_name(current):
+        return True
+    return author_display_name(lock_user) == author_display_name(current)
+
+
+def find_lock_for_file(
+    repo_path: Path,
+    file_path: Path,
+    locks: List[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    rel = repo_relative_path(repo_path, file_path)
+    try:
+        target = file_path.resolve()
+    except Exception:
+        target = Path(file_path)
+
+    for lock in locks:
+        lock_fp = (lock.get("file_path") or "").replace("\\", "/")
+        if lock_fp == rel:
+            return lock
+        try:
+            if (repo_path / lock_fp).resolve() == target:
+                return lock
+        except Exception:
+            pass
+        try:
+            if Path(lock_fp).resolve() == target:
+                return lock
+        except Exception:
+            pass
+    return None
 
 
 def get_blender_files() -> List[Path]:

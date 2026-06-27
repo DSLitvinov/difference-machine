@@ -73,7 +73,7 @@ stage_ffmpeg_from_system_path() {
         return 1
     fi
     cp "${src}" "${STAGING_BIN}/${FFMPEG_BIN_NAME}"
-    chmod +x "${STAGING_BIN}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
+    chmod 755 "${STAGING_BIN}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
     ffmpeg_persist_bin_cache "${STAGING_BIN}"
     echo -e "${GREEN}✓ ffmpeg staged from system: ${src}${NC}"
 }
@@ -181,7 +181,7 @@ fi
 
 FFMPEG_SRC_DIR="$(dirname "${FFMPEG_SRC}")"
 cp "${FFMPEG_SRC}" "${STAGING_BIN}/${FFMPEG_BIN_NAME}"
-chmod +x "${STAGING_BIN}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
+chmod 755 "${STAGING_BIN}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
 
 if [ "${CURRENT_OS}" = "windows" ]; then
     shopt -s nullglob

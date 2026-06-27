@@ -83,8 +83,9 @@ copy_ffmpeg_into_macos_app() {
     fi
 
     mkdir -p "${resources_bin}"
+    rm -f "${resources_bin}/${FFMPEG_BIN_NAME}"
     cp "${source_bin}/${FFMPEG_BIN_NAME}" "${resources_bin}/${FFMPEG_BIN_NAME}"
-    chmod +x "${resources_bin}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
+    chmod 755 "${resources_bin}/${FFMPEG_BIN_NAME}" 2>/dev/null || true
 }
 
 echo ""

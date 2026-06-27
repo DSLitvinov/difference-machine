@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Copy, Pencil, Settings, Trash2 } from "lucide-react";
+import { Copy, Lock, LockOpen, Pencil, Settings, Trash2 } from "lucide-react";
 
 import { FilePreviewItem } from "@/components/preview/FilePreviewItem";
 import { RenameFileDialog } from "@/components/preview/RenameFileDialog";
@@ -16,18 +16,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMarqueeSelection } from "@/hooks/useMarqueeSelection";
+import { isLockOwner } from "@/lib/author";
 import {
   computeColumnCount,
   estimateGridRowHeight,
   gridMinCellSizeForScale,
 } from "@/lib/previewGrid";
 import { useT } from "@/lib/i18n";
+import { fetchRepoUser } from "@/wails/bridge";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
+  acquireLock,
   deleteWorkdirFile,
+  fetchLockList,
   fetchStatus,
+  locksByPath,
   openWorkdirFile,
+  releaseLock,
   renameWorkdirFile,
   type DirEntry,
   type VcsFileStatus,
@@ -76,6 +82,7 @@ export function FilePreviewGrid({
   const setSelectedFilePaths = useProjectStore((s) => s.setSelectedFilePaths);
   const bumpWorkdirGeneration = useProjectStore((s) => s.bumpWorkdirGeneration);
   const setStatus = useProjectStore((s) => s.setStatus);
+  const setLocks = useProjectStore((s) => s.setLocks);
 
   const cellMin = gridMinCellSizeForScale(thumbScale);
   const hasSubtitle = Boolean(subtitleFor);
@@ -83,6 +90,7 @@ export function FilePreviewGrid({
 
   const [columnCount, setColumnCount] = useState(1);
   const [gridWidth, setGridWidth] = useState(0);
+  const [repoUser, setRepoUser] = useState("");
   const [contextMenu, setContextMenu] = useState<{
     open: boolean;
     x: number;
@@ -92,6 +100,12 @@ export function FilePreviewGrid({
   const [renameTarget, setRenameTarget] = useState<DirEntry | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DirEntry | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    void fetchRepoUser()
+      .then(setRepoUser)
+      .catch(() => setRepoUser(""));
+  }, []);
 
   const handleMarqueeSelect = useCallback(
     (paths: string[], additive: boolean) => {
@@ -160,6 +174,10 @@ export function FilePreviewGrid({
   const menuVcsStatus = menuEntry ? vcsStatusFor(menuEntry.path) : null;
   const menuLockUser = menuEntry ? (lockUserFor?.(menuEntry.path) ?? null) : null;
   const menuBlocked = isFileActionBlocked(menuVcsStatus, menuLockUser);
+  const menuDeleted = menuVcsStatus === "deleted" || menuVcsStatus === "staged-deleted";
+  const menuLockedBySelf = isLockOwner(menuLockUser, repoUser);
+  const menuLockDisabled =
+    !menuEntry || menuDeleted || actionLoading || (Boolean(menuLockUser) && !menuLockedBySelf);
 
   const refreshAfterFileChange = async (previousPath: string, nextPath?: string) => {
     bumpWorkdirGeneration();
@@ -240,6 +258,37 @@ export function FilePreviewGrid({
       await openWorkdirFile(menuEntry.path, editorPath);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const refreshLocks = async () => {
+    try {
+      const locks = await fetchLockList();
+      setLocks(locksByPath(locks));
+    } catch {
+      // lock refresh is best-effort
+    }
+  };
+
+  const handleLockToggle = async () => {
+    if (!menuEntry || menuLockDisabled) return;
+    closeContextMenu();
+    setActionLoading(true);
+    try {
+      if (menuLockUser && menuLockedBySelf) {
+        await releaseLock(menuEntry.path, menuLockUser);
+        setNotice(t("preview.fileUnlocked"));
+      } else {
+        const user = repoUser.trim() || useAppStore.getState().userName.trim() || "Unknown";
+        await acquireLock(menuEntry.path, user);
+        setNotice(t("preview.fileLocked"));
+      }
+      await refreshLocks();
+      bumpWorkdirGeneration();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -374,6 +423,23 @@ export function FilePreviewGrid({
               ))}
             </DropdownMenuSubContent>
           </DropdownMenuSub>
+          <DropdownMenuItem
+            className="gap-2"
+            disabled={menuLockDisabled}
+            title={
+              menuLockUser && !menuLockedBySelf
+                ? t("history.fileLockedBy", { user: menuLockUser })
+                : undefined
+            }
+            onClick={() => void handleLockToggle()}
+          >
+            {menuLockUser && menuLockedBySelf ? (
+              <LockOpen className="h-3.5 w-3.5" />
+            ) : (
+              <Lock className="h-3.5 w-3.5" />
+            )}
+            {menuLockUser ? t("preview.unlockFile") : t("preview.lockFile")}
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="gap-2 text-destructive focus:text-destructive"

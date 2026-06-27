@@ -398,9 +398,12 @@ class ForesterAPIWrapper:
         """Acquire a lock on a file."""
         if self._use_api and self._api_instance:
             try:
+                from .helpers import repo_relative_path
+
+                rel_path = repo_relative_path(repo_path, file_path)
                 result = self._api_instance.acquire_lock(
                     str(repo_path),
-                    str(file_path),
+                    rel_path,
                     user,
                     lock_type=lock_type,
                     expire_hours=expire_hours,
@@ -418,7 +421,10 @@ class ForesterAPIWrapper:
         """Release a lock on a file."""
         if self._use_api and self._api_instance:
             try:
-                result = self._api_instance.release_lock(str(repo_path), str(file_path), user)
+                from .helpers import repo_relative_path
+
+                rel_path = repo_relative_path(repo_path, file_path)
+                result = self._api_instance.release_lock(str(repo_path), rel_path, user)
                 if result.get("success"):
                     return True, None
                 return False, result.get("error", "Unknown error")

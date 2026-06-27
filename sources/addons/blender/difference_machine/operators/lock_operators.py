@@ -6,7 +6,14 @@ import bpy
 from bpy.types import Operator
 from pathlib import Path
 from ..utils.forester_api import get_api
-from ..utils.helpers import get_repository_path, get_blender_files, check_locked_files, get_addon_preferences
+from ..utils.helpers import (
+    get_repository_path,
+    get_blender_files,
+    check_locked_files,
+    get_lock_author,
+    find_lock_for_file,
+    is_lock_owner,
+)
 
 
 class DF_OT_check_locks(Operator):
@@ -71,8 +78,7 @@ class DF_OT_lock_current_blend(Operator):
             return {'CANCELLED'}
 
         api = get_api()
-        prefs = get_addon_preferences(context)
-        user = getattr(prefs, "default_author", None) or "Unknown"
+        user = get_lock_author(context)
 
         files = get_blender_files()
         if not files:
@@ -107,17 +113,37 @@ class DF_OT_unlock_current_blend(Operator):
             return {'CANCELLED'}
 
         api = get_api()
-        prefs = get_addon_preferences(context)
-        user = getattr(prefs, "default_author", None) or "Unknown"
+        user = get_lock_author(context)
 
         files = get_blender_files()
         if not files:
             self.report({'WARNING'}, "No files to unlock")
             return {'CANCELLED'}
 
+        success, locks, list_error = api.list_locks(repo_path)
+        if not success:
+            self.report({'ERROR'}, f"Failed to list locks: {list_error}")
+            return {'CANCELLED'}
+        locks = locks or []
+
         errors = []
         for file_path in files:
-            success, err = api.release_lock(repo_path, file_path, user)
+            lock = find_lock_for_file(repo_path, file_path, locks)
+            if not lock:
+                errors.append(f"{file_path.name}: not locked")
+                continue
+
+            lock_user = lock.get("user", "")
+            if not is_lock_owner(lock_user, user):
+                errors.append(f"{file_path.name}: lock held by {lock_user}")
+                continue
+
+            lock_path = lock.get("file_path", "")
+            if not lock_path:
+                errors.append(f"{file_path.name}: invalid lock entry")
+                continue
+
+            success, err = api.release_lock(repo_path, Path(lock_path), lock_user)
             if not success:
                 errors.append(f"{file_path.name}: {err}")
 

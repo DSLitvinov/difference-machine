@@ -11,7 +11,9 @@ FORESTER_ICONS="${PROJECT_ROOT}/sources/forester/icons/build"
 
 if [ ! -d "${GUI_FRONTEND}/node_modules/@resvg/resvg-js" ]; then
     echo "Installing GUI frontend deps (resvg for icon rasterization)..."
-    (cd "${GUI_FRONTEND}" && npm install --no-audit --no-fund)
+    NPM_CACHE="${BUILDER_DIR}/.staging/npm-cache"
+    mkdir -p "${NPM_CACHE}"
+    (cd "${GUI_FRONTEND}" && npm install --no-audit --no-fund --cache "${NPM_CACHE}")
 fi
 
 node "${SCRIPT_DIR}/generate_forester_icons.mjs"

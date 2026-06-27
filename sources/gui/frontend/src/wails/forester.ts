@@ -200,6 +200,19 @@ export async function fetchLockList(): Promise<LockEntry[]> {
   return result.locks ?? [];
 }
 
+export async function acquireLock(filePath: string, user: string): Promise<void> {
+  await foresterCall("lock.acquire", {
+    file_path: filePath,
+    user,
+    lock_type: 0,
+    expire_hours: 0,
+  });
+}
+
+export async function releaseLock(filePath: string, user: string): Promise<void> {
+  await foresterCall("lock.release", { file_path: filePath, user });
+}
+
 export function locksByPath(locks: LockEntry[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const lock of locks) {
