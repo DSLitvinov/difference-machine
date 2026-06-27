@@ -37,6 +37,16 @@ Output (default payload): `builder/dist/payload`
 ./builder/linux/build.sh --tar        # + DifferenceMachine-*-linux.tar.gz
 ```
 
+After extracting the release archive:
+
+```bash
+tar -xzf builder/dist/DifferenceMachine-*-linux.tar.gz
+cd "Difference Machine"
+sudo ./install.sh                     # → /opt/Difference Machine/
+```
+
+`install.sh` copies the payload to `/opt`, writes Forester/API paths in `~/.dfm/setup.cfg`, and creates `/usr/local/bin` symlinks plus a `.desktop` entry. Install the Blender addon from `addons/blender/difference_machine.zip` in Blender. Use `./install.sh --user` for a home-directory install without sudo.
+
 ### Windows (Git Bash / MSYS2)
 
 ```bash
@@ -101,15 +111,105 @@ Each `*/build.sh` runs:
 
 ## Requirements
 
-| Component | Requirement |
-|-----------|-------------|
-| Forester CLI | Go 1.22+ |
-| Native API | Go 1.22+ and a C compiler for cgo |
-| Image previews | Bundled `ffmpeg` in `bin/` (fetched automatically during build) |
-| GUI (`--gui`) | Go 1.22+, Node.js 20+, npm, Wails v2 CLI |
-| Blender addon | Blender 4.5.0+ for runtime use |
-| macOS DMG | `hdiutil` (macOS system tool) |
-| Windows installer | NSIS `makensis` |
+Build targets are layered: **base** (Forester CLI + addon staging), **GUI** (`--gui`), and **release** (`--dmg` / `--tar` / `--installer` / `--zip`). Install only what matches the command you run.
+
+### All platforms (base build)
+
+| Tool | Used for |
+|------|----------|
+| **Go 1.22+** | Forester CLI, native API (`c-shared`), Wails backend |
+| **C compiler** | Native API library (`libforester`); optional for CLI-only if API build is skipped |
+| **git** | Version metadata in binaries (optional; falls back to `unknown`) |
+| **curl** or **wget** | Download bundled `ffmpeg` into `bin/` (auto-fetched during build) |
+| **unzip** (macOS/Windows ffmpeg) | Extract ffmpeg zip archives |
+| **tar** + **xz** (Linux ffmpeg) | Extract ffmpeg `.tar.xz` archives |
+
+Runtime (not a build dependency): **Blender 4.5.0+** to use the staged addon.
+
+### GUI (`--gui`)
+
+Adds a Wails v2 desktop app (`sources/gui`). Checked by `scripts/lib/wails_toolchain.sh`.
+
+| Tool | Used for |
+|------|----------|
+| **Node.js 20+** | Frontend build (React/Vite) |
+| **npm** | Frontend dependencies |
+| **Wails v2 CLI** | `wails build` (auto-installed via `go install` when `INSTALL_WAILS=true`, default) |
+
+Ensure `$(go env GOPATH)/bin` is on `PATH` so `wails` is found after install.
+
+Platform-specific GUI dependencies come from **Wails on Linux** (GTK + WebKitGTK), not from Forester or the Blender addon.
+
+### macOS
+
+| Target | Packages / tools |
+|--------|------------------|
+| **Base** | Go 1.22+ (`brew install go`), Xcode **Command Line Tools** (`xcode-select --install`) for the C compiler |
+| **GUI** | Above + Node.js 20+ (`brew install node`), Wails CLI |
+| **Release (`--dmg`)** | `hdiutil` (built into macOS) |
+
+```bash
+# Typical dev setup
+xcode-select --install
+brew install go node
+```
+
+### Linux
+
+| Target | Packages / tools |
+|--------|------------------|
+| **Base** | Go 1.22+, `gcc` (or `clang`) for the native API |
+| **GUI** | Above + `pkg-config`, **GTK 3** dev headers, **WebKitGTK** dev headers, Node.js 20+, Wails CLI |
+
+Wails links against `gtk+-3.0` and `webkit2gtk-4.0` or `webkit2gtk-4.1` (4.1 uses Wails build tag `webkit2_41`).
+
+**Debian / Ubuntu**
+
+```bash
+sudo apt install golang-go build-essential pkg-config \
+  libgtk-3-dev libwebkit2gtk-4.1-dev
+# Older distros without 4.1: libwebkit2gtk-4.0-dev
+```
+
+**Fedora**
+
+```bash
+sudo dnf install golang gcc pkg-config gtk3-devel webkit2gtk4.1-devel
+# Older distros: webkit2gtk4.0-devel
+```
+
+**Arch**
+
+```bash
+sudo pacman -S go gcc pkg-config gtk3 webkit2gtk-4.1
+```
+
+| Target | Packages / tools |
+|--------|------------------|
+| **Release (`--tar`)** | `tar`, `gzip` (usually preinstalled) |
+
+### Windows (Git Bash / MSYS2)
+
+| Target | Packages / tools |
+|--------|------------------|
+| **Base** | Go 1.22+ from [go.dev/dl](https://go.dev/dl/), network access for ffmpeg download |
+| **GUI** | Above + Node.js 20+ LTS, Wails CLI; **MinGW-w64** (`gcc`) or MSVC (run `wails doctor` if unsure) |
+| **Release (`--zip`)** | No extra tools |
+| **Release (`--installer`)** | NSIS — `makensis` on `PATH` or default install under `C:\Program Files (x86)\NSIS\` |
+
+```bash
+# After installing Go and Node.js
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
+wails doctor
+```
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `INSTALL_WAILS` | `true` | Auto-install Wails CLI when missing |
+| `FFMPEG_SKIP` | `false` | Skip downloading bundled ffmpeg |
+| `DFM_DIST` | `builder/dist/payload` | Override staging output path |
 
 See [scripts/README.md](scripts/README.md) for script-level details.
 

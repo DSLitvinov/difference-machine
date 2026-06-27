@@ -56,7 +56,8 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | **macos/package_dmg.sh** | DMG installer |
 | **macos/wrap_forester_app.sh** | `Forester.app` for DMG |
 | **macos/lib/app_bundle.sh** | `.app` bundle helpers |
-| **linux/package_tar.sh** | `.tar.gz` release |
+| **linux/package_tar.sh** | `.tar.gz` release (includes `install.sh`) |
+| **linux/install.sh** | Post-install script bundled in the Linux archive |
 | **windows/package_zip.sh** | Portable `.zip` |
 | **windows/package_nsis.sh** | NSIS `setup.exe` |
 | **windows/installer.nsi** | NSIS template |

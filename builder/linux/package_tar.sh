@@ -40,35 +40,49 @@ echo ""
 
 assemble_portable_install_dir "${INSTALL_DIR}" "${DFM_DIST}"
 
+cp "${PLATFORM_DIR}/install.sh" "${INSTALL_DIR}/install.sh"
+chmod +x "${INSTALL_DIR}/install.sh"
+
 cat > "${INSTALL_DIR}/README.txt" << EOF
 Difference Machine — Linux install
 ==================================
 
-Suggested install path: /opt/Difference Machine/
+Install path: /opt/${INSTALL_FOLDER_NAME}/
 
 Contents:
+  install.sh                    Installer (recommended)
   ${GUI_DEST_NAME}              GUI application
   bin/${FORESTER_CLI_NAME}      Forester CLI
   lib/${API_LIB_NAME}           Forester API library
   addons/blender/difference_machine.zip
 
-1. Copy this folder to your preferred location, for example:
-     sudo mkdir -p /opt
-     sudo cp -R "${INSTALL_FOLDER_NAME}" /opt/
+Quick install (recommended)
+---------------------------
+  tar -xzf DifferenceMachine-*-linux.tar.gz
+  cd "${INSTALL_FOLDER_NAME}"
+  sudo ./install.sh
 
-2. Install the Blender addon (once per Blender version):
-   Blender → Edit → Preferences → Get Extensions → Install from Disk…
-   and select addons/blender/difference_machine.zip from this folder;
+The installer will:
+  - copy files to /opt/${INSTALL_FOLDER_NAME}/
+  - write ~/.dfm/setup.cfg (Forester CLI and API paths)
+  - create /usr/local/bin/forester and /usr/local/bin/difference-machine symlinks
+  - add a desktop menu entry
 
-   or symlink:
-     ln -sf "/opt/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine" \\
-       "\$HOME/.config/blender/<version>/extensions/user_default/difference_machine"
+Install the Blender addon (once per Blender version)
+----------------------------------------------------
+  Blender → Edit → Preferences → Get Extensions → Install from Disk…
+  and select addons/blender/difference_machine.zip from the install folder.
 
-3. Launch ${GUI_DEST_NAME} once. It creates ~/.dfm/setup.cfg with paths
-   to Forester and the addon in this install folder.
+  Set the addon path in GUI Settings if needed after Blender installs it.
 
-4. Optional CLI on PATH:
-     sudo ln -sfn "/opt/${INSTALL_FOLDER_NAME}/bin/${FORESTER_CLI_NAME}" /usr/local/bin/forester
+User install (no sudo)
+----------------------
+  ./install.sh --user
+
+Uninstall
+---------
+  sudo ./install.sh --uninstall
+  ./install.sh --user --uninstall
 
 Support: https://github.com/difference-machine/difference-machine
 EOF
