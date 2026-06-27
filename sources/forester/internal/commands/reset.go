@@ -152,7 +152,10 @@ func Reset(args []string) error {
 	// Restore files from target commit
 	for _, entry := range tree.Entries {
 		if entry.Type == "blob" {
-			filePath := filepath.Join(repoPath, entry.Name)
+			filePath, err := utils.JoinRepoPath(repoPath, entry.Name)
+			if err != nil {
+				return fmt.Errorf("invalid tree path %s: %w", entry.Name, err)
+			}
 			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
 				return fmt.Errorf("failed to restore file %s: %w", entry.Name, err)
 			}
@@ -225,7 +228,10 @@ func restoreTreeFromCommit(storage *core.Storage, repoPath string, treeHash stri
 	}
 
 	for _, entry := range tree.Entries {
-		filePath := filepath.Join(repoPath, entry.Name)
+		filePath, err := utils.JoinRepoPath(repoPath, entry.Name)
+		if err != nil {
+			return fmt.Errorf("invalid tree path %s: %w", entry.Name, err)
+		}
 
 		switch entry.Type {
 		case "blob":

@@ -126,7 +126,10 @@ func RestoreVersion(args []string) error {
 		if entry.Type != "blob" {
 			continue
 		}
-		absPath := filepath.Join(repoPath, filepath.FromSlash(relPath))
+		absPath, err := utils.JoinRepoPath(repoPath, relPath)
+		if err != nil {
+			return fmt.Errorf("invalid tree path %s: %w", relPath, err)
+		}
 		if err := utils.EnsureDirectory(filepath.Dir(absPath)); err != nil {
 			return fmt.Errorf("failed to create directory for %s: %w", relPath, err)
 		}

@@ -66,7 +66,10 @@ func RestoreTreeToWorkdir(storage *Storage, repoPath, treeHash string) error {
 
 func restoreTreeEntries(storage *Storage, repoPath string, tree *models.Tree) error {
 	for _, entry := range tree.Entries {
-		filePath := filepath.Join(repoPath, entry.Name)
+		filePath, err := utils.JoinRepoPath(repoPath, entry.Name)
+		if err != nil {
+			return fmt.Errorf("invalid tree path %s: %w", entry.Name, err)
+		}
 		switch entry.Type {
 		case "blob":
 			if err := utils.EnsureDirectory(filepath.Dir(filePath)); err != nil {

@@ -397,7 +397,10 @@ func BuildTreeMapRecursive(storage *Storage, tree *models.Tree, prefix string, t
 		if prefix != "" {
 			path = filepath.Join(prefix, entry.Name)
 		}
-		path = filepath.ToSlash(path)
+		path, err := utils.CleanRepoRelativePath(path)
+		if err != nil {
+			return fmt.Errorf("invalid tree path %s: %w", entry.Name, err)
+		}
 
 		if entry.Type == "blob" {
 			treeMap[path] = entry

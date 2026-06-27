@@ -15,14 +15,15 @@ import (
 // Files are hashed and stored as blobs before being added to the index.
 //
 // Usage:
-//   forester add <file>                # Add specific file
-//   forester add .                     # Add all files
-//   forester add -u                    # Add only tracked files (update)
+//
+//	forester add <file>                # Add specific file
+//	forester add .                     # Add all files
+//	forester add -u                    # Add only tracked files (update)
 func Add(args []string) error {
 	// Parse flags
 	updateOnly := false
 	var fileArgs []string
-	
+
 	for _, arg := range args {
 		if arg == "-u" || arg == "--update" {
 			updateOnly = true
@@ -32,12 +33,12 @@ func Add(args []string) error {
 			fileArgs = append(fileArgs, arg)
 		}
 	}
-	
+
 	if updateOnly && len(fileArgs) == 0 {
 		// Add -u without files: add all tracked files
 		fileArgs = []string{"."}
 	}
-	
+
 	if len(fileArgs) == 0 {
 		return fmt.Errorf("no files specified. Use '.' to add all files")
 	}
@@ -119,7 +120,7 @@ func Add(args []string) error {
 				if err != nil {
 					continue
 				}
-				
+
 				// Normalize path separators to match BuildTreeMapRecursive
 				relPath = filepath.ToSlash(relPath)
 
@@ -141,6 +142,9 @@ func Add(args []string) error {
 			// Validate path
 			if !utils.IsValidPath(arg) {
 				return fmt.Errorf("invalid path: %s", arg)
+			}
+			if _, err := utils.GetRepoRelativePath(repoPath, arg); err != nil {
+				return err
 			}
 
 			// Resolve path
@@ -169,7 +173,7 @@ func Add(args []string) error {
 					if err != nil {
 						continue
 					}
-					
+
 					// Normalize path separators to match BuildTreeMapRecursive
 					relPath = filepath.ToSlash(relPath)
 
@@ -193,7 +197,7 @@ func Add(args []string) error {
 				if err != nil {
 					return fmt.Errorf("failed to get relative path: %w", err)
 				}
-				
+
 				// Normalize path separators to match BuildTreeMapRecursive
 				relPath = filepath.ToSlash(relPath)
 
@@ -234,6 +238,10 @@ func Add(args []string) error {
 			continue
 		}
 		relPath = filepath.ToSlash(relPath)
+		if _, err := utils.GetRepoRelativePath(repoPath, relPath); err != nil {
+			fmt.Printf("Warning: skipping path outside repository %s: %v\n", filePath, err)
+			continue
+		}
 
 		// If file matches HEAD, ensure it's not staged as a change
 		if headHash, tracked := trackedFiles[relPath]; tracked && headHash == hash {
@@ -253,7 +261,7 @@ func Add(args []string) error {
 
 		// Check if file is already in index with same hash
 		existingHash, exists := index.GetHash(filePath)
-		
+
 		if exists && existingHash == hash {
 			// Already staged with same hash, skip
 			continue
@@ -362,4 +370,3 @@ func Add(args []string) error {
 
 	return nil
 }
-

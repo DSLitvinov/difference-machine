@@ -14,11 +14,11 @@ import (
 
 // FileManifest stores scene object metadata for a file at a commit.
 type FileManifest struct {
-	FilePath   string           `json:"file_path"`
-	CommitHash string           `json:"commit_hash"`
-	EditorType string           `json:"editor_type,omitempty"`
-	Objects    []models.Object  `json:"objects"`
-	UpdatedAt  int64            `json:"updated_at"`
+	FilePath   string          `json:"file_path"`
+	CommitHash string          `json:"commit_hash"`
+	EditorType string          `json:"editor_type,omitempty"`
+	Objects    []models.Object `json:"objects"`
+	UpdatedAt  int64           `json:"updated_at"`
 }
 
 // ManifestStore stores per-commit file manifests under .DFM/manifests/.
@@ -39,12 +39,30 @@ func encodeManifestPath(filePath string) string {
 	return EncodeStoragePath(filePath)
 }
 
-func (m *ManifestStore) manifestPath(commitHash, filePath string) string {
-	return filepath.Join(m.manifestDir, commitHash, encodeManifestPath(filePath)+".json")
+func safeManifestCommitDir(commitHash string) (string, error) {
+	clean, err := utils.CleanRepoRelativePath(commitHash)
+	if err != nil {
+		return "", err
+	}
+	if clean != commitHash || strings.ContainsAny(clean, `/\`) {
+		return "", fmt.Errorf("invalid commit hash path: %s", commitHash)
+	}
+	return clean, nil
+}
+
+func (m *ManifestStore) manifestPath(commitHash, filePath string) (string, error) {
+	dir, err := safeManifestCommitDir(commitHash)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(m.manifestDir, dir, encodeManifestPath(filePath)+".json"), nil
 }
 
 func (m *ManifestStore) load(commitHash, filePath string) (*FileManifest, error) {
-	path := m.manifestPath(commitHash, filePath)
+	path, err := m.manifestPath(commitHash, filePath)
+	if err != nil {
+		return nil, err
+	}
 	if !utils.Exists(path) {
 		return &FileManifest{
 			FilePath:   filepath.ToSlash(filePath),
@@ -64,7 +82,10 @@ func (m *ManifestStore) load(commitHash, filePath string) (*FileManifest, error)
 }
 
 func (m *ManifestStore) save(manifest *FileManifest) error {
-	path := m.manifestPath(manifest.CommitHash, manifest.FilePath)
+	path, err := m.manifestPath(manifest.CommitHash, manifest.FilePath)
+	if err != nil {
+		return err
+	}
 	manifest.UpdatedAt = time.Now().Unix()
 	data, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
@@ -145,7 +166,10 @@ func (m *ManifestStore) DeleteObject(commitHash, filePath, objectName string) er
 
 // DeleteObjectsByFile removes all objects for a file in a commit manifest.
 func (m *ManifestStore) DeleteObjectsByFile(commitHash, filePath string) error {
-	path := m.manifestPath(commitHash, filePath)
+	path, err := m.manifestPath(commitHash, filePath)
+	if err != nil {
+		return err
+	}
 	if !utils.Exists(path) {
 		return fmt.Errorf("no objects found for file: %s/%s", commitHash, filePath)
 	}
@@ -154,7 +178,11 @@ func (m *ManifestStore) DeleteObjectsByFile(commitHash, filePath string) error {
 
 // DeleteManifestsForCommit removes all manifest files for a commit.
 func (m *ManifestStore) DeleteManifestsForCommit(commitHash string) error {
-	dir := filepath.Join(m.manifestDir, commitHash)
+	commitDir, err := safeManifestCommitDir(commitHash)
+	if err != nil {
+		return err
+	}
+	dir := filepath.Join(m.manifestDir, commitDir)
 	if !utils.Exists(dir) {
 		return nil
 	}
@@ -163,7 +191,11 @@ func (m *ManifestStore) DeleteManifestsForCommit(commitHash string) error {
 
 // GetObjectsByCommit returns all objects across manifests for a commit.
 func (m *ManifestStore) GetObjectsByCommit(commitHash string) ([]*models.Object, error) {
-	dir := filepath.Join(m.manifestDir, commitHash)
+	commitDir, err := safeManifestCommitDir(commitHash)
+	if err != nil {
+		return nil, err
+	}
+	dir := filepath.Join(m.manifestDir, commitDir)
 	if !utils.Exists(dir) {
 		return []*models.Object{}, nil
 	}

@@ -35,6 +35,23 @@ func TestManifestStore_AddAndGetObject(t *testing.T) {
 	}
 }
 
+func TestManifestStoreRejectsTraversalCommitHash(t *testing.T) {
+	repoPath := t.TempDir()
+	store := NewManifestStore(repoPath)
+	outside := filepath.Join(repoPath, ".DFM", "outside", "b64:c2NlbmUuYmxlbmQ.json")
+
+	obj := models.NewObject("blender", "scene.blend", "Cube", "MESH", "../outside")
+	if err := store.AddObject(obj); err == nil {
+		t.Fatal("AddObject accepted traversal commit hash")
+	}
+	if _, err := os.Stat(outside); !os.IsNotExist(err) {
+		t.Fatalf("outside manifest was created: %v", err)
+	}
+	if err := store.DeleteManifestsForCommit("../outside"); err == nil {
+		t.Fatal("DeleteManifestsForCommit accepted traversal commit hash")
+	}
+}
+
 func TestMergeConfig_IsBinaryMergePath(t *testing.T) {
 	repoPath := t.TempDir()
 	configDir := filepath.Join(repoPath, ".DFM")

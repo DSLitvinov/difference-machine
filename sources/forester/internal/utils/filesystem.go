@@ -188,6 +188,49 @@ func GetRelativePath(base, target string) (string, error) {
 	return filepath.Rel(base, target)
 }
 
+// CleanRepoRelativePath normalizes a repository-relative path and rejects traversal.
+func CleanRepoRelativePath(path string) (string, error) {
+	if filepath.IsAbs(path) {
+		return "", fmt.Errorf("path must be relative: %s", path)
+	}
+	clean := filepath.Clean(filepath.FromSlash(path))
+	if clean == "." || clean == "" || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("path is outside repository: %s", path)
+	}
+	return filepath.ToSlash(clean), nil
+}
+
+// GetRepoRelativePath returns target as a clean slash-separated path inside base.
+func GetRepoRelativePath(base, target string) (string, error) {
+	baseAbs, err := filepath.Abs(base)
+	if err != nil {
+		return "", err
+	}
+	var targetAbs string
+	if filepath.IsAbs(target) {
+		targetAbs, err = filepath.Abs(target)
+	} else {
+		targetAbs, err = filepath.Abs(filepath.Join(baseAbs, target))
+	}
+	if err != nil {
+		return "", err
+	}
+	rel, err := filepath.Rel(baseAbs, targetAbs)
+	if err != nil {
+		return "", err
+	}
+	return CleanRepoRelativePath(rel)
+}
+
+// JoinRepoPath joins a repository-relative path and rejects traversal outside base.
+func JoinRepoPath(base, rel string) (string, error) {
+	repoRel, err := CleanRepoRelativePath(rel)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(base, filepath.FromSlash(repoRel)), nil
+}
+
 // FindRepositoryRoot finds the root of a Forester repository by looking for .DFM directory
 func FindRepositoryRoot(startPath string) (string, error) {
 	absPath, err := filepath.Abs(startPath)

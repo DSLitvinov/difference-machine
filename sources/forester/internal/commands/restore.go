@@ -13,9 +13,10 @@ import (
 
 // Restore restores files from index or commit
 // Usage:
-//   restore <file>                    - Restore file from index (discard working directory changes)
-//   restore --staged <file>            - Remove file from index (unstage)
-//   restore --source=<commit> <file>   - Restore file from commit
+//
+//	restore <file>                    - Restore file from index (discard working directory changes)
+//	restore --staged <file>            - Remove file from index (unstage)
+//	restore --source=<commit> <file>   - Restore file from commit
 func Restore(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("usage: restore [--staged] [--source=<commit>] <file>")
@@ -109,21 +110,12 @@ func Restore(args []string) error {
 
 		// Restore each file
 		for _, fileArg := range files {
-			// Resolve path
-			var absPath string
-			if filepath.IsAbs(fileArg) {
-				absPath = fileArg
-			} else {
-				absPath = filepath.Join(repoPath, fileArg)
-			}
-
-			relPath, err := utils.GetRelativePath(repoPath, absPath)
+			relPath, err := utils.GetRepoRelativePath(repoPath, fileArg)
 			if err != nil {
-				relPath = fileArg
+				return err
 			}
-
-			// Normalize path separators
-			relPath = filepath.ToSlash(relPath)
+			// Resolve path
+			absPath := filepath.Join(repoPath, filepath.FromSlash(relPath))
 
 			// Find file in tree
 			entry, found := treeMap[relPath]
@@ -165,18 +157,12 @@ func Restore(args []string) error {
 
 	// Restore from index or unstage
 	for _, fileArg := range files {
-		// Resolve path
-		var absPath string
-		if filepath.IsAbs(fileArg) {
-			absPath = fileArg
-		} else {
-			absPath = filepath.Join(repoPath, fileArg)
-		}
-
-		relPath, err := utils.GetRelativePath(repoPath, absPath)
+		relPath, err := utils.GetRepoRelativePath(repoPath, fileArg)
 		if err != nil {
-			relPath = fileArg
+			return err
 		}
+		// Resolve path
+		absPath := filepath.Join(repoPath, filepath.FromSlash(relPath))
 
 		if staged {
 			// Remove from index
