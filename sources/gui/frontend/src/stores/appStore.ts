@@ -22,6 +22,7 @@ interface AppState {
   error: string | null;
   foresterError: string | null;
   notice: string | null;
+  externalEditorPaths: string[];
   setSidebarMode: (mode: SidebarMode) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setRepo: (repoPath: string | null, repoName: string | null, currentBranch?: string | null) => void;
@@ -31,6 +32,7 @@ interface AppState {
   setError: (error: string | null) => void;
   setForesterError: (error: string | null) => void;
   setNotice: (notice: string | null) => void;
+  setExternalEditorPaths: (paths: string[]) => void;
   clearRepo: () => void;
 }
 
@@ -46,6 +48,7 @@ export const useAppStore = create<AppState>((set) => ({
   error: null,
   foresterError: null,
   notice: null,
+  externalEditorPaths: [],
   setSidebarMode: (mode) => {
     saveSidebarMode(mode);
     set({ sidebarMode: mode });
@@ -73,6 +76,7 @@ export const useAppStore = create<AppState>((set) => ({
   setError: (error) => set({ error }),
   setForesterError: (foresterError) => set({ foresterError }),
   setNotice: (notice) => set({ notice }),
+  setExternalEditorPaths: (externalEditorPaths) => set({ externalEditorPaths }),
   clearRepo: () =>
     set({
       repoPath: null,

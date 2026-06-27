@@ -10,6 +10,7 @@ PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
 echo ">>> Clean build artifacts"
 
 rm -rf "${BUILDER_DIR}/.staging"
+# builder/.cache/ (ffmpeg archives + binaries) is intentionally preserved
 rm -rf "${BUILDER_DIR}/forester"
 rm -rf "${PROJECT_ROOT}/sources/installer/forester"
 rm -rf "${PROJECT_ROOT}/installer/forester"

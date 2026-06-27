@@ -34,6 +34,7 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | **build_forester.sh** | Forester CLI + c-shared API + bundled ffmpeg → `builder/.staging/forester/` |
 | **fetch_ffmpeg.sh** | Download ffmpeg static build (macOS/Linux, Git Bash) |
 | **fetch_ffmpeg.ps1** | Download ffmpeg static build (Windows PowerShell) |
+| **lib/ffmpeg_cache.sh** | Reuse ffmpeg from `builder/.cache/ffmpeg/` or last `dist/payload` |
 | **build_gui.sh** | Wails GUI → staging (`.app` / binary / `.exe`) |
 | **stage_dist.sh** | Assemble `DFM_DIST` (default `builder/dist/payload`) |
 | **package_blender_addon_zip.sh** | Zip addon for release archives |
@@ -73,7 +74,9 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | `INSTALL_FOLDER_NAME` | `Difference Machine` | Install folder in releases |
 | `INSTALL_WAILS` | `true` | Auto-install Wails CLI |
 | `FFMPEG_SKIP` | `false` | Skip downloading bundled ffmpeg |
-| `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if already staged |
-| `FFMPEG_RELEASE_TAG` | `latest` | BtbN/FFmpeg-Builds release tag |
+| `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if already cached |
+| `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if already cached |
+
+**ffmpeg cache:** `builder/.cache/ffmpeg/` stores downloaded archives and the extracted binary. `clean_build.sh` does not remove it. On the next build, `fetch_ffmpeg` reuses the cache or copies from `builder/dist/payload/bin/` before downloading again.
 
 See `../README.md` for layout and Blender addon setup.

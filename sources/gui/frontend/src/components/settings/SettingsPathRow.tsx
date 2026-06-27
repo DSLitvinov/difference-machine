@@ -74,8 +74,14 @@ export function SettingsLabeledPathRow({
           {t("common.select")}
         </Button>
         {optional && onClear ? (
-          <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={onClear}>
-            {t("common.clear")}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="shrink-0 text-destructive hover:text-destructive"
+            onClick={onClear}
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         ) : null}
       </div>

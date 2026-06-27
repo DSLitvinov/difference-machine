@@ -99,8 +99,8 @@ export function vcsBadgeLabel(status: VcsFileStatus): string {
   }
 }
 
-export async function openWorkdirFile(path: string): Promise<void> {
-  await openWorkdirPath(path);
+export async function openWorkdirFile(path: string, editor?: string): Promise<void> {
+  await openWorkdirPath(path, editor);
 }
 
 export function committablePaths(status: StatusPayload): string[] {
@@ -373,8 +373,20 @@ export async function compareCleanup(commitHash: string): Promise<void> {
   });
 }
 
-export async function openWorkdirPath(path: string): Promise<void> {
-  await foresterCall("workdir.open", { path });
+export async function openWorkdirPath(path: string, editor?: string): Promise<void> {
+  await foresterCall("workdir.open", editor ? { path, editor } : { path });
+}
+
+export async function renameWorkdirFile(path: string, newName: string): Promise<string> {
+  const result = await foresterCall<{ new_path: string }>("workdir.rename", {
+    path,
+    new_name: newName,
+  });
+  return result.new_path;
+}
+
+export async function deleteWorkdirFile(path: string): Promise<void> {
+  await foresterCall("workdir.delete", { path });
 }
 
 export interface MergeStatusPayload {

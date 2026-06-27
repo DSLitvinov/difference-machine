@@ -1,5 +1,6 @@
 #!/bin/bash
 # Download a platform ffmpeg build into builder/.staging/forester/bin/
+# Archives and extracted binaries are cached under builder/.cache/ffmpeg/ (survives clean).
 
 set -euo pipefail
 
@@ -12,11 +13,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/detect_platform.sh
 . "${SCRIPT_DIR}/lib/detect_platform.sh"
 detect_platform
+# shellcheck source=lib/ffmpeg_cache.sh
+. "${SCRIPT_DIR}/lib/ffmpeg_cache.sh"
 
 BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 STAGING_DIR="${BUILDER_DIR}/.staging/forester"
 STAGING_BIN="${STAGING_DIR}/bin"
-CACHE_DIR="${BUILDER_DIR}/.staging/ffmpeg-cache"
+CACHE_DIR="$(ffmpeg_archive_cache_dir)"
 FFMPEG_RELEASE_TAG="${FFMPEG_RELEASE_TAG:-latest}"
 
 if [ "${FFMPEG_SKIP:-false}" = "true" ]; then
@@ -78,6 +81,22 @@ if [ -f "${STAGING_BIN}/${FFMPEG_BIN_NAME}" ] && [ "${FFMPEG_FORCE:-false}" != "
     exit 0
 fi
 
+if [ "${FFMPEG_FORCE:-false}" != "true" ]; then
+    reuse_source="$(ffmpeg_stage_from_previous_builds "${STAGING_BIN}" "${BUILDER_DIR}" || true)"
+    if [ -n "${reuse_source}" ] && [ -f "${STAGING_BIN}/${FFMPEG_BIN_NAME}" ]; then
+        ffmpeg_persist_bin_cache "${STAGING_BIN}"
+        case "${reuse_source}" in
+            cache)
+                echo -e "${GREEN}✓ Reused ffmpeg from build cache: ${STAGING_BIN}/${FFMPEG_BIN_NAME}${NC}"
+                ;;
+            dist)
+                echo -e "${GREEN}✓ Reused ffmpeg from previous dist payload: ${STAGING_BIN}/${FFMPEG_BIN_NAME}${NC}"
+                ;;
+        esac
+        exit 0
+    fi
+fi
+
 echo "=== Fetch ffmpeg (${CURRENT_OS}) ==="
 echo "URL: ${DOWNLOAD_URL}"
 
@@ -90,6 +109,8 @@ if [ ! -f "${ARCHIVE_PATH}" ] || [ "${FFMPEG_FORCE:-false}" = "true" ]; then
         echo -e "${RED}curl or wget is required to download ffmpeg${NC}"
         exit 1
     fi
+else
+    echo -e "${GREEN}✓ Using cached archive: ${ARCHIVE_PATH}${NC}"
 fi
 
 EXTRACT_DIR="${CACHE_DIR}/extract-${ARCHIVE_NAME}"
@@ -131,5 +152,7 @@ if [ "${CURRENT_OS}" = "windows" ]; then
     done
     shopt -u nullglob
 fi
+
+ffmpeg_persist_bin_cache "${STAGING_BIN}"
 
 echo -e "${GREEN}✓ ffmpeg staged: ${STAGING_BIN}/${FFMPEG_BIN_NAME}${NC}"

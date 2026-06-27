@@ -1,6 +1,7 @@
 package jsonapi
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -70,6 +71,31 @@ func (s *workdirScanner) shouldSkipName(name string, rel string, isDir bool) boo
 		return true
 	}
 	return false
+}
+
+// absFile resolves a relative workdir file path and rejects directories and internal paths.
+func (s *workdirScanner) absFile(rel string) (string, error) {
+	rel = canonicalRelPath(rel)
+	if rel == "" {
+		return "", fmt.Errorf("path is required")
+	}
+	name := filepath.Base(filepath.FromSlash(rel))
+	if s.shouldSkipName(name, rel, false) {
+		return "", fmt.Errorf("path is not accessible")
+	}
+	abs, err := s.absDir(filepath.Dir(rel))
+	if err != nil {
+		return "", err
+	}
+	abs = filepath.Join(abs, name)
+	info, err := os.Stat(abs)
+	if err != nil {
+		return "", err
+	}
+	if info.IsDir() {
+		return "", fmt.Errorf("path is a directory")
+	}
+	return abs, nil
 }
 
 func (s *workdirScanner) countFilesRecursive(rel string) (int, error) {

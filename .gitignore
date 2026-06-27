@@ -6,6 +6,7 @@ dist/
 
 # Builder artifacts
 builder/.staging/
+builder/.cache/
 builder/dist/
 builder/forester/
 sources/installer/

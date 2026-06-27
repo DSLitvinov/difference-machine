@@ -201,6 +201,94 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 
 func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, error) {
 	var params struct {
+		Path   string `json:"path"`
+		Editor string `json:"editor"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	if params.Path == "" {
+		return nil, fmt.Errorf("path is required")
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
+		rel := canonicalRelPath(params.Path)
+		abs, err := scanner.absFile(rel)
+		if err != nil {
+			return nil, err
+		}
+		if params.Editor != "" {
+			if err := openWithExecutable(params.Editor, abs); err != nil {
+				return nil, fmt.Errorf("workdir.open: %w", err)
+			}
+		} else if err := openWithOSDefault(abs); err != nil {
+			return nil, fmt.Errorf("workdir.open: %w", err)
+		}
+		return successResult(), nil
+	})
+}
+
+func handleWorkdirRename(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Path    string `json:"path"`
+		NewName string `json:"new_name"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	if params.Path == "" {
+		return nil, fmt.Errorf("path is required")
+	}
+	newName := strings.TrimSpace(params.NewName)
+	if newName == "" {
+		return nil, fmt.Errorf("new_name is required")
+	}
+	if strings.ContainsAny(newName, `/\`) {
+		return nil, fmt.Errorf("new_name must not contain path separators")
+	}
+	if newName == "." || newName == ".." {
+		return nil, fmt.Errorf("invalid new_name")
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
+		rel := canonicalRelPath(params.Path)
+		abs, err := scanner.absFile(rel)
+		if err != nil {
+			return nil, err
+		}
+		parentRel := filepath.ToSlash(filepath.Dir(filepath.FromSlash(rel)))
+		if parentRel == "." {
+			parentRel = ""
+		}
+		newRel := rel
+		if parentRel == "" {
+			newRel = newName
+		} else {
+			newRel = parentRel + "/" + newName
+		}
+		newAbs, err := scanner.absFile(newRel)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := os.Stat(newAbs); err == nil {
+			return nil, fmt.Errorf("a file already exists at %s", newRel)
+		} else if !os.IsNotExist(err) {
+			return nil, err
+		}
+		if err := os.Rename(abs, newAbs); err != nil {
+			return nil, fmt.Errorf("workdir.rename: %w", err)
+		}
+		return map[string]interface{}{
+			"success":   true,
+			"new_path":  newRel,
+		}, nil
+	})
+}
+
+func handleWorkdirDelete(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
 		Path string `json:"path"`
 	}
 	if err := decodeArgs(args, &params); err != nil {
@@ -211,13 +299,14 @@ func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, erro
 	}
 
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
 		rel := canonicalRelPath(params.Path)
-		abs := filepath.Join(repoPath, filepath.FromSlash(rel))
-		if _, err := os.Stat(abs); err != nil {
+		abs, err := scanner.absFile(rel)
+		if err != nil {
 			return nil, err
 		}
-		if err := openWithOSDefault(abs); err != nil {
-			return nil, fmt.Errorf("workdir.open: %w", err)
+		if err := moveToOSTrash(abs); err != nil {
+			return nil, fmt.Errorf("workdir.delete: %w", err)
 		}
 		return successResult(), nil
 	})

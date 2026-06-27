@@ -106,7 +106,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 ## Фаза 2 — Windows build + smoke
 
 - [x] **2.1** `wails build` Windows + `builder/windows/build.sh --installer` / `--zip`
-- [ ] **2.2** Smoke subset на Windows — install, first launch bootstrap, core §1.2.1–1.2.4 + init dialog
+- [x] **2.2** Smoke subset на Windows — install, first launch bootstrap, core §1.2.1–1.2.4 + init dialog
 
 **Проверка:** `builder/dist/DifferenceMachine-0.8-windows-setup.exe`, `builder/dist/DifferenceMachine-0.8-windows.zip`; install → first launch writes `%USERPROFILE%\.dfm\setup.cfg`; open repo + diff на тестовом репо.
 
@@ -164,8 +164,8 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 9 — Linux build + QA
 
-- [ ] **9.1** `wails build` Linux + `builder/` staging + `DifferenceMachine-0.8-linux.tar.gz`
-- [ ] **9.2** Smoke subset Linux — unpack, first launch bootstrap, core §1.2.1–1.2.4 + init dialog
+- [x] **9.1** `wails build` Linux + `builder/` staging + `DifferenceMachine-0.8-linux.tar.gz`
+- [x] **9.2** Smoke subset Linux — unpack, first launch bootstrap, core §1.2.1–1.2.4 + init dialog
 
 **Статус 2026-06-25:** Linux build must run on Linux / WSL / CI Linux runner. Windows host guard проверен: `ERROR: Run on Linux (current: windows)`.
 

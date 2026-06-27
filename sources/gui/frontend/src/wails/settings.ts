@@ -31,6 +31,16 @@ export async function fetchSettings(): Promise<SettingsSnapshot> {
   return GetSettings();
 }
 
+/** Editor paths for context menus: configured apps plus Blender when set. */
+export function resolveExternalEditorPaths(editors: string[], blenderPath: string): string[] {
+  const paths = editors.map((path) => path.trim()).filter((path) => path !== "");
+  const blender = blenderPath.trim();
+  if (blender && !paths.includes(blender)) {
+    paths.unshift(blender);
+  }
+  return paths;
+}
+
 export function resolveAppearanceFromSettings(snapshot: SettingsSnapshot): {
   theme: GuiTheme;
   font: GuiFont;

@@ -22,6 +22,7 @@ interface FilePreviewItemProps {
   lockUser?: string | null;
   onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
   onOpen: () => void;
+  onContextMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 export function FilePreviewItem({
@@ -34,6 +35,7 @@ export function FilePreviewItem({
   lockUser,
   onSelect,
   onOpen,
+  onContextMenu,
 }: FilePreviewItemProps) {
   const t = useT();
   const badge = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
@@ -53,6 +55,10 @@ export function FilePreviewItem({
         selected ? "border border-ring bg-accent" : "border border-transparent",
       )}
       onClick={onSelect}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        onContextMenu?.(event);
+      }}
       onDoubleClick={(e) => {
         e.preventDefault();
         onOpen();

@@ -19,6 +19,7 @@ import {
   pickSettingsFile,
   pickSettingsFolder,
   resolveAppearanceFromSettings,
+  resolveExternalEditorPaths,
   saveSettingsAppearance,
   saveSettingsEditors,
   saveSettingsForester,
@@ -40,6 +41,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const setError = useAppStore((s) => s.setError);
   const setUserNameInStore = useAppStore((s) => s.setUserName);
   const setLanguageInStore = useAppStore((s) => s.setLanguage);
+  const setExternalEditorPaths = useAppStore((s) => s.setExternalEditorPaths);
   const repoPath = useAppStore((s) => s.repoPath);
   const t = useT();
 
@@ -58,6 +60,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [font, setFont] = useState<GuiFont>("inter");
   const [language, setLanguage] = useState<GuiLanguage>("en");
   const { pickRepositoryPath } = useRepositoryAdd();
+
+  useEffect(() => {
+    if (!open || loading) return;
+    setExternalEditorPaths(resolveExternalEditorPaths(editors, blenderPath));
+  }, [open, loading, editors, blenderPath, setExternalEditorPaths]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,6 +86,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         setForesterCli(data.foresterCli ?? "");
         setBlenderPath(data.blenderPath ?? "");
         setAddonPath(data.addonPath ?? "");
+        setExternalEditorPaths(resolveExternalEditorPaths(data.editors ?? [], data.blenderPath ?? ""));
         setConfigPath(data.configPath ?? "");
         const appearance = resolveAppearanceFromSettings(data);
         setTheme(appearance.theme);
@@ -96,7 +104,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     return () => {
       cancelled = true;
     };
-  }, [open, setError, setLanguageInStore, setUserNameInStore]);
+  }, [open, setError, setExternalEditorPaths, setLanguageInStore, setUserNameInStore]);
 
   const handleSaveProfile = async () => {
     setSaving(true);
@@ -147,6 +155,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     setSaving(true);
     try {
       await saveSettingsEditors(editors.filter((path) => path.trim() !== ""));
+      await saveSettingsForester(foresterCli, blenderPath, addonPath);
+      setExternalEditorPaths(resolveExternalEditorPaths(editors, blenderPath));
       setNotice(t("settings.externalEditorsSaved"));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -189,12 +199,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
     { id: "profile", label: t("common.profile") },
     { id: "appearance", label: t("settings.appearance") },
     { id: "repositories", label: t("settings.repositories") },
-    {
-      id: "external-editors",
-      label: t("settings.externalEditors"),
-      disabled: true,
-      title: t("settings.externalEditorsDeferred"),
-    },
+    { id: "external-editors", label: t("settings.externalEditors") },
     { id: "forester", label: t("common.forester") },
   ];
 
@@ -381,7 +386,30 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                       <h3 className="text-lg font-semibold">{t("settings.externalEditors")}</h3>
                       <p className="mt-1 text-sm text-muted-foreground">{t("settings.manageEditors")}</p>
                       <Separator className="my-4" />
-                      <div className="min-h-0 flex-1 space-y-2 overflow-auto">
+                      <div className="min-h-0 flex-1 space-y-4 overflow-auto">
+                        <SettingsLabeledPathRow
+                          label={t("common.blenderExecutable")}
+                          value={blenderPath}
+                          optional
+                          onChange={setBlenderPath}
+                          onSelect={async () => {
+                            const picked = await pickSettingsFile();
+                            if (picked) setBlenderPath(picked);
+                          }}
+                          onClear={() => setBlenderPath("")}
+                        />
+                        <SettingsLabeledPathRow
+                          label={t("common.blenderAddon")}
+                          value={addonPath}
+                          optional
+                          onChange={setAddonPath}
+                          onSelect={async () => {
+                            const picked = await pickSettingsFolder();
+                            if (picked) setAddonPath(picked);
+                          }}
+                          onClear={() => setAddonPath("")}
+                        />
+                        <Separator />
                         {editors.map((path, index) => (
                           <SettingsPathListRow
                             key={`${path}-${index}`}
@@ -431,28 +459,6 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                             const picked = await pickSettingsFile();
                             if (picked) setForesterCli(picked);
                           }}
-                        />
-                        <SettingsLabeledPathRow
-                          label={t("common.blenderExecutable")}
-                          value={blenderPath}
-                          optional
-                          onChange={setBlenderPath}
-                          onSelect={async () => {
-                            const picked = await pickSettingsFile();
-                            if (picked) setBlenderPath(picked);
-                          }}
-                          onClear={() => setBlenderPath("")}
-                        />
-                        <SettingsLabeledPathRow
-                          label={t("common.blenderAddon")}
-                          value={addonPath}
-                          optional
-                          onChange={setAddonPath}
-                          onSelect={async () => {
-                            const picked = await pickSettingsFolder();
-                            if (picked) setAddonPath(picked);
-                          }}
-                          onClear={() => setAddonPath("")}
                         />
                       </div>
                       <div className="mt-auto flex justify-end pt-6">
