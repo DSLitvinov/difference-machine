@@ -246,43 +246,70 @@ Load order: `localStorage` → fallback `[gui]` in cfg → defaults (`light`, `i
 
 **Figma subtitle:** «Manage your editors.»
 
-Приложения для действий GUI **«Open in external application»** ([binary-diff-stub.md](./binary-diff-stub.md), [content-preview-project-view.md §4.4](./content-preview-project-view.md)) — когда нужен явный путь вместо только `xdg-open` / `open`.
+Приложения для **Edit in:** в context menu файлов Project view и для явного открытия через `workdir.open` с `editor`.
 
-### 6.1 Новая секция `setup.cfg`
+**Статус:** вкладка **активна** (не disabled). Список в context menu синхронизируется через `appStore.externalEditorPaths` — обновляется при редактировании полей на вкладке (live) и после **Save list**.
+
+### 6.1 Поля на вкладке
+
+Порядок сверху вниз:
+
+| Block | Label | cfg | Picker |
+|-------|-------|-----|--------|
+| Blender | **Blender executable** | `[blender].path` | file (optional) |
+| Blender | **Blender addon** | `[addons].diffmachine_path` | folder (optional) |
+| — | `Separator` | — | — |
+| List | External applications | `[gui editors].path_N` | list rows §6.2 |
+
+Optional path rows: `Label` + `Input` + **Select** + **Trash** (красная icon button, как в Repositories — **не** текстовая кнопка Clear).
+
+### 6.2 Секция `setup.cfg`
 
 ```ini
+[blender]
+path = /usr/bin/blender
+
+[addons]
+diffmachine_path = /opt/difference_machine
+
 [gui editors]
-path_1 = /Applications/Blender.app/Contents/MacOS/Blender
-path_2 = /usr/local/bin/code
+path_1 = /usr/local/bin/code
+path_2 = /Applications/Blender.app/Contents/MacOS/Blender
 ```
 
 | Key | Значение |
 |-----|----------|
 | `path_N` | Abs path к executable (native OS) |
 
-### 6.2 List row
+### 6.3 List row (applications)
 
-Тот же паттерн что §5.1: path + **Select** (file picker для `.app`/`.exe`) + **Trash**.
+Тот же паттерн что Repositories §5.1: path + **Select** (file picker для `.app`/`.exe`) + **Trash**.
 
 | Button | Action |
 |--------|--------|
 | **Add application** | append empty row → Select |
-| **Save list** | persist `[gui editors]` |
+| **Save list** | persist `[gui editors]` + `[blender]` + `[addons]` (Blender paths) |
 
-### 6.3 Использование в GUI (v1)
+### 6.4 Список в context menu
 
 ```ts
-// workdir.open resolution order:
-// 1. extension → first matching editor in [gui editors] (v1.1: explicit map)
-// 2. [blender].path if .blend
-// 3. OS default (open / xdg-open / ShellExecute)
+// resolveExternalEditorPaths(editors, blenderPath):
+// 1. [gui editors] paths (order preserved)
+// 2. prepend [blender].path if set and not already in list
 ```
 
-v1 минимум: если `.blend` и задан `[blender].path` → использовать его; иначе OS default. Список `[gui editors]` сохраняется и показывается в UI; routing по расширению — **v1.1**.
+Источник: `appStore.externalEditorPaths` — обновляется из Settings dialog (`useEffect` на `editors` + `blenderPath` while open) и при старте приложения.
 
-### 6.4 Связь с Forester tab
+Submenu label: **Edit in** (без двоеточия), иконка `Settings` (шестерёнка) слева.
 
-`[blender].path` на вкладке Forester и Blender в External editors — **один путь** в v1.1 (sync). v1: допускается дублирование; при save Forester tab перезаписывает приоритет для `.blend`.
+### 6.5 `workdir.open` routing
+
+```ts
+// Double-click: workdir.open { path }           → OS default
+// Context menu Edit in: workdir.open { path, editor }
+```
+
+Extension→editor map — **v2 backlog**; v1: пользователь выбирает редактор из списка вручную.
 
 ---
 
@@ -292,24 +319,16 @@ v1 минимум: если `.blend` и задан `[blender].path` → испо
 
 Пути к toolchain — GUI вызывает Forester через Wails → `jsonapi` → binary из `[forester].path`.
 
-### 7.1 Поля (labeled rows, не anonymous list)
+### 7.1 Поля (labeled rows)
 
 | Label | cfg | Required | Picker |
 |-------|-----|----------|--------|
+| **Config file** | path to `setup.cfg` | — | read-only |
 | **Forester CLI** | `[forester].path` | да | file → `forester` / `forester.exe` |
-| **API library** | `[api].path` | v1.1 | `.so` / `.dylib` / `.dll` |
-| **Blender addon** | `[addons].diffmachine_path` | для merge/objects | folder |
-| **Blender executable** | `[blender].path` | для `.blend` open/merge | file |
-| **Merge apply script** | `[blender].merge_apply_script` | для object merge v2 | `merge_apply_background.py` |
 
-Каждая строка: `Label` + `Input` (path) + **Select** + optional **Clear** (если optional).
+> **Blender executable** и **Blender addon** перенесены на вкладку **External editors** (§6).
 
-Figma list pattern применяется к **дополнительным** plugin paths (v2):
-
-```ini
-[plugins]
-blender_enabled = true
-```
+Отложено на v2: **API library** (`[api].path`), **Merge apply script** (`[blender].merge_apply_script`).
 
 ### 7.2 Validation on save
 
@@ -333,8 +352,8 @@ blender_enabled = true
 | Profile | `[user]`, `[gui].language` | stay open |
 | Appearance | `localStorage` + `[gui].theme`, `[gui].font` | stay open |
 | Repositories | `[repo]` + maybe `[current repo]` | stay open |
-| External editors | `[gui editors]` | stay open |
-| Forester | `[forester]`, `[api]`, `[addons]`, `[blender]` | stay open |
+| External editors | `[gui editors]` + `[blender]` + `[addons]` | stay open |
+| Forester | `[forester].path` | stay open |
 
 - **Per-tab Save** — как в Figma (не один global Save)
 - Dirty state per tab → enable только активную Save
@@ -421,8 +440,8 @@ interface SettingsSnapshot {
 | Profile | **Author name** + Language (`en` only) |
 | Appearance | **Theme** Light/Dark cards + **Font** Inter (read-only) |
 | Repositories | **full list** add/remove/save |
-| External editors | list UI + save; routing `.blend` → `[blender].path` |
-| Forester | **Forester CLI** + **Blender** + **addon path** |
+| External editors | **full**: Blender paths + app list; live sync to context menu |
+| Forester | **Forester CLI** only (+ read-only config path) |
 
 Отложено: `system` theme, extra fonts, email, API lib picker, merge script, extension→editor map, Verify button.
 
@@ -433,16 +452,11 @@ interface SettingsSnapshot {
 ```
 frontend/src/components/settings/
   SettingsDialog.tsx
-  SettingsProfileTab.tsx
-  SettingsAppearanceTab.tsx
+  SettingsPathRow.tsx          # SettingsPathListRow + SettingsLabeledPathRow (Trash on optional clear)
   ThemePreviewCard.tsx
-  SettingsRepositoriesTab.tsx
-  SettingsEditorsTab.tsx
-  SettingsForesterTab.tsx
-  SettingsPathRow.tsx
-  settingsStore.ts
-  applyAppearance.ts
 ```
+
+`externalEditorPaths` — `appStore` + `resolveExternalEditorPaths()` в `wails/settings.ts` (не отдельный tab component file).
 
 ---
 

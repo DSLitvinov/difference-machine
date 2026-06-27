@@ -99,7 +99,8 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 ### 7.3 Settings + branch
 
 - [x] Dark theme (Appearance)
-- [x] External editors: путь к `.app` на macOS резолвится в binary
+- [x] External editors: вкладка активна; Blender path в submenu **Edit in:**; список обновляется при изменении в Settings
+- [x] Project file grid: ПКМ → Copy / Rename / Edit in / Delete (корзина ОС)
 - [x] History → Branch selector → **Create new branch…** → диалог → ветка создана
 
 ### 7.4 Errors + multiselect

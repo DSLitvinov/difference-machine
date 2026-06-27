@@ -209,7 +209,10 @@ wails doctor
 |----------|---------|---------|
 | `INSTALL_WAILS` | `true` | Auto-install Wails CLI when missing |
 | `FFMPEG_SKIP` | `false` | Skip downloading bundled ffmpeg |
+| `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if cached |
 | `DFM_DIST` | `builder/dist/payload` | Override staging output path |
+
+**ffmpeg cache:** `builder/.cache/ffmpeg/` — archives + extracted binary; preserved across `clean_build.sh`. Reused from `dist/payload/bin/` when staging is empty.
 
 See [scripts/README.md](scripts/README.md) for script-level details.
 

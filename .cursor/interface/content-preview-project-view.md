@@ -297,6 +297,21 @@ async function onFileDoubleClick(filePath: string) {
 
 ---
 
+## 4.5 Context menu (right-click на файле)
+
+Канон: [file-preview-item.md §4.2](./file-preview-item.md).
+
+| Item | API / поведение |
+|------|-----------------|
+| Copy | Clipboard: repo-relative path |
+| Rename | Dialog → `workdir.rename` |
+| Edit in: | Submenu → `workdir.open { editor }`; список из `appStore.externalEditorPaths` |
+| Delete | Confirm → `workdir.delete` (OS Trash / Recycle Bin) |
+
+Список редакторов обновляется сразу при изменении в Settings (вкладка External editors). Blender включается в submenu, если задан `[blender].path`.
+
+---
+
 ## 5. Слайдер масштаба миниатюр
 
 Управляет размером ячеек обеих секций (Folders + Files) одновременно.
@@ -495,7 +510,9 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 | `workdir.entries` | Immediate папки + файлы текущей папки |
 | `workdir.search` | Global search |
 | `workdir.thumbnail` | Миниатюра — images, text snippet, `.blend` ([api-contract.md §4.3](./api-contract.md)) |
-| `workdir.open` | Double-click → ОС (§4.4) |
+| `workdir.open` | Double-click → ОС; context menu → optional `editor` (§4.4) |
+| `workdir.rename` | Context menu Rename |
+| `workdir.delete` | Context menu Delete → OS Trash |
 | `status.get` | VCS badges |
 | `lock.list` | Lock badges на file preview items |
 

@@ -179,6 +179,15 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ---
 
+## v2.2 — GUI workdir actions + build cache
+
+- [x] Settings: External editors tab enabled; Blender paths on External editors; optional Clear → Trash icon
+- [x] Project file context menu: Copy, Rename (`workdir.rename`), Edit in (`workdir.open` + editor), Delete → OS Trash (`workdir.delete`)
+- [x] `appStore.externalEditorPaths` — live sync from Settings
+- [x] ffmpeg: persistent cache `builder/.cache/ffmpeg/` (survives `clean_build.sh`)
+
+---
+
 ## Журнал сессий (опционально)
 
 | Дата | Фаза | Сделано | Следующий шаг |
@@ -190,3 +199,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2025-06-24 | 8 | Init wizard: 3-step dialog, `repo.init` author/dfmignore, `InitRepositoryWithOptions` | **9.1** Linux build |
 | 2026-06-25 | Release hardening | Windows installer/zip build verified; Linux runner unavailable on host | **9.1** Linux build on Linux / WSL / CI |
 | 2026-06-25 | v2.1 | Tree persistence, destructive reset submenu, large-repo perf hints/timings | Linux build + platform smoke |
+| 2026-06-27 | v2.2 | File context menu, workdir rename/delete/trash, External editors live sync, ffmpeg build cache | Platform smoke |

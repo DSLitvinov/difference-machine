@@ -191,7 +191,9 @@ Content Info History — commit combobox.
 | `workdir.search` | Global search по репо |
 | `workdir.metadata` | Content Info: stat + mime |
 | `workdir.thumbnail` | Preview / Info thumbnails — images, text snippet, `.blend` (OS cache + embedded) |
-| `workdir.open` | Double-click → OS default app |
+| `workdir.open` | Double-click → OS default app; optional `editor` path |
+| `workdir.rename` | Rename file in workdir (context menu) |
+| `workdir.delete` | Move file to OS Trash / Recycle Bin (context menu) |
 
 ### 4.0 Workdir scan exclusions (все методы §4)
 
@@ -302,6 +304,54 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 **Предусловие:** файл сохранён в Blender с включённым «Save Preview Images»; иначе кэш пуст и embedded `TEST` может отсутствовать.
 
 Реализация: `sources/forester/internal/jsonapi/blend_thumbnail.go`.
+
+### 4.4 `workdir.open`
+
+```json
+{ "path": "assets/scene.blend" }
+{ "path": "readme.txt", "editor": "/usr/bin/code" }
+```
+
+| Поле | Обязательно | Описание |
+|------|-------------|----------|
+| `path` | да | Repo-relative path |
+| `editor` | нет | Abs path к executable; если задан — запуск `editor <absPath>` |
+
+Без `editor`: OS default handler (`open` / `xdg-open` / `start`). Реализация: `workdir_open.go`.
+
+**UI:** double-click в [file-preview-item.md](./file-preview-item.md); submenu **Edit in:** в context menu — список из `appStore.externalEditorPaths` ([settings-dialog.md §6](./settings-dialog.md)).
+
+### 4.5 `workdir.rename`
+
+```json
+{ "path": "assets/old.png", "new_name": "new.png" }
+→ { "success": true, "new_path": "assets/new.png" }
+```
+
+| Правило | Описание |
+|---------|----------|
+| `new_name` | Только имя файла (basename), без `/` или `\` |
+| Коллизия | Error если целевой путь уже существует |
+| Scope | Только файлы; `.DFM/`, `.dfmignore`, ignored paths — reject |
+
+После успеха GUI: `bumpWorkdirGeneration`, refresh `status.get`, обновить selection по `new_path`.
+
+### 4.6 `workdir.delete`
+
+```json
+{ "path": "assets/scene.blend" }
+→ { "success": true }
+```
+
+**Не** permanent `unlink` — файл перемещается в корзину ОС:
+
+| OS | Механизм |
+|----|----------|
+| **macOS** | Finder Trash (`osascript`) |
+| **Windows** | Recycle Bin (`SendToRecycleBin`) |
+| **Linux** | `gio trash` → `trash-put` → freedesktop `~/.local/share/Trash/` |
+
+Реализация: `workdir_trash.go`. Заблокировано для `deleted` / `staged-deleted` и locked files (UI).
 
 ---
 

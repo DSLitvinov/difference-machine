@@ -58,7 +58,9 @@ Forester CLI — **не bundle** в v1.0; путь из `~/.dfm/setup.cfg` `[for
 | Marquee multiselect | Shipped | [content-preview-project-view.md §9.3](./content-preview-project-view.md) |
 | Virtual scroll / large repo handling | Shipped with backlog polish | Pagination remains the backend guard |
 | Real `workdir.thumbnail` | Shipped | Images + `.blend` preview fallback |
-| External editors / OS open | Shipped | `workdir.open` |
+| External editors / OS open | Shipped | `workdir.open` + context menu **Edit in:** |
+| File context menu (Project) | Shipped | Copy, Rename, Edit in, Delete→Trash — [file-preview-item.md §4.2](./file-preview-item.md) |
+| External editors live sync | Shipped | `appStore.externalEditorPaths` ← Settings |
 | Init repository wizard | Shipped | [init-repository-dialog.md](./init-repository-dialog.md) |
 | Dark theme | Shipped | Settings |
 | Detached HEAD indicator | Shipped | `status.is_detached` + banner |

@@ -149,8 +149,42 @@ stateDiagram-v2
 | **Shift+Click** | Range-select от `anchorIndex` до текущего в **отсортированном flat list файлов** (только секция Files) |
 | **Click empty area** | Clear selection |
 | **Double-click** | Открыть в **приложении по умолчанию ОС** (`workdir.open`, §4.4 в [content-preview-project-view.md](./content-preview-project-view.md)) |
+| **Right-click** | Context menu §4.2 |
 | **Enter** (фокус на item) | = double-click |
 | **Marquee** | См. [content-preview.md](./content-preview.md) §6 |
+
+### 4.2 Context menu (right-click)
+
+`DropdownMenu` в позиции курсора (паттерн [history-changed-file-item.md §6.1](./history-changed-file-item.md)). Перед открытием — select файл (single).
+
+| Item | Icon | Action | Disabled when |
+|------|------|--------|---------------|
+| **Copy** | `Copy` | Clipboard: repo-relative `path` | — |
+| **Rename** | `Pencil` | [Rename dialog](#rename-dialog) → `workdir.rename` | `deleted` / `staged-deleted`, locked |
+| **Edit in** | `Settings` + submenu | `workdir.open { editor }` per app | same + empty editor list |
+| — | separator | — | — |
+| **Delete** | `Trash2` (destructive) | Confirm → `workdir.delete` (OS Trash) | same |
+
+**Edit in** submenu: `appStore.externalEditorPaths` — Blender first if configured, then `[gui editors]`; обновляется live из Settings ([settings-dialog.md §6.4](./settings-dialog.md)).
+
+#### Rename dialog
+
+| Property | Value |
+|----------|-------|
+| Title | «Are you sure you want to rename the file?» / RU: «Вы действительно хотите переименовать файл?» |
+| Body | `Input` с текущим **именем файла** (basename) |
+| Actions | **Cancel** · **Save** |
+| API | `workdir.rename { path, new_name }` → update selection to `new_path` |
+
+#### Delete confirm
+
+| Property | Value |
+|----------|-------|
+| Title | «Move "{name}" to Trash?» |
+| Body | Файл перемещается в корзину ОС, восстановление возможно |
+| API | `workdir.delete` → OS Trash / Recycle Bin ([api-contract.md §4.6](./api-contract.md)) |
+
+Реализация: `FilePreviewGrid.tsx`, `RenameFileDialog.tsx`.
 
 ### 4.1 Anchor index rules
 
@@ -224,7 +258,11 @@ type VcsFileStatus =
 | Shift+click across filtered list | Range only among **visible** (post-search) items |
 | All files filtered out | Parent empty state |
 | Marquee starts on folder item | Ignore — marquee только по background Files grid |
-| Touch devices | Long-press → context menu v2; tap = select |
+| Right-click | Context menu §4.2 |
+| Rename: имя с `/` | Backend reject |
+| Delete locked file | Menu item disabled |
+| Delete / rename `deleted` | Menu items disabled |
+| Touch devices | Long-press → context menu (same as desktop) |
 | Double-click, файл удалён | Toast «File not found» |
 | Double-click, нет OS handler | Toast с ошибкой платформы |
 | `deleted` / `staged-deleted` | Double-click → toast, не открывать |
@@ -234,11 +272,10 @@ type VcsFileStatus =
 ## 8. Компоненты (файлы)
 
 ```
-components/preview/project/
+components/preview/
   FilePreviewItem.tsx
-  FilePreviewThumbnail.tsx
-  FileStatusBadge.tsx
-  FilePreviewItemSkeleton.tsx
+  FilePreviewGrid.tsx       # context menu, rename/delete dialogs
+  RenameFileDialog.tsx
 ```
 
 ### Props
@@ -250,9 +287,12 @@ interface FilePreviewItemProps {
   scale: 'min' | 'max'
   index: number
   onSelect: (e: React.MouseEvent) => void
-  onDoubleClick: () => void   // → workdir.open
+  onOpen: () => void                    // → workdir.open (double-click)
+  onContextMenu?: (e: React.MouseEvent) => void
 }
 ```
+
+Context menu orchestration — в `FilePreviewGrid`, не в item.
 
 ---
 

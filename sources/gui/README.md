@@ -76,7 +76,8 @@ sources/gui/
 - Backend bridge: `App.ForesterCall(method, argsJSON)` in `app.go`.
 - Forester client: `internal/forester` opens a JSON API session through `github.com/difference-machine/forester/pkg/jsonapi`.
 - Frontend wrapper: `frontend/src/wails/forester.ts`.
-- Global settings: `internal/config` reads and writes `~/.dfm/setup.cfg`.
+- Global settings: `internal/config` reads and writes `~/.dfm/setup.cfg`; external editor paths synced to `appStore.externalEditorPaths` for file context menu.
 - Workdir refresh: `internal/workdirwatch` emits `workdir:changed` and ignores `.DFM` / `.dfmignore`.
+- Project file grid context menu: Copy, Rename (`workdir.rename`), Edit in (`workdir.open` + editor), Delete to OS Trash (`workdir.delete`).
 
 See `builder/README.md` for release packaging.
