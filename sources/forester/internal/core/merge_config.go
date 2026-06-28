@@ -8,7 +8,7 @@ import (
 )
 
 // StructuredMergeDriver describes optional object-level merge for binary DCC files.
-// Invocation is handled by the DCC addon (e.g. Blender merge_apply_background.py),
+// Object-level .blend merge is performed by Forester via scripts/merge_apply_background.py.
 // not by the Forester CLI, because each Blender version ships its own Python API.
 type StructuredMergeDriver struct {
 	Pattern        string

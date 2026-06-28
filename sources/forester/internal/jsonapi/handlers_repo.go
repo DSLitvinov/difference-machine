@@ -322,6 +322,9 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 	indexMap := index.GetEntries()
 
 	for relPath, indexHash := range indexMap {
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		headHash, existsInHead := trackedMap[relPath]
 		if !existsInHead {
 			stagedNew = append(stagedNew, relPath)
@@ -331,6 +334,9 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 	}
 
 	for relPath := range trackedMap {
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		if _, existsInIndex := indexMap[relPath]; !existsInIndex {
 			fullPath := filepath.Join(repoPath, relPath)
 			if !utils.Exists(fullPath) {
@@ -354,6 +360,9 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 			continue
 		}
 		relPath = filepath.ToSlash(relPath)
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		if patterns.Matches(relPath) {
 			continue
 		}
@@ -378,6 +387,9 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 	}
 
 	for relPath := range indexMap {
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		fullPath := filepath.Join(repoPath, relPath)
 		if !utils.Exists(fullPath) {
 			if _, existsInHead := trackedMap[relPath]; existsInHead {
@@ -389,6 +401,14 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 	renamedFiles, stagedNew, stagedDeleted, unstagedDeleted := detectWorkingTreeRenames(
 		stagedNew, stagedDeleted, unstagedDeleted, indexMap, trackedMap,
 	)
+
+	stagedNew = utils.FilterDfmignorePaths(stagedNew)
+	stagedModified = utils.FilterDfmignorePaths(stagedModified)
+	stagedDeleted = utils.FilterDfmignorePaths(stagedDeleted)
+	unstagedModified = utils.FilterDfmignorePaths(unstagedModified)
+	unstagedDeleted = utils.FilterDfmignorePaths(unstagedDeleted)
+	untracked = utils.FilterDfmignorePaths(untracked)
+	renamedFiles = filterDfmignoreRenames(renamedFiles)
 
 	return map[string]interface{}{
 		"current_branch":          currentBranch,
@@ -461,4 +481,18 @@ func detectWorkingTreeRenames(
 	}
 
 	return renamedFiles, remainingNew, filterDeleted(stagedDeleted), filterDeleted(unstagedDeleted)
+}
+
+func filterDfmignoreRenames(renamed []map[string]string) []map[string]string {
+	if len(renamed) == 0 {
+		return renamed
+	}
+	out := make([]map[string]string, 0, len(renamed))
+	for _, entry := range renamed {
+		if utils.IsDfmignoreRelPath(entry["path"]) || utils.IsDfmignoreRelPath(entry["old_path"]) {
+			continue
+		}
+		out = append(out, entry)
+	}
+	return out
 }

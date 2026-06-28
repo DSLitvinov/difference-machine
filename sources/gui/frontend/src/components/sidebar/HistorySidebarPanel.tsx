@@ -120,8 +120,10 @@ export function HistorySidebarPanel() {
     try {
       const status = await fetchMergeStatus();
       setMergeStatus(status.in_progress ? status : null);
+      return status;
     } catch {
       setMergeStatus(null);
+      return null;
     }
   }, []);
 
@@ -405,9 +407,12 @@ export function HistorySidebarPanel() {
         currentBranch={currentBranch ?? ""}
         author={author}
         mergeStatus={mergeStatus}
-        onError={(message) => {
-          setError(message);
-          void loadMergeStatus();
+        onError={() => {
+          void loadMergeStatus().then((status) => {
+            if (status?.in_progress) {
+              setMergeDialogMode("continue");
+            }
+          });
         }}
         onCompleted={async (result) => {
           await refreshAfterMerge();

@@ -14,13 +14,14 @@ SCRIPTS_DIR="${BUILDER_DIR}/scripts"
 
 # shellcheck source=../scripts/lib/dfm_dist.sh
 . "${SCRIPTS_DIR}/lib/dfm_dist.sh"
+# shellcheck source=../scripts/lib/release_install_folder.sh
+. "${SCRIPTS_DIR}/lib/release_install_folder.sh"
 ensure_dfm_dist "${BUILDER_DIR}"
 
 DIST_DIR="${BUILDER_DIR}/dist"
 STAGING="${BUILDER_DIR}/.staging/macos_installer"
 INSTALL_FOLDER_NAME="${INSTALL_FOLDER_NAME:-Difference Machine}"
 GUI_APP_NAME="Difference Machine.app"
-ADDON_REL="addons/blender/difference_machine"
 
 VERSION="$(head -1 "${DFM_DIST}/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "0.0.0")"
 DMG_BASENAME="DifferenceMachine-${VERSION}-macos"
@@ -60,14 +61,14 @@ mkdir -p "${INSTALL_DIR}"
 cp -R "${GUI_SRC}" "${INSTALL_DIR}/${GUI_APP_NAME}"
 cp -R "${STAGING}/Forester.app" "${INSTALL_DIR}/Forester.app"
 
-if [ ! -d "${DFM_DIST}/${ADDON_REL}" ]; then
-    echo -e "${RED}Addon not found: ${DFM_DIST}/${ADDON_REL}${NC}" >&2
-    exit 1
+if [ -d "${DFM_DIST}/share/scripts" ]; then
+    mkdir -p "${INSTALL_DIR}/share/scripts"
+    cp -R "${DFM_DIST}/share/scripts/." "${INSTALL_DIR}/share/scripts/"
+    echo -e "${GREEN}✓ share/scripts/ (merge_apply_background.py)${NC}"
 fi
-ADDON_ZIP_REL="addons/blender/difference_machine.zip"
-mkdir -p "${INSTALL_DIR}/addons/blender"
-"${SCRIPTS_DIR}/package_blender_addon_zip.sh" "${DFM_DIST}/${ADDON_REL}" "${INSTALL_DIR}/${ADDON_ZIP_REL}"
-echo -e "${GREEN}✓ ${ADDON_ZIP_REL}${NC}"
+
+package_blender_addon_for_release "${INSTALL_DIR}/addons/blender" "${DFM_DIST}"
+echo -e "${GREEN}✓ addons/blender/${ADDON_ZIP_NAME} (zip only)${NC}"
 
 cat > "${DMG_LAYOUT}/README.txt" << EOF
 Difference Machine — macOS install
@@ -79,17 +80,15 @@ Difference Machine — macOS install
    After install:
      /Applications/${INSTALL_FOLDER_NAME}/${GUI_APP_NAME}
      /Applications/${INSTALL_FOLDER_NAME}/Forester.app
+     /Applications/${INSTALL_FOLDER_NAME}/share/scripts/merge_apply_background.py
      /Applications/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine.zip
 
-2. Install the Blender addon (once per Blender version), either:
+2. Install the Blender addon (once per Blender version):
    Blender → Edit → Preferences → Get Extensions → Install from Disk…
-   and select difference_machine.zip from the install folder above;
+   and select addons/blender/difference_machine.zip from the install folder above.
 
-   or symlink after first launch of "${GUI_APP_NAME}" (extracts the zip):
-     ln -sf "/Applications/${INSTALL_FOLDER_NAME}/addons/blender/difference_machine" \\
-       "\$HOME/Library/Application Support/Blender/<version>/extensions/user_default/difference_machine"
-
-   Replace <version> with your Blender version (e.g. 4.5).
+   After first launch of "${GUI_APP_NAME}", the zip is extracted beside itself as
+   addons/blender/difference_machine/ for Forester bootstrap (not shipped in the DMG).
 
 3. Launch "${GUI_APP_NAME}" once. It creates ~/.dfm/setup.cfg with paths
    to Forester and the addon (same install folder).

@@ -16,6 +16,7 @@ type ManifestService interface {
 	GetObject(commitHash, filePath, objectName string) (*models.Object, error)
 	GetObjectsByCommit(commitHash string) ([]*models.Object, error)
 	GetObjectsByFile(commitHash, filePath string) ([]*models.Object, error)
+	FindObjectsByFileAcrossCommits(filePath string) ([]*models.Object, error)
 	AddObject(obj *models.Object) error
 	DeleteObject(commitHash, filePath, objectName string) error
 	DeleteObjectsByFile(commitHash, filePath string) error

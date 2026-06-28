@@ -113,8 +113,8 @@ func createConfigFile(repoPath string) error {
 [merge]
     binary = *.blend,*.fbx,*.png,*.jpg,*.jpeg,*.gif,*.webp,*.wav,*.mp3,*.exr,*.psd,*.tif,*.tiff,*.zip,*.dll,*.so,*.dylib
 
-# Object-level .blend merge is performed by the Blender addon
-# (scripts/merge_apply_background.py), not by the Forester CLI.
+# Object-level .blend merge is performed by Forester
+# (share/scripts/merge_apply_background.py) using background Blender.
 [merge "blend"]
     pattern = *.blend
     structured = blender-objects

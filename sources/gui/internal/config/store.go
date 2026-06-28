@@ -593,6 +593,10 @@ func (s *Store) SetInstallToolchainPaths(cliPath, apiPath, addonPath string) err
 		s.setUnlocked("forester", "ffmpeg_path", ffmpegPath)
 	}
 
+	if script := mergeApplyScriptBesideCLI(cliCanonical); script != "" {
+		s.setUnlocked("blender", "merge_apply_script", script)
+	}
+
 	if apiCanonical != "" {
 		s.setUnlocked("api", "installed", "true")
 		s.setUnlocked("api", "path", apiCanonical)
@@ -685,4 +689,23 @@ func ffmpegBinaryName() string {
 		return "ffmpeg.exe"
 	}
 	return "ffmpeg"
+}
+
+func mergeApplyScriptBesideCLI(cliPath string) string {
+	binDir := filepath.Dir(cliPath)
+	candidates := []string{
+		filepath.Join(binDir, "share", "scripts", "merge_apply_background.py"),
+		filepath.Join(binDir, "..", "share", "scripts", "merge_apply_background.py"),
+	}
+	for _, candidate := range candidates {
+		info, err := os.Stat(candidate)
+		if err == nil && !info.IsDir() {
+			abs, err := filepath.Abs(candidate)
+			if err == nil {
+				return abs
+			}
+			return candidate
+		}
+	}
+	return ""
 }

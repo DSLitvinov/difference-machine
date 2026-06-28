@@ -2,6 +2,7 @@ package jsonapi_test
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"image"
 	"image/color"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/difference-machine/forester/internal/jsonapi"
@@ -380,6 +382,86 @@ func TestStatusAfterModification(t *testing.T) {
 	}
 	if !foundNew {
 		t.Fatalf("untracked = %v, want new.txt", status.Untracked)
+	}
+}
+
+func TestStatusHidesDfmignore(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "v1")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"first"}`)
+
+	writeFile(t, dir, ".dfmignore", "# updated\n*.tmp\n")
+	writeFile(t, dir, "other.txt", "new")
+
+	var status struct {
+		StagedNew        []string `json:"staged_new_files"`
+		StagedModified   []string `json:"staged_modified_files"`
+		UnstagedModified []string `json:"unstaged_modified_files"`
+		Untracked        []string `json:"untracked_files"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &status); err != nil {
+		t.Fatalf("decode status: %v", err)
+	}
+	for _, list := range [][]string{
+		status.StagedNew,
+		status.StagedModified,
+		status.UnstagedModified,
+		status.Untracked,
+	} {
+		for _, path := range list {
+			if path == ".dfmignore" {
+				t.Fatalf("status.get must not list .dfmignore, got %v", list)
+			}
+		}
+	}
+	foundOther := false
+	for _, path := range status.Untracked {
+		if path == "other.txt" {
+			foundOther = true
+		}
+	}
+	if !foundOther {
+		t.Fatalf("untracked = %v, want other.txt", status.Untracked)
+	}
+}
+
+func TestCommitAutoIncludesDfmignore(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "v1")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"first"}`)
+
+	writeFile(t, dir, ".dfmignore", "# updated\n*.cache\n")
+	writeFile(t, dir, "tracked.txt", "v2")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"second"}`)
+
+	var log struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{"max_count":1}`), &log); err != nil {
+		t.Fatalf("decode log: %v", err)
+	}
+	if len(log.Commits) == 0 {
+		t.Fatal("expected at least one commit")
+	}
+	latest := log.Commits[0].Hash
+
+	var blob struct {
+		ContentBase64 string `json:"content_base64"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "blob.get", `{"commit":"`+latest+`","path":".dfmignore"}`), &blob); err != nil {
+		t.Fatalf("decode blob.get: %v", err)
+	}
+	raw, err := base64.StdEncoding.DecodeString(blob.ContentBase64)
+	if err != nil {
+		t.Fatalf("decode base64: %v", err)
+	}
+	if !strings.Contains(string(raw), "*.cache") {
+		t.Fatalf("blob.get .dfmignore = %q, want updated ignore patterns", string(raw))
 	}
 }
 

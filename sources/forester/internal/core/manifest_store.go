@@ -58,10 +58,23 @@ func (m *ManifestStore) manifestPath(commitHash, filePath string) (string, error
 	return filepath.Join(m.manifestDir, dir, encodeManifestPath(filePath)+".json"), nil
 }
 
+func (m *ManifestStore) legacyManifestPath(commitHash, filePath string) (string, error) {
+	dir, err := safeManifestCommitDir(commitHash)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(m.manifestDir, dir, legacyEncodeStoragePath(filePath)+".json"), nil
+}
+
 func (m *ManifestStore) load(commitHash, filePath string) (*FileManifest, error) {
 	path, err := m.manifestPath(commitHash, filePath)
 	if err != nil {
 		return nil, err
+	}
+	if !utils.Exists(path) {
+		if legacyPath, legacyErr := m.legacyManifestPath(commitHash, filePath); legacyErr == nil && utils.Exists(legacyPath) {
+			path = legacyPath
+		}
 	}
 	if !utils.Exists(path) {
 		return &FileManifest{

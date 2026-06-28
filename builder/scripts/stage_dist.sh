@@ -67,6 +67,15 @@ fi
 echo -e "${GREEN}✓ bin/ and lib/${NC}"
 
 echo ""
+echo "=== Copy Forester scripts ==="
+FORESTER_SCRIPTS="${SOURCES_DIR}/forester/scripts"
+if [ -d "${FORESTER_SCRIPTS}" ]; then
+    mkdir -p "${DFM_DIST}/share/scripts"
+    cp -R "${FORESTER_SCRIPTS}/." "${DFM_DIST}/share/scripts/"
+    echo -e "${GREEN}✓ share/scripts/ (merge_apply_background.py)${NC}"
+fi
+
+echo ""
 echo "=== Copy addons ==="
 "${SCRIPT_DIR}/copy_addons.sh" "${DFM_DIST}"
 echo ""

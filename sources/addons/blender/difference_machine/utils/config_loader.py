@@ -203,20 +203,6 @@ def get_blender_executable() -> Optional[str]:
     """Path to the Blender executable from ~/.dfm/setup.cfg [blender] path."""
     return get_config_value("blender", "path")
 
-
-def get_merge_apply_script_path() -> Optional[str]:
-    """
-    Path to merge_apply_background.py shipped with the addon.
-
-    The script must stay inside the addon: each Blender version uses its own
-    Python runtime and bpy API. Forester CLI does not invoke this script.
-    """
-    script_path = get_addon_root() / "scripts" / "merge_apply_background.py"
-    if script_path.is_file():
-        return str(script_path.absolute())
-    return None
-
-
 def save_gc_config(reflog_expire_days: int, interval_days: int) -> bool:
     """
     Save garbage collection configuration to setup.cfg.

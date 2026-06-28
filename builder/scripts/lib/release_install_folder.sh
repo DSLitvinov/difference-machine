@@ -3,6 +3,41 @@
 
 INSTALL_FOLDER_NAME="${INSTALL_FOLDER_NAME:-Difference Machine}"
 ADDON_REL="addons/blender/difference_machine"
+ADDON_ZIP_NAME="difference_machine.zip"
+
+# package_blender_addon_for_release DEST_BLENDER_DIR DFM_DIST
+# Leaves only difference_machine.zip in DEST_BLENDER_DIR (no unpacked addon folder).
+package_blender_addon_for_release() {
+    local dest_blender_dir="$1"
+    local dfm_dist="$2"
+    local script_dir
+
+    if [ ! -d "${dfm_dist}/${ADDON_REL}" ]; then
+        echo "Addon not found: ${dfm_dist}/${ADDON_REL}" >&2
+        return 1
+    fi
+
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    rm -rf "${dest_blender_dir}"
+    mkdir -p "${dest_blender_dir}"
+    "${script_dir}/package_blender_addon_zip.sh" \
+        "${dfm_dist}/${ADDON_REL}" \
+        "${dest_blender_dir}/${ADDON_ZIP_NAME}"
+
+    # Guard against accidental unpacked trees in release media.
+    if [ -d "${dest_blender_dir}/difference_machine" ]; then
+        rm -rf "${dest_blender_dir}/difference_machine"
+    fi
+
+    shopt -s nullglob
+    local entries=("${dest_blender_dir}"/*)
+    shopt -u nullglob
+    if [ "${#entries[@]}" -ne 1 ] || [ "$(basename "${entries[0]}")" != "${ADDON_ZIP_NAME}" ]; then
+        echo "Release addon dir must contain only ${ADDON_ZIP_NAME}, found:" >&2
+        ls -la "${dest_blender_dir}" >&2 || true
+        return 1
+    fi
+}
 
 # resolve_gui_artifact DFM_DIST
 # Sets GUI_SRC_PATH and GUI_DEST_NAME for the install folder root.
@@ -64,7 +99,7 @@ assemble_portable_install_dir() {
     fi
 
     rm -rf "${install_dir}"
-    mkdir -p "${install_dir}/bin" "${install_dir}/lib" "${install_dir}/addons/blender"
+    mkdir -p "${install_dir}/bin" "${install_dir}/lib"
 
     if [ -d "${GUI_SRC_PATH}" ]; then
         cp -R "${GUI_SRC_PATH}" "${install_dir}/${GUI_DEST_NAME}"
@@ -82,9 +117,5 @@ assemble_portable_install_dir() {
     done
     chmod +x "${install_dir}/bin/"* 2>/dev/null || true
 
-    local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-    "${script_dir}/package_blender_addon_zip.sh" \
-        "${dfm_dist}/${ADDON_REL}" \
-        "${install_dir}/addons/blender/difference_machine.zip"
+    package_blender_addon_for_release "${install_dir}/addons/blender" "${dfm_dist}"
 }

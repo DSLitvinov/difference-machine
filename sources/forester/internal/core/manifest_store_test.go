@@ -3,6 +3,7 @@ package core
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/difference-machine/forester/internal/models"
@@ -65,10 +66,32 @@ func TestManifestStore_FindObjectsByFileAcrossCommits(t *testing.T) {
 	}
 }
 
+func TestManifestStore_WritesManifestWithoutColon(t *testing.T) {
+	repoPath := t.TempDir()
+	store := NewManifestStore(repoPath)
+
+	obj := models.NewObject("blender", "2B.blend", "Cube", "MESH", "commit1")
+	obj.Tags = []string{"DELETE"}
+	if err := store.AddObject(obj); err != nil {
+		t.Fatalf("AddObject: %v", err)
+	}
+
+	manifestPath, err := store.manifestPath("commit1", "2B.blend")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(filepath.Base(manifestPath), ":") {
+		t.Fatalf("manifest filename must not contain colon: %s", manifestPath)
+	}
+	if !utils.Exists(manifestPath) {
+		t.Fatalf("manifest not written: %s", manifestPath)
+	}
+}
+
 func TestManifestStoreRejectsTraversalCommitHash(t *testing.T) {
 	repoPath := t.TempDir()
 	store := NewManifestStore(repoPath)
-	outside := filepath.Join(repoPath, ".DFM", "outside", "b64:c2NlbmUuYmxlbmQ.json")
+	outside := filepath.Join(repoPath, ".DFM", "outside", "b64_c2NlbmUuYmxlbmQ.json")
 
 	obj := models.NewObject("blender", "scene.blend", "Cube", "MESH", "../outside")
 	if err := store.AddObject(obj); err == nil {

@@ -10,7 +10,6 @@ from . import lock_operators
 from . import branch_operators
 from . import config_operators
 from . import mark_operators
-from . import merge_operators
 
 __all__ = [
     'init_operators',
@@ -21,7 +20,6 @@ __all__ = [
     'branch_operators',
     'config_operators',
     'mark_operators',
-    'merge_operators',
 ]
 
 
@@ -35,13 +33,11 @@ def register():
     branch_operators.register()
     config_operators.register()
     mark_operators.register()
-    merge_operators.register()
 
 
 def unregister():
     """Unregister all operator classes."""
     mark_operators.unregister()
-    merge_operators.unregister()
     config_operators.unregister()
     lock_operators.unregister()
     gc_operators.unregister()

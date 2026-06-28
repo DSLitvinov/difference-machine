@@ -91,6 +91,14 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 		return err
 	}
 
+	if _, err := tryResolveBlendMergeConflicts(repoPath, state, currentHead, targetHead, branchToMerge, repo); err != nil {
+		return err
+	}
+	state, err = loadMergeState(repoPath)
+	if err != nil {
+		return err
+	}
+
 	// Get current branch
 	currentBranch, err := refs.GetCurrentBranch()
 	if err != nil || currentBranch == "" {
@@ -168,7 +176,7 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 	}
 
 	// Check if there are still conflicts (files with conflict markers)
-	hasConflicts := false
+	conflictFiles := make([]string, 0)
 	if err := filepath.Walk(repoPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() {
 			return nil
@@ -182,12 +190,16 @@ func continueMerge(repoPath string, repo *core.Repository, hooks *core.Hooks) er
 			return nil
 		}
 		if strings.Contains(string(content), "<<<<<<< HEAD") {
-			hasConflicts = true
+			conflictFiles = append(conflictFiles, relPath)
 			fmt.Fprintf(os.Stderr, "CONFLICT (content): Merge conflict in %s\n", relPath)
 		}
 		return nil
-	}); err == nil && hasConflicts {
-		return fmt.Errorf("merge conflicts not resolved")
+	}); err == nil && len(conflictFiles) > 0 {
+		return fmt.Errorf("merge conflicts not resolved in: %s", strings.Join(conflictFiles, ", "))
+	}
+
+	if unresolved := mergeStateConflictPaths(state); len(unresolved) > 0 {
+		return fmt.Errorf("unresolved .blend merge conflicts: %s", strings.Join(unresolved, ", "))
 	}
 
 	// Create merge commit

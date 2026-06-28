@@ -125,12 +125,20 @@ def is_repository_initialized(context) -> bool:
     """
     if not bpy.data.filepath:
         return False
-    
+
     blend_file = Path(bpy.data.filepath)
-    project_root = blend_file.parent
-    dfm_dir = project_root / ".DFM"
-    
-    return dfm_dir.exists() and dfm_dir.is_dir()
+    repo_path = find_repository_root(blend_file.parent)
+    return repo_path is not None
+
+
+def get_active_repository_path() -> Optional[Path]:
+    """Return Forester repo root for the open .blend, walking up from the file path."""
+    repo_path, _ = get_repository_path()
+    if repo_path:
+        return repo_path
+    if not bpy.data.filepath:
+        return None
+    return find_repository_root(Path(bpy.data.filepath).parent)
 
 
 def get_repository_path() -> Tuple[Optional[Path], Optional[str]]:

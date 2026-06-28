@@ -1,6 +1,7 @@
 """
-Background script to apply merge operations (Delete, Rename, Merge) to a .blend file.
-Runs in a separate Blender process. Used after forester merge conflict on .blend files.
+Apply object-level merge marks (Delete, Rename, Merge) to a .blend file in background Blender.
+
+Invoked by Forester during branch merge when a .blend file conflicts.
 
 Usage:
   blender --background <blend_file> --python merge_apply_background.py -- \\
@@ -22,10 +23,11 @@ import bpy
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-# Add addon root for utils
-_addon_root = Path(__file__).resolve().parent.parent
-if str(_addon_root) not in sys.path:
-    sys.path.insert(0, str(_addon_root))
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+
+from asset_path import fix_retrieved_assets
 
 
 def _parse_args():
@@ -40,8 +42,8 @@ def _parse_args():
 
 
 def _load_objects_json(path: Path) -> list[dict]:
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    with open(path, "r", encoding="utf-8") as handle:
+        data = json.load(handle)
     if isinstance(data, list):
         return data
     if isinstance(data, dict) and "objects" in data:
@@ -58,8 +60,8 @@ def _apply_delete(objects: list[dict]) -> None:
         if not name or name not in bpy.data.objects:
             continue
         obj = bpy.data.objects[name]
-        for c in list(obj.users_collection):
-            c.objects.unlink(obj)
+        for collection in list(obj.users_collection):
+            collection.objects.unlink(obj)
         bpy.data.objects.remove(obj)
         log.info("Deleted object %s", name)
 
@@ -80,9 +82,9 @@ def _apply_rename(objects: list[dict]) -> None:
 
 def _validate_merge_inputs(objects: list[dict], theirs_blend: Path) -> bool:
     merge_names = [
-        (o.get("object_name") or "").strip()
-        for o in objects
-        if "MERGE" in (o.get("tags") or [])
+        (obj.get("object_name") or "").strip()
+        for obj in objects
+        if "MERGE" in (obj.get("tags") or [])
     ]
     merge_names = [name for name in merge_names if name]
     if not merge_names:
@@ -94,8 +96,8 @@ def _validate_merge_inputs(objects: list[dict], theirs_blend: Path) -> bool:
     try:
         with bpy.data.libraries.load(str(theirs_blend), link=False) as (data_from, _data_to):
             available = set(data_from.objects)
-    except Exception as e:
-        log.error("Failed to inspect theirs blend: %s", e)
+    except Exception as error:
+        log.error("Failed to inspect theirs blend: %s", error)
         return False
 
     missing = [name for name in merge_names if name not in available]
@@ -106,13 +108,12 @@ def _validate_merge_inputs(objects: list[dict], theirs_blend: Path) -> bool:
 
 
 def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> None:
-    merge_objects = [o for o in objects if "MERGE" in (o.get("tags") or [])]
+    merge_objects = [obj for obj in objects if "MERGE" in (obj.get("tags") or [])]
     if not merge_objects:
         return
     if not theirs_blend.exists():
         raise FileNotFoundError(f"Theirs blend not found: {theirs_blend}")
 
-    existing = set(bpy.data.objects.keys())
     loaded_for_fix = []
 
     for ob in merge_objects:
@@ -134,38 +135,38 @@ def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> No
             bpy.data.objects.remove(new_obj)
             raise RuntimeError(f"MERGE object {name} type mismatch: expected {obj_type}, got {new_obj.type}")
 
-        existing.add(new_obj.name)
-        replace_mode = name in bpy.data.objects
-        if replace_mode:
+        if name in bpy.data.objects:
             old = bpy.data.objects[name]
-            for c in list(old.users_collection):
-                c.objects.unlink(old)
+            for collection in list(old.users_collection):
+                collection.objects.unlink(old)
             bpy.data.objects.remove(old)
             new_obj.name = name
         else:
             new_obj.name = f"{name}_retrieved"
 
         try:
-            sc = bpy.context.scene.collection
-            if new_obj.name not in sc.objects:
-                sc.objects.link(new_obj)
-        except Exception as e:
-            log.warning("Link to scene collection: %s", e)
+            scene_collection = bpy.context.scene.collection
+            if new_obj.name not in scene_collection.objects:
+                scene_collection.objects.link(new_obj)
+        except Exception as error:
+            log.warning("Link to scene collection: %s", error)
 
         loaded_for_fix.append({"new_obj": new_obj, "obj_type": obj_type})
 
     if loaded_for_fix:
-        try:
-            from utils.asset_path import fix_retrieved_assets
-            assets = []
-            for item in loaded_for_fix:
-                o = item["new_obj"]
-                if getattr(o, "data", None) and o.data:
-                    assets.append({"type": "LIBRARY", "path": str(theirs_blend), "name": getattr(o.data, "name", o.name)})
-            if assets:
-                fix_retrieved_assets(assets, Path(repo_path))
-        except Exception as e:
-            log.warning("fix_retrieved_assets: %s", e)
+        assets = []
+        for item in loaded_for_fix:
+            obj = item["new_obj"]
+            if getattr(obj, "data", None) and obj.data:
+                assets.append(
+                    {
+                        "type": "LIBRARY",
+                        "path": str(theirs_blend),
+                        "name": getattr(obj.data, "name", obj.name),
+                    }
+                )
+        if assets:
+            fix_retrieved_assets(assets, Path(repo_path))
 
 
 def main() -> int:
@@ -184,8 +185,8 @@ def main() -> int:
 
     try:
         objects = _load_objects_json(objects_path)
-    except Exception as e:
-        log.error("Failed to load objects JSON: %s", e)
+    except Exception as error:
+        log.error("Failed to load objects JSON: %s", error)
         return 1
 
     if not _validate_merge_inputs(objects, theirs_blend):
@@ -195,14 +196,14 @@ def main() -> int:
         _apply_delete(objects)
         _apply_rename(objects)
         _apply_merge(objects, theirs_blend, repo_path)
-    except Exception as e:
-        log.error("Failed to apply merge operations: %s", e)
+    except Exception as error:
+        log.error("Failed to apply merge operations: %s", error)
         return 1
 
     try:
         bpy.ops.wm.save_as_mainfile(filepath=str(output))
-    except Exception as e:
-        log.error("Failed to save: %s", e)
+    except Exception as error:
+        log.error("Failed to save: %s", error)
         return 1
 
     log.info("Saved to %s", output)
@@ -212,6 +213,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except Exception as e:
-        log.exception("%s", e)
+    except Exception as error:
+        log.exception("%s", error)
         sys.exit(1)

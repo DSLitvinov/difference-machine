@@ -190,10 +190,28 @@ func performMergeCommit(repoPath string, repo *core.Repository, storage *core.St
 					if err := storage.WriteBlobToFile(targetEntry.Hash, theirsPath); err != nil {
 						return fmt.Errorf("failed to write theirs for %s: %w", path, err)
 					}
-					if err := saveMergeState(repoPath, currentHead, targetHead, branchToMerge, conflicts); err != nil {
-						return fmt.Errorf("failed to save merge state: %w", err)
+					tagged, tagErr := taggedObjectsForBlendMerge(repo, currentHead, targetHead, path)
+					if tagErr != nil {
+						return fmt.Errorf("failed to load object marks for %s: %w", path, tagErr)
 					}
-					fmt.Fprintf(os.Stderr, "CONFLICT (content): Binary merge conflict in %s (theirs: .DFM/merge_theirs/%s)\n", path, path)
+					if len(tagged) > 0 {
+						applied, applyErr := finishBlendFileMerge(
+							repoPath, path, currentHead, targetHead, targetEntry.Hash,
+							repo, storage, index,
+						)
+						if applyErr != nil {
+							return fmt.Errorf("object merge failed for %s: %w", path, applyErr)
+						}
+						if applied {
+							conflicts = removeConflictByPath(conflicts, path)
+						}
+					}
+					if containsConflictPath(conflicts, path) {
+						if err := saveMergeState(repoPath, currentHead, targetHead, branchToMerge, conflicts); err != nil {
+							return fmt.Errorf("failed to save merge state: %w", err)
+						}
+						fmt.Fprintf(os.Stderr, "CONFLICT (content): Binary merge conflict in %s (theirs: .DFM/merge_theirs/%s)\n", path, path)
+					}
 				} else {
 					// Text file: use conflict markers
 					if err := markConflictInFile(storage, fullPath, currentEntry.Hash, targetEntry.Hash, baseHash); err != nil {
@@ -225,6 +243,17 @@ func performMergeCommit(repoPath string, repo *core.Repository, storage *core.St
 					return fmt.Errorf("failed to store blob: %w", err)
 				}
 				index.Add(fullPath, hash)
+
+				theirBlobHash := ""
+				if inTarget && targetEntry != nil {
+					theirBlobHash = targetEntry.Hash
+				}
+				if _, err := finishBlendFileMerge(
+					repoPath, path, currentHead, targetHead, theirBlobHash,
+					repo, storage, index,
+				); err != nil {
+					return fmt.Errorf("object merge failed for %s: %w", path, err)
+				}
 			}
 		}
 	}

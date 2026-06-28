@@ -254,15 +254,27 @@ func handleDiffNameStatus(workPath string, args json.RawMessage) (interface{}, e
 
 		files := make([]map[string]string, 0, len(diff.added)+len(diff.modified)+len(diff.deleted)+len(diff.renamed))
 		for _, path := range diff.added {
+			if utils.IsDfmignoreRelPath(path) {
+				continue
+			}
 			files = append(files, map[string]string{"status": "A", "path": path})
 		}
 		for _, path := range diff.modified {
+			if utils.IsDfmignoreRelPath(path) {
+				continue
+			}
 			files = append(files, map[string]string{"status": "M", "path": path})
 		}
 		for _, path := range diff.deleted {
+			if utils.IsDfmignoreRelPath(path) {
+				continue
+			}
 			files = append(files, map[string]string{"status": "D", "path": path})
 		}
 		for _, pair := range diff.renamed {
+			if utils.IsDfmignoreRelPath(pair.NewPath) || utils.IsDfmignoreRelPath(pair.OldPath) {
+				continue
+			}
 			files = append(files, map[string]string{
 				"status":   "R",
 				"path":     pair.NewPath,
@@ -298,8 +310,13 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 
 		insertions := 0
 		deletions := 0
+		filesChanged := 0
 		storage := repo.Storage
 		for _, file := range diff.modified {
+			if utils.IsDfmignoreRelPath(file) {
+				continue
+			}
+			filesChanged++
 			e1 := diff.tree1[file]
 			e2 := diff.tree2[file]
 			c1, err1 := storage.GetBlobContentString(e1.Hash)
@@ -315,20 +332,35 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 			}
 		}
 		for _, file := range diff.added {
+			if utils.IsDfmignoreRelPath(file) {
+				continue
+			}
+			filesChanged++
 			c2, err := storage.GetBlobContentString(diff.tree2[file].Hash)
 			if err == nil && utils.IsTextFile([]byte(c2)) {
 				insertions += len(utils.SplitLines(c2))
 			}
 		}
 		for _, file := range diff.deleted {
+			if utils.IsDfmignoreRelPath(file) {
+				continue
+			}
+			filesChanged++
 			c1, err := storage.GetBlobContentString(diff.tree1[file].Hash)
 			if err == nil && utils.IsTextFile([]byte(c1)) {
 				deletions += len(utils.SplitLines(c1))
 			}
 		}
 
+		for _, pair := range diff.renamed {
+			if utils.IsDfmignoreRelPath(pair.NewPath) || utils.IsDfmignoreRelPath(pair.OldPath) {
+				continue
+			}
+			filesChanged++
+		}
+
 		return map[string]interface{}{
-			"files_changed": len(diff.added) + len(diff.modified) + len(diff.deleted) + len(diff.renamed),
+			"files_changed": filesChanged,
 			"insertions":    insertions,
 			"deletions":     deletions,
 		}, nil

@@ -555,13 +555,6 @@ class DF_PT_mark_to_panel(Panel):
         
         layout.separator()
 
-        if repo_path:
-            from ..operators.merge_operators import merge_in_progress
-
-            if merge_in_progress(repo_path):
-                merge_box = layout.box()
-                merge_box.label(text="Merge In Progress", icon="ARROW_LEFTRIGHT")
-                merge_box.operator("df.apply_merge_marks", text="Apply Merge Marks", icon="FILE_TICK")
         scene = context.scene
         if hasattr(scene, 'df_objects') and len(scene.df_objects) > 0:
             objects_box = layout.box()

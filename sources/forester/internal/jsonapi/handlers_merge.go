@@ -11,6 +11,70 @@ import (
 	"github.com/difference-machine/forester/internal/utils"
 )
 
+func conflictStringField(item map[string]interface{}, keys ...string) string {
+	for _, key := range keys {
+		value, ok := item[key]
+		if !ok || value == nil {
+			continue
+		}
+		text, ok := value.(string)
+		if ok && text != "" {
+			return text
+		}
+	}
+	return ""
+}
+
+func parseMergeConflicts(state map[string]interface{}, repoPath string) []map[string]interface{} {
+	raw, ok := state["conflicts"]
+	if !ok || raw == nil {
+		return nil
+	}
+	items, ok := raw.([]interface{})
+	if !ok || len(items) == 0 {
+		return nil
+	}
+
+	mergeConfig := core.NewMergeConfig(repoPath)
+	out := make([]map[string]interface{}, 0, len(items))
+	for _, item := range items {
+		entry, ok := item.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		path := conflictStringField(entry, "path", "Path")
+		if path == "" {
+			continue
+		}
+		kind := "text"
+		if mergeConfig.IsBinaryMergePath(path) {
+			kind = "binary"
+		}
+		out = append(out, map[string]interface{}{
+			"path":       path,
+			"base_hash":  conflictStringField(entry, "base_hash", "BaseHash"),
+			"our_hash":   conflictStringField(entry, "our_hash", "OurHash"),
+			"their_hash": conflictStringField(entry, "their_hash", "TheirHash"),
+			"kind":       kind,
+		})
+	}
+	return out
+}
+
+func mergeStatusPayload(repoPath string, state map[string]interface{}) map[string]interface{} {
+	conflicts := parseMergeConflicts(state, repoPath)
+	return map[string]interface{}{
+		"in_progress":   true,
+		"branch":        state["branch"],
+		"current_head":  state["current_head"],
+		"target_head":   state["target_head"],
+		"from":          state["current_head"],
+		"to":            state["target_head"],
+		"has_conflicts": len(conflicts) > 0,
+		"conflicts":     conflicts,
+	}
+}
+
 func readMergeState(repoPath string) (map[string]interface{}, bool, error) {
 	mergeStatePath := filepath.Join(repoPath, ".DFM", "MERGE_HEAD")
 	if !utils.Exists(mergeStatePath) {
@@ -51,17 +115,9 @@ func handleMergeStatus(workPath string, _ json.RawMessage) (interface{}, error) 
 			return nil, err
 		}
 		if !ok {
-			return map[string]interface{}{"in_progress": false}, nil
+			return map[string]interface{}{"in_progress": false, "conflicts": []interface{}{}}, nil
 		}
-		return map[string]interface{}{
-			"in_progress":   true,
-			"branch":        state["branch"],
-			"current_head":  state["current_head"],
-			"target_head":   state["target_head"],
-			"from":          state["current_head"],
-			"to":            state["target_head"],
-			"has_conflicts": mergeConflictsPresent(state),
-		}, nil
+		return mergeStatusPayload(repoPath, state), nil
 	})
 }
 
@@ -151,6 +207,9 @@ func mergeResultAfterCommand(workPath string) (interface{}, error) {
 		}
 		if inProgress {
 			out["has_conflicts"] = mergeConflictsPresent(state)
+			out["conflicts"] = parseMergeConflicts(state, repoPath)
+		} else {
+			out["conflicts"] = []interface{}{}
 		}
 		return out, nil
 	})

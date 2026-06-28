@@ -64,4 +64,13 @@ else
     echo "Warning: API library not found at ${API_LIB} (Forester.app will contain CLI only)"
 fi
 
+FORESTER_SHARE_SCRIPTS="${DFM_DIST}/share/scripts"
+if [ -d "${FORESTER_SHARE_SCRIPTS}" ]; then
+    mkdir -p "${OUT_DIR}/Forester.app/Contents/Resources/share/scripts"
+    cp -R "${FORESTER_SHARE_SCRIPTS}/." "${OUT_DIR}/Forester.app/Contents/Resources/share/scripts/"
+    echo "Bundled merge scripts → Forester.app/Contents/Resources/share/scripts/"
+else
+    echo "Warning: ${FORESTER_SHARE_SCRIPTS} not found (object merge will need blender.merge_apply_script in ~/.dfm/setup.cfg)"
+fi
+
 echo "Created ${OUT_DIR}/Forester.app"

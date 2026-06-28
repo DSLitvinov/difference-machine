@@ -162,6 +162,9 @@ func Status(args []string) error {
 
 	// Check staged files (compare index with HEAD)
 	for relPath, indexHash := range normalizedIndexMap {
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		headHash, existsInHead := trackedMap[relPath]
 		if core.IsDeletedHash(indexHash) {
 			if existsInHead {
@@ -203,6 +206,9 @@ func Status(args []string) error {
 
 	// Check for staged deletions (in HEAD but not in index)
 	for relPath := range trackedMap {
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		if _, existsInIndex := normalizedIndexMap[relPath]; !existsInIndex {
 			fullPath := filepath.Join(repoPath, relPath)
 			if !utils.Exists(fullPath) {
@@ -227,6 +233,10 @@ func Status(args []string) error {
 		
 		// Normalize path separators to match BuildTreeMapRecursive
 		normalizedPath := filepath.ToSlash(relPath)
+
+		if utils.IsDfmignoreRelPath(normalizedPath) {
+			continue
+		}
 
 		// Skip ignored files
 		if patterns.Matches(relPath) {
@@ -263,6 +273,9 @@ func Status(args []string) error {
 
 	// Check for staged deletions (files in index but not in working directory)
 	for relPath, indexHash := range normalizedIndexMap {
+		if utils.IsDfmignoreRelPath(relPath) {
+			continue
+		}
 		// Convert back to original path format for file system operations
 		originalPath := relPath
 		for orig := range indexMap {

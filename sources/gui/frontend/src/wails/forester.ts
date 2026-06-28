@@ -103,6 +103,13 @@ export async function openWorkdirFile(path: string, editor?: string): Promise<vo
   await openWorkdirPath(path, editor);
 }
 
+export const HIDDEN_REPO_PATHS = new Set([".dfmignore"]);
+
+export function isHiddenRepoPath(path: string): boolean {
+  const normalized = path.replace(/^\.\//, "").replace(/\\/g, "/");
+  return HIDDEN_REPO_PATHS.has(normalized);
+}
+
 export function committablePaths(status: StatusPayload): string[] {
   const sets = [
     status.staged_new_files,
@@ -122,7 +129,7 @@ export function committablePaths(status: StatusPayload): string[] {
       out.add(entry.path);
     }
   }
-  return [...out];
+  return [...out].filter((p) => !isHiddenRepoPath(p));
 }
 
 export function committableFilesInSubtree(folderPath: string, committable: string[]): string[] {
@@ -402,6 +409,14 @@ export async function deleteWorkdirFile(path: string): Promise<void> {
   await foresterCall("workdir.delete", { path });
 }
 
+export interface MergeConflictEntry {
+  path: string;
+  base_hash?: string;
+  our_hash?: string;
+  their_hash?: string;
+  kind: "text" | "binary";
+}
+
 export interface MergeStatusPayload {
   in_progress: boolean;
   branch?: string;
@@ -410,6 +425,7 @@ export interface MergeStatusPayload {
   from?: string;
   to?: string;
   has_conflicts?: boolean;
+  conflicts?: MergeConflictEntry[];
 }
 
 export async function fetchMergeStatus(): Promise<MergeStatusPayload> {

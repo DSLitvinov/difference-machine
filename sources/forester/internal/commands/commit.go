@@ -154,6 +154,10 @@ func Commit(args []string) error {
 		return fmt.Errorf("failed to create index: %w", err)
 	}
 
+	if err := stageDfmignoreForCommit(repoPath, index, storage); err != nil {
+		return fmt.Errorf("failed to stage .dfmignore: %w", err)
+	}
+
 	// Handle -a: automatically add tracked modified files
 	if autoAdd {
 		// Get HEAD tree to find tracked files
@@ -206,8 +210,8 @@ func Commit(args []string) error {
 				// Normalize path separators to match BuildTreeMapRecursive
 				relPath = filepath.ToSlash(relPath)
 
-				// Skip ignored files
-				if patterns.Matches(relPath) {
+				// Skip ignored files and hidden repo metadata
+				if patterns.Matches(relPath) || utils.IsDfmignoreRelPath(relPath) {
 					continue
 				}
 

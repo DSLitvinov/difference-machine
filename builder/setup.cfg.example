@@ -11,8 +11,10 @@ blender_enabled = true
 
 [blender]
 path = /Applications/Blender.app
-# Optional: path to merge_apply_background.py for auto-resolve of .blend merge conflicts.
-# merge_apply_script = /path/to/addons/blender/difference_machine/scripts/merge_apply_background.py
+# Optional override. Defaults (first match wins):
+#   Forester.app/Contents/Resources/share/scripts/merge_apply_background.py
+#   <install folder>/share/scripts/merge_apply_background.py
+# merge_apply_script = /Applications/Difference Machine/Forester.app/Contents/Resources/share/scripts/merge_apply_background.py
 
 [user]
 email = user@example.com
