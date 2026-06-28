@@ -6,11 +6,15 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
+
+//go:embed build/appicon.png
+var appIcon []byte
 
 func main() {
 	app := NewApp()
@@ -34,6 +38,11 @@ func main() {
 				Title:   "Difference Machine",
 				Message: "Forester GUI for version-controlled 3D workflows.",
 			},
+		},
+		Linux: &linux.Options{
+			Icon:             appIcon,
+			ProgramName:      "difference-machine",
+			WebviewGpuPolicy: linux.WebviewGpuPolicyNever,
 		},
 		Bind: []interface{}{
 			app,

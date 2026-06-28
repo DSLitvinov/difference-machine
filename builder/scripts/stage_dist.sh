@@ -126,6 +126,12 @@ if [ "${BUILD_GUI}" = true ] && [ -d "${STAGING_GUI}" ]; then
                 cp "${STAGING_GUI}/${GUI_STAGE_NAME}" "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
                 if [ "${CURRENT_OS}" = "linux" ]; then
                     chmod +x "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
+                    GUI_ICONS="${PROJECT_ROOT}/sources/gui/build/share/icons"
+                    if [ -d "${GUI_ICONS}" ]; then
+                        mkdir -p "${DFM_DIST}/share/icons"
+                        cp -R "${GUI_ICONS}/." "${DFM_DIST}/share/icons/"
+                        echo -e "${GREEN}✓ share/icons/ (GUI)${NC}"
+                    fi
                 fi
                 # shellcheck source=lib/copy_ffmpeg_sidecar.sh
                 . "${SCRIPT_DIR}/lib/copy_ffmpeg_sidecar.sh"

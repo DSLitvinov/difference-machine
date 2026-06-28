@@ -118,4 +118,9 @@ assemble_portable_install_dir() {
     chmod +x "${install_dir}/bin/"* 2>/dev/null || true
 
     package_blender_addon_for_release "${install_dir}/addons/blender" "${dfm_dist}"
+
+    if [ -d "${dfm_dist}/share/icons" ]; then
+        mkdir -p "${install_dir}/share"
+        cp -R "${dfm_dist}/share/icons" "${install_dir}/share/"
+    fi
 }

@@ -49,3 +49,15 @@ console.log(`Wrote PNG exports (${icoSizes.join(", ")}px)`);
 const ico = await pngToIco(icoSizes.map((size) => join(exportDir, `${size}.png`)));
 writeFileSync(join(windowsDir, "icon.ico"), ico);
 console.log("Wrote build/windows/icon.ico");
+
+const hicolorSizes = [16, 22, 24, 32, 48, 64, 128, 256, 512];
+const iconName = "difference-machine";
+for (const size of hicolorSizes) {
+  const dir = join(buildDir, "share/icons/hicolor", `${size}x${size}`, "apps");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${iconName}.png`), renderPng(svg, size));
+}
+const scalableDir = join(buildDir, "share/icons/hicolor/scalable/apps");
+mkdirSync(scalableDir, { recursive: true });
+writeFileSync(join(scalableDir, `${iconName}.svg`), buildIconSvg(256));
+console.log(`Wrote Linux hicolor icons (${hicolorSizes.join(", ")}px + scalable SVG)`);

@@ -344,6 +344,7 @@ Type=Application
 Name=Difference Machine
 Comment=Forester GUI for Difference Machine
 Exec=${gui_exec}
+Icon=difference-machine
 Terminal=false
 Categories=Development;VersionControl;
 StartupWMClass=difference-machine
@@ -377,7 +378,7 @@ if [ "${CREATE_DESKTOP}" = true ]; then
     create_desktop_entry
 fi
 
-install_forester_icons() {
+install_app_icons() {
     local src="${INSTALL_ROOT}/share/icons"
     if [ ! -d "${src}" ]; then
         return 0
@@ -391,10 +392,13 @@ install_forester_icons() {
     fi
     mkdir -p "${dest}"
     cp -R "${src}/." "${dest}/"
-    echo "Forester icons: ${dest}/"
+    if [ -d "${dest}/hicolor" ] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
+        gtk-update-icon-cache -f -t "${dest}/hicolor" 2>/dev/null || true
+    fi
+    echo "App icons: ${dest}/"
 }
 
-install_forester_icons
+install_app_icons
 
 echo ""
 echo "Install complete: ${INSTALL_ROOT}"
