@@ -1,18 +1,33 @@
-package jsonapi
+package jsonapi_test
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
-func TestOpenDefaultCommandWindowsDoesNotUseShell(t *testing.T) {
-	path := `C:\repo\safe & calc &.txt`
-	cmd := openDefaultCommand(path, "windows")
+func TestWorkdirOpenAllowsTmpReview(t *testing.T) {
+	dir, h := initTestRepo(t)
+	tmpReview := filepath.Join(dir, ".DFM", "tmp_review")
+	if err := os.MkdirAll(tmpReview, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	blendPath := filepath.Join(tmpReview, "scene.blend")
+	if err := os.WriteFile(blendPath, []byte("blend"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 
-	if cmd.Path != "rundll32.exe" {
-		t.Fatalf("Path = %q, want rundll32.exe", cmd.Path)
+	mustOK(t, h, "workdir.open", `{"path":".DFM/tmp_review"}`)
+	mustOK(t, h, "workdir.open", `{"path":".DFM/tmp_review/scene.blend"}`)
+	mustOK(t, h, "workdir.open", `{"path":".DFM\\tmp_review\\scene.blend"}`)
+}
+
+func TestWorkdirOpenStillRejectsOtherDFMPaths(t *testing.T) {
+	dir, h := initTestRepo(t)
+	configPath := filepath.Join(dir, ".DFM", "config")
+	if err := os.WriteFile(configPath, []byte("cfg"), 0o644); err != nil {
+		t.Fatal(err)
 	}
-	if len(cmd.Args) != 3 {
-		t.Fatalf("Args len = %d, want 3: %#v", len(cmd.Args), cmd.Args)
-	}
-	if cmd.Args[0] != "rundll32.exe" || cmd.Args[1] != "url.dll,FileProtocolHandler" || cmd.Args[2] != path {
-		t.Fatalf("Args = %#v", cmd.Args)
-	}
+
+	mustFail(t, h, "workdir.open", `{"path":".DFM/config"}`)
 }

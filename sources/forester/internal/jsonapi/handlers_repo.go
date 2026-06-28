@@ -143,7 +143,10 @@ func handleCompareExtract(workPath string, args json.RawMessage) (interface{}, e
 			if err != nil {
 				return nil, fmt.Errorf("not a Forester repository")
 			}
-			result["path"] = filepath.Join(repoPath, ".DFM", "tmp_review")
+			result["path"], err = utils.JoinRepoPath(repoPath, utils.TmpReviewRelPath)
+			if err != nil {
+				return nil, err
+			}
 		}
 		return result, nil
 	})

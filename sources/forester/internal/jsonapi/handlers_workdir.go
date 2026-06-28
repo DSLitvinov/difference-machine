@@ -222,7 +222,7 @@ func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, erro
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
 		scanner := newWorkdirScanner(repoPath)
 		rel := canonicalRelPath(params.Path)
-		abs, err := scanner.absFile(rel)
+		abs, err := scanner.absOpenPath(rel)
 		if err != nil {
 			return nil, err
 		}

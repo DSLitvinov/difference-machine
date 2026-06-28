@@ -1,16 +1,19 @@
 package utils
 
 import (
-	"path/filepath"
 	"strings"
 )
 
 // DfmignoreRelPath is the repository ignore config at repo root (hidden from GUI file lists).
 const DfmignoreRelPath = ".dfmignore"
 
+// TmpReviewRelPath is the compare extract directory (repo-relative, slash-separated).
+const TmpReviewRelPath = ".DFM/tmp_review"
+
 // NormalizeRepoRelPath normalizes a repository-relative path for comparisons.
+// API relative paths always use forward slashes; accept backslashes from any OS input.
 func NormalizeRepoRelPath(relPath string) string {
-	p := filepath.ToSlash(strings.TrimSpace(relPath))
+	p := strings.ReplaceAll(strings.TrimSpace(relPath), "\\", "/")
 	p = strings.TrimPrefix(p, "./")
 	return strings.Trim(p, "/")
 }
@@ -18,6 +21,12 @@ func NormalizeRepoRelPath(relPath string) string {
 // IsDfmignoreRelPath reports whether relPath refers to the root .dfmignore file.
 func IsDfmignoreRelPath(relPath string) bool {
 	return NormalizeRepoRelPath(relPath) == DfmignoreRelPath
+}
+
+// IsTmpReviewRelPath reports whether relPath is tmp_review or a file inside it.
+func IsTmpReviewRelPath(relPath string) bool {
+	rel := NormalizeRepoRelPath(relPath)
+	return rel == TmpReviewRelPath || strings.HasPrefix(rel, TmpReviewRelPath+"/")
 }
 
 // FilterDfmignorePaths removes .dfmignore from path lists exposed to the GUI.

@@ -25,9 +25,15 @@ func newWorkdirScanner(repoPath string) *workdirScanner {
 }
 
 func canonicalRelPath(path string) string {
-	p := filepath.ToSlash(strings.TrimSpace(path))
-	p = strings.TrimPrefix(p, "./")
-	return strings.Trim(p, "/")
+	return utils.NormalizeRepoRelPath(path)
+}
+
+func isTmpReviewPath(rel string) bool {
+	return utils.IsTmpReviewRelPath(rel)
+}
+
+func parentRepoRelPath(rel string) string {
+	return filepath.ToSlash(filepath.Dir(filepath.FromSlash(rel)))
 }
 
 func (s *workdirScanner) absDir(rel string) (string, error) {
@@ -91,6 +97,30 @@ func (s *workdirScanner) shouldSkipName(name string, rel string, isDir bool) boo
 	return false
 }
 
+// absOpenPath resolves a repo-relative path for workdir.open.
+// Compare extracts commits to .DFM/tmp_review; those paths are allowed here only.
+func (s *workdirScanner) absOpenPath(rel string) (string, error) {
+	rel = canonicalRelPath(rel)
+	if rel == "" {
+		return "", fmt.Errorf("path is required")
+	}
+	if isTmpReviewPath(rel) {
+		abs, err := utils.JoinRepoPath(s.repoPath, rel)
+		if err != nil {
+			return "", err
+		}
+		abs, err = s.ensureInsideRepo(abs)
+		if err != nil {
+			return "", err
+		}
+		if _, err := os.Stat(abs); err != nil {
+			return "", err
+		}
+		return abs, nil
+	}
+	return s.absFile(rel)
+}
+
 // absFilePath resolves a relative workdir file path and rejects internal paths.
 func (s *workdirScanner) absFilePath(rel string) (string, error) {
 	rel = canonicalRelPath(rel)
@@ -101,7 +131,7 @@ func (s *workdirScanner) absFilePath(rel string) (string, error) {
 	if s.shouldSkipName(name, rel, false) {
 		return "", fmt.Errorf("path is not accessible")
 	}
-	abs, err := s.absDir(filepath.Dir(rel))
+	abs, err := s.absDir(parentRepoRelPath(rel))
 	if err != nil {
 		return "", err
 	}

@@ -193,7 +193,7 @@ func CleanRepoRelativePath(path string) (string, error) {
 	if filepath.IsAbs(path) {
 		return "", fmt.Errorf("path must be relative: %s", path)
 	}
-	clean := filepath.Clean(filepath.FromSlash(path))
+	clean := filepath.Clean(filepath.FromSlash(strings.ReplaceAll(path, "\\", "/")))
 	if clean == "." || clean == "" || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
 		return "", fmt.Errorf("path is outside repository: %s", path)
 	}
