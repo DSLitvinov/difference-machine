@@ -236,3 +236,34 @@ def remove_scene_object_entry(scene, object_name: str, commit_hash: str) -> None
         if entry.object_name == object_name and entry.commit_hash == commit_hash:
             scene.df_objects.remove(index)
             return
+
+
+def clear_all_marks_for_scope(context: Context, repo_path: Path) -> Tuple[int, Optional[str]]:
+    """Remove all object marks for the current .blend file and target commit."""
+    scene = context.scene
+    if not hasattr(scene, "df_objects"):
+        return 0, "Objects collection not available"
+
+    file_path = get_blend_file_path(repo_path)
+    if not file_path:
+        return 0, "Save the .blend file inside the repository before clearing marks"
+
+    commit_hash = get_target_commit_hash(context, repo_path)
+    if not commit_hash:
+        return 0, "No commit selected. Select a commit in Compare panel or ensure HEAD exists."
+
+    norm_file = _normalize_file_path(file_path)
+    removed = sum(
+        1
+        for entry in scene.df_objects
+        if entry.commit_hash == commit_hash and _normalize_file_path(entry.file_path or "") == norm_file
+    )
+
+    api = get_api()
+    ok, error = api.delete_objects_by_file(repo_path, commit_hash, file_path)
+    if not ok:
+        return 0, error or "Failed to clear marks from Forester"
+
+    _remove_scene_entries_for_scope(scene, commit_hash, file_path)
+    invalidate_marks_cache(scene)
+    return removed, None

@@ -547,6 +547,11 @@ class DF_PT_mark_to_panel(Panel):
         row.enabled = bool(selected)
         row.operator("df.tag_mark", text="Mark", icon='BOOKMARKS')
         row.operator("df.tag_delete_mark", text="Delete Mark", icon='TRASH')
+
+        row = tag_box.row()
+        row.scale_y = 1.2
+        row.enabled = bool(repo_path)
+        row.operator("df.tag_clean_all_marks", text="Clean all Mark", icon='BRUSH_DATA')
         
         layout.separator()
 

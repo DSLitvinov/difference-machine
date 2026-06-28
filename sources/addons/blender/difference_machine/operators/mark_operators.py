@@ -12,6 +12,7 @@ from typing import List, Optional, Tuple
 
 from ..utils.helpers import get_repository_path
 from ..utils.object_mark_sync import (
+    clear_all_marks_for_scope,
     find_scene_object_entry,
     get_blend_file_path,
     get_target_commit_hash,
@@ -343,6 +344,38 @@ class DF_OT_tag_delete_mark(Operator):
         return {"FINISHED"}
 
 
+class DF_OT_tag_clean_all_marks(Operator):
+    """Remove all object marks for the current file and commit."""
+
+    bl_idname = "df.tag_clean_all_marks"
+    bl_label = "Clean All Marks"
+    bl_description = (
+        "Remove all object marks for the current .blend file and selected commit from Forester"
+    )
+    bl_options = {"REGISTER", "UNDO"}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_confirm(self, event)
+
+    def execute(self, context):
+        repo_path, error = get_repository_path()
+        if not repo_path:
+            self.report({"ERROR"}, error)
+            return {"CANCELLED"}
+
+        removed, sync_error = clear_all_marks_for_scope(context, repo_path)
+        if sync_error:
+            self.report({"ERROR"}, sync_error)
+            return {"CANCELLED"}
+
+        if removed == 0:
+            self.report({"INFO"}, "No marks to clean for this file and commit")
+            return {"FINISHED"}
+
+        self.report({"INFO"}, f"Cleared all marks ({removed} object(s))")
+        return {"FINISHED"}
+
+
 def register():
     from ..utils.registration import register_classes
 
@@ -350,6 +383,7 @@ def register():
         [
             DF_OT_tag_mark,
             DF_OT_tag_delete_mark,
+            DF_OT_tag_clean_all_marks,
             DF_OT_tag_rename,
             DF_OT_tag_merge,
         ]
@@ -363,6 +397,7 @@ def unregister():
         [
             DF_OT_tag_merge,
             DF_OT_tag_rename,
+            DF_OT_tag_clean_all_marks,
             DF_OT_tag_delete_mark,
             DF_OT_tag_mark,
         ]
