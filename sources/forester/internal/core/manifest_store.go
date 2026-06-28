@@ -235,6 +235,70 @@ func (m *ManifestStore) GetObjectsByFile(commitHash, filePath string) ([]*models
 		obj := manifest.Objects[i]
 		objects = append(objects, &obj)
 	}
+	if len(objects) > 0 {
+		return objects, nil
+	}
+	return m.FindObjectsByFileAcrossCommits(filePath)
+}
+
+func manifestPathsMatch(stored, requested string) bool {
+	return filepath.ToSlash(stored) == filepath.ToSlash(requested)
+}
+
+// FindObjectsByFileAcrossCommits returns tagged objects for a file from any commit manifest.
+// When the same object_name appears in multiple manifests, the newest updated_at wins.
+func (m *ManifestStore) FindObjectsByFileAcrossCommits(filePath string) ([]*models.Object, error) {
+	if !utils.Exists(m.manifestDir) {
+		return []*models.Object{}, nil
+	}
+	commitDirs, err := os.ReadDir(m.manifestDir)
+	if err != nil {
+		return nil, err
+	}
+
+	byName := make(map[string]*models.Object)
+	for _, commitEntry := range commitDirs {
+		if !commitEntry.IsDir() {
+			continue
+		}
+		dir := filepath.Join(m.manifestDir, commitEntry.Name())
+		manifestFiles, err := os.ReadDir(dir)
+		if err != nil {
+			return nil, err
+		}
+		for _, manifestFile := range manifestFiles {
+			if manifestFile.IsDir() || !strings.HasSuffix(manifestFile.Name(), ".json") {
+				continue
+			}
+			data, err := os.ReadFile(filepath.Join(dir, manifestFile.Name()))
+			if err != nil {
+				return nil, err
+			}
+			var manifest FileManifest
+			if err := json.Unmarshal(data, &manifest); err != nil {
+				return nil, err
+			}
+			if !manifestPathsMatch(manifest.FilePath, filePath) {
+				continue
+			}
+			for i := range manifest.Objects {
+				obj := manifest.Objects[i]
+				if len(obj.Tags) == 0 {
+					continue
+				}
+				existing, ok := byName[obj.ObjectName]
+				if !ok || obj.UpdatedAt > existing.UpdatedAt {
+					copyObj := obj
+					byName[obj.ObjectName] = &copyObj
+				}
+			}
+		}
+	}
+
+	objects := make([]*models.Object, 0, len(byName))
+	for _, obj := range byName {
+		objects = append(objects, obj)
+	}
 	return objects, nil
 }
 

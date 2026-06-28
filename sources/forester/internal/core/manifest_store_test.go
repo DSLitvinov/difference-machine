@@ -35,6 +35,36 @@ func TestManifestStore_AddAndGetObject(t *testing.T) {
 	}
 }
 
+func TestManifestStore_FindObjectsByFileAcrossCommits(t *testing.T) {
+	repoPath := t.TempDir()
+	store := NewManifestStore(repoPath)
+
+	stale := models.NewObject("blender", "scene.blend", "Cube", "MESH", "stale-commit")
+	stale.Tags = []string{"DELETE"}
+	stale.UpdatedAt = 10
+	if err := store.AddObject(stale); err != nil {
+		t.Fatalf("AddObject stale: %v", err)
+	}
+
+	current := models.NewObject("blender", "scene.blend", "Cube", "MESH", "current-commit")
+	current.Tags = []string{"MERGE"}
+	current.UpdatedAt = 20
+	if err := store.AddObject(current); err != nil {
+		t.Fatalf("AddObject current: %v", err)
+	}
+
+	objects, err := store.GetObjectsByFile("missing-commit", "scene.blend")
+	if err != nil {
+		t.Fatalf("GetObjectsByFile fallback: %v", err)
+	}
+	if len(objects) != 1 {
+		t.Fatalf("GetObjectsByFile fallback len = %d", len(objects))
+	}
+	if objects[0].Tags[0] != "MERGE" {
+		t.Fatalf("expected newest tagged object, got %#v", objects[0].Tags)
+	}
+}
+
 func TestManifestStoreRejectsTraversalCommitHash(t *testing.T) {
 	repoPath := t.TempDir()
 	store := NewManifestStore(repoPath)
