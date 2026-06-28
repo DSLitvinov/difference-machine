@@ -174,6 +174,56 @@ def invalidate_marks_cache(scene) -> None:
         scene.df_object_marks_loaded_key = ""
 
 
+_pending_marks_load_keys: set[str] = set()
+
+
+def _tag_view3d_redraw() -> None:
+    wm = bpy.context.window_manager if bpy.context else None
+    if not wm:
+        return
+    for window in wm.windows:
+        for area in window.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+
+
+def schedule_ensure_marks_loaded(context: Context, repo_path: Path) -> None:
+    """Load marks outside panel draw — RNA must not be mutated during draw()."""
+    scene = context.scene
+    if not hasattr(scene, "df_objects"):
+        return
+
+    file_path = get_blend_file_path(repo_path)
+    if not file_path:
+        return
+
+    commit_hash = get_target_commit_hash(context, repo_path)
+    if not commit_hash:
+        return
+
+    cache_key = f"{commit_hash}:{file_path}"
+    if getattr(scene, "df_object_marks_loaded_key", "") == cache_key:
+        return
+
+    schedule_key = f"{repo_path}:{cache_key}"
+    if schedule_key in _pending_marks_load_keys:
+        return
+    _pending_marks_load_keys.add(schedule_key)
+
+    def _load() -> None:
+        _pending_marks_load_keys.discard(schedule_key)
+        try:
+            ctx = bpy.context
+            if ctx and ctx.scene:
+                ensure_marks_loaded(ctx, repo_path)
+                _tag_view3d_redraw()
+        except Exception as exc:
+            logger.warning("Failed to load object marks: %s", exc)
+        return None
+
+    bpy.app.timers.register(_load, first_interval=0.0)
+
+
 def find_scene_object_entry(scene, object_name: str, commit_hash: str):
     for entry in scene.df_objects:
         if entry.object_name == object_name and entry.commit_hash == commit_hash:

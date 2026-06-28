@@ -517,11 +517,11 @@ class DF_PT_mark_to_panel(Panel):
         selected = context.selected_objects
 
         from ..utils.helpers import get_repository_path
-        from ..utils.object_mark_sync import ensure_marks_loaded, get_target_commit_hash
+        from ..utils.object_mark_sync import get_target_commit_hash, schedule_ensure_marks_loaded
 
         repo_path, _ = get_repository_path()
         if repo_path:
-            ensure_marks_loaded(context, repo_path)
+            schedule_ensure_marks_loaded(context, repo_path)
 
         if not selected:
             box = layout.box()
@@ -533,22 +533,20 @@ class DF_PT_mark_to_panel(Panel):
         
         layout.separator()
         
-        # Tag selection and operations
-        if selected:
-            tag_box = layout.box()
-            tag_box.label(text="Tag Operations", icon='BOOKMARKS')
-            
-            props = context.scene.df_commit_props
-            
-            # Tag selector (dropdown)
-            row = tag_box.row()
-            row.prop(props, "selected_tag", text="Tag", expand=False)
-            
-            # Mark and Delete Mark buttons
-            row = tag_box.row()
-            row.scale_y = 1.2
-            row.operator("df.tag_mark", text="Mark", icon='BOOKMARKS')
-            row.operator("df.tag_delete_mark", text="Delete Mark", icon='TRASH')
+        # Tag selection and operations — always visible; operators validate selection
+        tag_box = layout.box()
+        tag_box.label(text="Tag Operations", icon='BOOKMARKS')
+        
+        props = context.scene.df_commit_props
+        
+        row = tag_box.row()
+        row.prop(props, "selected_tag", text="Tag", expand=False)
+        
+        row = tag_box.row()
+        row.scale_y = 1.2
+        row.enabled = bool(selected)
+        row.operator("df.tag_mark", text="Mark", icon='BOOKMARKS')
+        row.operator("df.tag_delete_mark", text="Delete Mark", icon='TRASH')
         
         layout.separator()
 
