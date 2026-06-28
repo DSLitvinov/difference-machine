@@ -18,8 +18,26 @@ const inflight = new Map<string, Promise<CachedPreview>>();
 let activeRequests = 0;
 const waitQueue: Array<() => void> = [];
 
+type PreviewListener = () => void;
+const listeners = new Set<PreviewListener>();
+
 function cacheKey(repoPath: string, path: string): string {
   return `${repoPath}\0${path}`;
+}
+
+function inflightKey(repoPath: string, path: string, generation: number): string {
+  return `${cacheKey(repoPath, path)}\0${generation}`;
+}
+
+function notifyWorkdirPreviewChange(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+export function subscribeWorkdirPreview(listener: PreviewListener): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
 }
 
 function touch(key: string, entry: CachedPreview): void {
@@ -109,6 +127,7 @@ export function clearWorkdirPreviewCache(): void {
   }
   cache.clear();
   inflight.clear();
+  notifyWorkdirPreviewChange();
 }
 
 export function getWorkdirPreviewCached(
@@ -130,6 +149,14 @@ export function getWorkdirPreviewCached(
   };
 }
 
+export function isWorkdirPreviewLoading(
+  repoPath: string,
+  path: string,
+  generation: number,
+): boolean {
+  return inflight.has(inflightKey(repoPath, path, generation));
+}
+
 export async function loadWorkdirPreview(
   repoPath: string,
   path: string,
@@ -137,6 +164,7 @@ export async function loadWorkdirPreview(
   failOnPlaceholder: boolean,
 ): Promise<WorkdirPreviewState> {
   const key = cacheKey(repoPath, path);
+  const requestKey = inflightKey(repoPath, path, generation);
   const cached = cache.get(key);
   if (cached && cached.generation === generation) {
     touch(key, cached);
@@ -148,38 +176,41 @@ export async function loadWorkdirPreview(
     };
   }
 
-  const pending = inflight.get(key);
+  const pending = inflight.get(requestKey);
   if (pending) {
-    const entry = await pending;
-    if (entry.generation !== generation) {
-      return loadWorkdirPreview(repoPath, path, generation, failOnPlaceholder);
+    try {
+      const entry = await pending;
+      return {
+        loading: false,
+        previewUrl: entry.previewUrl,
+        textPreview: entry.textPreview,
+        failed: entry.failed,
+      };
+    } catch {
+      return { loading: false, previewUrl: null, textPreview: null, failed: true };
     }
-    return {
-      loading: false,
-      previewUrl: entry.previewUrl,
-      textPreview: entry.textPreview,
-      failed: entry.failed,
-    };
   }
 
   const promise = runWithConcurrencyLimit(async () => {
     const result = await fetchWorkdirThumbnail(path);
-    const entry = toCachedPreview(generation, result, failOnPlaceholder);
-    storeEntry(key, entry);
-    inflight.delete(key);
-    return entry;
-  }).catch((err) => {
-    inflight.delete(key);
-    throw err;
-  });
+    return toCachedPreview(generation, result, failOnPlaceholder);
+  })
+    .then((entry) => {
+      storeEntry(key, entry);
+      return entry;
+    })
+    .finally(() => {
+      if (inflight.get(requestKey) === promise) {
+        inflight.delete(requestKey);
+      }
+      notifyWorkdirPreviewChange();
+    });
 
-  inflight.set(key, promise);
+  inflight.set(requestKey, promise);
+  notifyWorkdirPreviewChange();
 
   try {
     const entry = await promise;
-    if (entry.generation !== generation) {
-      return loadWorkdirPreview(repoPath, path, generation, failOnPlaceholder);
-    }
     return {
       loading: false,
       previewUrl: entry.previewUrl,

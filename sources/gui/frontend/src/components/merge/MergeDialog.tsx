@@ -65,6 +65,7 @@ export function MergeDialog({
 }: MergeDialogProps) {
   const t = useT();
   const [files, setFiles] = useState<DiffFileEntry[]>([]);
+  const [diffFromHead, setDiffFromHead] = useState("");
   const [diffToHead, setDiffToHead] = useState("");
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
@@ -95,6 +96,7 @@ export function MergeDialog({
       }
       const result = await fetchDiffNameStatusBetween(from, to);
       const nextFiles = result.files ?? [];
+      setDiffFromHead(from);
       setDiffToHead(to);
       setFiles(nextFiles);
       setSelectedPath(nextFiles[0]?.path ?? null);
@@ -117,11 +119,13 @@ export function MergeDialog({
       setObjects([]);
       return;
     }
-    const commitHash =
+    const primaryHash =
       mode === "continue" && mergeStatus?.target_head
         ? mergeStatus.target_head
-        : diffToHead;
-    if (!commitHash) {
+        : diffFromHead;
+    const fallbackHash =
+      mode === "continue" ? "" : diffToHead;
+    if (!primaryHash && !fallbackHash) {
       setObjects([]);
       return;
     }
@@ -129,10 +133,20 @@ export function MergeDialog({
     const requestId = objectsRequestRef.current + 1;
     objectsRequestRef.current = requestId;
     setLoadingObjects(true);
-    void fetchObjectsByFile(selectedPath, commitHash)
-      .then((result) => {
+    void (async () => {
+      let list: MergeObjectEntry[] = [];
+      if (primaryHash) {
+        const result = await fetchObjectsByFile(selectedPath, primaryHash);
+        list = result.objects ?? [];
+      }
+      if (list.length === 0 && fallbackHash && fallbackHash !== primaryHash) {
+        const result = await fetchObjectsByFile(selectedPath, fallbackHash);
+        list = result.objects ?? [];
+      }
+      return list;
+    })()
+      .then((list) => {
         if (objectsRequestRef.current !== requestId) return;
-        const list = result.objects ?? [];
         setObjects(list);
         if (list.length > 0) {
           setObjectCounts((prev) => ({ ...prev, [selectedPath]: list.length }));
@@ -147,7 +161,7 @@ export function MergeDialog({
           setLoadingObjects(false);
         }
       });
-  }, [diffToHead, mergeStatus?.target_head, mode, open, selectedPath]);
+  }, [diffFromHead, diffToHead, mergeStatus?.target_head, mode, open, selectedPath]);
 
   const objectsVisible =
     selectedPath !== null &&

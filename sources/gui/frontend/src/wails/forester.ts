@@ -448,8 +448,8 @@ export interface MergeObjectEntry {
 }
 
 export async function fetchObjectsByFile(path: string, commitHash: string) {
-  return foresterCall<{ objects: MergeObjectEntry[] }>("objects.by_file", {
-    path,
+  return foresterCall<{ objects: MergeObjectEntry[] }>("object.list_by_file", {
+    file_path: path,
     commit_hash: commitHash,
   });
 }
