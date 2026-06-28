@@ -31,8 +31,13 @@ ShowInstDetails show
 ShowUnInstDetails show
 
 !define MUI_ABORTWARNING
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!ifndef APP_ICON
+  !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+  !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!else
+  !define MUI_ICON "${APP_ICON}"
+  !define MUI_UNICON "${APP_ICON}"
+!endif
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY

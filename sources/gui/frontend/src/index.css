@@ -40,6 +40,14 @@
     font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   }
 
+  /* Lucide SVG icons rely on currentColor stroke; ensure visibility in WebView2. */
+  svg.lucide {
+    display: inline-block;
+    vertical-align: middle;
+    stroke: currentColor;
+    fill: none;
+  }
+
   #root {
     min-height: 100vh;
   }

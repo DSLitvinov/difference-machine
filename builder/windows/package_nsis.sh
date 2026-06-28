@@ -10,6 +10,7 @@ NC='\033[0m'
 
 PLATFORM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILDER_DIR="$(cd "${PLATFORM_DIR}/.." && pwd)"
+PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
 SCRIPTS_DIR="${BUILDER_DIR}/scripts"
 NSIS_SCRIPT="${PLATFORM_DIR}/installer.nsi"
 
@@ -86,6 +87,17 @@ rm -f "${SETUP_PATH}"
 PAYLOAD_NSIS="$(cd "${INSTALL_DIR}" && pwd -W 2>/dev/null || pwd)"
 OUTFILE_NSIS="$(cd "${DIST_DIR}" && pwd -W 2>/dev/null || pwd)/${SETUP_BASENAME}.exe"
 
+GUI_ICON="${PROJECT_ROOT}/sources/gui/build/windows/icon.ico"
+NSIS_ICON_ARGS=()
+if [ -f "${GUI_ICON}" ]; then
+    GUI_ICON_NSIS="$(cd "$(dirname "${GUI_ICON}")" && pwd -W 2>/dev/null || dirname "${GUI_ICON}")/$(basename "${GUI_ICON}")"
+    NSIS_ICON_ARGS=("-DAPP_ICON=${GUI_ICON_NSIS}")
+    echo -e "${GREEN}✓ Installer icon: ${GUI_ICON}${NC}"
+else
+    echo -e "${YELLOW}⚠ GUI icon.ico not found — installer uses default NSIS icons${NC}"
+    echo "  Run: cd sources/gui/frontend && npm run icons:generate" >&2
+fi
+
 # Git Bash mangles /D and absolute /d/.../script.nsi paths — use -D and run from script dir.
 export MSYS2_ARG_CONV_EXCL='*'
 export MSYS_NO_PATHCONV=1
@@ -96,6 +108,7 @@ export MSYS_NO_PATHCONV=1
         -DVERSION="${VERSION}" \
         "-DPAYLOAD_DIR=${PAYLOAD_NSIS}" \
         "-DOUTFILE=${OUTFILE_NSIS}" \
+        "${NSIS_ICON_ARGS[@]}" \
         installer.nsi
 )
 

@@ -6,7 +6,6 @@ import {
   Settings,
 } from "lucide-react";
 
-import appIcon from "@/assets/images/32.svg";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
@@ -62,7 +61,7 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
     <aside className="flex h-full w-12 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
       <div className="flex flex-col items-center gap-1 p-2">
         <RailButton label={t("common.home")} onClick={() => {}}>
-          <img src={appIcon} alt="" className="h-4 w-4" draggable={false} />
+          <img src="/app-icon-32.png" alt="" className="h-4 w-4" draggable={false} />
         </RailButton>
         <RailButton
           active={sidebarMode === "project"}

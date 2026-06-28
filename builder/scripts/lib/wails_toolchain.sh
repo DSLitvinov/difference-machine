@@ -132,16 +132,31 @@ run_wails_doctor_summary() {
 
 run_wails_build() {
     local gui_dir="$1"
+    local lib_dir
+    lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
     detect_linux_wails_tags
+
+    if [ "${CURRENT_OS}" = "windows" ]; then
+        # shellcheck source=embed_gui_windows_icon.sh
+        . "${lib_dir}/embed_gui_windows_icon.sh"
+        prepare_gui_windows_build "${gui_dir}"
+    fi
 
     echo ""
     echo "=== wails build ==="
     cd "${gui_dir}"
 
+    local wails_args=()
+    if [ "${CURRENT_OS}" = "windows" ]; then
+        wails_args+=("-clean")
+    fi
     if [ -n "${WAILS_BUILD_TAGS:-}" ]; then
-        echo "Using build tags: ${WAILS_BUILD_TAGS}"
-        wails build -tags "${WAILS_BUILD_TAGS}"
+        wails_args+=("-tags" "${WAILS_BUILD_TAGS}")
+    fi
+
+    if [ "${#wails_args[@]}" -gt 0 ]; then
+        wails build "${wails_args[@]}"
     else
         wails build
     fi

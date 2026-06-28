@@ -62,23 +62,18 @@ CLI_OUT="${STAGING_DIR}/bin/${FORESTER_CLI_NAME}"
 echo "=== Building CLI ==="
 
 FORESTER_ICO="${FORESTER_DIR}/icons/build/forester.ico"
-WINDOWS_SYSO=""
+# shellcheck source=lib/embed_windows_icon_syso.sh
+. "${SCRIPT_DIR}/lib/embed_windows_icon_syso.sh"
 if [ "${CURRENT_OS}" = "windows" ] && [ -f "${FORESTER_ICO}" ]; then
-    WINDOWS_SYSO="${FORESTER_DIR}/cmd/forester/forester_windows.syso"
     echo "=== Embed Windows icon ==="
-    if GO111MODULE=on go run github.com/tc-hib/go-winres@v0.3.3 simply \
-        --icon "${FORESTER_ICO}" \
-        --out "${WINDOWS_SYSO}" 2>/dev/null; then
-        echo -e "${GREEN}✓ Windows resource: ${WINDOWS_SYSO}${NC}"
-    else
-        echo -e "${YELLOW}⚠ go-winres failed — building forester.exe without embedded icon${NC}"
-        WINDOWS_SYSO=""
+    if ! embed_windows_icon_syso "${FORESTER_ICO}" "${FORESTER_DIR}/cmd/forester/rsrc"; then
+        echo -e "${YELLOW}⚠ building forester.exe without embedded icon${NC}"
     fi
 fi
 
 go build -ldflags "${LDFLAGS}" -o "${CLI_OUT}" ./cmd/forester
-if [ -n "${WINDOWS_SYSO}" ] && [ -f "${WINDOWS_SYSO}" ]; then
-    rm -f "${WINDOWS_SYSO}"
+if [ "${CURRENT_OS}" = "windows" ]; then
+    cleanup_windows_icon_syso "${FORESTER_DIR}/cmd/forester"
 fi
 chmod +x "${CLI_OUT}" 2>/dev/null || true
 

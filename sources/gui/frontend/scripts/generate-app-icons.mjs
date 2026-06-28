@@ -30,6 +30,8 @@ writeFileSync(join(frontendDir, "public/icon.svg"), buildIconSvg(32));
 console.log(`Synced SVG icons (${ICON_SIZES.join(", ")}px + favicon)`);
 
 const svg = readFileSync(masterSvgPath, "utf8");
+writeFileSync(join(frontendDir, "public/app-icon-32.png"), renderPng(svg, 32));
+console.log("Wrote public/app-icon-32.png");
 
 const buildDir = join(guiDir, "build");
 const windowsDir = join(buildDir, "windows");
