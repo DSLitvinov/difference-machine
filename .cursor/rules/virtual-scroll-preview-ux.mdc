@@ -1,0 +1,48 @@
+---
+description: Virtual-scroll previews must survive unmount — shared cache, no reset on scroll
+globs: sources/gui/frontend/**/*.{tsx,ts}
+alwaysApply: true
+---
+
+# Virtual scroll preview UX
+
+**Rule:** Thumbnails and file previews in virtualized lists must **not reset when the user scrolls away and back**, and loading must **continue off-screen**. Never tie preview data to component-local async state alone.
+
+## Why
+
+Virtual scroll (`@tanstack/react-virtual`, windowing) **unmounts** off-screen items. If preview loading lives only in `useEffect` + `useState` with `cancelled = true` on cleanup:
+
+- Completed loads are dropped when the item leaves the viewport
+- Remount shows an empty placeholder and may never restart
+- User sees thumbnails disappear after scroll — broken UX
+
+## Required pattern
+
+1. **Shared cache** outside React tree (`workdirPreviewCache.ts` or equivalent)
+2. **Subscribe** to cache changes (`subscribeWorkdirPreview`) so remounted items update when a background load finishes
+3. **Sync read on mount** (`useLayoutEffect`) — show cached preview on the first frame, no icon flash
+4. **Inflight keyed by invalidation** (`repo + path + generation`), not path alone — avoids stale requests clobbering active ones
+5. **Do not abort work on unmount** — only skip `setState` if needed; the shared store must retain the result
+6. **Skip duplicate fetches** — if cached or already inflight for the current generation, do not start another request
+
+## Do not
+
+- Do **not** load previews only in `useEffect` → `useState` with cleanup that ignores completed promises
+- Do **not** use a single `inflight` map keyed only by file path when `previewGeneration` can change
+- Do **not** assume a mounted component will receive the async result — virtual scroll breaks that assumption
+- Do **not** clear visible previews on scroll; only invalidate on real data changes (status bump, file change, repo switch)
+
+## Canonical implementation
+
+| Module | Role |
+|--------|------|
+| `sources/gui/frontend/src/lib/workdirPreviewCache.ts` | Cache, inflight queue, `subscribeWorkdirPreview` |
+| `sources/gui/frontend/src/hooks/useWorkdirPreview.ts` | Hook: layout sync + subscription + kick off load |
+| `sources/gui/frontend/src/components/preview/FilePreviewGrid.tsx` | Virtualized grid consumer |
+| `sources/gui/frontend/src/components/preview/FilePreviewItem.tsx` | Per-file thumbnail via `useWorkdirPreview` |
+
+## When adding new virtualized previews
+
+1. Reuse `useWorkdirPreview` / `workdirPreviewCache` — do not invent per-item local loading
+2. Test: scroll away while thumbnails load, scroll back — previews must appear without manual refresh
+3. Test: scroll through many files — already-loaded thumbnails must stay stable

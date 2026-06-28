@@ -515,7 +515,14 @@ class DF_PT_mark_to_panel(Panel):
         """Draw the panel UI."""
         layout = self.layout
         selected = context.selected_objects
-        
+
+        from ..utils.helpers import get_repository_path
+        from ..utils.object_mark_sync import ensure_marks_loaded, get_target_commit_hash
+
+        repo_path, _ = get_repository_path()
+        if repo_path:
+            ensure_marks_loaded(context, repo_path)
+
         if not selected:
             box = layout.box()
             box.label(text="No objects selected", icon='INFO')
@@ -544,18 +551,21 @@ class DF_PT_mark_to_panel(Panel):
             row.operator("df.tag_delete_mark", text="Delete Mark", icon='TRASH')
         
         layout.separator()
-        
-        # Show objects with tags
+
+        if repo_path:
+            from ..operators.merge_operators import merge_in_progress
+
+            if merge_in_progress(repo_path):
+                merge_box = layout.box()
+                merge_box.label(text="Merge In Progress", icon="ARROW_LEFTRIGHT")
+                merge_box.operator("df.apply_merge_marks", text="Apply Merge Marks", icon="FILE_TICK")
         scene = context.scene
         if hasattr(scene, 'df_objects') and len(scene.df_objects) > 0:
             objects_box = layout.box()
             objects_box.label(text="Tagged Objects", icon='BOOKMARKS')
-            
-            from ..utils.helpers import get_repository_path
-            repo_path, _ = get_repository_path()
+
             if repo_path:
-                from ..operators.mark_operators import _get_target_commit_hash
-                commit_hash = _get_target_commit_hash(context, repo_path)
+                commit_hash = get_target_commit_hash(context, repo_path)
                 
                 has_tagged = False
                 
@@ -587,11 +597,6 @@ class DF_PT_mark_to_panel(Panel):
                 
                 if not has_tagged:
                     objects_box.label(text="No tags on selected objects", icon='INFO')
-
-        layout.separator()
-        repo_box = layout.box()
-        repo_box.label(text="Repository", icon='FILE_FOLDER')
-        repo_box.operator("df.sync_objects_to_db", text="Sync Objects to DB", icon='EXPORT')
 
 
 class DF_PT_lock_panel(Panel):

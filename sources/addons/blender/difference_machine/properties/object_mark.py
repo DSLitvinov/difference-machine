@@ -50,10 +50,16 @@ def register():
     
     # Register collection property
     bpy.types.Scene.df_objects = bpy.props.CollectionProperty(type=DFObject)
+    bpy.types.Scene.df_object_marks_loaded_key = bpy.props.StringProperty(
+        name="Object Marks Cache Key",
+        default="",
+    )
 
 
 def unregister():
     """Unregister property groups."""
+    if hasattr(bpy.types.Scene, "df_object_marks_loaded_key"):
+        del bpy.types.Scene.df_object_marks_loaded_key
     if hasattr(bpy.types.Scene, 'df_objects'):
         del bpy.types.Scene.df_objects
     

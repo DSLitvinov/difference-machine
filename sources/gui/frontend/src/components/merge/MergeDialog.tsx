@@ -119,12 +119,8 @@ export function MergeDialog({
       setObjects([]);
       return;
     }
-    const primaryHash =
-      mode === "continue" && mergeStatus?.target_head
-        ? mergeStatus.target_head
-        : diffFromHead;
-    const fallbackHash =
-      mode === "continue" ? "" : diffToHead;
+    const primaryHash = diffFromHead;
+    const fallbackHash = mode === "continue" ? "" : diffToHead;
     if (!primaryHash && !fallbackHash) {
       setObjects([]);
       return;
@@ -137,11 +133,13 @@ export function MergeDialog({
       let list: MergeObjectEntry[] = [];
       if (primaryHash) {
         const result = await fetchObjectsByFile(selectedPath, primaryHash);
-        list = result.objects ?? [];
+        const tagged = (result.objects ?? []).filter((obj) => (obj.tags?.length ?? 0) > 0);
+        list = tagged;
       }
       if (list.length === 0 && fallbackHash && fallbackHash !== primaryHash) {
         const result = await fetchObjectsByFile(selectedPath, fallbackHash);
-        list = result.objects ?? [];
+        const tagged = (result.objects ?? []).filter((obj) => (obj.tags?.length ?? 0) > 0);
+        list = tagged;
       }
       return list;
     })()
@@ -161,7 +159,7 @@ export function MergeDialog({
           setLoadingObjects(false);
         }
       });
-  }, [diffFromHead, diffToHead, mergeStatus?.target_head, mode, open, selectedPath]);
+  }, [diffFromHead, diffToHead, mode, open, selectedPath]);
 
   const objectsVisible =
     selectedPath !== null &&
