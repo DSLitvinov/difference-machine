@@ -28,6 +28,7 @@ import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
+import { useProjectStore } from "@/stores/projectStore";
 
 function PlaceholderPanel({ title, subtitle }: { title: string; subtitle: string }) {
   return (
@@ -49,6 +50,10 @@ export function AppShell() {
   const setLoading = useAppStore((s) => s.setLoading);
   const loading = useAppStore((s) => s.loading);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const projectPreviewMode = useProjectStore((s) => s.projectPreviewMode);
+  const hideInfoPanel =
+    sidebarMode === "history" ||
+    (sidebarMode === "project" && projectPreviewMode === "fileHistory");
 
   const {
     sidebarMainWidth,
@@ -57,7 +62,7 @@ export function AppShell() {
     startSidebarResize,
     startInfoResize,
     showSidebarHandle,
-  } = usePanelLayout(sidebarMode, sidebarCollapsed);
+  } = usePanelLayout(sidebarMode, sidebarCollapsed, hideInfoPanel);
 
   useEffect(() => {
     void bootstrapRepositories(setRepo, setError, setLoading);
@@ -70,16 +75,17 @@ export function AppShell() {
   }, [repoPath]);
 
   useEffect(() => {
+    const isFileHistory = sidebarMode === "project" && projectPreviewMode === "fileHistory";
     const minWidth =
-      sidebarMode === "project"
+      sidebarMode === "history" || isFileHistory
         ? sidebarCollapsed
-          ? MIN_WINDOW_PROJECT_COLLAPSED
-          : MIN_WINDOW_PROJECT
-        : sidebarCollapsed
           ? MIN_WINDOW_HISTORY_COLLAPSED
-          : MIN_WINDOW_HISTORY;
+          : MIN_WINDOW_HISTORY
+        : sidebarCollapsed
+          ? MIN_WINDOW_PROJECT_COLLAPSED
+          : MIN_WINDOW_PROJECT;
     WindowSetMinSize(minWidth, MIN_WINDOW_HEIGHT);
-  }, [sidebarMode, sidebarCollapsed]);
+  }, [sidebarMode, sidebarCollapsed, projectPreviewMode]);
 
   useProjectStatusPolling();
 
@@ -103,7 +109,7 @@ export function AppShell() {
     };
   }, []);
 
-  const showInfo = sidebarMode === "project";
+  const showInfo = sidebarMode === "project" && projectPreviewMode !== "fileHistory";
 
   return (
     <div className="flex h-screen min-h-0 overflow-hidden bg-sidebar">

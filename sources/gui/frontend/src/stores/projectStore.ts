@@ -37,7 +37,11 @@ function sameStatusPayload(a: StatusPayload | null, b: StatusPayload | null): bo
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
+export type ProjectPreviewMode = "grid" | "fileHistory";
+
 interface ProjectState {
+  projectPreviewMode: ProjectPreviewMode;
+  fileHistoryPath: string | null;
   selectedFolderPath: string;
   selectedFilePaths: string[];
   anchorPath: string | null;
@@ -82,12 +86,20 @@ interface ProjectState {
   setSortLocale: (locale: SortLocale) => void;
   setThumbScale: (px: ThumbScalePx) => void;
   setPreviewSearchQuery: (query: string) => void;
+  openFileHistory: (path: string) => void;
+  closeFileHistory: () => void;
   restoreRepoPrefs: (repoPath: string) => void;
   setTreeLoading: (loading: boolean) => void;
   reset: () => void;
 }
 
+function closeFileHistoryState(): Pick<ProjectState, "projectPreviewMode" | "fileHistoryPath"> {
+  return { projectPreviewMode: "grid", fileHistoryPath: null };
+}
+
 const initialState = {
+  projectPreviewMode: "grid" as ProjectPreviewMode,
+  fileHistoryPath: null as string | null,
   selectedFolderPath: "",
   selectedFilePaths: [] as string[],
   anchorPath: null as string | null,
@@ -121,7 +133,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   ...initialState,
   setSelectedFolderPath: (path) => {
     persistFolderPath(path);
-    set({ selectedFolderPath: path, selectedFilePaths: [], anchorPath: null });
+    set({
+      ...closeFileHistoryState(),
+      selectedFolderPath: path,
+      selectedFilePaths: [],
+      anchorPath: null,
+    });
   },
   navigateToFolder: (path) => {
     const state = get();
@@ -134,6 +151,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
     persistFolderPath(path);
     set({
+      ...closeFileHistoryState(),
       selectedFolderPath: path,
       selectedFilePaths: [],
       anchorPath: null,
@@ -149,6 +167,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const path = state.navStack[nextIndex] ?? "";
     persistFolderPath(path);
     set({
+      ...closeFileHistoryState(),
       navIndex: nextIndex,
       selectedFolderPath: path,
       selectedFilePaths: [],
@@ -163,6 +182,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const path = state.navStack[nextIndex] ?? "";
     persistFolderPath(path);
     set({
+      ...closeFileHistoryState(),
       navIndex: nextIndex,
       selectedFolderPath: path,
       selectedFilePaths: [],
@@ -306,6 +326,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ thumbScale: px });
   },
   setPreviewSearchQuery: (query) => set({ previewSearchQuery: query }),
+  openFileHistory: (path) =>
+    set({
+      projectPreviewMode: "fileHistory",
+      fileHistoryPath: path,
+    }),
+  closeFileHistory: () => set(closeFileHistoryState()),
   restoreRepoPrefs: (repoPath) => {
     const folderPath = loadSelectedFolderPath(repoPath);
     const savedThumb = loadThumbScale(repoPath);
@@ -320,6 +346,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       navStack: [folderPath],
       navIndex: 0,
       previewSearchQuery: "",
+      ...closeFileHistoryState(),
     });
   },
   setTreeLoading: (treeLoading) => set({ treeLoading }),

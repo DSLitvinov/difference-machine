@@ -37,6 +37,7 @@ export function ContentInfoPanel() {
   const selectedFilePaths = useProjectStore((s) => s.selectedFilePaths);
   const status = useProjectStore((s) => s.status);
   const committable = useProjectStore((s) => s.committable);
+  const previewGeneration = useProjectStore((s) => s.previewGeneration);
   const currentBranch = useAppStore((s) => s.currentBranch);
 
   const [metadata, setMetadata] = useState<FileMetadata | null>(null);
@@ -96,7 +97,7 @@ export function ContentInfoPanel() {
     return () => {
       cancelled = true;
     };
-  }, [selectedFilePath, isMulti, setError, metadataKey, currentBranch]);
+  }, [selectedFilePath, isMulti, setError, metadataKey, currentBranch, previewGeneration]);
 
   if (selectedFilePaths.length === 0) {
     return (
@@ -161,14 +162,7 @@ export function ContentInfoPanel() {
           <Input value={fileName} disabled title={selectedFilePath!} />
         </div>
 
-        <InfoHistorySection
-          filePath={selectedFilePath!}
-          currentUser={author}
-          onRestored={() => {
-            setMetadataKey((k) => k + 1);
-            useProjectStore.getState().bumpPreviewGeneration();
-          }}
-        />
+        <InfoHistorySection filePath={selectedFilePath!} />
 
         <InfoMetadataSection metadata={metadata} loading={loading} />
       </div>

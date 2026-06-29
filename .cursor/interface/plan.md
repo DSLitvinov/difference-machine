@@ -29,6 +29,7 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
   - [commit-card.md](./commit-card.md) — карточка коммита (Default/Hover/Selected)
 - Content Preview (режим Project view, связка с Sidebar):
   - [content-preview-project-view.md](./content-preview-project-view.md) — панель: toolbar, drill-down, multiselect, поиск, сортировка, slider
+  - [file-history-view.md](./file-history-view.md) — подрежим Preview: история одного файла, diff, branch/commit, Revert, Compare (binary); вход: View / double-click
   - [folder-preview-item.md](./folder-preview-item.md) — item папки (Default/Hover/Selected)
   - [file-preview-item.md](./file-preview-item.md) — item файла (Default/Hover/Selected × Min/Max)
 - Content Preview (режим History, UX как GitHub Desktop):

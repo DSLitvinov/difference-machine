@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
+import { FileHistoryView } from "@/components/preview/FileHistoryView";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
 import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar";
 import { measureAsync } from "@/lib/performance";
@@ -18,7 +19,6 @@ import {
   fetchWorkdirSearch,
   fetchWorkdirTree,
   locksByPath,
-  openWorkdirFile,
   vcsFileStatus,
   type DirEntry,
 } from "@/wails/forester";
@@ -102,6 +102,10 @@ export function ProjectPreviewPanel() {
   const setPreviewSearchQuery = useProjectStore((s) => s.setPreviewSearchQuery);
   const selectFilePaths = useProjectStore((s) => s.selectFilePaths);
   const clearFileSelection = useProjectStore((s) => s.clearFileSelection);
+  const projectPreviewMode = useProjectStore((s) => s.projectPreviewMode);
+  const fileHistoryPath = useProjectStore((s) => s.fileHistoryPath);
+  const openFileHistory = useProjectStore((s) => s.openFileHistory);
+  const closeFileHistory = useProjectStore((s) => s.closeFileHistory);
 
   const [searchResults, setSearchResults] = useState<DirEntry[]>([]);
   const [searchCapped, setSearchCapped] = useState(false);
@@ -180,13 +184,8 @@ export function ProjectPreviewPanel() {
     };
   }, [repoPath, debouncedSearch, showChangedOnly, committable, isSearchActive, setError, setNotice, t]);
 
-  const openFile = async (path: string) => {
-    try {
-      setError(null);
-      await openWorkdirFile(path);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    }
+  const openFile = (path: string) => {
+    openFileHistory(path);
   };
 
   const crumbs = breadcrumbSegments(selectedFolderPath);
@@ -231,6 +230,10 @@ export function ProjectPreviewPanel() {
         {t("common.selectRepositoryFromSidebar")}
       </div>
     );
+  }
+
+  if (projectPreviewMode === "fileHistory" && fileHistoryPath) {
+    return <FileHistoryView filePath={fileHistoryPath} onBack={closeFileHistory} />;
   }
 
   return (
@@ -325,7 +328,7 @@ export function ProjectPreviewPanel() {
                       vcsStatusFor={(path) => vcsFileStatus(path, status)}
                       lockUserFor={(path) => lockedByPath[path] ?? null}
                       subtitleFor={(entry) => parentFolderPath(entry.path) || "root"}
-                      onOpen={(path) => void openFile(path)}
+                      onOpen={openFile}
                     />
                   </div>
                 ) : null}
@@ -400,7 +403,7 @@ export function ProjectPreviewPanel() {
                       ? (entry) => parentFolderPath(entry.path) || "root"
                       : undefined
                   }
-                  onOpen={(path) => void openFile(path)}
+                  onOpen={openFile}
                   onNearEnd={entriesHasMore ? handleNearEnd : undefined}
                 />
               </div>

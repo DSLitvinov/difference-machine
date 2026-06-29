@@ -1,5 +1,5 @@
 import { classifyHistoryDiff } from "@/lib/fileKinds";
-import { basename } from "@/lib/utils";
+import { basename, cn } from "@/lib/utils";
 import { BinaryDiffStub } from "@/components/preview/BinaryDiffStub";
 import { DeletedDiffStub } from "@/components/preview/DeletedDiffStub";
 import { ImageDiffPanel } from "@/components/preview/ImageDiffPanel";
@@ -26,6 +26,7 @@ interface DiffViewProps {
   onRetryText: () => void;
   onRetryImage: () => void;
   onOpenBinary: () => Promise<void>;
+  hidePathInToolbar?: boolean;
 }
 
 export function DiffView({
@@ -45,6 +46,7 @@ export function DiffView({
   onRetryText,
   onRetryImage,
   onOpenBinary,
+  hidePathInToolbar = false,
 }: DiffViewProps) {
   const t = useT();
   if (!file) {
@@ -62,10 +64,17 @@ export function DiffView({
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
       {showTextToolbar || showImageToolbar ? (
-        <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
-          <span className="min-w-0 flex-1 truncate text-sm font-medium" title={file.path}>
-            {basename(file.path)}
-          </span>
+        <div
+          className={cn(
+            "flex shrink-0 items-center gap-2 border-b border-border px-3 py-2",
+            hidePathInToolbar && "justify-end",
+          )}
+        >
+          {!hidePathInToolbar ? (
+            <span className="min-w-0 flex-1 truncate text-sm font-medium" title={file.path}>
+              {basename(file.path)}
+            </span>
+          ) : null}
           {showTextToolbar ? (
             <LayoutToggle
               value={textLayout}

@@ -22,7 +22,11 @@ function readClientWidth(): number {
   return document.documentElement.clientWidth || window.innerWidth;
 }
 
-export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
+export function usePanelLayout(
+  mode: SidebarMode,
+  sidebarCollapsed: boolean,
+  hideInfoPanel = false,
+) {
   const [clientWidth, setClientWidth] = useState(readClientWidth);
   const [sidebarColumnWidth, setSidebarColumnWidth] = useState(
     () => loadLayoutSidebarWidth() ?? SIDEBAR_COLUMN_MIN,
@@ -37,12 +41,21 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
 
   useEffect(() => {
     if (sidebarCollapsed) {
-      if (mode === "project") {
+      if (mode === "project" && !hideInfoPanel) {
         const normalized = normalizeCollapsedProjectLayout(clientWidth, infoWidth);
         if (normalized.infoWidth !== infoWidth) {
           setInfoWidth(normalized.infoWidth);
           saveLayoutInfoWidth(normalized.infoWidth);
         }
+      }
+      return;
+    }
+
+    if (mode === "history" || hideInfoPanel) {
+      const normalized = normalizeHistoryLayout(clientWidth, sidebarColumnWidth);
+      if (normalized.sidebarColumnWidth !== sidebarColumnWidth) {
+        setSidebarColumnWidth(normalized.sidebarColumnWidth);
+        saveLayoutSidebarWidth(normalized.sidebarColumnWidth);
       }
       return;
     }
@@ -60,22 +73,18 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
       }
       return;
     }
+  }, [clientWidth, mode, sidebarCollapsed, sidebarColumnWidth, infoWidth, hideInfoPanel]);
 
-    const normalized = normalizeHistoryLayout(clientWidth, sidebarColumnWidth);
-    if (normalized.sidebarColumnWidth !== sidebarColumnWidth) {
-      setSidebarColumnWidth(normalized.sidebarColumnWidth);
-      saveLayoutSidebarWidth(normalized.sidebarColumnWidth);
-    }
-  }, [clientWidth, mode, sidebarCollapsed, sidebarColumnWidth, infoWidth]);
+  const useHistoryWidths = mode === "history" || hideInfoPanel;
 
   const projectLayout =
-    mode === "project"
+    mode === "project" && !hideInfoPanel
       ? sidebarCollapsed
         ? normalizeCollapsedProjectLayout(clientWidth, infoWidth)
         : normalizeProjectLayout(clientWidth, sidebarColumnWidth, infoWidth)
       : null;
   const historyLayout =
-    mode === "history"
+    useHistoryWidths
       ? sidebarCollapsed
         ? normalizeCollapsedHistoryLayout(clientWidth)
         : normalizeHistoryLayout(clientWidth, sidebarColumnWidth)
@@ -85,11 +94,11 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
   const sidebarMainWidth = sidebarCollapsed
     ? 0
     : Math.max(SIDEBAR_MAIN_MIN, sidebarColumnWidth - RAIL_WIDTH);
-  const previewWidth =
-    mode === "project"
-      ? (projectLayout?.previewWidth ?? clientWidth - effectiveSidebarColumn - infoWidth)
-      : (historyLayout?.previewWidth ?? clientWidth - effectiveSidebarColumn);
-  const resolvedInfoWidth = mode === "project" ? (projectLayout?.infoWidth ?? infoWidth) : infoWidth;
+  const previewWidth = useHistoryWidths
+    ? (historyLayout?.previewWidth ?? clientWidth - effectiveSidebarColumn)
+    : (projectLayout?.previewWidth ?? clientWidth - effectiveSidebarColumn - infoWidth);
+  const resolvedInfoWidth =
+    mode === "project" && !hideInfoPanel ? (projectLayout?.infoWidth ?? infoWidth) : infoWidth;
 
   const startSidebarResize = useCallback(
     (event: React.MouseEvent) => {
@@ -100,7 +109,7 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
 
       const onMove = (moveEvent: MouseEvent) => {
         const delta = moveEvent.clientX - startX;
-        if (mode === "project") {
+        if (mode === "project" && !hideInfoPanel) {
           const next = normalizeProjectLayout(clientWidth, startSidebar + delta, infoWidth);
           setSidebarColumnWidth(next.sidebarColumnWidth);
           saveLayoutSidebarWidth(next.sidebarColumnWidth);
@@ -119,12 +128,12 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
     },
-    [clientWidth, infoWidth, mode, sidebarCollapsed, sidebarColumnWidth],
+    [clientWidth, infoWidth, mode, sidebarCollapsed, sidebarColumnWidth, hideInfoPanel],
   );
 
   const startInfoResize = useCallback(
     (event: React.MouseEvent) => {
-      if (mode !== "project") return;
+      if (mode !== "project" || hideInfoPanel) return;
       event.preventDefault();
       const startX = event.clientX;
       const startInfo = infoWidth;
@@ -148,7 +157,7 @@ export function usePanelLayout(mode: SidebarMode, sidebarCollapsed: boolean) {
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
     },
-    [clientWidth, infoWidth, mode, sidebarColumnWidth],
+    [clientWidth, infoWidth, mode, sidebarColumnWidth, hideInfoPanel],
   );
 
   return {
