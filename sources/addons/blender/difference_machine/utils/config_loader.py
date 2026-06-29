@@ -3,8 +3,9 @@ Configuration loader for Difference Machine addon.
 """
 
 import configparser
+import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 
 
 def get_addon_root() -> Path:
@@ -29,11 +30,36 @@ def _normalize_existing_file(path: Optional[str]) -> Optional[str]:
     return None
 
 
+def _api_lib_names_for_platform() -> Tuple[str, ...]:
+    if sys.platform == "win32":
+        return ("forester.dll", "libforester.dll")
+    if sys.platform == "darwin":
+        return ("libforester.dylib", "libforester_arm64.dylib")
+    return ("libforester.so",)
+
+
+def _api_lib_beside_forester_cli() -> Optional[str]:
+    """Derive lib/ API path from [forester] path (install layout: bin/forester -> lib/)."""
+    forester_cli = _normalize_existing_file(get_config_value("forester", "path"))
+    if not forester_cli:
+        return None
+    lib_dir = Path(forester_cli).resolve().parent.parent / "lib"
+    for name in _api_lib_names_for_platform():
+        candidate = lib_dir / name
+        if candidate.is_file():
+            return str(candidate.absolute())
+    return None
+
+
 def get_api_library_path() -> Optional[str]:
     """Forester native API library from ~/.dfm/setup.cfg or addon api/."""
     configured = _normalize_existing_file(get_config_value("api", "path"))
     if configured:
         return configured
+
+    beside_cli = _api_lib_beside_forester_cli()
+    if beside_cli:
+        return beside_cli
 
     api_dir = _get_addon_api_dir()
     if not api_dir.exists():

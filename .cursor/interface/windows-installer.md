@@ -67,6 +67,8 @@ diffmachine_path = C:\Program Files\Difference Machine\addons\blender\difference
 
 Paths use native Windows separators after `CanonicalAbsPath`.
 
+Bootstrap re-runs when `[forester] path`, `[api] path`, or `[addons] diffmachine_path` is missing or invalid (`NeedsForesterBootstrap` in `internal/config/store.go`).
+
 ---
 
 ## 4. App icons

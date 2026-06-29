@@ -332,12 +332,20 @@ func (s *Store) ForesterBinaryPath() string {
 	return s.Get("forester", "path")
 }
 
-// NeedsForesterBootstrap reports whether install paths should be auto-filled (macOS DMG).
+// APILibraryPath returns the configured Forester native API library path.
+func (s *Store) APILibraryPath() string {
+	return s.Get("api", "path")
+}
+
+// NeedsForesterBootstrap reports whether install paths should be auto-filled from a packaged layout.
 func (s *Store) NeedsForesterBootstrap() bool {
 	if !pathExists(s.ForesterBinaryPath()) {
 		return true
 	}
 	if !pathExists(s.Get("addons", "diffmachine_path")) {
+		return true
+	}
+	if !pathExists(s.APILibraryPath()) {
 		return true
 	}
 	return false

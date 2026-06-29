@@ -1,0 +1,54 @@
+---
+description: setup.cfg must include [api] path for Blender addon; bootstrap and addon resolution rules
+globs: sources/gui/internal/config/**,sources/gui/internal/install/**,sources/addons/blender/difference_machine/**
+alwaysApply: false
+---
+
+# setup.cfg Forester API path
+
+The Blender addon loads the **native API library** (`forester.dll` / `libforester.so` / `libforester.dylib`), not `forester.exe`.
+
+## Required config
+
+`~/.dfm/setup.cfg` must expose the DLL/so/dylib via:
+
+```ini
+[api]
+path = <install-root>/lib/forester.dll
+```
+
+Packaged Windows layout:
+
+```
+<install-root>/
+├── bin/forester.exe    → [forester] path
+├── lib/forester.dll    → [api] path
+└── addons/blender/difference_machine/
+```
+
+## Bootstrap (GUI)
+
+`NeedsForesterBootstrap()` must return true when **any** of these are missing or invalid:
+
+- `[forester] path` (CLI)
+- `[api] path` (native library)
+- `[addons] diffmachine_path`
+
+`BootstrapConfig` writes all three from the install layout on first GUI launch.
+
+## Addon resolution order
+
+`get_api_library_path()` in `config_loader.py`:
+
+1. `[api] path` in `setup.cfg`
+2. Derive `<install-root>/lib/` from `[forester] path` (`bin/forester` → sibling `lib/`)
+3. Bundled file in addon `api/` folder
+
+Do **not** use `[forester] path` as the API library path directly.
+
+## Troubleshooting "Forester API not available"
+
+- Confirm `lib/forester.dll` exists under the install root.
+- Confirm `[api] path` points to the DLL, not `forester.exe`.
+- Re-launch GUI once to re-run bootstrap, or add `[api] path` manually.
+- Restart Blender after config changes.

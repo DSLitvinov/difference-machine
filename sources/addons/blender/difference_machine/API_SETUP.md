@@ -17,7 +17,10 @@ The build copies the native library and JSON bindings into the addon automatical
 
 The addon uses the JSON C API (`ForesterOpen` / `ForesterCall`). Python bindings live in `api/python/python_bindings_json.py` and are kept in sync with `sources/forester/api/python_bindings_json.py`.
 
-If the native library is not bundled inside the extension folder, the addon loads it from `~/.dfm/setup.cfg` -> `[api] path` (written by the GUI or by `./builder/build.sh --write-local-config`).
+If the native library is not bundled inside the extension folder, the addon loads it from:
+
+1. `~/.dfm/setup.cfg` -> `[api] path` (written by the GUI or by `./builder/build.sh --write-local-config`)
+2. Or derived from `[forester] path`: `bin/forester` -> sibling `lib/forester.dll` (Windows portable install layout)
 
 ## Supported JSON API Areas
 
