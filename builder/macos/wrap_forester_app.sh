@@ -36,7 +36,7 @@ mkdir -p "${OUT_DIR}"
 
 FORESTER_APP_ICON="${BUILDER_DIR}/.staging/forester/icons/AppIcon.icns"
 if [ ! -f "${FORESTER_APP_ICON}" ]; then
-    FORESTER_APP_ICON="${PROJECT_ROOT}/sources/forester/icons/build/AppIcon.icns"
+    FORESTER_APP_ICON="${PROJECT_ROOT}/sources/icons/logo/forester/build/AppIcon.icns"
 fi
 if [ -f "${FORESTER_APP_ICON}" ]; then
     export FORESTER_APP_ICON

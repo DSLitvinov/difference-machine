@@ -36,7 +36,7 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | **fetch_ffmpeg.sh** | Download ffmpeg static build (Windows/Linux); stage from PATH on macOS |
 | **fetch_ffmpeg.ps1** | Download ffmpeg static build (Windows PowerShell) |
 | **lib/ffmpeg_cache.sh** | Reuse ffmpeg from `builder/.cache/ffmpeg/` or last `dist/payload` |
-| **generate_forester_icons.sh** | Forester PNG / `.ico` / `.icns` / Linux hicolor from `sources/forester/icons/` |
+| **generate_forester_icons.sh** | Forester PNG / `.ico` / `.icns` / Linux hicolor from `sources/icons/logo/forester/` |
 | **generate_forester_icons.mjs** | Icon rasterization (uses `lib/icon-squircle.mjs`) |
 | **lib/icon-squircle.mjs** | Shared squircle clip path for GUI + Forester icons |
 | **build_gui.sh** | Wails GUI → staging (runs `npm run icons:generate` first) |

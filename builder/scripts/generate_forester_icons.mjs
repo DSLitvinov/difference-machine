@@ -6,13 +6,16 @@ import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildForesterIconSvg, ICON_SIZES } from "../../sources/forester/icons/icon-assets.mjs";
+import {
+  buildForesterIconSvg,
+  FORESTER_BUILD_DIR,
+  FORESTER_ICONS_DIR,
+} from "../../sources/icons/forester-icon-assets.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, "../..");
 const guiFrontend = join(projectRoot, "sources/gui/frontend");
-const iconsDir = join(projectRoot, "sources/forester/icons");
-const buildDir = join(iconsDir, "build");
+const buildDir = FORESTER_BUILD_DIR;
 
 const require = createRequire(join(guiFrontend, "package.json"));
 const { Resvg } = require("@resvg/resvg-js");
@@ -32,14 +35,9 @@ function writePng(path, svg, size) {
 
 mkdirSync(buildDir, { recursive: true });
 
-for (const size of ICON_SIZES) {
-  writeFileSync(join(iconsDir, `${size}.svg`), buildForesterIconSvg(size));
-}
-console.log(`Synced Forester SVG icons (${ICON_SIZES.join(", ")}px)`);
-
 const masterSvg = buildForesterIconSvg(256);
 writeFileSync(join(buildDir, "appicon.png"), renderPng(masterSvg, 1024));
-console.log("Wrote sources/forester/icons/build/appicon.png (1024x1024)");
+console.log(`Wrote ${join(buildDir, "appicon.png")} (1024x1024)`);
 
 const icoSizes = [16, 24, 32, 48, 64, 128, 256];
 const exportDir = join(buildDir, "export");
@@ -50,7 +48,7 @@ for (const size of icoSizes) {
 
 const ico = await pngToIco(icoSizes.map((size) => join(exportDir, `${size}.png`)));
 writeFileSync(join(buildDir, "forester.ico"), ico);
-console.log("Wrote sources/forester/icons/build/forester.ico");
+console.log(`Wrote ${join(buildDir, "forester.ico")}`);
 
 const hicolorSizes = [16, 22, 24, 32, 48, 64, 128, 256, 512];
 for (const size of hicolorSizes) {
@@ -81,4 +79,4 @@ mkdirSync(iconsetDir, { recursive: true });
 for (const [name, size] of iconsetMap) {
   writePng(join(iconsetDir, name), masterSvg, size);
 }
-console.log("Wrote AppIcon.iconset (run iconutil on macOS for AppIcon.icns)");
+console.log(`Wrote AppIcon.iconset under ${FORESTER_ICONS_DIR} (run iconutil on macOS for AppIcon.icns)`);

@@ -224,7 +224,7 @@ wails doctor
 | App | Regenerate | Output |
 |-----|------------|--------|
 | GUI | `cd sources/gui/frontend && npm run icons:generate` | `sources/gui/build/appicon.png`, `build/windows/icon.ico` |
-| Forester | `bash builder/scripts/generate_forester_icons.sh` | `sources/forester/icons/build/` (PNG, `.ico`, `.icns`, Linux hicolor) |
+| Forester | `bash builder/scripts/generate_forester_icons.sh` | `sources/icons/logo/forester/build/` (PNG, `.ico`, `.icns`, Linux hicolor) |
 
 Both use squircle masking via `builder/scripts/lib/icon-squircle.mjs`. GUI icons run automatically in `build_gui.sh`; Forester icons run in `build_forester.sh`.
 

@@ -61,7 +61,7 @@ LDFLAGS="-X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitC
 CLI_OUT="${STAGING_DIR}/bin/${FORESTER_CLI_NAME}"
 echo "=== Building CLI ==="
 
-FORESTER_ICO="${FORESTER_DIR}/icons/build/forester.ico"
+FORESTER_ICO="${PROJECT_ROOT}/sources/icons/logo/forester/build/forester.ico"
 # shellcheck source=lib/embed_windows_icon_syso.sh
 . "${SCRIPT_DIR}/lib/embed_windows_icon_syso.sh"
 if [ "${CURRENT_OS}" = "windows" ] && [ -f "${FORESTER_ICO}" ]; then
@@ -111,8 +111,8 @@ else
     bash "${SCRIPT_DIR}/fetch_ffmpeg.sh"
 fi
 
-if [ -d "${FORESTER_DIR}/icons/build" ]; then
+if [ -d "${PROJECT_ROOT}/sources/icons/logo/forester/build" ]; then
     mkdir -p "${STAGING_DIR}/icons"
-    cp -R "${FORESTER_DIR}/icons/build/." "${STAGING_DIR}/icons/"
+    cp -R "${PROJECT_ROOT}/sources/icons/logo/forester/build/." "${STAGING_DIR}/icons/"
     echo -e "${GREEN}✓ Forester icons staged${NC}"
 fi
