@@ -12,7 +12,7 @@
 
 **Стек:** Wails (Go backend) + React + shadcn/ui
 
-**Связанные документы:** [architecture.md](./architecture.md) · [content-preview-project-view.md](./content-preview-project-view.md) · [content-info-project-view.md](./content-info-project-view.md) · [info-history-section.md](./info-history-section.md) · [diff-view.md](./diff-view.md)
+**Связанные документы:** [architecture.md](./architecture.md) · [content-preview-project-view.md](./content-preview-project-view.md) · [content-info-project-view.md](./content-info-project-view.md) · [file-viewer.md](./file-viewer.md) · [info-history-section.md](./info-history-section.md) · [diff-view.md](./diff-view.md)
 
 **Atom specs (переиспользование):**
 
@@ -35,6 +35,7 @@ File History View — **не** отдельный `sidebarMode`. Это подр
 | `projectPreviewMode` | Content Preview | Content Info |
 |----------------------|-----------------|--------------|
 | `grid` (default) | Сетка папок / файлов | Preview, Metadata, History (**View**), Create commit |
+| `fileViewer` | [File Viewer](./file-viewer.md) | **Видна** — single + **Edit in** + History (**View**) |
 | `fileHistory` | **File History View** | **Скрыта** — Preview на всю ширину (как History mode) |
 
 ```
@@ -54,10 +55,41 @@ Project view + fileHistory:
 | Триггер | Условие | Действие |
 |---------|---------|----------|
 | Кнопка **View** в Content Info | `PreviewSelection.kind === 'files'` и `paths.length === 1` | `projectPreviewMode = 'fileHistory'`, `fileHistoryPath = primary` |
-| **Double-click** по `FilePreviewItem` | Ровно один файл (см. §1.4) | То же |
-| **Enter** на сфокусированном файле | = double-click | То же |
+| **Double-click** по `FilePreviewItem` | — | **Не** открывает File History — см. [file-viewer.md §1.2](./file-viewer.md) |
+| **Enter** на сфокусированном файле | — | **Не** открывает File History — см. [file-viewer.md](./file-viewer.md) |
 
-**Выход:** кнопка `<` (Back) в toolbar → `projectPreviewMode = 'grid'`; папка / selection / scroll сетки **восстанавливаются** (не сбрасывать `selectedFolderPath`, `selectedFilePaths`).
+**Выход:** кнопка `<` (Back) в toolbar — см. §1.2.1. Папка / selection / scroll **не сбрасываются**.
+
+#### 1.2.1 Куда возвращает Back
+
+При открытии File History запоминается `fileHistoryReturnMode`:
+
+| Откуда открыли History | `fileHistoryReturnMode` | Back `<` → |
+|------------------------|-------------------------|------------|
+| **Grid** (View в Content Info, файл выбран в сетке) | `grid` | `projectPreviewMode = 'grid'` |
+| **[File Viewer](./file-viewer.md)** (View в Content Info при `fileViewer`) | `fileViewer` | `projectPreviewMode = 'fileViewer'` (тот же `fileViewerPath`) |
+
+```ts
+openFileHistory(path) {
+  fileHistoryReturnMode = projectPreviewMode === 'fileViewer' ? 'fileViewer' : 'grid'
+  projectPreviewMode = 'fileHistory'
+  fileHistoryPath = path
+  // fileViewerPath сохраняется при returnMode === 'fileViewer'
+}
+
+closeFileHistory() {
+  if (fileHistoryReturnMode === 'fileViewer' && fileViewerPath) {
+    projectPreviewMode = 'fileViewer'
+  } else {
+    projectPreviewMode = 'grid'
+    fileViewerPath = null   // сброс при возврате в grid
+  }
+  fileHistoryPath = null
+  fileHistoryReturnMode = 'grid'
+}
+```
+
+Label кнопки Back: `fileHistory.backToViewer` vs `fileHistory.back` (tooltip).
 
 ### 1.3 Связь с Content Info
 
@@ -71,16 +103,16 @@ Project view + fileHistory:
 
 Секция History в Content Info при multiselect по-прежнему **не рендерится**.
 
-### 1.4 Изменение double-click (breaking)
+### 1.4 Double-click (не входит в File History)
 
-Заменяет [content-preview-project-view.md §4.4](./content-preview-project-view.md):
+Double-click / Enter открывают **[File Viewer](./file-viewer.md)**, не File History View.
 
-| Жест | Было | Стало |
-|------|------|-------|
-| Double-click файл | `workdir.open` → ОС | Открыть **File History View** |
-| Enter на файле | `workdir.open` | File History View |
+| Жест | Действие |
+|------|----------|
+| Double-click файл | [file-viewer.md §1.2](./file-viewer.md) |
+| Enter на файле | File Viewer |
 
-Открытие в приложении ОС остаётся через **context menu** файла (`workdir.open`, optional `editor`) — [content-preview-project-view.md](./content-preview-project-view.md).
+Открытие в приложении ОС — **context menu** (`workdir.open`) — [content-preview-project-view.md](./content-preview-project-view.md).
 
 ### 1.5 Зафиксированные решения
 
@@ -94,9 +126,10 @@ Project view + fileHistory:
 | 6 | Diff UI | Переиспользовать `DiffView` + дочерние панели без дублирования логики |
 | 7 | Compare (header) | Только для `DiffKind === 'binary'`; one-shot `compare.extract` (не toggle) |
 | 8 | Revert (header) | Для **всех** типов файла; `restore.file` + `AlertDialog` |
-| 9 | Rail → History | Авто-выход из `fileHistory` → `grid` |
-| 10 | Sidebar: смена папки | Авто-выход в `grid` (сохранить новую папку) |
-| 11 | Multiselect в grid | View / File History **недоступны**; double-click открывает history **целевого** файла, selection не расширяется |
+| 9 | Rail → History | Авто-выход в `grid` (сброс viewer + history) |
+| 10 | Sidebar: смена папки | Авто-выход в `grid` |
+| 11 | Back из History | По `fileHistoryReturnMode`: **viewer** или **grid** (§1.2.1) |
+| 12 | Multiselect в grid | View недоступен; double-click → [File Viewer](./file-viewer.md) |
 
 ---
 
@@ -260,11 +293,14 @@ sequenceDiagram
 ### 5.1 Store (расширение project preview)
 
 ```ts
-type ProjectPreviewMode = 'grid' | 'fileHistory'
+type ProjectPreviewMode = 'grid' | 'fileViewer' | 'fileHistory'
+type FileHistoryReturnMode = 'grid' | 'fileViewer'
 
 interface FileHistoryState {
   mode: ProjectPreviewMode
-  filePath: string | null          // set when mode === 'fileHistory'
+  fileHistoryPath: string | null
+  fileHistoryReturnMode: FileHistoryReturnMode  // set on openFileHistory
+  fileViewerPath: string | null                // preserved when returnMode === 'fileViewer'
 
   // Toolbar (shared keys with former Info History where noted)
   historyBranch: string | null
@@ -415,15 +451,23 @@ Binary stub generic icon; header Compare доступен.
 
 `projectPreviewMode = 'grid'`; File History state reset (кроме persisted branch filter).
 
-### 8.12 Тот же файл: View из Info когда уже в fileHistory
+### 8.12 View из File Viewer → History → Back
+
+`fileHistoryReturnMode = 'fileViewer'` → Back восстанавливает **File Viewer** с тем же `fileViewerPath`; Content Info снова видна.
+
+### 8.13 View из grid → History → Back
+
+`fileHistoryReturnMode = 'grid'` → Back в сетку файлов.
+
+### 8.14 Тот же файл: View когда уже в fileHistory
 
 No-op или scroll-to-top; **не** сбрасывать commit selection.
 
-### 8.13 `diff.text` → `file_too_large`
+### 8.15 `diff.text` → `file_too_large`
 
 Inline error в `TextDiffPanel` + Retry ([content-preview-history-view.md](./content-preview-history-view.md)).
 
-### 8.14 Unicode paths
+### 8.16 Unicode paths
 
 Display UTF-8; API paths normalized per [paths.md](./paths.md).
 
@@ -435,6 +479,7 @@ Display UTF-8; API paths normalized per [paths.md](./paths.md).
 |-----|-------------|
 | `fileHistory.view` | View |
 | `fileHistory.back` | Back to files |
+| `fileHistory.backToViewer` | Back to file preview |
 | `history.selectBranch` | reuse |
 | `history.noCommitsForFile` | reuse |
 | `commit.revertAction` | reuse |
@@ -447,7 +492,7 @@ Display UTF-8; API paths normalized per [paths.md](./paths.md).
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Double-click | File History View, не `workdir.open` |
+| 1 | Double-click | [File Viewer](./file-viewer.md), не File History |
 | 2 | OS open | Context menu only |
 | 3 | Content Info layout | **Скрыта** в fileHistory (Preview на всю ширину) |
 | 4 | History controls | Только в Preview toolbar; Info → View |
@@ -455,7 +500,7 @@ Display UTF-8; API paths normalized per [paths.md](./paths.md).
 | 6 | Diff baseline | Commit vs parent |
 | 7 | Branch picker | Read-only filter, не checkout |
 | 8 | Diff components | Reuse `DiffView` stack |
-| 9 | Exit | Back `<` + auto on mode/folder change |
+| 9 | Exit | Back `<` по return stack (§1.2.1) + auto on folder/mode change |
 | 10 | Path display | Full path в file info bar; basename не использовать |
 
 ---

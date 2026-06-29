@@ -8,7 +8,7 @@
 
 **Стек:** Wails + React + shadcn/ui
 
-**Связанные документы:** [architecture.md](./architecture.md) · [api-contract.md](./api-contract.md) · [content-preview-project-view.md](./content-preview-project-view.md) · [file-preview-item.md](./file-preview-item.md)
+**Связанные документы:** [architecture.md](./architecture.md) · [api-contract.md](./api-contract.md) · [content-preview-project-view.md](./content-preview-project-view.md) · [file-preview-item.md](./file-preview-item.md) · [file-viewer.md](./file-viewer.md) · [file-history-view.md](./file-history-view.md)
 
 **Atom specs:**
 
@@ -19,6 +19,7 @@
 | Multi preview tile | [info-file-preview-tile.md](./info-file-preview-tile.md) |
 | Metadata | [info-metadata-section.md](./info-metadata-section.md) |
 | History | [info-history-section.md](./info-history-section.md) |
+| Edit in (file viewer only) | §3.2 |
 | Create commit dialog | [create-commit-dialog.md](./create-commit-dialog.md) |
 
 ---
@@ -27,10 +28,12 @@
 
 ### 1.1 Режимы окна
 
-| Режим | Content Info |
-|-------|----------------|
-| **Project view** | Видна (третья колонка) |
-| **History** | **Скрыта** — Preview на всю ширину |
+| Режим / подрежим | Content Info |
+|------------------|--------------|
+| **Project view** + `grid` | Видна (третья колонка) |
+| **Project view** + `fileViewer` | **Видна** — single-file panel + **Edit in** (§3.2) |
+| **Project view** + `fileHistory` | **Скрыта** — Preview на всю ширину ([file-history-view.md §1.1](./file-history-view.md)) |
+| **History** (`sidebarMode`) | **Скрыта** — Preview на всю ширину |
 
 ```
 ┌──────────┬─────────────────────────────┬──────────────┐
@@ -60,38 +63,52 @@
 | 3 | Badges | status = VCS; lock = Forester lock (`lock.list`) |
 | 4 | File name row | **Read-only**, `disabled` Input |
 | 5 | Metadata v1 | FS only; пустые поля **скрывать** |
-| 6 | History commits | **File log** (коммиты, где менялся файл) |
-| 7 | Compare | `compare.extract` → tmp_review + **toast** (без auto-open Blender) |
-| 8 | Revert | `restore --source=<commit>` + **AlertDialog**; **single file only** (History скрыта при multiselect) |
+| 6 | History commits | File log загружается для Metadata (editor/creator); UI file log — в File History View |
+| 7 | Compare | Только в [File History View](./file-history-view.md) toolbar (binary) |
+| 8 | Revert | Только в File History View toolbar; **single file** |
 | 9 | Create commit | Только **выбранные** файлы (auto stage) |
 | 10 | Author в диалоге | Read-only из config |
+| 11 | File History controls | Branch / Commit / Revert / Compare — **только** в [File History View](./file-history-view.md); в Content Info — кнопка **View** ([info-history-section.md](./info-history-section.md)) |
+| 12 | Edit in | Кнопка **только** при `projectPreviewMode === 'fileViewer'` (§3.2) |
 
 ---
 
 ## 2. Анатомия UI (single)
 
+### 2.0 Layout по `projectPreviewMode`
+
+| `projectPreviewMode` | Блоки single panel |
+|----------------------|-------------------|
+| `grid` | Preview · Name · History (**View**) · Metadata · Create commit |
+| `fileViewer` | Preview · Name · **Edit in** · History (**View**) · Metadata · Create commit |
+| `fileHistory` | Панель **не рендерится** |
+
+**Figma (file viewer + Edit in):** [`4085:5087`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4085-5087) — кнопка **Edit in** между name и History.
+
 ```
+grid / fileViewer (single, Content Info visible):
 ┌─────────────────────────────┐
-│  [312×312 preview + badges] │
+│  [312×200 preview + badges] │
 │  [name file]  Name  (disabled)│
+│  [ Edit in ]                  │  ← только fileViewer (§3.2)
 │  ▼ History                    │
-│    Branch / Commit pickers    │  ← DropdownSelector — [design-tokens.md §4.5](./design-tokens.md)
-│    [Revert]  [Compare]        │
+│    [ View ]                   │  ← opens File History View
 │  ─────────────────────────    │
 │  ▼ Metadata                   │
-│    Modified, Size, Type, …    │
-│  ─────────────────────────    │
 │  [ Create commit ]            │
 └─────────────────────────────┘
 ```
 
-### 2.1 Single (`4027:5041`)
+Устаревший макет `4027:5041` (branch/commit/Revert/Compare в History) — **не** актуален для Content Info; см. [file-history-view.md §1.3](./file-history-view.md).
+
+### 2.1 Single (`4027:5041` + `4085:5087`)
 
 | Блок | Atom |
 |------|------|
-| Preview | [info-file-preview-single.md](./info-file-preview-single.md) |
+| Preview | [info-file-preview-single.md](./info-file-preview-single.md) — `variant="compact"` |
 | File name | §3.1 |
-| History | [info-history-section.md](./info-history-section.md) — Revert + Compare |
+| Edit in | §3.2 — **только** `fileViewer` |
+| History | [info-history-section.md](./info-history-section.md) — **View** → File History View |
 | Metadata | [info-metadata-section.md](./info-metadata-section.md) — full |
 | Footer | §4 |
 
@@ -128,6 +145,54 @@ Read-only disabled `Input` (визуально как макет: label `name fi
 | Edit | **нет** в v1 |
 
 Multiselect: строка **не рендерится**.
+
+---
+
+## 3.2 Edit in (single, `fileViewer` only)
+
+Кнопка открытия файла во **внешнем редакторе** из Settings. Показывается **только** когда Content Preview в режиме [File Viewer](./file-viewer.md) (`projectPreviewMode === 'fileViewer'`).
+
+**Figma:** [`4085:5087`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4085-5087)
+
+| Token | Значение |
+|-------|----------|
+| Component | `InfoEditInButton` |
+| Trigger | `Button variant="outline"` full width `h-10 w-full` |
+| Label | `preview.editIn` — **Edit in** |
+| Menu | shadcn `Popover` — список редакторов, ширина = trigger |
+
+### Источник редакторов
+
+`appStore.externalEditorPaths` — тот же список, что submenu **Edit in** в context menu сетки ([settings-dialog.md §6](./settings-dialog.md), [file-preview-item.md §4.2](./file-preview-item.md)).
+
+Label пункта: basename executable без `.exe` / `.app` (`editorDisplayLabel`).
+
+### Поведение
+
+| Действие | API |
+|----------|-----|
+| Клик по редактору | `workdir.open { path: filePath, editor: editorAbsPath }` |
+
+Popover закрывается после выбора; ошибки — `appStore.setError`.
+
+### Disabled
+
+| Условие | UI |
+|---------|-----|
+| `externalEditorPaths.length === 0` | `disabled`; tooltip `preview.editInNoEditors` |
+| VCS `deleted` / `staged-deleted` | `disabled` |
+| Foreign lock (`lock.list`) | `disabled` |
+
+В режиме `grid` кнопка **не рендерится** — открытие в редакторе через context menu сетки.
+
+### Corner cases
+
+| Case | Поведение |
+|------|-----------|
+| Viewer → View (History) | Edit in **скрыт** (Content Info unmount) |
+| Back из History → viewer | Edit in снова видна для `fileViewerPath` |
+| Нет repo | Viewer не открыт — N/A |
+| Blender-only в cfg | Попадает в `externalEditorPaths` как и для context menu |
 
 ---
 
@@ -217,11 +282,15 @@ No API call.
 | `toStage.length === 0` | Toast «Selected files are already committed»; dialog не открывать |
 | `toStage.length < selectedPaths.length` | Toast «N of M files will be committed»; stage только `toStage` via `index.add` |
 
-### 6.8 Rail → History
+### 6.8 Rail → History / смена `sidebarMode`
 
-Content Info unmount / hidden.
+Content Info unmount / hidden. `exitSubPreviewViews()` сбрасывает `fileViewer` и `fileHistory` ([file-viewer.md §4.1](./file-viewer.md)).
 
-### 6.9 Unicode paths
+### 6.9 `fileHistory` подрежим
+
+Content Info **скрыта**; branch/commit/Revert/Compare — в toolbar File History View.
+
+### 6.10 Unicode paths
 
 Display + tooltips UTF-8.
 
@@ -259,6 +328,7 @@ Display + tooltips UTF-8.
 ```
 frontend/src/components/info/
   ContentInfoPanel.tsx
+  InfoEditInButton.tsx          # Edit in popover (fileViewer only)
   InfoFilePreviewSingle.tsx
   InfoFilePreviewMulti.tsx
   InfoFilePreviewTile.tsx
@@ -281,3 +351,5 @@ state/
 | 3 | Empty metadata fields | Hide |
 | 4 | Multiselect History | **Секция скрыта** — History только при single file |
 | 5 | Create commit scope | Selected files only |
+| 6 | History in Info | Только **View**; diff controls в File History View |
+| 7 | Edit in in Info | Только в **fileViewer**; grid → context menu |

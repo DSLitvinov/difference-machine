@@ -25,6 +25,10 @@ Project view (client width = W):
 
 **History view:** Content Info **скрыта** — две колонки: Sidebar + Preview (`W = sidebar + preview`).
 
+**Project view + `fileHistory`:** Content Info **скрыта** (как History mode) — [file-history-view.md §1.1](./file-history-view.md).
+
+**Project view + `fileViewer`:** Content Info **видна** (три колонки) — [file-viewer.md §1.1](./file-viewer.md).
+
 ---
 
 ## 2. Max width — вычисление

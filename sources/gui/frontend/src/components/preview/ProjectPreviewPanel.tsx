@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
 import { FileHistoryView } from "@/components/preview/FileHistoryView";
+import { FileViewer } from "@/components/preview/FileViewer";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
 import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar";
 import { measureAsync } from "@/lib/performance";
@@ -104,7 +105,9 @@ export function ProjectPreviewPanel() {
   const clearFileSelection = useProjectStore((s) => s.clearFileSelection);
   const projectPreviewMode = useProjectStore((s) => s.projectPreviewMode);
   const fileHistoryPath = useProjectStore((s) => s.fileHistoryPath);
-  const openFileHistory = useProjectStore((s) => s.openFileHistory);
+  const fileViewerPath = useProjectStore((s) => s.fileViewerPath);
+  const openFileViewer = useProjectStore((s) => s.openFileViewer);
+  const closeFileViewer = useProjectStore((s) => s.closeFileViewer);
   const closeFileHistory = useProjectStore((s) => s.closeFileHistory);
 
   const [searchResults, setSearchResults] = useState<DirEntry[]>([]);
@@ -185,7 +188,7 @@ export function ProjectPreviewPanel() {
   }, [repoPath, debouncedSearch, showChangedOnly, committable, isSearchActive, setError, setNotice, t]);
 
   const openFile = (path: string) => {
-    openFileHistory(path);
+    openFileViewer(path);
   };
 
   const crumbs = breadcrumbSegments(selectedFolderPath);
@@ -234,6 +237,10 @@ export function ProjectPreviewPanel() {
 
   if (projectPreviewMode === "fileHistory" && fileHistoryPath) {
     return <FileHistoryView filePath={fileHistoryPath} onBack={closeFileHistory} />;
+  }
+
+  if (projectPreviewMode === "fileViewer" && fileViewerPath) {
+    return <FileViewer filePath={fileViewerPath} onBack={closeFileViewer} />;
   }
 
   return (

@@ -37,7 +37,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | 5 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
 | 6 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
 | 7 | Слайдер | Масштаб миниатюр **48px → 128px**, шаг **18px** (§5) |
-| 8 | Double-click файл | **Открыть в связанном приложении ОС** (default handler) через Wails (§4.4) |
+| 8 | Double-click файл | **[File Viewer](./file-viewer.md)** (§4.4); ОС — context menu `workdir.open` |
 
 ---
 
@@ -235,40 +235,39 @@ interface NavHistory {
 - Клик по сегменту → переход на эту папку (push в историю + sync Sidebar).
 - Длинный путь: middle-truncation (`Repo / … / parent / current`) с overflow-меню.
 
-### 4.4 Открытие файла (double-click → приложение ОС)
+### 4.4 Открытие файла (double-click → File Viewer)
 
-**Double-click** по `FilePreviewItem` (и **Enter** при фокусе на файле) открывает файл в **приложении по умолчанию**, назначенном ОС для данного типа (MIME / extension binding).
+**Double-click** по `FilePreviewItem` (и **Enter** при фокусе на файле) открывает **[File Viewer](./file-viewer.md)** — подрежим Content Preview с крупным превью; Content Info остаётся видимой.
 
-| Платформа | Механизм (Go backend) |
-|-----------|------------------------|
-| **macOS** | `open <absPath>` |
-| **Windows** | `ShellExecute` / `start` с ассоциированным handler |
-| **Linux** | `xdg-open <absPath>` |
+| Действие | Куда |
+|----------|------|
+| Double-click / Enter | `openFileViewer(path)` → `projectPreviewMode = 'fileViewer'` |
+| Context menu → Open in external application | `workdir.open` без `editor` → ОС default handler |
+| Context menu → Edit in → … | `workdir.open { editor }` |
+| Content Info → **View** | [File History View](./file-history-view.md) |
 
-#### Flow
+#### Flow (File Viewer)
 
 ```mermaid
 sequenceDiagram
   participant UI as FilePreviewItem
-  participant W as Wails Go
-  participant OS as OS default app
+  participant Store as projectStore
+  participant Panel as FileViewer
 
   UI->>UI: double-click / Enter
-  UI->>W: ForesterCall workdir.open
-  W->>W: resolve abs path, validate exists
-  W->>OS: launch default handler
-  OS-->>UI: (async) app opens file
+  UI->>Store: openFileViewer(path)
+  Store->>Panel: projectPreviewMode = fileViewer
 ```
 
 #### Правила
 
 - Открывается **ровно один** файл — тот, по которому сделан double-click (даже при активном multiselect).
-- Пути: [paths.md §6–§7](./paths.md) — `Join(repoRoot, FromSlash(fileRel))`, native abs для ОС.
-- **Не** открывать встроенный preview/diff Forester — только делегирование ОС (Content Info / diff — отдельные действия).
-- При успехе: без модального UI; опционально toast «Opened in …» (v1.1).
-- Selection **не сбрасывается** после открытия.
+- Пути: [paths.md §6–§7](./paths.md).
+- Selection: `openFileViewer` добавляет path в `selectedFilePaths`, если отсутствует.
+- При успехе: без модального UI.
+- **Не** вызывать `workdir.open` на double-click.
 
-#### JSON API
+#### Открытие в ОС (context menu)
 
 `workdir.open` — [api-contract.md §2.3](./api-contract.md). `EvalSymlinks` перед launch — [paths.md §3](./paths.md).
 
@@ -410,7 +409,7 @@ const collator = new Intl.Collator(sortLocale, {
 - Те же `FolderItem` / `FilePreviewItem`, сгруппированы Folders / Files.
 - Под каждым item — относительный путь (`text-xs muted`), чтобы различать одноимённые.
 - Клик по папке в результатах → drill-down туда (выход из поиска + sync Sidebar).
-- Клик по файлу → выбор файла; **double-click → открыть в приложении ОС** (§4.4).
+- Клик по файлу → выбор файла; **double-click → [File Viewer](./file-viewer.md)** (§4.4).
 - Сортировка результатов — та же locale-сортировка (§6); внутри групп.
 - При Changed ON поиск ограничен committable-файлами (см. §8).
 
@@ -601,4 +600,4 @@ frontend/src/
 | 7 | Слайдер | 48→128px, шаг 18px (6 позиций), Min-визуал ≤84, Max-визуал ≥102, per-repo persist |
 | 8 | Status badge | VCS-код (A/M/D/N), скрыт для clean; только у файлов |
 | 9 | Lock badge | Текст `lock`, tooltip `Locked by {user}`; только у заблокированных файлов |
-| 9 | Double-click файл | `workdir.open` — открытие в приложении по умолчанию ОС (§4.4) |
+| 10 | Double-click файл | **[File Viewer](./file-viewer.md)** — `openFileViewer` (§4.4); ОС — context menu |

@@ -6,7 +6,7 @@ export function switchSidebarMode(mode: SidebarMode) {
   const { sidebarMode, repoPath, setSidebarMode } = useAppStore.getState();
   if (mode === sidebarMode) return;
 
-  useProjectStore.getState().closeFileHistory();
+  useProjectStore.getState().exitSubPreviewViews();
   useProjectStore.getState().clearFileSelection();
   if (repoPath) {
     if (sidebarMode === "history") {

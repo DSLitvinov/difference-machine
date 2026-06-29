@@ -246,7 +246,7 @@ Load order: `localStorage` → fallback `[gui]` in cfg → defaults (`light`, `i
 
 **Figma subtitle:** «Manage your editors.»
 
-Приложения для **Edit in:** в context menu файлов Project view и для явного открытия через `workdir.open` с `editor`.
+Приложения для **Edit in:** в context menu файлов Project view, в кнопке **Edit in** Content Info ([file-viewer](./file-viewer.md) / [content-info-project-view.md §3.2](./content-info-project-view.md)) и для явного открытия через `workdir.open` с `editor`.
 
 **Статус:** вкладка **активна** (не disabled). Список в context menu синхронизируется через `appStore.externalEditorPaths` — обновляется при редактировании полей на вкладке (live) и после **Save list**.
 

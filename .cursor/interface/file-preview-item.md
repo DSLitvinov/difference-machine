@@ -148,7 +148,7 @@ stateDiagram-v2
 | **Ctrl/Cmd+Click** | Toggle файл в selection set; не снимать остальные |
 | **Shift+Click** | Range-select от `anchorIndex` до текущего в **отсортированном flat list файлов** (только секция Files) |
 | **Click empty area** | Clear selection |
-| **Double-click** | Открыть в **приложении по умолчанию ОС** (`workdir.open`, §4.4 в [content-preview-project-view.md](./content-preview-project-view.md)) |
+| **Double-click** | Открыть **[File Viewer](./file-viewer.md)** (`openFileViewer`, §4.4 в [content-preview-project-view.md](./content-preview-project-view.md)) |
 | **Right-click** | Context menu §4.2 |
 | **Enter** (фокус на item) | = double-click |
 | **Marquee** | См. [content-preview.md](./content-preview.md) §6 |
@@ -287,7 +287,7 @@ interface FilePreviewItemProps {
   scale: 'min' | 'max'
   index: number
   onSelect: (e: React.MouseEvent) => void
-  onOpen: () => void                    // → workdir.open (double-click)
+  onOpen: () => void                    // → openFileViewer (double-click)
   onContextMenu?: (e: React.MouseEvent) => void
 }
 ```

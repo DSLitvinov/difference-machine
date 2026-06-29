@@ -1,19 +1,41 @@
 # Info File Preview — Single
 
-Атом превью **одного файла** в Content Info.
+Атом превью **одного файла** в Content Info и (вариант `expanded`) в [File Viewer](./file-viewer.md).
 
-**Figma:** [`4037:707`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-707) (в составе [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041))
+**Figma:** [`4037:707`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-707) (compact, Content Info) · viewer area [`4084:7698`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4084-7698)
 
-**Связанные документы:** [content-info-project-view.md](./content-info-project-view.md) · [design-tokens.md](./design-tokens.md) §3.6
+**Связанные документы:** [content-info-project-view.md](./content-info-project-view.md) · [file-viewer.md](./file-viewer.md) · [design-tokens.md](./design-tokens.md) §3.6
 
 ---
 
-## 1. Структура
+## 1. Варианты (`variant`)
+
+| Variant | Где | Frame | Badges |
+|---------|-----|-------|--------|
+| `compact` (default) | Content Info | `h-[200px]`, `max-w-[312px]`, centered | status + lock |
+| `expanded` | File Viewer center | `h-full min-h-[200px] w-full` | **скрыты** (badges только в Content Info) |
+
+```ts
+interface InfoFilePreviewSingleProps {
+  path: string
+  vcsStatus: VcsFileStatus | null
+  lockUser: string | null
+  kind: InfoPreviewKind
+  loading?: boolean
+  variant?: 'compact' | 'expanded'
+}
+```
+
+Загрузка: `useWorkdirPreview` + [workdirPreviewCache](../../rules/virtual-scroll-preview-ux.mdc).
+
+---
+
+## 2. Структура (compact)
 
 ```
 ┌────────────────────────┐
 │                        │
-│    312 × 312 preview   │
+│    preview 312×200     │
 │         [status]       │
 │              [lock]    │
 └────────────────────────┘
@@ -21,88 +43,50 @@
 
 | Token | Значение |
 |-------|----------|
-| Frame | `312×312`, `border border-border rounded-md` |
-| Container | `relative`, centered in panel |
+| Frame | `border border-border rounded-md bg-muted/30` |
+| Container | `relative`, centered in panel (`mx-auto` для compact) |
 
 ---
 
-## 2. Контент по типу файла
+## 3. Контент по типу файла
 
 ```ts
 type InfoPreviewKind = 'image' | 'text' | 'binary' | 'blend'
-
-function classifyInfoPreview(ext: string): InfoPreviewKind {
-  if (isImageExt(ext)) return 'image'       // png, jpg, … exr; NOT svg
-  if (ext.toLowerCase() === 'blend') return 'blend'
-  if (isTextExt(ext)) return 'text'         // incl. svg, code, txt
-  return 'binary'
-}
 ```
 
 | Kind | Content |
 |------|---------|
-| **image** | `<img>` `object-cover`, from `workdir.thumbnail` / direct read |
-| **text** | **Text stub** — placeholder icon (generic document); **SVG иллюстрация позже** |
-| **binary** | **Binary stub** — другая иконка (`FileQuestion` / archive) |
-| **blend** | `workdir.thumbnail` blend preview **или** blend stub если нет thumb |
+| **image** | `<img>` — compact: `object-cover`; expanded: `object-contain` |
+| **text** | `<pre>` snippet из `useWorkdirPreview` (truncated API); compact: `text-[11px]`; expanded: `text-sm` |
+| **binary** | Centered stub icon (`FileArchive`) |
+| **blend** | `<img>` `object-contain` или blend stub |
 
-### 2.1 Text stub (v1)
+Классификация: `classifyInfoPreview(path)` — [content-info-project-view.md §1.3](./content-info-project-view.md).
 
-- Centered icon 48–64px `text-muted-foreground`
-- Optional muted label `Text file` (можно без текста)
-- **Без** содержимого файла
+### 3.1 Blend
 
-### 2.2 Binary stub (v1)
+- API: `workdir.thumbnail` — [api-contract.md §4.3.2](./api-contract.md)
+- Fail: blend-specific stub (`FileArchive` icon, 48px compact / 64px expanded)
 
-- Icon `FileArchive` / `FileBinary` 48–64px
-- Отличается от text stub визуально
-
-### 2.3 Blend
-
-- API: `workdir.thumbnail` → `kind: "image"` (PNG) или `placeholder` — см. [api-contract.md §4.3.2](./api-contract.md).
-- Источники (backend, без запуска Blender):
-  1. OS cache: `~/.thumbnails/{large,normal}/` (Win/macOS) или `$XDG_CACHE_HOME/thumbnails/` (Linux)
-  2. Embedded `TEST` chunk в `.blend` (fallback)
-- Success: `<img>` `object-contain`, checkerboard if alpha
-- Fail: blend-specific stub (`FileArchive` icon)
-- **Не путать** с History diff screenshot (`commit.get`) — [decisions.md §7.8](./decisions.md)
-
-### 2.4 Loading / error
+### 3.2 Loading
 
 | State | UI |
 |-------|-----|
-| Loading | `Skeleton` 312×312 |
-| Error | stub по kind + retry optional |
+| Loading metadata | `Loader2` spinner |
+| Loading preview | spinner до `previewUrl` / `textPreview` |
+
+### 3.3 Deleted (VCS)
+
+`vcsStatus === 'deleted' | 'staged-deleted'` → preview не грузится (`path` null в hook); `opacity-50` на img если показан stub.
 
 ---
 
-## 3. Badges (overlay)
-
-Позиции как на макете — bottom area, overlapping frame.
+## 4. Badges (overlay, `compact` only)
 
 | Badge | Условие | Style |
 |-------|---------|-------|
-| **status** | VCS ≠ clean | `<span>` + `vcsStatusBadgeClass` — `A`/`M`/`D`/`N` ([design-tokens.md §3.5](./design-tokens.md)) |
-| **lock** | `lock.list` has entry for file+branch | `bg-secondary` — текст `lock`; tooltip `Locked by {user}` |
-
-- status **скрыт** если clean
-- lock **скрыт** если не заблокирован
-- Tooltip: full status word / `Locked by {user}`
-
----
-
-## 4. Props
-
-```ts
-interface InfoFilePreviewSingleProps {
-  path: string
-  vcsStatus?: VcsFileStatus
-  lock?: { user: string } | null
-  previewUrl?: string | null
-  kind: InfoPreviewKind
-  loading?: boolean
-}
-```
+| **status** | VCS ≠ clean | `vcsStatusBadgeClass` — `A`/`M`/`D`/`N` |
+| **lock** | `lockUser` set | `bg-secondary` — `info.lock`; tooltip `info.lockedBy` |
 
 ---
 
@@ -110,7 +94,8 @@ interface InfoFilePreviewSingleProps {
 
 | Case | Поведение |
 |------|-----------|
-| svg | text stub (не image preview) |
+| svg | text kind — snippet в pre |
 | deleted file on disk | stub + no thumbnail |
 | Very large image | downscale in thumbnail API |
+| File Viewer resize | expanded reflow; cache сохраняется |
 | Lock expired | hide lock badge after refresh |

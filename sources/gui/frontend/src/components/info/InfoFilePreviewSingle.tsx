@@ -14,19 +14,22 @@ interface InfoFilePreviewSingleProps {
   lockUser: string | null;
   kind: InfoPreviewKind;
   loading?: boolean;
+  /** `expanded` — File Viewer center panel (no badges, fills area). */
+  variant?: "compact" | "expanded";
 }
 
-function PreviewStub({ kind }: { kind: InfoPreviewKind }) {
+function PreviewStub({ kind, large }: { kind: InfoPreviewKind; large?: boolean }) {
+  const iconClass = large ? "h-16 w-16" : "h-12 w-12";
   if (kind === "image") {
-    return <FileImage className="h-12 w-12 text-muted-foreground" />;
+    return <FileImage className={cn(iconClass, "text-muted-foreground")} />;
   }
   if (kind === "text") {
-    return <FileCode className="h-12 w-12 text-muted-foreground" />;
+    return <FileCode className={cn(iconClass, "text-muted-foreground")} />;
   }
   if (kind === "blend") {
-    return <FileArchive className="h-12 w-12 text-muted-foreground" />;
+    return <FileArchive className={cn(iconClass, "text-muted-foreground")} />;
   }
-  return <FileArchive className="h-12 w-12 text-muted-foreground" />;
+  return <FileArchive className={cn(iconClass, "text-muted-foreground")} />;
 }
 
 export function InfoFilePreviewSingle({
@@ -35,21 +38,30 @@ export function InfoFilePreviewSingle({
   lockUser,
   kind,
   loading: metadataLoading,
+  variant = "compact",
 }: InfoFilePreviewSingleProps) {
   const t = useT();
+  const expanded = variant === "expanded";
   const statusLabel = vcsStatus ? vcsBadgeLabel(vcsStatus) : null;
   const dimmed = vcsStatus === "deleted" || vcsStatus === "staged-deleted";
   const { previewUrl, textPreview } = useWorkdirPreview(dimmed ? null : path, kind);
 
   return (
-    <div className="relative mx-auto flex h-[200px] w-full max-w-[312px] items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30">
+    <div
+      className={cn(
+        "relative flex items-center justify-center overflow-hidden rounded-md border border-border bg-muted/30",
+        expanded
+          ? "h-full min-h-[200px] w-full max-h-full"
+          : "mx-auto h-[200px] w-full max-w-[312px]",
+      )}
+    >
       {previewUrl ? (
         <img
           src={previewUrl}
           alt=""
           className={cn(
             "h-full w-full",
-            kind === "blend" ? "object-contain" : "object-cover",
+            kind === "blend" ? "object-contain" : expanded ? "object-contain" : "object-cover",
             dimmed && "opacity-50",
           )}
           draggable={false}
@@ -57,13 +69,18 @@ export function InfoFilePreviewSingle({
       ) : metadataLoading ? (
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       ) : textPreview && kind === "text" ? (
-        <pre className="max-h-full w-full overflow-auto p-3 text-left font-mono text-[11px] leading-relaxed text-foreground">
+        <pre
+          className={cn(
+            "max-h-full w-full overflow-auto p-3 text-left font-mono leading-relaxed text-foreground",
+            expanded ? "text-sm" : "text-[11px]",
+          )}
+        >
           {textPreview}
         </pre>
       ) : (
-        <PreviewStub kind={kind} />
+        <PreviewStub kind={kind} large={expanded} />
       )}
-      {statusLabel && vcsStatus ? (
+      {!expanded && statusLabel && vcsStatus ? (
         <span
           className={cn(
             "absolute bottom-2 left-2 flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-1.5 text-xs font-semibold",
@@ -74,7 +91,7 @@ export function InfoFilePreviewSingle({
           {statusLabel}
         </span>
       ) : null}
-      {lockUser ? (
+      {!expanded && lockUser ? (
         <span
           className="absolute bottom-2 right-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
           title={t("info.lockedBy", { user: lockUser })}

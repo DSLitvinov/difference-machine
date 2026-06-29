@@ -1,115 +1,77 @@
 # Info History Section
 
-Секция **History** в Content Info: file log, branch/commit pickers, Revert / Compare.
+Секция **History** в Content Info (single file): collapsible header + кнопка **View** для входа в [File History View](./file-history-view.md).
 
-**Видимость:** только при **single file** selection (`PreviewSelection.paths.length === 1`). При multiselect (`paths.length > 1`) секция **не рендерится**.
+**Видимость:** только при **single file** selection (`selectedFilePaths.length === 1`). При multiselect секция **не рендерится**.
 
-**API:** [api-contract.md](./api-contract.md) — `log.get`+`path`, `restore.file`, `compare.extract`, `lock.list`
+**Figma (актуальный):** [`4085:5098`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4085-5098) — History + **View** в File Viewer layout.
 
-**Figma:** single [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041)
+**Устарело в Content Info:** branch/commit pickers, Revert, Compare — перенесены в toolbar [file-history-view.md](./file-history-view.md) (§1.3).
 
-**Связанные документы:** [content-info-project-view.md](./content-info-project-view.md) · [design-tokens.md §4.5](./design-tokens.md)
+**Связанные документы:** [content-info-project-view.md](./content-info-project-view.md) · [file-history-view.md](./file-history-view.md) · [file-viewer.md](./file-viewer.md)
 
 ---
 
 ## 1. Header
 
-Collapsible; default **expanded**. Title `History` + chevron.
+Collapsible; default **expanded**. Title `history.title` (**History**) + chevron (`ChevronUp` / `ChevronDown`).
 
 ---
 
-## 2. Controls
+## 2. Action — View
 
-Dropdowns — канон [design-tokens.md §4.5](./design-tokens.md) (`DropdownSelector`). **Не** нативный `<select>`.
+| Token | Значение |
+|-------|----------|
+| Component | shadcn `Button` `variant="default"` |
+| Width | `w-full` |
+| Label | `fileHistory.view` — **View** (v1.1 optional: «View history» per Figma) |
 
-### 2.1 Branch picker
+### Поведение
 
-- Компонент: `DropdownSelector` + иконка `GitBranch`
-- Label поля: `Branch` (`text-xs text-muted-foreground`)
-- Options: **all branches** from `branch.list` (v1)
-- Placeholder: `Select branch…`
-- Default: `currentBranch` or saved `dfm.info.fileHistoryBranch` ([paths.md §10](./paths.md))
-- **Read-only filter** — меняет только `log.get`+`path` для файла; **не** вызывает `repo.switch` (в отличие от History `BranchSelector` — [sidebar-history-view.md §2.6](./sidebar-history-view.md))
+```ts
+openFileHistory(filePath)
+// fileHistoryReturnMode = projectPreviewMode === 'fileViewer' ? 'fileViewer' : 'grid'
+// projectPreviewMode = 'fileHistory'
+```
 
-### 2.2 Commit picker
+| Откуда | После View |
+|--------|------------|
+| `grid` | Content Info **скрыта**; Back → grid |
+| `fileViewer` | Content Info **скрыта**; Back → file viewer ([file-history-view.md §1.2.1](./file-history-view.md)) |
 
-- Компонент: `DropdownSelector` (без иконки)
-- Label поля: `Commit`
-- Source: **`log.get`** with `{ branch, path: filePath, max_count }` — commits where file blob changed
-- Placeholder: `No commits for this file` / `Loading…`
-- **Trigger label:** `{shortHash} · {truncated subject}` (truncate в кнопке)
-- **Tooltip (`title`):** полная строка + `formatTimestamp`
-- Default: latest commit in filtered log (первый в списке)
-- При `capped: true` от API — toast «Showing latest 100 commits for this file»
-
----
-
-## 3. Actions
-
-Two buttons `flex gap-2`, equal width:
-
-| Button | Variant | Action |
-|--------|---------|--------|
-| **Revert** | `secondary` / accent bg | §4.1 |
-| **Compare** | `outline` toggle | §4.2 — ON: extract + open folder; OFF: cleanup |
+Кнопка **disabled**, если уже открыта история **этого же** файла (`projectPreviewMode === 'fileHistory' && fileHistoryPath === filePath`).
 
 ---
 
-## 4. API flows
+## 3. Что не входит в секцию (v1)
 
-### 4.1 Revert
+| Control | Где |
+|---------|-----|
+| Branch picker | File History View toolbar |
+| Commit picker | File History View toolbar |
+| Revert | File History View toolbar |
+| Compare | File History View toolbar |
 
-1. Require `historyCommit` selected
-2. `lock.list` — block if **another user's** lock on file; allow **own** lock
-3. `AlertDialog`: «Overwrite file in working directory with version from commit {shortHash}?»
-4. On confirm: `restore.file({ commit_hash, paths: [filePath] })`
-5. Success toast; refresh `status.get` + Preview + Metadata
-
-Maps to CLI: `restore --source=<commit> <file>`
-
-### 4.2 Compare (toggle)
-
-1. Require `historyCommit` selected
-2. **ON:** `compare.extract({ commit_hash })` → whole commit to `.DFM/tmp_review`; `workdir.open` on tmp folder (Finder / file manager)
-3. **OFF:** `compare.extract({ commit_hash, cleanup: true })` → удалить `.DFM/tmp_review`
-4. Toggle визуально «включён» (`pressed`) пока compare активен
-5. При смене файла, branch или commit — auto cleanup + toggle off
-6. При unmount секции — cleanup если compare был активен
+API: `log.get`+`path`, `restore.file`, `compare.extract` — [file-history-view.md §3–§5](./file-history-view.md), [api-contract.md](./api-contract.md).
 
 ---
 
-## 5. Disabled states
-
-| Control | Disabled when |
-|---------|---------------|
-| Branch picker | loading branches / empty list |
-| Commit picker | loading / no file log entries |
-| Revert | no commit selected |
-| Compare | no commit selected |
-
----
-
-## 6. Props (implementation)
+## 4. Props (implementation)
 
 ```ts
 interface InfoHistorySectionProps {
   filePath: string
-  currentUser: string          // for lock check vs lock.list
-  onRestored: () => void       // refresh metadata after revert
 }
 ```
 
 ---
 
-## 7. Corner cases
+## 5. Corner cases
 
 | Case | Поведение |
 |------|-----------|
-| Multiselect (2+ files) | секция **не монтируется** (`paths.length > 1`) |
-| File never committed | empty commit list; actions disabled |
-| Revert + file deleted on disk | restore recreates from commit blob |
-| Revert + foreign lock | toast; no API call |
-| Compare + concurrent extract | last wins; toast |
-| Branch change | reload `log.get`; reset commit to latest in new list |
-| User cancels dialog | no-op |
-| Click outside dropdown | close panel (mousedown on document) |
+| Multiselect (2+ files) | секция **не монтируется** |
+| File never committed | View открывает File History с empty commit list |
+| `fileViewer` + View | `fileHistoryReturnMode = 'fileViewer'`; `fileViewerPath` сохраняется |
+| Rail → History | `exitSubPreviewViews()` — viewer и history сброшены |
+| Collapsed header | Кнопка View скрыта вместе с body |

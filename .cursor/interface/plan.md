@@ -29,7 +29,8 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
   - [commit-card.md](./commit-card.md) — карточка коммита (Default/Hover/Selected)
 - Content Preview (режим Project view, связка с Sidebar):
   - [content-preview-project-view.md](./content-preview-project-view.md) — панель: toolbar, drill-down, multiselect, поиск, сортировка, slider
-  - [file-history-view.md](./file-history-view.md) — подрежим Preview: история одного файла, diff, branch/commit, Revert, Compare (binary); вход: View / double-click
+  - [file-viewer.md](./file-viewer.md) — подрежим Preview: просмотр файла, Content Info + **Edit in**; вход: double-click; zoom — planned
+  - [file-history-view.md](./file-history-view.md) — подрежим Preview: история одного файла, diff, branch/commit, Revert, Compare (binary); вход: View; Content Info скрыта
   - [folder-preview-item.md](./folder-preview-item.md) — item папки (Default/Hover/Selected)
   - [file-preview-item.md](./file-preview-item.md) — item файла (Default/Hover/Selected × Min/Max)
 - Content Preview (режим History, UX как GitHub Desktop):
@@ -44,7 +45,7 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
   - Figma: [text diff `4028:5655`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4028-5655) · [image diff `4030:3317`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317) · [binary stub `4031:3754`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4031-3754)
   - В History mode **нет Content Info** — только Sidebar + Content Preview
 - Content Info (режим Project view):
-  - [content-info-project-view.md](./content-info-project-view.md) — панель: preview, metadata, history (single only), create commit
+  - [content-info-project-view.md](./content-info-project-view.md) — панель: preview, metadata, history (**View**), **Edit in** (fileViewer), create commit
   - [info-file-preview-single.md](./info-file-preview-single.md) — preview одного файла (`4037:707`)
   - [info-file-preview-multi.md](./info-file-preview-multi.md) — multiselect stack (`4037:1879`)
   - [info-file-preview-tile.md](./info-file-preview-tile.md) — tile в стеке (`4037:1843`)

@@ -37,11 +37,15 @@ function sameStatusPayload(a: StatusPayload | null, b: StatusPayload | null): bo
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-export type ProjectPreviewMode = "grid" | "fileHistory";
+export type ProjectPreviewMode = "grid" | "fileViewer" | "fileHistory";
+
+export type FileHistoryReturnMode = "grid" | "fileViewer";
 
 interface ProjectState {
   projectPreviewMode: ProjectPreviewMode;
   fileHistoryPath: string | null;
+  fileHistoryReturnMode: FileHistoryReturnMode;
+  fileViewerPath: string | null;
   selectedFolderPath: string;
   selectedFilePaths: string[];
   anchorPath: string | null;
@@ -88,18 +92,31 @@ interface ProjectState {
   setPreviewSearchQuery: (query: string) => void;
   openFileHistory: (path: string) => void;
   closeFileHistory: () => void;
+  openFileViewer: (path: string) => void;
+  closeFileViewer: () => void;
+  exitSubPreviewViews: () => void;
   restoreRepoPrefs: (repoPath: string) => void;
   setTreeLoading: (loading: boolean) => void;
   reset: () => void;
 }
 
-function closeFileHistoryState(): Pick<ProjectState, "projectPreviewMode" | "fileHistoryPath"> {
-  return { projectPreviewMode: "grid", fileHistoryPath: null };
+function exitSubPreviewState(): Pick<
+  ProjectState,
+  "projectPreviewMode" | "fileHistoryPath" | "fileHistoryReturnMode" | "fileViewerPath"
+> {
+  return {
+    projectPreviewMode: "grid",
+    fileHistoryPath: null,
+    fileHistoryReturnMode: "grid",
+    fileViewerPath: null,
+  };
 }
 
 const initialState = {
   projectPreviewMode: "grid" as ProjectPreviewMode,
   fileHistoryPath: null as string | null,
+  fileHistoryReturnMode: "grid" as FileHistoryReturnMode,
+  fileViewerPath: null as string | null,
   selectedFolderPath: "",
   selectedFilePaths: [] as string[],
   anchorPath: null as string | null,
@@ -134,7 +151,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setSelectedFolderPath: (path) => {
     persistFolderPath(path);
     set({
-      ...closeFileHistoryState(),
+      ...exitSubPreviewState(),
       selectedFolderPath: path,
       selectedFilePaths: [],
       anchorPath: null,
@@ -151,7 +168,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
     persistFolderPath(path);
     set({
-      ...closeFileHistoryState(),
+      ...exitSubPreviewState(),
       selectedFolderPath: path,
       selectedFilePaths: [],
       anchorPath: null,
@@ -167,7 +184,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const path = state.navStack[nextIndex] ?? "";
     persistFolderPath(path);
     set({
-      ...closeFileHistoryState(),
+      ...exitSubPreviewState(),
       navIndex: nextIndex,
       selectedFolderPath: path,
       selectedFilePaths: [],
@@ -182,7 +199,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const path = state.navStack[nextIndex] ?? "";
     persistFolderPath(path);
     set({
-      ...closeFileHistoryState(),
+      ...exitSubPreviewState(),
       navIndex: nextIndex,
       selectedFolderPath: path,
       selectedFilePaths: [],
@@ -326,12 +343,47 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ thumbScale: px });
   },
   setPreviewSearchQuery: (query) => set({ previewSearchQuery: query }),
-  openFileHistory: (path) =>
+  openFileHistory: (path) => {
+    const returnTo: FileHistoryReturnMode =
+      get().projectPreviewMode === "fileViewer" ? "fileViewer" : "grid";
     set({
       projectPreviewMode: "fileHistory",
       fileHistoryPath: path,
+      fileHistoryReturnMode: returnTo,
+    });
+  },
+  closeFileHistory: () => {
+    const { fileHistoryReturnMode, fileViewerPath } = get();
+    if (fileHistoryReturnMode === "fileViewer" && fileViewerPath) {
+      set({
+        projectPreviewMode: "fileViewer",
+        fileHistoryPath: null,
+        fileHistoryReturnMode: "grid",
+      });
+      return;
+    }
+    set({
+      projectPreviewMode: "grid",
+      fileHistoryPath: null,
+      fileHistoryReturnMode: "grid",
+      fileViewerPath: null,
+    });
+  },
+  openFileViewer: (path) =>
+    set({
+      projectPreviewMode: "fileViewer",
+      fileViewerPath: path,
+      selectedFilePaths: get().selectedFilePaths.includes(path)
+        ? get().selectedFilePaths
+        : [path],
+      anchorPath: path,
     }),
-  closeFileHistory: () => set(closeFileHistoryState()),
+  closeFileViewer: () =>
+    set({
+      projectPreviewMode: "grid",
+      fileViewerPath: null,
+    }),
+  exitSubPreviewViews: () => set(exitSubPreviewState()),
   restoreRepoPrefs: (repoPath) => {
     const folderPath = loadSelectedFolderPath(repoPath);
     const savedThumb = loadThumbScale(repoPath);
@@ -346,7 +398,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       navStack: [folderPath],
       navIndex: 0,
       previewSearchQuery: "",
-      ...closeFileHistoryState(),
+      ...exitSubPreviewState(),
     });
   },
   setTreeLoading: (treeLoading) => set({ treeLoading }),

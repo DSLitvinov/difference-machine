@@ -12,6 +12,7 @@ import {
   metadataFromWorkdir,
   type FileMetadata,
 } from "@/components/info/InfoMetadataSection";
+import { InfoEditInButton } from "@/components/info/InfoEditInButton";
 import { InfoHistorySection } from "@/components/info/InfoHistorySection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ export function ContentInfoPanel() {
   const status = useProjectStore((s) => s.status);
   const committable = useProjectStore((s) => s.committable);
   const previewGeneration = useProjectStore((s) => s.previewGeneration);
+  const projectPreviewMode = useProjectStore((s) => s.projectPreviewMode);
   const currentBranch = useAppStore((s) => s.currentBranch);
 
   const [metadata, setMetadata] = useState<FileMetadata | null>(null);
@@ -145,6 +147,9 @@ export function ContentInfoPanel() {
   const vcsStatus = vcsFileStatus(selectedFilePath!, status);
   const kind = classifyInfoPreview(selectedFilePath!);
   const lockUser = metadata?.lockedBy ?? null;
+  const fileDeleted =
+    vcsStatus === "deleted" || vcsStatus === "staged-deleted";
+  const showEditIn = projectPreviewMode === "fileViewer";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -161,6 +166,13 @@ export function ContentInfoPanel() {
           <label className="mb-1 block text-xs text-muted-foreground">{t("info.nameFile")}</label>
           <Input value={fileName} disabled title={selectedFilePath!} />
         </div>
+
+        {showEditIn ? (
+          <InfoEditInButton
+            filePath={selectedFilePath!}
+            disabled={fileDeleted || Boolean(lockUser)}
+          />
+        ) : null}
 
         <InfoHistorySection filePath={selectedFilePath!} />
 

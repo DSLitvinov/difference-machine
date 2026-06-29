@@ -331,7 +331,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 
 Без `editor`: OS default handler (`open` / `xdg-open` / `start`). Реализация: `workdir_open.go`.
 
-**UI:** double-click в [file-preview-item.md](./file-preview-item.md); submenu **Edit in:** в context menu — список из `appStore.externalEditorPaths` ([settings-dialog.md §6](./settings-dialog.md)).
+**UI:** double-click → [File Viewer](./file-viewer.md); submenu **Edit in:** в context menu и Content Info (fileViewer) — список из `appStore.externalEditorPaths` ([settings-dialog.md §6](./settings-dialog.md)).
 
 ### 4.5 `workdir.rename`
 

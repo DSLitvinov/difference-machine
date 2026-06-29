@@ -79,6 +79,7 @@ export function FileHistoryView({ filePath, onBack }: FileHistoryViewProps) {
   const setError = useAppStore((s) => s.setError);
   const setStatus = useProjectStore((s) => s.setStatus);
   const bumpPreviewGeneration = useProjectStore((s) => s.bumpPreviewGeneration);
+  const fileHistoryReturnMode = useProjectStore((s) => s.fileHistoryReturnMode);
 
   const [branches, setBranches] = useState<string[]>([]);
   const [branch, setBranch] = useState("");
@@ -476,7 +477,11 @@ export function FileHistoryView({ filePath, onBack }: FileHistoryViewProps) {
             variant="ghost"
             size="icon"
             className="h-10 w-10 shrink-0"
-            title={t("fileHistory.back")}
+            title={
+              fileHistoryReturnMode === "fileViewer"
+                ? t("fileHistory.backToViewer")
+                : t("fileHistory.back")
+            }
             onClick={handleBack}
           >
             <ChevronLeft className="h-4 w-4" />

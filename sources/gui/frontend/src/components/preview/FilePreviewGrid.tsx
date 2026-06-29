@@ -22,6 +22,7 @@ import {
   estimateGridRowHeight,
   gridMinCellSizeForScale,
 } from "@/lib/previewGrid";
+import { editorDisplayLabel } from "@/lib/externalEditors";
 import { useT } from "@/lib/i18n";
 import { fetchRepoUser } from "@/wails/bridge";
 import { useAppStore } from "@/stores/appStore";
@@ -49,11 +50,6 @@ interface FilePreviewGridProps {
   subtitleFor?: (entry: DirEntry) => string | undefined;
   onOpen: (path: string) => void;
   onNearEnd?: () => void;
-}
-
-function editorLabel(path: string): string {
-  const base = path.split(/[/\\]/).filter(Boolean).pop() ?? path;
-  return base.replace(/\.(exe|app)$/i, "");
 }
 
 function isFileActionBlocked(vcsStatus: VcsFileStatus | null, lockUser: string | null): boolean {
@@ -293,7 +289,7 @@ export function FilePreviewGrid({
   };
 
   const editorMenuItems = useMemo(
-    () => externalEditorPaths.map((path) => ({ path, label: editorLabel(path) })),
+    () => externalEditorPaths.map((path) => ({ path, label: editorDisplayLabel(path) })),
     [externalEditorPaths],
   );
 
