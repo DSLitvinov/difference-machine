@@ -33,7 +33,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | # | Поведение |
 |---|-----------|
 | Toolbar title | — (breadcrumbs в content area, §2.2) |
-| Breadcrumbs | `All files <repoName>` — `text-lg/regular` 18px ([Figma `4090:5042`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)) |
+| Breadcrumbs | `All files <repoName>` — `text-lg/regular` 18px в box §2.2 ([Figma `4096:3898`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4096-3898)) |
 | Folders section | **Скрыта** |
 | Files grid | Все файлы репо (рекурсивно), flat; сортировка/фильтр/поиск как в §6–7 |
 | Subtitle на карточке | Parent folder path (`assets/refs`) для различения одноимённых имён |
@@ -49,7 +49,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | 2 | Навигация | **Drill-down в Preview + двусторонняя sync с Sidebar**; breadcrumbs в content area (§2.2) |
 | 3 | Back/Forward | **Удалены** (заменены Changed toggle в toolbar, Figma `4026:4988`) |
 | 4 | Changed toggle | **В toolbar Preview** (слева); фильтрует Preview **и** дерево Sidebar (§8) |
-| 5 | Сортировка | **Имя** — popover `ArrowDownAZ` (`A–Z` / `А–Я`); **дата** — radio в dropdown «Фильтр» (§6.4); Folders всегда по имени |
+| 5 | Сортировка | **Имя** — popover `ArrowUpAZ` (`A–Z` / `А–Я`); **дата** — radio в dropdown «Фильтр» (§6.4); Folders всегда по имени |
 | 6 | Мультиселект | **Только файлы**. Папки — одиночный выбор; double-click для входа |
 | 7 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
 | 8 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
@@ -62,11 +62,13 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [  ] Changed [○]  │        [——●——— slider]        │ 🔍 [⇅][⛃] │  Toolbar
+│ Changed [○] │        [——●——— slider]        │ 🔍 [⇅][⛃]     │  Toolbar
 ├──────────────────────────────────────────────────────────────┤
-│ Title / breadcrumbs (text-lg)                                 │  Content
-│                                                                │
-│ Folders                                                        │
+│ ┌──────────────────────────────────────────────────────────┐ │
+│ │ Title / breadcrumbs (text-lg)                            │ │  Breadcrumbs box
+│ └──────────────────────────────────────────────────────────┘ │
+├──────────────────────────────────────────────────────────────┤
+│ Folders                                                        │  Scroll content
 │ ┌────────┐ ┌────────┐ …                                       │
 │                                                                │
 │ Files (References)                                             │
@@ -82,39 +84,42 @@ Figma: [4026:4988](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=
 
 | # | Элемент | Spec | Поведение |
 |---|---------|------|-----------|
-| 1 | **Spacer** | `40×40` fixed, empty | Зарезервировано (Figma `4026:4992`); **не** back/forward |
-| 2 | **Changed** | Label `Changed` `text-sm/medium` + `Switch` sm (`showText={false}`) | Toggle `showChangedOnly`; эмит `onProjectViewContextChange` (§8) |
+| 1 | **Changed** | Label `Changed` `text-sm/medium` + `Switch` sm (`showText={false}`) | Toggle `showChangedOnly`; эмит `onProjectViewContextChange` (§8) |
 | — | Separator | vertical, `24px` | между Changed и центральной зоной |
-| 3 | **Slider** | `120px`, shadcn `Slider` sm | **Строго по центру** toolbar: `flex-1` + `items-center justify-center` на обёртке (`4026:4998` / `Scale Preview Items`) |
-| 4 | **Search** | `Input` **250px**, `Search` icon 20, placeholder `Search` | global search (§7) |
-| 5 | **Sort** | `Button` ghost 40×40, `ArrowDownAZ` 16 | popover: сортировка по имени `A–Z` / `А–Я` (§6) |
-| 6 | **Filter** | `Button` ghost 40×40, `Filter` 16 | dropdown: сортировка по дате + фильтр типов файла (§6.4) |
+| 2 | **Slider** | `120px`, shadcn `Slider` sm | **Строго по центру** toolbar: `flex-1` + `items-center justify-center` на обёртке (`4026:4998` / `Scale Preview Items`) |
+| 3 | **Search** | `Input` **250px**, `Search` icon 20, placeholder `Search` | global search (§7) |
+| 4 | **Sort** | `Button` ghost 40×40, `ArrowUpAZ` 16 | popover: сортировка по имени `A–Z` / `А–Я` (§6) |
+| 5 | **Filter** | `Button` ghost 40×40, `Filter` 16 | dropdown: сортировка по дате + фильтр типов файла (§6.4) |
 
-**Удалено из toolbar:** кнопки **Back** `<` / **Forward** `>`; **breadcrumbs** (перенесены в content area §2.2).
+**Удалено из toolbar:** кнопки **Back** `<` / **Forward** `>`; **breadcrumbs** (§2.2); **Spacer 40×40** (Figma `4026:4992` — больше не в макете).
 
-Layout (слева направо): `Spacer 40` · `Changed` · `|` · `flex-1 [Slider centered]` · `Search 250` · `Sort` · `Filter`.
+Layout (слева направо): `Changed` · `|` · `flex-1 [Slider centered]` · `Search 250` · `Sort` · `Filter`.
 
-### 2.2 Breadcrumbs (node `4090:5042`)
+### 2.2 Breadcrumbs (node `4096:3898`)
 
-**Расположение:** в **scroll content area**, **над** секциями Folders / Files — **не** в toolbar.
+**Расположение:** **между toolbar и scroll content** — отдельная строка, **не** внутри прокручиваемой области.
 
 | Property | Spec |
 |----------|------|
-| Container | `px-4 py-3` content; breadcrumb row `px-2` |
+| Outer row | `px-2 py-1.5` (`4096:3923`) |
+| Box | `bg-sidebar` (`background/primary/light` `#fafafa`), `border border-border`, `rounded-md`, `p-2` |
 | Typography | `text-lg/regular` 18px, `leading-7` (28px), `text-foreground` |
 | All files | `All files <repoName>` — один сегмент |
 | Folder | Сегменты от root / parent / current; клик → переход (§4.3) |
 | Truncate | middle-truncation при длинном пути |
+| Search active | **Скрыт** (§7) |
 
 ### 2.3 Секция Folders (node `4026:5003`)
 
-- Header `Folders` — `h4` (Inter Semi Bold 20, tracking −0.5).
+- Header `Folders` — `h4`: Inter Semi Bold **20px**, `leading-7`, `tracking-tight` (−0.5px), `text-foreground` — **не** uppercase, **не** muted.
+- Gap header ↔ grid: `10px`.
 - Сетка `FolderItem`, gap `8px`, wrap.
 - Скрывается полностью, если у папки нет подпапок, при **All files** (`'*'`), **или** при Changed ON (§8).
 
 ### 2.4 Секция Files (node `4026:5011`)
 
-- Header `Files (<folderName>)` — `h4`; имя текущей папки в скобках.
+- Header `Files (<folderName>)` — `h4` (те же токены §2.3); имя текущей папки в скобках.
+- Gap header ↔ grid: `10px`.
 - Сетка `FilePreviewItem`, gap `8px`, wrap.
 - **All files:** breadcrumbs `All files <repoName>`; без секции Folders (§1.2).
 
@@ -122,14 +127,14 @@ Layout (слева направо): `Spacer 40` · `Changed` · `|` · `flex-1 [
 
 - Direction: `flex-row flex-wrap` (или CSS grid `auto-fill`), gap `8px`.
 - Размер ячейки = текущий масштаб слайдера (§5).
-- Контейнер контента: `flex-col gap-6`, `px-4 py-3`, вертикальный скролл (`ScrollArea`).
+- Контейнер контента: `flex-col gap-4` (`16px`), `px-4 py-3`, вертикальный скролл (`ScrollArea`).
 
 ### 2.6 shadcn/ui mapping
 
 | UI | shadcn |
 |----|--------|
 | Changed toggle | `Switch` + `Label` |
-| Breadcrumbs | `Breadcrumb` (content area) |
+| Breadcrumbs | `Breadcrumb` in bordered `bg-sidebar` box (§2.2) |
 | Slider | `Slider` |
 | Search | `Input` |
 | Sort | `Button` variant `ghost` + `Popover` |
@@ -397,7 +402,7 @@ function isMaxVisual(px: number): boolean {
 type PreviewSortMode = 'name-en' | 'name-ru' | 'modified-desc' | 'created-desc'
 ```
 
-### 6.2 Sort popover (`ArrowDownAZ`)
+### 6.2 Sort popover (`ArrowUpAZ`)
 
 - Tooltip: `Sort: {label}` (`preview.sortTitle`).
 - Два пункта с галочкой: `A–Z` (`name-en`), `А–Я` (`name-ru`).
@@ -490,6 +495,7 @@ const collator = new Intl.Collator(sortLocale, {
 ```
 
 - Те же `FolderItem` / `FilePreviewItem`, сгруппированы Folders / Files.
+- Заголовки секций — `h4` (§2.3), формат `Folders (3)` / `Files (21)`.
 - Под каждым item — относительный путь (`text-xs muted`), чтобы различать одноимённые.
 - Клик по папке в результатах → drill-down туда (выход из поиска + sync Sidebar).
 - Клик по файлу → выбор файла; **double-click → [File Viewer](./file-viewer.md)** (§4.4).

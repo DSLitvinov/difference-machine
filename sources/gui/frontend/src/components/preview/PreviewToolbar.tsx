@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownAZ, Check, Filter, Search } from "lucide-react";
+import { ArrowUpAZ, Check, Filter, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -111,8 +111,6 @@ export function PreviewToolbar({
 
   return (
     <div className="flex items-center gap-1 border-b border-border px-2 py-1.5">
-      <div className="h-10 w-10 shrink-0" aria-hidden />
-
       <div className="flex shrink-0 items-center gap-2">
         <Label htmlFor="preview-changed-only" className="text-sm font-medium text-foreground">
           {t("common.changed")}
@@ -163,7 +161,7 @@ export function PreviewToolbar({
             className="h-10 w-10 shrink-0"
             title={t("preview.sortTitle", { label: sortLabel })}
           >
-            <ArrowDownAZ className="h-4 w-4" />
+            <ArrowUpAZ className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
         <PopoverContent

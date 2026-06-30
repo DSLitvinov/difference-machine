@@ -26,6 +26,8 @@ import {
   type StatusPayload,
 } from "@/wails/forester";
 
+const PREVIEW_SECTION_HEADER =
+  "text-xl font-semibold leading-7 tracking-tight text-foreground";
 const LARGE_REPO_FILE_COUNT = 10000;
 const LARGE_FOLDER_ENTRY_COUNT = 1000;
 
@@ -310,19 +312,18 @@ export function ProjectPreviewPanel() {
         onThumbScaleChange={setThumbScale}
       />
 
+      {!isSearchActive ? (
+        <PreviewBreadcrumbs segments={crumbs} onSelect={navigateToFolder} />
+      ) : null}
+
       <div ref={setScrollElement} className="flex-1 overflow-auto px-4 py-3">
-        {!isSearchActive ? (
-          <div className="mb-4">
-            <PreviewBreadcrumbs segments={crumbs} onSelect={navigateToFolder} />
-          </div>
-        ) : null}
         {folderTree && folderTree.item_count >= LARGE_REPO_FILE_COUNT ? (
           <p className="mb-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
             {t("preview.largeRepository", { count: folderTree.item_count.toLocaleString() })}
           </p>
         ) : null}
         {isSearchActive ? (
-          <div className="space-y-6">
+          <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-medium">
                 {t("preview.searchResults", {
@@ -351,8 +352,8 @@ export function ProjectPreviewPanel() {
                   <p className="text-xs text-muted-foreground">{t("preview.showingFirstMatches")}</p>
                 ) : null}
                 {!showChangedOnly && searchFolders.length > 0 ? (
-                  <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                  <div className="flex flex-col gap-2.5">
+                    <p className={PREVIEW_SECTION_HEADER}>
                       {t("common.folders")} ({searchFolders.length})
                     </p>
                     <ul
@@ -375,8 +376,8 @@ export function ProjectPreviewPanel() {
                   </div>
                 ) : null}
                 {searchFiles.length > 0 ? (
-                  <div>
-                    <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                  <div className="flex flex-col gap-2.5">
+                    <p className={PREVIEW_SECTION_HEADER}>
                       {t("common.files")} ({searchFiles.length})
                     </p>
                     <FilePreviewGrid
@@ -397,12 +398,10 @@ export function ProjectPreviewPanel() {
         ) : loading ? (
           <p className="text-sm text-muted-foreground">{t("common.loading")}…</p>
         ) : (
-          <div className="space-y-6">
+          <div className="flex flex-col gap-4">
             {!showChangedOnly && !allFilesView && subfolders.length > 0 ? (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                  {t("common.folders")}
-                </p>
+              <div className="flex flex-col gap-2.5">
+                <p className={PREVIEW_SECTION_HEADER}>{t("common.folders")}</p>
                 <ul
                   className="grid gap-2"
                   style={{
@@ -413,6 +412,7 @@ export function ProjectPreviewPanel() {
                     <li key={entry.path}>
                       <FolderPreviewItem
                         name={entry.name}
+                        fileCount={entry.item_count}
                         thumbScale={thumbScale}
                         onOpen={() => navigateToFolder(entry.path)}
                       />
@@ -427,8 +427,8 @@ export function ProjectPreviewPanel() {
                 {showChangedOnly ? t("common.noChangedFiles") : t("common.noFilesInFolder")}
               </p>
             ) : (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+              <div className="flex flex-col gap-2.5">
+                <p className={PREVIEW_SECTION_HEADER}>
                   {showChangedOnly
                     ? t("preview.changedFilesCount", { count: sortedEntries.length })
                     : allFilesView

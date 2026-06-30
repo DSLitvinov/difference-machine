@@ -114,6 +114,8 @@ const translations = {
     "sidebar.collapseAllFolders": "Collapse all folders",
     "sidebar.expandAllFolders": "Expand all folders",
     "preview.changedFilesCount": "{count} changed files",
+    "preview.folderFileCount": "{count} Files",
+    "preview.folderFileCountOne": "1 File",
     "preview.filesChangedCount": "{count} files changed",
     "preview.largeFolder": "Large folder: {count} entries. Files are loaded in pages of 200.",
     "preview.largeRepository":
@@ -457,6 +459,8 @@ const translations = {
     "sidebar.collapseAllFolders": "Свернуть все папки",
     "sidebar.expandAllFolders": "Развернуть все папки",
     "preview.changedFilesCount": "Изменённые файлы ({count})",
+    "preview.folderFileCount": "{count} файлов",
+    "preview.folderFileCountOne": "1 файл",
     "preview.filesChangedCount": "Изменено файлов: {count}",
     "preview.largeFolder": "Большая папка: {count} элементов. Файлы загружаются страницами по 200.",
     "preview.largeRepository":
