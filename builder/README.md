@@ -45,7 +45,7 @@ cd Difference-Machine
 sudo ./install.sh                     # → /opt/Difference-Machine/
 ```
 
-`install.sh` copies the payload to `/opt`, writes Forester/API paths in `~/.dfm/setup.cfg`, and creates `/usr/local/bin` symlinks, a **applications menu** `.desktop` entry, and Forester hicolor icons. Install the Blender addon from `addons/blender/difference_machine.zip` in Blender. Use `./install.sh --user` for a home-directory install without sudo.
+`install.sh` copies the payload to `/opt/Difference-Machine/`, writes Forester/API paths in `~/.dfm/setup.cfg`, creates `/usr/local/bin` symlinks, generates a **applications menu** `.desktop` entry in `/usr/share/applications/`, merges hicolor icons, and runs `restorecon` on Fedora. Install the Blender addon from `addons/blender/difference_machine.zip` in Blender. Use `./install.sh --user` for a home-directory install without sudo.
 
 See [.cursor/interface/linux-installer.md](../.cursor/interface/linux-installer.md) for install layout and icon paths.
 

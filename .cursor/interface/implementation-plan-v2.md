@@ -193,7 +193,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 - [x] GUI icons: squircle background, `npm run icons:generate` → Wails `appicon.png` + `windows/icon.ico`
 - [x] Forester icons: `sources/forester/icons/` → PNG, `.ico`, `.icns`, Linux hicolor (`generate_forester_icons.sh`)
 - [x] Windows NSIS: desktop shortcut to GUI (Start menu unchanged)
-- [x] Linux `install.sh`: Forester hicolor icons → system/user share; GUI `.desktop` menu entry
+- [x] Linux `install.sh`: `/opt/Difference-Machine/`, generated `.desktop` in `/usr/share/applications/`, hicolor icons, `restorecon`, `setup.cfg`
 - [x] macOS ffmpeg: stage from Homebrew / `DFM_FFMPEG_PATH` (no BtbN macOS builds); bundle into `.app` Resources
 - [x] GUI startup: `EnsureFFmpegEnv`, `RefreshToolchainFFmpegPath` → `[forester] ffmpeg_path`
 - [x] Specs: [macos-installer.md](./macos-installer.md), [windows-installer.md](./windows-installer.md), [linux-installer.md](./linux-installer.md), [api-contract.md §4.3.1](./api-contract.md)
@@ -212,4 +212,4 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 | 2026-06-25 | Release hardening | Windows installer/zip build verified; Linux runner unavailable on host | **9.1** Linux build on Linux / WSL / CI |
 | 2026-06-25 | v2.1 | Tree persistence, destructive reset submenu, large-repo perf hints/timings | Linux build + platform smoke |
 | 2026-06-27 | v2.2 | File context menu, workdir rename/delete/trash, External editors live sync, ffmpeg build cache | Platform smoke |
-| 2026-06-27 | v2.3 | App icons (squircle), Windows desktop shortcut, macOS ffmpeg/Homebrew, linux icon install | Platform smoke |
+| 2026-06-27 | v2.3 | App icons (squircle), Windows desktop shortcut, macOS ffmpeg/Homebrew, Linux installer (`Difference-Machine/`, `.desktop`, SELinux) | Platform smoke |

@@ -7,8 +7,8 @@ ADDON_ZIP_NAME="difference_machine.zip"
 LINUX_DESKTOP_NAME="difference-machine.desktop"
 
 # render_linux_desktop_entry INSTALL_DIR
-# Writes INSTALL_DIR/difference-machine.desktop from builder/linux template.
-# Placeholders @GUI_EXEC@ and @ICON_PATH@ are resolved by install.sh after /opt install.
+# Dev helper: copies builder/linux/difference-machine.desktop.in into a folder.
+# Linux release tarballs do NOT ship a .desktop file — install.sh generates the final entry.
 render_linux_desktop_entry() {
     local install_dir="$1"
     local lib_dir template output

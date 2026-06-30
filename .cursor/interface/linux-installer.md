@@ -3,40 +3,73 @@
 Release packaging for Forester GUI + CLI + Blender addon on Linux.
 
 **Build:** `./builder/linux/build.sh --tar` → `builder/dist/DifferenceMachine-<version>-linux.tar.gz`  
-**Builder docs:** [builder/README.md](../../builder/README.md)
+**Builder docs:** [builder/README.md](../../builder/README.md)  
+**Install script:** [builder/linux/install.sh](../../builder/linux/install.sh)
 
 ---
 
-## 1. Install layout
+## 1. Naming
 
-System install target: `/opt/Difference-Machine/`
+| Item | Value |
+|------|--------|
+| Install folder (no spaces) | `Difference-Machine` |
+| System install root | `/opt/Difference-Machine/` |
+| User install root | `~/.local/share/Difference-Machine/` |
+| Archive top-level folder | `Difference-Machine/` (same name inside `tar.gz`) |
+| GUI binary | `difference-machine` |
+| Desktop entry id | `difference-machine.desktop` |
+| GUI icon theme name | `difference-machine` |
+| Forester CLI icon theme name | `forester` |
+
+macOS/Windows releases still use `Difference Machine` (with space) — Linux only uses the hyphenated folder name to avoid `.desktop` / `TryExec` issues.
+
+---
+
+## 2. Install layout
+
+### Release archive (before `install.sh`)
+
+```
+Difference-Machine/
+├── install.sh
+├── README.txt
+├── difference-machine          GUI binary
+├── bin/forester                Forester CLI
+├── bin/ffmpeg                  bundled ffmpeg (BtbN static build)
+├── lib/libforester.so          Forester API
+├── share/icons/hicolor/...     GUI + Forester PNG/SVG icons
+└── addons/blender/difference_machine.zip
+```
+
+No `.desktop` file is shipped in the archive — `install.sh` generates it at install time.
+
+### After `sudo ./install.sh`
 
 ```
 /opt/Difference-Machine/
-├── difference-machine              GUI binary
-├── difference-machine.desktop      resolved launcher (copy of menu entry)
-├── bin/forester                    Forester CLI
-├── bin/ffmpeg                      bundled ffmpeg (BtbN static build)
-├── lib/libforester.so              Forester API
-├── share/icons/hicolor/.../apps/
-│   ├── difference-machine.png      GUI menu icon (all sizes)
-│   └── forester.png                Forester CLI icon (all sizes)
-├── addons/blender/difference_machine.zip
+├── difference-machine
+├── difference-machine.desktop    copy of the installed menu entry
+├── bin/ … lib/ … share/ … addons/ …
 ├── install.sh
 └── README.txt
 ```
 
-`install.sh` copies the full payload to `/opt/Difference-Machine/` (or `~/.local/share/Difference-Machine/` with `--user`), writes Forester/API paths in `~/.dfm/setup.cfg`, creates `/usr/local/bin` symlinks (or `~/.local/bin`), registers a **applications menu** `.desktop` entry, and merges icons into the system hicolor theme.
+System integration:
 
-GUI bootstrap resolves install root as the folder containing `difference-machine` (sibling `bin/`, `lib/`, `addons/`).
+| Artifact | Path |
+|----------|------|
+| Menu entry | `/usr/share/applications/difference-machine.desktop` |
+| CLI symlink | `/usr/local/bin/forester` |
+| GUI symlink | `/usr/local/bin/difference-machine` |
+| Theme icons | `/usr/share/icons/hicolor/*/apps/difference-machine.png`, `forester.png` |
 
 `manifest.json` `install_defaults.forester_prefix`: `/opt/Difference-Machine`.
 
 ---
 
-## 2. `install.sh`
+## 3. `install.sh`
 
-Bundled in the release archive. Run from the extracted folder.
+Bundled in the release archive. Run from the extracted `Difference-Machine/` folder.
 
 | Feature | Detail |
 |---------|--------|
@@ -44,54 +77,100 @@ Bundled in the release archive. Run from the extracted folder.
 | User install | `./install.sh --user` → `~/.local/share/Difference-Machine/` |
 | Symlinks | `/usr/local/bin/forester`, `/usr/local/bin/difference-machine` (or `~/.local/bin` with `--user`) |
 | Menu entry | `/usr/share/applications/difference-machine.desktop` (or `~/.local/share/applications/` with `--user`) |
-| Icons (bundled) | `/opt/Difference-Machine/share/icons/hicolor/` |
-| Icons (menu theme) | merged into `/usr/share/icons/hicolor/` (or `~/.local/share/icons/hicolor/` with `--user`) |
 | Uninstall | `sudo ./install.sh --uninstall` |
 
 Flags: `--no-symlinks`, `--no-desktop`, `--no-setup-cfg`, `--prefix PATH`.
 
 **Note:** Linux install creates a **menu** `.desktop` entry only — no `~/Desktop` shortcut (unlike Windows NSIS).
 
+### Install pipeline (order)
+
+1. `copy_payload` — GUI, `bin/`, `lib/`, `addons/`, `share/` → install root  
+2. `fix_install_permissions_and_selinux` — `chown root:root`, `chmod +x`, `restorecon -RF` (system install)  
+3. `write_setup_cfg` — `[forester]` + `[api]` in `~/.dfm/setup.cfg`  
+4. `create_symlinks`  
+5. `install_app_icons` — merge bundled hicolor icons into system/user theme + `gtk-update-icon-cache`  
+6. `create_desktop_entry` — generate `.desktop`, validate, install, refresh app database  
+
 ### `.desktop` entry (freedesktop)
 
-- Installed via `desktop-file-install` when available, otherwise copied to `/usr/share/applications/`
-- `Exec` / `TryExec` point to `/opt/Difference-Machine/difference-machine`
-- `Icon` uses an **absolute path** under `/opt/Difference-Machine/share/icons/hicolor/…/difference-machine.png`
-- Same icons are also installed into the system **hicolor** theme (`difference-machine.png`, `forester.png`)
-- `update-desktop-database` and `gtk-update-icon-cache` are run after install
+Generated by `write_desktop_entry_file()` in `install.sh` (not copied from a release template).
+
+```ini
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Difference Machine
+GenericName=Version Control
+Comment=Forester GUI for Difference Machine
+Exec=/opt/Difference-Machine/difference-machine %F
+TryExec=/opt/Difference-Machine/difference-machine
+Path=/opt/Difference-Machine
+Icon=difference-machine
+Terminal=false
+Categories=Development;
+Keywords=forester;vcs;git;blender;
+StartupWMClass=difference-machine
+```
+
+| Key | Rule |
+|-----|------|
+| `Exec` | Absolute path to GUI binary + `%F` (GNOME launcher compatibility) |
+| `TryExec` | Same binary path without field codes — used to hide broken entries |
+| `Path` | Install root (`/opt/Difference-Machine`) — working directory for Wails |
+| `Icon` | Theme name `difference-machine` (PNGs installed into hicolor) |
+| `Categories` | `Development;` only — `VersionControl` is not a registered category |
+
+Install steps:
+
+- Remove stale entries from `/usr/share/applications/`, `/usr/local/share/applications/`, and `~/.local/share/applications/`
+- Write temp file under `mktemp -d …/dfm-desktop.XXXXXX/difference-machine.desktop` (filename **must** end with `.desktop` for `desktop-file-validate`)
+- `desktop-file-validate` (warning only on failure)
+- `install -m 0644` → `/usr/share/applications/difference-machine.desktop`
+- Copy same file → `/opt/Difference-Machine/difference-machine.desktop`
+- `update-desktop-database` on `/usr/share/applications` and `/usr/local/share/applications`
+
+**Do not** use `desktop-file-install --mode=system` — on Fedora/GLib, `--mode` is file permissions (`644`), not install scope.
+
+### Icons
+
+| Location | Purpose |
+|----------|---------|
+| `/opt/Difference-Machine/share/icons/hicolor/` | Bundled copy (addon zip path, manual reference) |
+| `/usr/share/icons/hicolor/*/apps/difference-machine.png` | GNOME/KDE menu icon lookup |
+| `/usr/share/icons/hicolor/*/apps/forester.png` | Forester CLI icon (optional, same install step) |
+
+Sources at build time:
+
+- GUI: `sources/gui/build/share/icons/hicolor/*/apps/difference-machine.png` (`npm run icons:generate`)
+- Forester: `sources/icons/logo/forester/build/share/icons/hicolor/*/apps/forester.png` (`generate_forester_icons.sh`)
+
+### SELinux (Fedora/RHEL)
+
+Files copied from a user home extract dir may get `user_home_t` context. System install runs `restorecon -RF /opt/Difference-Machine` so `TryExec` and GNOME visibility work.
 
 ---
 
-## 3. `~/.dfm/setup.cfg`
+## 4. `~/.dfm/setup.cfg`
 
-Created or updated by `install.sh` and on first GUI launch (`internal/install/bootstrap.go` on macOS/Windows):
+Written by `install.sh` (`[forester]` + `[api]`). Linux GUI bootstrap (`internal/install/bootstrap.go`) does **not** auto-fill paths — unlike macOS/Windows.
 
 ```ini
 [forester]
+installed = true
 path = /opt/Difference-Machine/bin/forester
 ffmpeg_path = /opt/Difference-Machine/bin/ffmpeg
 
 [api]
+installed = true
 path = /opt/Difference-Machine/lib/libforester.so
-
-[addons]
-diffmachine_path = /opt/Difference-Machine/addons/blender/difference_machine
 ```
 
-Paths use native separators after `CanonicalAbsPath`. With `--user`, paths point under `~/.local/share/Difference-Machine/`.
+With `--user`, paths point under `~/.local/share/Difference-Machine/`.
 
-Blender addon zip for manual install: `/opt/Difference-Machine/addons/blender/difference_machine.zip`
+Blender addon zip (Install from Disk): `/opt/Difference-Machine/addons/blender/difference_machine.zip`
 
----
-
-## 4. App icons
-
-| App | Source | Install target |
-|-----|--------|----------------|
-| **GUI** | `sources/gui/build/share/icons/hicolor/*/apps/difference-machine.png` | bundled under `/opt/…/share/icons/`; `.desktop` `Icon=` absolute path; also `/usr/share/icons/hicolor/` |
-| **Forester CLI** | `sources/icons/logo/forester/build/share/icons/hicolor/*/apps/forester.png` | bundled under `/opt/…/share/icons/`; also `/usr/share/icons/hicolor/` |
-
-Regenerate icons: `npm run icons:generate` (GUI) in `sources/gui/frontend`, `bash builder/scripts/generate_forester_icons.sh` (Forester).
+After first GUI launch, addon zip may be extracted to `addons/blender/difference_machine/` under the install root for runtime paths.
 
 ---
 
@@ -106,15 +185,44 @@ Regenerate icons: `npm run icons:generate` (GUI) in `sources/gui/frontend`, `bas
 
 ## 6. User steps
 
-1. Extract `DifferenceMachine-*-linux.tar.gz`.
+1. Extract `DifferenceMachine-*-linux.tar.gz`
 2. `cd Difference-Machine`
-3. Run `sudo ./install.sh` (or `./install.sh --user`).
-4. Launch **Difference Machine** from the applications menu once (writes/updates `setup.cfg`, extracts addon zip).
-5. Install Blender addon from `/opt/Difference-Machine/addons/blender/difference_machine.zip` (Install from Disk in Blender).
-6. Enable addon in Blender.
+3. `sudo ./install.sh` (or `./install.sh --user`)
+4. Launch **Difference Machine** from the applications menu (search: `Difference`)
+5. Install Blender addon from `/opt/Difference-Machine/addons/blender/difference_machine.zip`
+6. Enable addon in Blender
+
+### Verify install
+
+```bash
+desktop-file-validate /usr/share/applications/difference-machine.desktop
+ls /opt/Difference-Machine/share/icons/hicolor/48x48/apps/difference-machine.png
+gtk-launch difference-machine
+```
+
+If the menu entry does not appear immediately, log out of the GNOME session once (shell icon cache).
+
+### Migrate from old `Difference Machine` (space) layout
+
+```bash
+sudo rm -rf "/opt/Difference Machine"
+sudo rm -f /usr/local/share/applications/difference-machine.desktop
+# then reinstall from a new tarball
+```
 
 ---
 
-## 7. Related specs
+## 7. Developer reference
 
-- [paths.md §2](./paths.md) · [multi-repo.md](./multi-repo.md) · [smoke-checklist.md §Platform release](./smoke-checklist.md)
+| File | Role |
+|------|------|
+| `builder/linux/install.sh` | System/user install, desktop, icons, `setup.cfg` |
+| `builder/linux/package_tar.sh` | Assemble `Difference-Machine/` + `tar.gz` |
+| `builder/linux/difference-machine.desktop.in` | **Dev template only** — not shipped in release; `install.sh` generates the final file |
+| `builder/scripts/lib/release_install_folder.sh` | `assemble_portable_install_dir` — GUI, bin, lib, addon zip, icons |
+
+---
+
+## 8. Related specs
+
+- [paths.md §9.3](./paths.md) · [multi-repo.md](./multi-repo.md) · [smoke-checklist.md §Platform release](./smoke-checklist.md)

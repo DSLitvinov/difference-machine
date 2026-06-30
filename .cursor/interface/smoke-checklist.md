@@ -156,10 +156,10 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 ### Linux
 
-- [x] Build archive on Linux: `./builder/linux/build.sh --tar`
-- [x] Unpack `DifferenceMachine-0.8-linux.tar.gz`
-- [x] `sudo ./install.sh` → symlinks, menu `.desktop`, Forester icons in share
-- [x] First launch writes `~/.dfm/setup.cfg` with install-root paths
+- [x] Build archive on Linux: `./builder/linux/build.sh --tar` → unpack `Difference-Machine/`
+- [x] `sudo ./install.sh` → `/opt/Difference-Machine/`, symlinks, `/usr/share/applications/difference-machine.desktop`, hicolor icons, `restorecon`
+- [x] `desktop-file-validate` passes; `Icon=difference-machine`, `Exec=… %F`, `Path=/opt/Difference-Machine`
+- [x] `install.sh` writes `~/.dfm/setup.cfg` with install-root paths
 - [x] Open test repo → Project tree loads
 - [x] Raster image file → thumbnail in grid (requires bundled `bin/ffmpeg`)
 - [x] History → select commit → text diff
@@ -173,4 +173,4 @@ _Реализовано в v1.1; проверяется в v2 smoke._
 
 **2026-06-25 — release hardening.** Windows installer/zip build verified locally on Windows via Git Bash. Linux release build requires a Linux runtime; WSL and Docker are not available on this host.
 
-**2026-06-27 — packaging polish.** Specs updated for squircle app icons, Windows desktop shortcut, macOS ffmpeg via Homebrew, Linux Forester icon install. See [implementation-plan-v2.md §v2.3](./implementation-plan-v2.md).
+**2026-06-27 — packaging polish.** Specs updated for squircle app icons, Windows desktop shortcut, macOS ffmpeg via Homebrew, Linux installer (`Difference-Machine/`, generated `.desktop`, hicolor icons, `restorecon`). See [implementation-plan-v2.md §v2.3](./implementation-plan-v2.md).

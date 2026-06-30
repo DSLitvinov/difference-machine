@@ -22,7 +22,7 @@ https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547
 - [application-menu.md](./application-menu.md) — нативное меню macOS (View / Edit / Window)
 - [macos-installer.md](./macos-installer.md) — DMG, `Forester.app`, `~/.dfm/setup.cfg` bootstrap
 - [windows-installer.md](./windows-installer.md) — NSIS, Start menu + desktop shortcuts
-- [linux-installer.md](./linux-installer.md) — tar.gz, `install.sh`, menu `.desktop`, Forester icons
+- [linux-installer.md](./linux-installer.md) — tar.gz → `/opt/Difference-Machine/`, `install.sh`, generated `.desktop`, hicolor icons
 - архитектура side bar в двух версиях:
   - [sidebar-project-view.md](./sidebar-project-view.md) — папки рабочей директории
   - [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты

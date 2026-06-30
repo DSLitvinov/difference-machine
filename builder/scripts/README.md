@@ -62,7 +62,7 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | **macos/wrap_forester_app.sh** | `Forester.app` for DMG |
 | **macos/lib/app_bundle.sh** | `.app` bundle helpers |
 | **linux/package_tar.sh** | `.tar.gz` release (includes `install.sh`) |
-| **linux/install.sh** | Post-install script bundled in the Linux archive |
+| **linux/install.sh** | Post-install: `/opt/Difference-Machine/`, `.desktop`, hicolor icons, `setup.cfg`, `restorecon` |
 | **windows/package_zip.sh** | Portable `.zip` |
 | **windows/package_nsis.sh** | NSIS `setup.exe` |
 | **windows/installer.nsi** | NSIS template |
@@ -75,7 +75,7 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 |----------|---------|---------|
 | `DFM_DIST` | `builder/dist/payload` | Distribution payload directory |
 | `VERSION` | `0.8` | Forester version (ldflags) |
-| `INSTALL_FOLDER_NAME` | `Difference Machine` | Install folder in releases |
+| `INSTALL_FOLDER_NAME` | platform-specific (`Difference-Machine` on Linux; `Difference Machine` on macOS/Windows) | Top-level folder inside release archives |
 | `INSTALL_WAILS` | `true` | Auto-install Wails CLI |
 | `FFMPEG_SKIP` | `false` | Skip downloading bundled ffmpeg |
 | `FFMPEG_FORCE` | `false` | Re-download ffmpeg even if already cached |

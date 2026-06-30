@@ -1,4 +1,4 @@
-# Paths — macOS / Windows
+# Paths — macOS / Windows / Linux
 
 Канон работы с путями в Forester GUI. Atom-спеки (**multi-repo**, **architecture**, Preview, Content Info) ссылаются сюда, не дублируют правила.
 
@@ -145,13 +145,14 @@ path_1 = /Users/me/projects/scene-a
 path_2 = "/Users/me/My Projects/scene-b"
 
 [forester]
-path = "/opt/Difference-Machine/bin/forester"
+path = "/Applications/Difference Machine/Forester.app/Contents/Resources/bin/forester"
+ffmpeg_path = "/Applications/Difference Machine/Forester.app/Contents/Resources/bin/ffmpeg"
 
 [blender]
 path = /Applications/Blender.app/Contents/MacOS/Blender
 
 [addons]
-diffmachine_path = "/opt/Difference-Machine/addons/blender/difference_machine"
+diffmachine_path = "/Applications/Difference Machine/addons/blender/difference_machine"
 
 [gui]
 theme = light
@@ -181,6 +182,28 @@ path = "C:\Program Files\Difference Machine\bin\forester.exe"
 ```
 
 Тот же репозиторий в UI: label `scene-a` на обеих ОС; relative файлы в Preview: `assets/hero.blend`.
+
+### 9.3 Linux
+
+```ini
+[current repo]
+path = /home/me/projects/scene-a
+
+[repo]
+path_1 = /home/me/projects/scene-a
+
+[forester]
+path = /opt/Difference-Machine/bin/forester
+ffmpeg_path = /opt/Difference-Machine/bin/ffmpeg
+
+[api]
+path = /opt/Difference-Machine/lib/libforester.so
+
+[addons]
+diffmachine_path = /opt/Difference-Machine/addons/blender/difference_machine
+```
+
+Install root uses hyphenated folder `Difference-Machine` (no space). See [linux-installer.md](./linux-installer.md).
 
 ---
 
