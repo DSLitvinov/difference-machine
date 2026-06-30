@@ -244,7 +244,7 @@ interface NavHistory {
 | Double-click / Enter | `openFileViewer(path)` → `projectPreviewMode = 'fileViewer'` |
 | Context menu → Open in external application | `workdir.open` без `editor` → ОС default handler |
 | Context menu → Edit in → … | `workdir.open { editor }` |
-| Content Info → **View** | [File History View](./file-history-view.md) |
+| Content Info → **Views History** | [File History View](./file-history-view.md) — только при `log.get`+`path` → `commits.length > 0` |
 
 #### Flow (File Viewer)
 

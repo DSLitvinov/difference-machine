@@ -11,7 +11,7 @@ import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
-import { addRepository, openRepository } from "@/wails/bridge";
+import { addRepository, openRepository, primeProjectLoadFromRepoState } from "@/wails/bridge";
 
 const EXPAND_ALL_FILE_LIMIT = 10000;
 
@@ -29,6 +29,7 @@ export function EmptyRepoState() {
       setLoading(true);
       await pickRepositoryPath(async (path) => {
         const state = await addRepository(path);
+        primeProjectLoadFromRepoState(state);
         setRepo(
           state.repoPath,
           state.repoName,
@@ -79,12 +80,14 @@ export function ProjectSidebarPanel() {
   const expandAllDisabled = treeLoading || Boolean(folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT);
 
   useEffect(() => {
-    if (repoPath && sidebarMode === "project") {
-      void loadProjectData();
-    }
     if (!repoPath) {
       useProjectStore.getState().reset();
+      return;
     }
+    if (sidebarMode !== "project") return;
+    const { loadedRepoPath, treeLoading } = useProjectStore.getState();
+    if (loadedRepoPath === repoPath || treeLoading) return;
+    void loadProjectData();
   }, [repoPath, sidebarMode]);
 
   if (!repoPath) {
@@ -170,6 +173,7 @@ export async function bootstrapRepositories(
     const current = await fetchCurrentRepoPath();
     if (!current) return;
     const state = await openRepository(current);
+    primeProjectLoadFromRepoState(state);
     setRepo(
       state.repoPath,
       state.repoName,

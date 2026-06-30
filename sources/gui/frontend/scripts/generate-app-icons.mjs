@@ -6,13 +6,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
 import pngToIco from "png-to-ico";
-import { buildIconSvg, ICON_SIZES } from "./icon-assets.mjs";
+import { buildIconSvg, ICON_SIZES, DFM_ICONS_DIR } from "../../../icons/dfm-icon-assets.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const frontendDir = join(__dirname, "..");
 const guiDir = join(frontendDir, "..");
 const imagesDir = join(frontendDir, "src/assets/images");
-const masterSvgPath = join(imagesDir, "256.svg");
+const masterSvgPath = join(DFM_ICONS_DIR, "256.svg");
 
 function renderPng(svg, size) {
   const resvg = new Resvg(svg, {
@@ -27,7 +27,7 @@ for (const size of ICON_SIZES) {
   writeFileSync(join(imagesDir, `${size}.svg`), svg);
 }
 writeFileSync(join(frontendDir, "public/icon.svg"), buildIconSvg(32));
-console.log(`Synced SVG icons (${ICON_SIZES.join(", ")}px + favicon)`);
+console.log(`Synced DFM SVG icons from ${DFM_ICONS_DIR} (${ICON_SIZES.join(", ")}px + favicon)`);
 
 const svg = readFileSync(masterSvgPath, "utf8");
 writeFileSync(join(frontendDir, "public/app-icon-32.png"), renderPng(svg, 32));

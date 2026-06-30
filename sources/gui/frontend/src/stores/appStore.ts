@@ -1,11 +1,6 @@
 import { create } from "zustand";
 
-import {
-  loadSidebarCollapsed,
-  loadSidebarMode,
-  saveSidebarCollapsed,
-  saveSidebarMode,
-} from "@/lib/storage";
+import { loadSidebarCollapsed, saveSidebarCollapsed } from "@/lib/storage";
 
 export type SidebarMode = "project" | "history";
 export type GuiLanguage = "en" | "ru";
@@ -37,7 +32,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  sidebarMode: loadSidebarMode(),
+  sidebarMode: "project",
   sidebarCollapsed: loadSidebarCollapsed(),
   repoPath: null,
   repoName: null,
@@ -49,10 +44,7 @@ export const useAppStore = create<AppState>((set) => ({
   foresterError: null,
   notice: null,
   externalEditorPaths: [],
-  setSidebarMode: (mode) => {
-    saveSidebarMode(mode);
-    set({ sidebarMode: mode });
-  },
+  setSidebarMode: (mode) => set({ sidebarMode: mode }),
   setSidebarCollapsed: (collapsed) => {
     saveSidebarCollapsed(collapsed);
     set({ sidebarCollapsed: collapsed });

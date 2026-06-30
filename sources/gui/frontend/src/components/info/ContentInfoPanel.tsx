@@ -48,6 +48,7 @@ export function ContentInfoPanel() {
   const [commitOpen, setCommitOpen] = useState(false);
   const [commitPaths, setCommitPaths] = useState<string[]>([]);
   const [metadataKey, setMetadataKey] = useState(0);
+  const [fileCommitCount, setFileCommitCount] = useState<number | null>(null);
 
   const isMulti = selectedFilePaths.length > 1;
   const selectedFilePath = selectedFilePaths.length === 1 ? selectedFilePaths[0]! : null;
@@ -61,12 +62,14 @@ export function ContentInfoPanel() {
   useEffect(() => {
     if (!selectedFilePath || isMulti) {
       setMetadata(null);
+      setFileCommitCount(null);
       return;
     }
 
     let cancelled = false;
     const load = async () => {
       setLoading(true);
+      setFileCommitCount(null);
       try {
         const branch = currentBranch ?? "main";
         const [meta, locks, fileLog] = await Promise.all([
@@ -77,6 +80,7 @@ export function ContentInfoPanel() {
         if (cancelled) return;
         const lock = locks.find((entry) => entry.file_path === selectedFilePath);
         const commits = fileLog.commits ?? [];
+        setFileCommitCount(commits.length);
         const editor = commits[0]?.author;
         const creator = commits.length > 0 ? commits[commits.length - 1]?.author : undefined;
         setMetadata(
@@ -89,6 +93,7 @@ export function ContentInfoPanel() {
       } catch (err) {
         if (!cancelled) {
           setMetadata(null);
+          setFileCommitCount(null);
           setError(err instanceof Error ? err.message : String(err));
         }
       } finally {
@@ -174,7 +179,11 @@ export function ContentInfoPanel() {
           />
         ) : null}
 
-        <InfoHistorySection filePath={selectedFilePath!} />
+        <InfoHistorySection
+          filePath={selectedFilePath!}
+          commitCount={fileCommitCount}
+          historyLoading={loading}
+        />
 
         <InfoMetadataSection metadata={metadata} loading={loading} />
       </div>

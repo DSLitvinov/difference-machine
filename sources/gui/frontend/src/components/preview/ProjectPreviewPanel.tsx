@@ -5,7 +5,7 @@ import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
 import { FileHistoryView } from "@/components/preview/FileHistoryView";
 import { FileViewer } from "@/components/preview/FileViewer";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
-import { PreviewToolbar, sortByName } from "@/components/preview/PreviewToolbar";
+import { PreviewToolbar, sortDirEntries, sortByName, nameLocaleFromSortMode, extensionKeyFromPath } from "@/components/preview/PreviewToolbar";
 import { measureAsync } from "@/lib/performance";
 import { gridMinCellSize } from "@/lib/previewScale";
 import { isEditableElement, isSelectAllShortcut } from "@/lib/keyboard";
@@ -13,7 +13,6 @@ import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useWorkdirFolderEntries } from "@/hooks/useWorkdirFolderEntries";
-import type { SortLocale } from "@/lib/storage";
 import {
   fetchStatus,
   fetchLockList,
@@ -22,15 +21,11 @@ import {
   locksByPath,
   vcsFileStatus,
   type DirEntry,
+  type StatusPayload,
 } from "@/wails/forester";
 
 const LARGE_REPO_FILE_COUNT = 10000;
 const LARGE_FOLDER_ENTRY_COUNT = 1000;
-
-function sortByPath<T extends { path: string }>(items: T[], locale: SortLocale): T[] {
-  const collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
-  return [...items].sort((a, b) => collator.compare(a.path, b.path));
-}
 
 function breadcrumbSegments(folderPath: string): { label: string; path: string }[] {
   if (folderPath === "") {
@@ -54,15 +49,17 @@ function parentFolderPath(path: string): string {
 export async function loadProjectData() {
   const store = useProjectStore.getState();
   const repoPath = useAppStore.getState().repoPath;
-  if (repoPath) {
-    store.restoreRepoPrefs(repoPath);
-  }
+  if (!repoPath) return;
+  store.restoreRepoPrefs(repoPath);
+  const pendingStatus = store.consumePendingOpenStatus(repoPath);
   store.setTreeLoading(true);
   try {
+    const statusTask: Promise<StatusPayload> =
+      pendingStatus !== undefined ? Promise.resolve(pendingStatus) : fetchStatus();
     const [tree, status, locks] = await measureAsync("project.load", () =>
       Promise.all([
         fetchWorkdirTree("", 1),
-        fetchStatus(),
+        statusTask,
         fetchLockList(),
       ]),
     );
@@ -70,6 +67,7 @@ export async function loadProjectData() {
     store.setStatus(status);
     store.setLocks(locksByPath(locks));
     await measureAsync("project.hydrateExpandedFolders", () => store.hydrateExpandedFolders());
+    store.markProjectDataLoaded(repoPath);
     useAppStore.getState().setForesterError(null);
   } catch (err) {
     useAppStore.getState().setForesterError(err instanceof Error ? err.message : String(err));
@@ -95,8 +93,8 @@ export function ProjectPreviewPanel() {
   const status = useProjectStore((s) => s.status);
   const folderTree = useProjectStore((s) => s.folderTree);
   const lockedByPath = useProjectStore((s) => s.lockedByPath);
-  const sortLocale = useProjectStore((s) => s.sortLocale);
-  const setSortLocale = useProjectStore((s) => s.setSortLocale);
+  const sortMode = useProjectStore((s) => s.sortMode);
+  const setSortMode = useProjectStore((s) => s.setSortMode);
   const thumbScale = useProjectStore((s) => s.thumbScale);
   const setThumbScale = useProjectStore((s) => s.setThumbScale);
   const previewSearchQuery = useProjectStore((s) => s.previewSearchQuery);
@@ -115,11 +113,33 @@ export function ProjectPreviewPanel() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(previewSearchQuery);
   const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
+  const [hiddenExtensions, setHiddenExtensions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(previewSearchQuery), 200);
     return () => window.clearTimeout(timer);
   }, [previewSearchQuery]);
+
+  useEffect(() => {
+    setHiddenExtensions(new Set());
+  }, [repoPath]);
+
+  const toggleExtensionFilter = useCallback((ext: string, checked: boolean) => {
+    setHiddenExtensions((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.delete(ext);
+      } else {
+        next.add(ext);
+      }
+      return next;
+    });
+  }, []);
+
+  const passesExtensionFilter = useCallback(
+    (entry: DirEntry) => entry.is_dir || !hiddenExtensions.has(extensionKeyFromPath(entry.path)),
+    [hiddenExtensions],
+  );
 
   const isSearchActive = debouncedSearch.trim().length > 0;
   const cellMin = gridMinCellSize(thumbScale);
@@ -192,18 +212,36 @@ export function ProjectPreviewPanel() {
   };
 
   const crumbs = breadcrumbSegments(selectedFolderPath);
-  const sortedSubfolders = sortByName(subfolders, sortLocale);
-  const sortedEntries = showChangedOnly
-    ? sortByPath(entries, sortLocale)
-    : sortByName(entries, sortLocale);
+  const nameLocale = nameLocaleFromSortMode(sortMode);
+  const sortedSubfolders = sortByName(subfolders, nameLocale);
+  const filteredEntries = useMemo(
+    () => entries.filter(passesExtensionFilter),
+    [entries, passesExtensionFilter],
+  );
+  const sortedEntries = sortDirEntries(filteredEntries, sortMode, { byPath: showChangedOnly });
+
+  const fileSourcesForExtensions = useMemo(
+    () => (isSearchActive ? searchResults.filter((entry) => !entry.is_dir) : entries),
+    [isSearchActive, searchResults, entries],
+  );
+  const availableExtensions = useMemo(() => {
+    const extensions = new Set<string>();
+    for (const entry of fileSourcesForExtensions) {
+      extensions.add(extensionKeyFromPath(entry.path));
+    }
+    return Array.from(extensions).sort((a, b) => a.localeCompare(b));
+  }, [fileSourcesForExtensions]);
 
   const searchFolders = useMemo(
-    () => sortByName(searchResults.filter((entry) => entry.is_dir), sortLocale),
-    [searchResults, sortLocale],
+    () => sortByName(searchResults.filter((entry) => entry.is_dir), nameLocale),
+    [searchResults, nameLocale],
   );
   const searchFiles = useMemo(
-    () => sortByName(searchResults.filter((entry) => !entry.is_dir), sortLocale),
-    [searchResults, sortLocale],
+    () => sortDirEntries(
+      searchResults.filter((entry) => !entry.is_dir && passesExtensionFilter(entry)),
+      sortMode,
+    ),
+    [searchResults, sortMode, passesExtensionFilter],
   );
   const searchFilePaths = useMemo(() => searchFiles.map((f) => f.path), [searchFiles]);
   const sortedEntryPaths = useMemo(() => sortedEntries.map((f) => f.path), [sortedEntries]);
@@ -252,14 +290,17 @@ export function ProjectPreviewPanel() {
         showChangedOnly={showChangedOnly}
         searchQuery={previewSearchQuery}
         searchLoading={searchLoading}
-        sortLocale={sortLocale}
+        sortMode={sortMode}
         thumbScale={thumbScale}
+        availableExtensions={availableExtensions}
+        hiddenExtensions={hiddenExtensions}
         onBack={navigateBack}
         onForward={navigateForward}
         onBreadcrumbSelect={navigateToFolder}
         onSearchChange={setPreviewSearchQuery}
         onSearchClear={() => setPreviewSearchQuery("")}
-        onSortLocaleChange={setSortLocale}
+        onSortModeChange={setSortMode}
+        onToggleExtensionFilter={toggleExtensionFilter}
         onThumbScaleChange={setThumbScale}
       />
 

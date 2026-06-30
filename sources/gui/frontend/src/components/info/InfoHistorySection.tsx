@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { useProjectStore } from "@/stores/projectStore";
 
 interface InfoHistorySectionProps {
   filePath: string;
+  commitCount: number | null;
+  historyLoading: boolean;
 }
 
-export function InfoHistorySection({ filePath }: InfoHistorySectionProps) {
+export function InfoHistorySection({
+  filePath,
+  commitCount,
+  historyLoading,
+}: InfoHistorySectionProps) {
   const t = useT();
   const openFileHistory = useProjectStore((s) => s.openFileHistory);
   const projectPreviewMode = useProjectStore((s) => s.projectPreviewMode);
@@ -18,6 +25,8 @@ export function InfoHistorySection({ filePath }: InfoHistorySectionProps) {
 
   const isViewingThisFile =
     projectPreviewMode === "fileHistory" && fileHistoryPath === filePath;
+  const hasHistory = commitCount !== null && commitCount > 0;
+  const showNoHistoryAlert = commitCount === 0 && !historyLoading;
 
   const handleView = () => {
     if (isViewingThisFile) return;
@@ -37,9 +46,24 @@ export function InfoHistorySection({ filePath }: InfoHistorySectionProps) {
       </Button>
 
       {!collapsed ? (
-        <Button type="button" className="w-full" onClick={handleView}>
-          {t("fileHistory.view")}
-        </Button>
+        <div className="flex flex-col gap-2">
+          {hasHistory ? (
+            <Button type="button" className="w-full" onClick={handleView}>
+              {t("fileHistory.view")}
+            </Button>
+          ) : null}
+          {showNoHistoryAlert ? (
+            <Alert>
+              <Info className="h-5 w-5" />
+              <AlertTitle className="text-base font-medium leading-6">
+                {t("fileHistory.noHistoryTitle")}
+              </AlertTitle>
+              <AlertDescription className="text-muted-foreground">
+                {t("fileHistory.noHistoryDescription")}
+              </AlertDescription>
+            </Alert>
+          ) : null}
+        </div>
       ) : null}
     </section>
   );

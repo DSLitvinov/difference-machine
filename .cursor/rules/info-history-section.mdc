@@ -1,0 +1,36 @@
+---
+description: Content Info History section — Views History vs no-history Alert
+globs: sources/gui/frontend/**/InfoHistorySection.tsx,sources/gui/frontend/**/ContentInfoPanel.tsx
+alwaysApply: false
+---
+
+# Info History Section (Content Info)
+
+**Rule:** In single-file Content Info, the History section shows **Views History** only when `log.get`+`path` returns at least one commit. If the file was never committed, **hide the button** and show the **no-history Alert** per Figma `4027:5041`.
+
+Full spec: `.cursor/interface/info-history-section.md`.
+
+## Data source
+
+- Fetch `log.get` once in `ContentInfoPanel` (shared with Metadata editor/creator).
+- Pass `commitCount: number | null` and `historyLoading` into `InfoHistorySection`.
+- Do **not** add a second `fetchFileLog` inside the section.
+
+## UI states
+
+| `commitCount` | Loading | Show |
+|---------------|---------|------|
+| `null` | yes | nothing in body (avoid flash) |
+| `0` | no | `Alert` with `Info` icon — `fileHistory.noHistoryTitle` / `fileHistory.noHistoryDescription` |
+| `> 0` | no | full-width primary `Button` — `fileHistory.view` ("Views History") |
+
+## Do not
+
+- Do **not** render a disabled Views History button for never-committed files.
+- Do **not** call `openFileHistory` when `commitCount === 0` — user cannot enter File History View from Info without commits.
+- Do **not** show the Alert while `commitCount === null` (still loading).
+
+## Components
+
+- Alert: shadcn `Alert`, `AlertTitle`, `AlertDescription` — same pattern as `MergeDialog` inline errors.
+- i18n keys: `fileHistory.view`, `fileHistory.noHistoryTitle`, `fileHistory.noHistoryDescription`.

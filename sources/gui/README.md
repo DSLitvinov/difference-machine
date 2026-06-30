@@ -28,7 +28,7 @@ From the project root:
 # Output: builder/dist/payload/apps/
 ```
 
-App icons (SVG sources in `frontend/src/assets/images/`, Wails `build/appicon.png` and `build/windows/icon.ico`) use a **macOS squircle** background (superellipse n=5) and are regenerated automatically during `./builder/scripts/build_gui.sh`. To refresh manually:
+App icons (SVG sources in `sources/icons/logo/dfm/`, Wails `build/appicon.png` and `build/windows/icon.ico`) use a **macOS squircle** background (superellipse n=5) and are regenerated automatically during `./builder/scripts/build_gui.sh`. To refresh manually:
 
 ```bash
 cd sources/gui/frontend

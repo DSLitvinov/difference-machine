@@ -4,15 +4,15 @@ import { DEFAULT_THUMB_SCALE, type ThumbScalePx } from "@/lib/previewScale";
 import {
   loadExpandedFolderPaths,
   loadShowChangedOnly,
-  loadSortLocale,
+  loadSortMode,
   loadSelectedFolderPath,
   loadThumbScale,
   saveExpandedFolderPaths,
   saveSelectedFolderPath,
   saveShowChangedOnly,
-  saveSortLocale,
+  saveSortMode,
   saveThumbScale,
-  type SortLocale,
+  type PreviewSortMode,
 } from "@/lib/storage";
 import { rangePathsBetween } from "@/lib/fileSelection";
 import { useAppStore } from "@/stores/appStore";
@@ -57,12 +57,14 @@ interface ProjectState {
   lockedByPath: Record<string, string>;
   previewGeneration: number;
   workdirGeneration: number;
-  sortLocale: SortLocale;
+  sortMode: PreviewSortMode;
   thumbScale: ThumbScalePx;
   navStack: string[];
   navIndex: number;
   previewSearchQuery: string;
   treeLoading: boolean;
+  loadedRepoPath: string | null;
+  pendingOpenStatus: { repoPath: string; status: StatusPayload } | null;
   setSelectedFolderPath: (path: string) => void;
   navigateToFolder: (path: string) => void;
   navigateBack: () => void;
@@ -87,7 +89,7 @@ interface ProjectState {
   setLocks: (lockedByPath: Record<string, string>) => void;
   bumpPreviewGeneration: () => void;
   bumpWorkdirGeneration: () => void;
-  setSortLocale: (locale: SortLocale) => void;
+  setSortMode: (mode: PreviewSortMode) => void;
   setThumbScale: (px: ThumbScalePx) => void;
   setPreviewSearchQuery: (query: string) => void;
   openFileHistory: (path: string) => void;
@@ -97,6 +99,10 @@ interface ProjectState {
   exitSubPreviewViews: () => void;
   restoreRepoPrefs: (repoPath: string) => void;
   setTreeLoading: (loading: boolean) => void;
+  setPendingOpenStatus: (repoPath: string, status: StatusPayload) => void;
+  consumePendingOpenStatus: (repoPath: string | null) => StatusPayload | undefined;
+  markProjectDataLoaded: (repoPath: string) => void;
+  invalidateProjectDataLoad: () => void;
   reset: () => void;
 }
 
@@ -128,12 +134,14 @@ const initialState = {
   lockedByPath: {} as Record<string, string>,
   previewGeneration: 0,
   workdirGeneration: 0,
-  sortLocale: "en-US" as SortLocale,
+  sortMode: "name-en" as PreviewSortMode,
   thumbScale: DEFAULT_THUMB_SCALE,
   navStack: [""] as string[],
   navIndex: 0,
   previewSearchQuery: "",
   treeLoading: false,
+  loadedRepoPath: null as string | null,
+  pendingOpenStatus: null as { repoPath: string; status: StatusPayload } | null,
 };
 
 function persistFolderPath(path: string) {
@@ -332,10 +340,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set((state) => ({ previewGeneration: state.previewGeneration + 1 })),
   bumpWorkdirGeneration: () =>
     set((state) => ({ workdirGeneration: state.workdirGeneration + 1 })),
-  setSortLocale: (locale) => {
+  setSortMode: (mode) => {
     const repoPath = useAppStore.getState().repoPath;
-    if (repoPath) saveSortLocale(repoPath, locale);
-    set({ sortLocale: locale });
+    if (repoPath) saveSortMode(repoPath, mode);
+    set({ sortMode: mode });
   },
   setThumbScale: (px) => {
     const repoPath = useAppStore.getState().repoPath;
@@ -391,7 +399,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       selectedFolderPath: folderPath,
       expandedPaths: loadExpandedFolderPaths(repoPath),
       showChangedOnly: loadShowChangedOnly(repoPath),
-      sortLocale: loadSortLocale(repoPath),
+      sortMode: loadSortMode(repoPath),
       thumbScale: (savedThumb as ThumbScalePx | null) ?? DEFAULT_THUMB_SCALE,
       selectedFilePaths: [],
       anchorPath: null,
@@ -402,6 +410,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     });
   },
   setTreeLoading: (treeLoading) => set({ treeLoading }),
+  setPendingOpenStatus: (repoPath, status) => set({ pendingOpenStatus: { repoPath, status } }),
+  consumePendingOpenStatus: (repoPath) => {
+    if (!repoPath) return undefined;
+    const pending = get().pendingOpenStatus;
+    if (pending?.repoPath === repoPath) {
+      set({ pendingOpenStatus: null });
+      return pending.status;
+    }
+    return undefined;
+  },
+  markProjectDataLoaded: (repoPath) => set({ loadedRepoPath: repoPath }),
+  invalidateProjectDataLoad: () => set({ loadedRepoPath: null, pendingOpenStatus: null }),
   reset: () => set({ ...initialState }),
 }));
 

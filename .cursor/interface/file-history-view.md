@@ -34,8 +34,8 @@ File History View — **не** отдельный `sidebarMode`. Это подр
 
 | `projectPreviewMode` | Content Preview | Content Info |
 |----------------------|-----------------|--------------|
-| `grid` (default) | Сетка папок / файлов | Preview, Metadata, History (**View**), Create commit |
-| `fileViewer` | [File Viewer](./file-viewer.md) | **Видна** — single + **Edit in** + History (**View**) |
+| `grid` (default) | Сетка папок / файлов | Preview, Metadata, History (**Views History** или Alert), Create commit |
+| `fileViewer` | [File Viewer](./file-viewer.md) | **Видна** — single + **Edit in** + History (**Views History** или Alert) |
 | `fileHistory` | **File History View** | **Скрыта** — Preview на всю ширину (как History mode) |
 
 ```
@@ -54,7 +54,7 @@ Project view + fileHistory:
 
 | Триггер | Условие | Действие |
 |---------|---------|----------|
-| Кнопка **View** в Content Info | `PreviewSelection.kind === 'files'` и `paths.length === 1` | `projectPreviewMode = 'fileHistory'`, `fileHistoryPath = primary` |
+| Кнопка **Views History** в Content Info | `PreviewSelection.kind === 'files'` и `paths.length === 1` и `log.get`+`path` → `commits.length > 0` | `projectPreviewMode = 'fileHistory'`, `fileHistoryPath = primary` |
 | **Double-click** по `FilePreviewItem` | — | **Не** открывает File History — см. [file-viewer.md §1.2](./file-viewer.md) |
 | **Enter** на сфокусированном файле | — | **Не** открывает File History — см. [file-viewer.md](./file-viewer.md) |
 
@@ -99,7 +99,8 @@ Label кнопки Back: `fileHistory.backToViewer` vs `fileHistory.back` (toolt
 |-----------------------------|-------|
 | Branch + Commit pickers | **Перенесены** в toolbar File History View |
 | Revert + Compare | **Перенесены** в toolbar File History View |
-| — | Кнопка **View** (primary / full width) — единственное действие секции History |
+| — | Кнопка **Views History** (primary / full width) — единственное действие секции History **при наличии коммитов** |
+| — | Alert «No history of changes» — если `commits.length === 0` ([info-history-section.md §2.2](./info-history-section.md)) |
 
 Секция History в Content Info при multiselect по-прежнему **не рендерится**.
 
@@ -356,7 +357,7 @@ frontend/src/components/preview/
   ProjectPreviewPanel.tsx      # switch grid | fileHistory
 
 frontend/src/components/info/
-  InfoHistorySection.tsx       # View button only (+ load minimal state for label)
+  InfoHistorySection.tsx       # Views History or no-history Alert; commitCount from ContentInfoPanel
 
 # Reuse without fork:
   DiffView.tsx                 # + optional hidePathInToolbar
@@ -409,11 +410,13 @@ interface DiffViewProps {
 
 ### 8.1 Нет repo
 
-File History не открывается; View disabled; empty shell как в Project Preview.
+File History не открывается из Content Info; empty shell как в Project Preview.
 
 ### 8.2 Файл never committed
 
-Commit list empty; placeholder в commit picker; diff area: «No commits for this file»; Revert / Compare disabled.
+**Content Info:** кнопка Views History **скрыта**; Alert в секции History ([info-history-section.md](./info-history-section.md)).
+
+**File History View** (если открыт иным путём): commit list empty; placeholder в commit picker; diff area: «No commits for this file»; Revert / Compare disabled.
 
 ### 8.3 Файл удалён с диска (working tree)
 
@@ -423,9 +426,9 @@ File History открывается; diff по коммитам работает
 
 Открывается history файла под курсором; selection **не** сбрасывается до single.
 
-### 8.5 View при multiselect
+### 8.5 Views History при multiselect
 
-Кнопка View **не рендерится** (History section hidden).
+Кнопка **не рендерится** (History section hidden).
 
 ### 8.6 Быстрая смена commit / branch
 
@@ -477,7 +480,9 @@ Display UTF-8; API paths normalized per [paths.md](./paths.md).
 
 | Key | EN (пример) |
 |-----|-------------|
-| `fileHistory.view` | View |
+| `fileHistory.view` | Views History |
+| `fileHistory.noHistoryTitle` | No history of changes |
+| `fileHistory.noHistoryDescription` | The file is not added to any commit |
 | `fileHistory.back` | Back to files |
 | `fileHistory.backToViewer` | Back to file preview |
 | `history.selectBranch` | reuse |
@@ -495,7 +500,7 @@ Display UTF-8; API paths normalized per [paths.md](./paths.md).
 | 1 | Double-click | [File Viewer](./file-viewer.md), не File History |
 | 2 | OS open | Context menu only |
 | 3 | Content Info layout | **Скрыта** в fileHistory (Preview на всю ширину) |
-| 4 | History controls | Только в Preview toolbar; Info → View |
+| 4 | History controls | Только в Preview toolbar; Info → Views History или Alert |
 | 5 | Compare UX | Outline button, binary-only, one-shot extract |
 | 6 | Diff baseline | Commit vs parent |
 | 7 | Branch picker | Read-only filter, не checkout |

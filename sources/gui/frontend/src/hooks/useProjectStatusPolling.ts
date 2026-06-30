@@ -189,8 +189,9 @@ export async function reopenRepositoryFromPicker() {
   setForesterError(null);
   try {
     await actions.pickRepositoryPath(async (path) => {
-      const { addRepository } = await import("@/wails/bridge");
+      const { addRepository, primeProjectLoadFromRepoState } = await import("@/wails/bridge");
       const state = await addRepository(path);
+      primeProjectLoadFromRepoState(state);
       setRepo(
         state.repoPath,
         state.repoName,

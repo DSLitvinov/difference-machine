@@ -9,6 +9,9 @@ import {
   OpenRepo,
   PickRepositoryFolder,
 } from "../../wailsjs/go/main/App";
+import type { StatusPayload } from "@/wails/forester";
+import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
+import { useProjectStore } from "@/stores/projectStore";
 
 export const NOT_FORESTER_REPOSITORY_ERROR = "not a Forester repository";
 
@@ -16,10 +19,6 @@ export interface RepoState {
   repoPath: string;
   repoName: string;
   status: Record<string, unknown>;
-}
-
-export interface StatusPayload {
-  current_branch?: string;
 }
 
 function parseRepoState(raw: {
@@ -55,7 +54,9 @@ export async function openRepository(path: string) {
 
 export async function addRepository(path: string) {
   const raw = await AddKnownRepo(path);
-  return parseRepoState(raw);
+  const state = parseRepoState(raw);
+  switchSidebarMode("project");
+  return state;
 }
 
 export async function checkIsForesterRepository(path: string): Promise<boolean> {
@@ -77,6 +78,14 @@ export async function pickRepositoryFolder(): Promise<string> {
 
 export async function fetchRepoUser(): Promise<string> {
   return GetRepoUser();
+}
+
+export function repoStateStatus(state: RepoState): StatusPayload {
+  return state.status as StatusPayload;
+}
+
+export function primeProjectLoadFromRepoState(state: RepoState): void {
+  useProjectStore.getState().setPendingOpenStatus(state.repoPath, repoStateStatus(state));
 }
 
 export function branchFromStatus(status: Record<string, unknown>): string | null {

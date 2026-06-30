@@ -200,7 +200,7 @@
 - [x] **4.1.1** `InfoFilePreviewSingle` — [info-file-preview-single.md](./info-file-preview-single.md)
 - [x] **4.1.2** `InfoMetadataSection` — FS metadata, hide empty — [info-metadata-section.md](./info-metadata-section.md)
 - [x] **4.1.3** Lock badge read-only — `lock.list`
-- [x] **4.1.4** `InfoHistorySection` — branch/commit combobox, Revert, Compare — [info-history-section.md](./info-history-section.md)
+- [x] **4.1.4** `InfoHistorySection` — **Views History** или Alert «нет истории»; branch/commit/Revert/Compare перенесены в File History View — [info-history-section.md](./info-history-section.md)
 - [x] **4.1.5** `restore.file` + AlertDialog; `compare.extract` + toast
 
 ### 4.2 Create commit

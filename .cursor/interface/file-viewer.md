@@ -22,7 +22,7 @@
 |-----------|----------|
 | Preview (логика) | [info-file-preview-single.md](./info-file-preview-single.md) · `useWorkdirPreview` |
 | File Info panel | [content-info-project-view.md](./content-info-project-view.md) |
-| History → diff | [file-history-view.md](./file-history-view.md) (кнопка **View**) |
+| History → diff | [file-history-view.md](./file-history-view.md) (кнопка **Views History**, если есть коммиты) |
 
 ---
 
@@ -69,7 +69,7 @@ Project view + fileViewer:
 
 | Режим Preview | Content Info |
 |---------------|--------------|
-| `fileViewer` | Single-file layout для `fileViewerPath`; **Edit in** (§1.3.2); History: кнопка **View** → [file-history-view.md](./file-history-view.md) |
+| `fileViewer` | Single-file layout для `fileViewerPath`; **Edit in** (§1.3.2); History: **Views History** (при `commitCount > 0`) или Alert → [info-history-section.md](./info-history-section.md) |
 | `fileHistory` | Панель **скрыта** |
 | `grid` | Обычное поведение по selection |
 

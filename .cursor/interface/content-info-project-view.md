@@ -68,7 +68,7 @@
 | 8 | Revert | Только в File History View toolbar; **single file** |
 | 9 | Create commit | Только **выбранные** файлы (auto stage) |
 | 10 | Author в диалоге | Read-only из config |
-| 11 | File History controls | Branch / Commit / Revert / Compare — **только** в [File History View](./file-history-view.md); в Content Info — кнопка **View** ([info-history-section.md](./info-history-section.md)) |
+| 11 | File History controls | Branch / Commit / Revert / Compare — **только** в [File History View](./file-history-view.md); в Content Info — **Views History** или Alert «нет истории» ([info-history-section.md](./info-history-section.md)) |
 | 12 | Edit in | Кнопка **только** при `projectPreviewMode === 'fileViewer'` (§3.2) |
 
 ---
@@ -79,8 +79,8 @@
 
 | `projectPreviewMode` | Блоки single panel |
 |----------------------|-------------------|
-| `grid` | Preview · Name · History (**View**) · Metadata · Create commit |
-| `fileViewer` | Preview · Name · **Edit in** · History (**View**) · Metadata · Create commit |
+| `grid` | Preview · Name · History (**Views History** или Alert) · Metadata · Create commit |
+| `fileViewer` | Preview · Name · **Edit in** · History (**Views History** или Alert) · Metadata · Create commit |
 | `fileHistory` | Панель **не рендерится** |
 
 **Figma (file viewer + Edit in):** [`4085:5087`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4085-5087) — кнопка **Edit in** между name и History.
@@ -92,14 +92,15 @@ grid / fileViewer (single, Content Info visible):
 │  [name file]  Name  (disabled)│
 │  [ Edit in ]                  │  ← только fileViewer (§3.2)
 │  ▼ History                    │
-│    [ View ]                   │  ← opens File History View
+│    [ Views History ]          │  ← commitCount > 0 → File History View
+│    или Alert «нет истории»    │  ← commitCount === 0 ([4027:5041])
 │  ─────────────────────────    │
 │  ▼ Metadata                   │
 │  [ Create commit ]            │
 └─────────────────────────────┘
 ```
 
-Устаревший макет `4027:5041` (branch/commit/Revert/Compare в History) — **не** актуален для Content Info; см. [file-history-view.md §1.3](./file-history-view.md).
+Макет [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) — **актуален** для empty History (Alert); branch/commit/Revert/Compare в Content Info по-прежнему **не** актуальны — см. [file-history-view.md §1.3](./file-history-view.md).
 
 ### 2.1 Single (`4027:5041` + `4085:5087`)
 
@@ -108,7 +109,7 @@ grid / fileViewer (single, Content Info visible):
 | Preview | [info-file-preview-single.md](./info-file-preview-single.md) — `variant="compact"` |
 | File name | §3.1 |
 | Edit in | §3.2 — **только** `fileViewer` |
-| History | [info-history-section.md](./info-history-section.md) — **View** → File History View |
+| History | [info-history-section.md](./info-history-section.md) — **Views History** или Alert |
 | Metadata | [info-metadata-section.md](./info-metadata-section.md) — full |
 | Footer | §4 |
 
@@ -263,7 +264,13 @@ Stack shows max **3** tiles [`4037:1879`](https://www.figma.com/design/Vhp8g306W
 
 ### 6.4 History: файл never committed
 
-Commit dropdown empty — placeholder «No history for this file».
+`log.get`+`path` → `commits.length === 0`:
+
+- кнопка **Views History** **не рендерится**;
+- показывается `Alert`: `fileHistory.noHistoryTitle` / `fileHistory.noHistoryDescription` ([info-history-section.md §2.2](./info-history-section.md), Figma [`4027:5041`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041));
+- **не** открывать File History View из Content Info для такого файла.
+
+File History View с пустым commit list — только если пользователь попал туда иным путём (legacy / deep link); основной вход из Info заблокирован UI.
 
 ### 6.5 Compare while tmp_review exists
 
@@ -351,5 +358,5 @@ state/
 | 3 | Empty metadata fields | Hide |
 | 4 | Multiselect History | **Секция скрыта** — History только при single file |
 | 5 | Create commit scope | Selected files only |
-| 6 | History in Info | Только **View**; diff controls в File History View |
+| 6 | History in Info | **Views History** при `commitCount > 0`; иначе Alert; diff controls в File History View |
 | 7 | Edit in in Info | Только в **fileViewer**; grid → context menu |

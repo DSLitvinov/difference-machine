@@ -101,7 +101,7 @@
 | History Preview — image diff | [4030:3317](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-3317) |
 | History Preview — binary stub | [4031:3754](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4031-3754) |
 | History Preview — blend screenshot stub | [4030:2796](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4030-2796) |
-| Content Info — single | [4027:5041](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) |
+| Content Info — single | [4027:5041](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4027-5041) | Views History или Alert — [info-history-section.md](./info-history-section.md) |
 | Content Info — multi | [4037:1898](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1898) |
 | Content Info — preview single | [4037:707](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-707) |
 | Create commit dialog | [4037:1076](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4037-1076) |
@@ -288,7 +288,7 @@ export const treeRowStateClasses = {
 | Компонент | База | Отличие |
 |-----------|------|---------|
 | `RepoSelector` | `Popover` + `Button` (как `DropdownSelector`) | footer «+ Add repository…», иконка `FolderGit2` |
-| `InfoHistorySection` | `DropdownSelector` | Branch + Commit; Branch — `GitBranch` icon |
+| `InfoHistorySection` | `Button` + `Alert` | Views History при `commitCount > 0`; иначе Alert — [info-history-section.md](./info-history-section.md) |
 | `BranchSelector` (History Sidebar) | `DropdownSelector` | checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md) |
 
 **v1.1 (опционально):** shadcn `Command` внутри `Popover` для поиска в длинных списках.

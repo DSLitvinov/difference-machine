@@ -372,15 +372,17 @@ func computeStatus(repo *core.Repository, repoPath string) (map[string]interface
 		if !utils.IsFile(filePath) {
 			continue
 		}
-		currentHash, err := core.HashFile(filePath)
-		if err != nil {
-			continue
-		}
 		indexHash, isStaged := indexMap[relPath]
 		headHash, isTracked := trackedMap[relPath]
 		if !isTracked && !isStaged {
 			untracked = append(untracked, relPath)
-		} else if isStaged {
+			continue
+		}
+		currentHash, err := core.HashFile(filePath)
+		if err != nil {
+			continue
+		}
+		if isStaged {
 			if currentHash != indexHash {
 				unstagedModified = append(unstagedModified, relPath)
 			}

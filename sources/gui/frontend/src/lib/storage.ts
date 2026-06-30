@@ -1,7 +1,4 @@
-import type { SidebarMode } from "@/stores/appStore";
-
 const SIDEBAR_COLLAPSED = "dfm.sidebar.collapsed";
-const SIDEBAR_MODE = "dfm.sidebar.mode";
 const MAX_PERSISTED_EXPANDED_PATHS = 512;
 
 function perRepoKey(base: string, repoPath: string): string {
@@ -21,23 +18,6 @@ export function saveSidebarCollapsed(collapsed: boolean): void {
     localStorage.setItem(SIDEBAR_COLLAPSED, String(collapsed));
   } catch {
     // ignore quota / private mode
-  }
-}
-
-export function loadSidebarMode(): SidebarMode {
-  try {
-    const value = localStorage.getItem(SIDEBAR_MODE);
-    return value === "history" ? "history" : "project";
-  } catch {
-    return "project";
-  }
-}
-
-export function saveSidebarMode(mode: SidebarMode): void {
-  try {
-    localStorage.setItem(SIDEBAR_MODE, mode);
-  } catch {
-    // ignore
   }
 }
 
@@ -106,18 +86,28 @@ export function saveExpandedFolderPaths(repoPath: string, expandedPaths: Record<
 
 export type SortLocale = "en-US" | "ru";
 
-export function loadSortLocale(repoPath: string): SortLocale {
+/** Preview grid sort: English or Russian file name. */
+export type PreviewSortMode = "name-en" | "name-ru";
+
+export function loadSortMode(repoPath: string): PreviewSortMode {
   try {
-    const value = localStorage.getItem(perRepoKey("dfm.preview.sortLocale", repoPath));
-    return value === "ru" ? "ru" : "en-US";
+    const value = localStorage.getItem(perRepoKey("dfm.preview.sortMode", repoPath));
+    if (value === "name-en" || value === "name-ru") {
+      return value;
+    }
+    if (value === "type") {
+      return "name-en";
+    }
+    const legacy = localStorage.getItem(perRepoKey("dfm.preview.sortLocale", repoPath));
+    return legacy === "ru" ? "name-ru" : "name-en";
   } catch {
-    return "en-US";
+    return "name-en";
   }
 }
 
-export function saveSortLocale(repoPath: string, locale: SortLocale): void {
+export function saveSortMode(repoPath: string, mode: PreviewSortMode): void {
   try {
-    localStorage.setItem(perRepoKey("dfm.preview.sortLocale", repoPath), locale);
+    localStorage.setItem(perRepoKey("dfm.preview.sortMode", repoPath), mode);
   } catch {
     // ignore
   }

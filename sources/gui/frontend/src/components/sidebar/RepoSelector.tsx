@@ -13,6 +13,7 @@ import {
   addRepository,
   fetchKnownRepos,
   openRepository,
+  primeProjectLoadFromRepoState,
 } from "@/wails/bridge";
 
 interface RepoSelectorProps {
@@ -44,6 +45,7 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
       setLoading(true);
       setError(null);
       const state = await openRepository(path);
+      primeProjectLoadFromRepoState(state);
       setRepo(
         state.repoPath,
         state.repoName,
@@ -64,6 +66,7 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
       setError(null);
       await pickRepositoryPath(async (path) => {
         const state = await addRepository(path);
+        primeProjectLoadFromRepoState(state);
         setRepo(
           state.repoPath,
           state.repoName,
