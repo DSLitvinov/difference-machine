@@ -252,7 +252,7 @@ type DirEntry struct {
 
 Default `limit`: 200.
 
-### 4.2.1 `workdir.entries_by_paths`
+**All files (`path: "*"`):** recursive flat list **всех файлов** репозитория (без папок), с той же пагинацией. UI: Sidebar **All files** → Content Preview.
 
 Стат по списку repo-relative paths (без пагинации). Используется Content Preview при **Changed ON** — flat list committable с timestamps для сортировки по дате.
 
@@ -399,7 +399,9 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 
 | Событие | Когда |
 |---------|-------|
-| `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` | Клик папки Sidebar, drill-down Preview, toggle Changed |
+| `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` | Клик **All files** / папки Sidebar, drill-down Preview, toggle Changed |
+
+**`selectedFolderPath`:** `'*'` = All files (flat grid всех файлов репо); иначе relative path папки (`assets/foo`). Значение `''` в UI не используется — зарезервировано для tree API root.
 | `onSelectionChange({ kind: 'commit', hash, branch })` | Выбор коммита в History; `branch` = `currentBranch` |
 | `onSelectionChange({ kind: 'none' })` | Сброс commit selection |
 | `onPreviewSelectionChange(PreviewSelection)` | File multiselect в Preview |

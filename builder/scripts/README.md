@@ -44,7 +44,6 @@ Default payload: `builder/dist/payload` (override with `DFM_DIST`).
 | **package_blender_addon_zip.sh** | Zip addon for release archives |
 | **write_setup_cfg.sh** | Dev `~/.dfm/setup.cfg` |
 | **clean_build.sh** | Remove staging artifacts |
-| **verify_smoke_prereqs.sh** | Checks local smoke-test prerequisites |
 | **copy_addons.sh** | Copy addons into distribution |
 | **lib/detect_platform.sh** | OS detection |
 | **lib/dfm_dist.sh** | Default `DFM_DIST` resolution |

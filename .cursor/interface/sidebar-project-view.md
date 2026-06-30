@@ -20,7 +20,13 @@ Sidebar показывает **только папки** в виде **полн�
 | **Sidebar (Project view)** | Дерево папок + count badge |
 | **Content Preview** | Файлы выбранной папки, preview, diff |
 
-Выбор папки в Sidebar → `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` (`path: ''` = **корень репо**). См. [api-contract.md §6](./api-contract.md).
+Выбор папки или **All files** в Sidebar → `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })`. См. [api-contract.md §6](./api-contract.md).
+
+| `selectedFolderPath` | Значение |
+|----------------------|----------|
+| `'*'` | **All files** — все файлы репозитория (рекурсивно), как в Anchorpoint Edge |
+| `''` | *(не используется в UI v1.1+)* — зарезервировано для API |
+| `'assets/…'` | Конкретная папка — immediate children в Preview |
 
 Toggle **Changed** одновременно:
 1. Фильтрует дерево папок в Sidebar (только ветки с изменениями).
@@ -35,16 +41,19 @@ Toggle **Changed** одновременно:
 │ Project view          Changed [○]   │
 ├─────────────────────────────────────┤
 │ [📁] Project name            [⇕]    │
+│ ⎇ main                              │
 ├─────────────────────────────────────┤
-│ FOLDERS                             │
+│ FOLDERS                        [⤢]  │  ← один toggle expand/collapse
+│ [📁] All files                972   │  ← виртуальный пункт (всегда первый)
 │ ▼ [📁] assets                 120   │
 │     ▼ [📁] References         972   │
 │         [📁] chars             12   │
 │     [📁] Textures              56   │
-│ [📁] scenes                     3   │
 │         (scroll)                    │
 └─────────────────────────────────────┘
 ```
+
+**Figma (полный экран «All files»):** [4090:4628](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)
 
 ### 2.1 Header
 
@@ -67,24 +76,58 @@ Toggle **Changed** одновременно:
 
 **Текущая ветка (read-only):** под repo selector — `GitBranch` + `currentBranch` (`text-xs text-muted-foreground`). Checkout только из History `BranchSelector` ([sidebar-history-view.md §2.6](./sidebar-history-view.md)); в Project mode ветка не переключается.
 
-### 2.3 Дерево папок
+### 2.3 Секция Folders — заголовок и expand/collapse
 
-**Канон v1.0:** [decisions.md §5](./decisions.md) · API: [api-contract.md §4.1](./api-contract.md).
+| Элемент | Spec |
+|---------|------|
+| Label | `Folders` — `text-xs font-semibold uppercase text-muted-foreground` ([design-tokens.md §3.1](./design-tokens.md)) |
+| **Toggle button** | Один `Button ghost` 32×32, icon 16×16 — **замена** двум кнопкам «Expand all» / «Collapse» |
+| Icon collapsed | `Expand` (lucide) — дерево свёрнуто до top-level |
+| Icon expanded | `Shrink` (lucide) — хотя бы один узел раскрыт |
+| Click collapsed | `expandAllFolders()` — загрузить полное дерево (с лимитом `EXPAND_ALL_FILE_LIMIT`) |
+| Click expanded | `collapseAllFolders()` — свернуть все узлы, оставить top-level + **All files** |
+| Disabled | `treeLoading` или `folderTree.item_count >= EXPAND_ALL_FILE_LIMIT` (только для expand) |
+| Tooltip | `Expand all folders` / `Collapse all folders` |
+
+Figma: кнопка `4089:3646` в [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812).
+
+### 2.4 All files (виртуальный пункт)
+
+Первый row в scroll-области, **над** деревом папок. UX как **Anchorpoint Edge** — flat-просмотр всех файлов репозитория.
+
+| Property | Spec |
+|----------|------|
+| Label | `All files` (i18n `sidebar.allFiles`) |
+| Icon | `Folder` 16×16 |
+| Selection value | `selectedFolderPath = '*'` |
+| Count badge | **OFF Changed:** `folderTree.item_count` (recursive files, весь репо). **ON Changed:** число committable файлов |
+| Row style | Канон [design-tokens.md §4](./design-tokens.md) — Default / Hover / Selected (`bg-accent`) |
+| Default on open | **All files** выбран при первом открытии репо (если нет сохранённого per-repo pref) |
+| Changed filter | Строка **всегда видна**; при ON без committable — count `0`, Preview empty |
+
+**Content Preview при `'*'`:** см. [content-preview-project-view.md §1.2](./content-preview-project-view.md) — заголовок `All files <repoName>`, секция **Folders скрыта**, flat grid **всех** файлов репо (не только immediate). Поиск и drill-down по подпапкам в Preview по-прежнему синхронизируют `selectedFolderPath` на конкретную папку.
+
+Figma: row `4090:4185` (Selected) в [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812); экран [4090:4628](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628).
+
+### 2.5 Дерево папок
+
+**Канон:** [decisions.md §5](./decisions.md) · API: [api-contract.md §4.1](./api-contract.md).
 
 **Решения:**
 
-| # | v1.0 | v1.1 (Figma target) |
-|---|------|---------------------|
-| Содержимое | **Только папки**, файлы не рендерятся | то же |
-| Layout | **Tree**, не drill-down | то же |
-| Раскрытие | **Lazy expand** — первый уровень при open; дети по клику chevron | **Always expanded** |
-| Root | **Selectable** — `path: ''` → Preview показывает файлы корня репо | то же |
+| # | Поведение |
+|---|-----------|
+| Содержимое | **Только папки**, файлы не рендерятся |
+| Layout | **Tree**, не drill-down |
+| Раскрытие | **Lazy expand** per-node (chevron) + **global toggle** в заголовке §2.3 |
+| Repo root row | **Удалён** — заменён пунктом **All files** §2.4 |
 
-#### Lazy expand (v1.0)
+#### Lazy expand
 
 - Первый запрос: `workdir.tree({ path: '', depth: 1 })`.
 - Клик chevron на узле без загруженных детей → `workdir.tree({ path: '<node>', depth: 1 })` → merge в локальное дерево.
 - Chevron **активен** (rotate on expand/collapse локального узла).
+- Global toggle §2.3: expand all → `depth: -1` (или полный обход); collapse → сброс `expandedPaths`.
 
 #### Визуал строки папки
 
@@ -96,12 +139,12 @@ Toggle **Changed** одновременно:
 - **Default:** прозрачный фон на белом Container.
 - **Hover / Selected:** канон [design-tokens.md §4](./design-tokens.md) — `treeRowStateClasses` (`bg-accent` only; **без** border).
 
-#### Клик по папке / root
+#### Клик по папке / All files
 
 - Highlight row (`selected`).
-- `path: ''` — **корень репозитория**; Preview показывает файлы непосредственно в root (без подпапок).
-- `path: 'assets/References'` — Preview показывает immediate files этой папки.
-- Emit `onProjectViewContextChange` (§3.3) при каждом изменении folder или toggle.
+- `path: '*'` — **All files**; Preview — flat grid всех файлов репо (§2.4).
+- `path: 'assets/References'` — Preview показывает immediate subfolders + files этой папки.
+- Emit `onProjectViewContextChange` (§3.3) при каждом изменении selection или toggle.
 
 #### Папки без файлов (только подпапки)
 
@@ -111,9 +154,9 @@ Toggle **Changed** одновременно:
 
 #### Сворачивание (collapse)
 
-- **v1.0:** lazy expand/collapse per-node (chevron).
-- **v1.1:** **Expand all** / **Collapse** в заголовке Folders; lazy по умолчанию.
-- Persist expanded paths в `localStorage` per repo — v2.1+ backlog.
+- Per-node: chevron toggle.
+- Global: один toggle в заголовке §2.3 (expand ↔ collapse all).
+- Persist `expandedPaths` в `localStorage` per repo ([architecture.md §3.2](./architecture.md)).
 
 #### Производительность
 
@@ -123,7 +166,7 @@ Toggle **Changed** одновременно:
 
 **Layout:** scroll-область дерева — `bg-background`, **без** собственного `border-r`; правая граница Sidebar — один раз на shell-колонке ([architecture.md §2.5](./architecture.md)).
 
-### 2.4 Цвета (List Container)
+### 2.6 Цвета (List Container)
 
 См. [design-tokens.md §3.1](./design-tokens.md).
 
@@ -146,7 +189,7 @@ Toggle влияет на **две панели одновременно**: Sideb
 Показывать только папки, в поддереве которых есть хотя бы один **committable** файл (§3.2):
 
 - Родительские папки сохраняются (prune пустых веток).
-- Дерево остаётся **always expanded**.
+- Дерево может быть свёрнуто global toggle; при ON auto-expand веток с committable — backlog v2.1+.
 - Badge (опционально v1.1): число committable файлов в поддереве.
 
 **Switch OFF:** полное дерево всех папок.
@@ -184,7 +227,7 @@ function committablePaths(status: Status): string[] {
 
 ```ts
 interface ProjectViewContext {
-  selectedFolderPath: string   // '' = repo root
+  selectedFolderPath: string   // '*' = All files; folder rel path otherwise
   showChangedOnly: boolean
 }
 
@@ -196,8 +239,10 @@ onProjectViewContextChange(ctx: ProjectViewContext): void
 
 | `showChangedOnly` | Файлы в Preview для `selectedFolderPath` |
 |-------------------|------------------------------------------|
-| `false` | Все immediate files в папке (`workdir.entries`) |
-| `true` | Все **committable** files **рекурсивно** в поддереве выбранной папки (`''` = весь репозиторий) |
+| `false` + `'*'` | **Все files** репозитория (flat, `workdir.entries_by_paths` или recursive API) |
+| `false` + folder | Immediate files в папке (`workdir.entries`) |
+| `true` + `'*'` | Все **committable** files репозитория (flat) |
+| `true` + folder | Все **committable** files **рекурсивно** в поддереве папки |
 
 Фильтр Preview при `showChangedOnly = true`:
 
@@ -214,7 +259,7 @@ function committableFilesInSubtree(
 }
 ```
 
-- **Root (`''`):** flat-список всех committable файлов репозитория — удобно для multiselect и **Create commit**.
+- **All files (`'*'`):** flat-список всех committable файлов репозитория — удобно для multiselect и **Create commit**.
 - **Подпапка:** только committable внутри этой папки и вложенных подпапок.
 - Сортировка: см. [content-preview-project-view.md §6](./content-preview-project-view.md) — по умолчанию name-sort по **полному относительному path** (не только basename).
 - В карточке файла: subtitle = parent folder (`assets` / `root`) для различения одноимённых имён.
@@ -222,7 +267,7 @@ function committableFilesInSubtree(
 
 Каждый файл в Preview сопровождается `VcsFileStatus` из `status.get` (badge `M`, `A`, `D`, `N`).
 
-**При включении Changed без выбранной папки:** auto-select root (`path: ''`) или сохранить текущий `selectedFolderPath` — если null, default **root**.
+**При включении Changed без выбранной папки:** сохранить текущий `selectedFolderPath`; если null, default **All files** (`'*'`).
 
 ### 3.4 Алгоритм фильтра дерева (Sidebar)
 
@@ -280,8 +325,8 @@ sequenceDiagram
 
 | Ситуация | Поведение |
 |----------|-----------|
-| Нет папок (только файлы в root) | Дерево: только selectable **root** row; Preview root по клику |
-| Changed ON, root | Root в дереве; Preview — все committable репо (flat) |
+| Нет папок (только файлы в root) | Дерево пустое; **All files** выбран; Preview — flat grid всех файлов |
+| Changed ON, All files | Preview — все committable репо (flat) |
 | Changed ON, нет изменений | Empty tree «No changed folders»; Preview «No changed files» |
 | Пустая папка в дереве | Показать узел, count `0`, лист без детей |
 | `.DFM/` | Не включается в дерево |
@@ -290,7 +335,7 @@ sequenceDiagram
 | Папка удалена на диске | Refresh → узел исчезает; сброс selection если была выбрана |
 | Очень глубокое дерево | Virtual scroll |
 | Toggle Changed при выбранной папке | Preview перефильтровывает без сброса folder |
-| Переключение репо | Перезагрузка tree; selection → root; `[current repo]` в setup.cfg ([multi-repo.md](./multi-repo.md)) |
+| Переключение репо | Перезагрузка tree; selection → **All files** (`'*'`) или restore per-repo pref; `[current repo]` в setup.cfg ([multi-repo.md](./multi-repo.md)) |
 | Unicode / длинные имена | truncate + tooltip |
 
 ---
@@ -302,6 +347,8 @@ sequenceDiagram
 | `ProjectViewPanel` | Container |
 | `ProjectHeader` | Title + Changed switch |
 | `RepoSelector` | `DropdownSelector` pattern + Add repository footer — [design-tokens.md §4.5](./design-tokens.md) |
+| `AllFilesRow` | Virtual «All files» entry; `selectedFolderPath === '*'` |
+| `FolderTreeExpandToggle` | Single expand/collapse button in Folders header |
 | `FolderTree` | Virtualized flat list from expanded tree |
 | `FolderTreeRow` | indent, icon, name, count, selected |
 
@@ -340,10 +387,11 @@ type FolderTreeNode struct {
 | # | Тема | Решение |
 |---|------|---------|
 | 1 | Count badge | **Recursive files** — [architecture.md §4.2](./architecture.md) |
-| 2 | Навигация | Lazy tree + **Expand all** / **Collapse** (v1.1) |
-| 3 | Файлы в Sidebar | **Нет** — только в Content Preview |
-| 4 | Drill-down | **Отменён** |
-| 5 | Changed toggle | Фильтр папок в Sidebar **+** committable-only в Preview (§3) |
-| 6 | Root | **Selectable** — файлы корня в Preview |
-| 7 | Collapse узлов | Per-node chevron + **Expand all** / **Collapse** (v1.1) |
-| 8 | Multi-repo | [multi-repo.md](./multi-repo.md) — `~/.dfm/setup.cfg` `[current repo]` + `[repo]` |
+| 2 | Навигация | Lazy tree + **один** expand/collapse toggle в заголовке Folders |
+| 3 | **All files** | Виртуальный пункт `'*'` — flat grid всех файлов (Edge-style) |
+| 4 | Файлы в Sidebar | **Нет** — только в Content Preview |
+| 5 | Drill-down | **Отменён** (только в Preview) |
+| 6 | Changed toggle | Фильтр папок в Sidebar **+** committable-only в Preview (§3) |
+| 7 | Repo root row | **Удалён** — заменён **All files** |
+| 8 | Collapse узлов | Per-node chevron + global toggle §2.3 |
+| 9 | Multi-repo | [multi-repo.md](./multi-repo.md) — `~/.dfm/setup.cfg` `[current repo]` + `[repo]` |

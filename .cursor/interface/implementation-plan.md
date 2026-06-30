@@ -50,7 +50,7 @@
 |------|----------|
 | **Последнее обновление** | 2026-06-25 |
 | **Статус** | **v1.0 / v1.1 archived** · v2 feature scope complete |
-| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — release hardening: Windows smoke + Linux build/QA |
+| **Дальше** | [implementation-plan-v2.md](./implementation-plan-v2.md) — release hardening: Windows QA + Linux build |
 | **Заметки** | Historical checklist; do not use as active next-step source |
 
 ### Прогресс v1.0
@@ -278,13 +278,13 @@
 - [—] **7.2** `wails build` Windows — **v2** [implementation-plan-v2.md §2](./implementation-plan-v2.md)
 - [x] **7.3** Интеграция GUI в `builder/` — `./builder/build.sh --gui` (macOS)
 
-Ручной smoke → **v2 фаза 1** — [implementation-plan-v2.md](./implementation-plan-v2.md) · [smoke-checklist.md](./smoke-checklist.md)
+Ручной QA → **v2 фаза 1** — [implementation-plan-v2.md](./implementation-plan-v2.md)
 
 ---
 
 ## Фаза 8 — v1.1 polish
 
-Спеки: [plan.md](./plan.md) · [decisions.md §3](./decisions.md)
+Спеки: [architecture.md §9](./architecture.md) · [decisions.md §3](./decisions.md)
 
 ### 8.1 Commit card stats
 
@@ -301,7 +301,7 @@
 ### 8.3 Project Preview UX
 
 - [x] **8.3.1** Virtual scroll для file grid — [decisions.md §7.5](./decisions.md)
-- [x] **8.3.2** Fully expanded folder tree (Expand all / lazy по умолчанию)
+- [x] **8.3.2** Folder tree expand/collapse toggle + lazy по умолчанию
 
 ### 8.4 Прочее v1.1
 
@@ -315,7 +315,7 @@
 - [x] **8.4.8** Init repository wizard — shipped in v2 feature scope
 - [—] **8.4.9** Linux build + QA — active in [implementation-plan-v2.md §9](./implementation-plan-v2.md)
 
-**Проверка:** код и автосборка; ручной smoke — [implementation-plan-v2.md §1](./implementation-plan-v2.md).
+**Проверка:** код и автосборка; ручной QA — [implementation-plan-v2.md §1](./implementation-plan-v2.md).
 
 ---
 
@@ -338,7 +338,7 @@
 
 ## v2
 
-Полный план, smoke и backlog: **[implementation-plan-v2.md](./implementation-plan-v2.md)**
+Полный план и backlog: **[implementation-plan-v2.md](./implementation-plan-v2.md)**
 
 ---
 
@@ -350,7 +350,7 @@
 | 2025-06-23 | 5–6 | Slice 4 History+diff; Slice 5 Settings+multiselect | Smoke / Windows build |
 | 2025-06-23 | 7 | shadcn migration; 3-panel resize + persist | Smoke checklist · toolbar polish |
 | 2025-06-23 | 3 + 7 | Project toolbar; `workdir.search` API | Smoke checklist |
-| 2025-06-23 | 6 + 7 | Corner cases; smoke-checklist.md; wails build | Ручной smoke |
+| 2025-06-23 | 6 + 7 | Corner cases; wails build | Ручной QA |
 | 2025-06-24 | 7→8 | Windows/Linux build отложены; v1.0 macOS scope закрыт | **8.1** commit card stats |
-| 2025-06-24 | 8 | v1.1 code complete; smoke → v2 | [implementation-plan-v2.md](./implementation-plan-v2.md) фаза 1 |
+| 2025-06-24 | 8 | v1.1 code complete; QA → v2 | [implementation-plan-v2.md](./implementation-plan-v2.md) фаза 1 |
 | 2025-06-24 | v2·1 | Smoke macOS complete | **3.1** Merge UI |

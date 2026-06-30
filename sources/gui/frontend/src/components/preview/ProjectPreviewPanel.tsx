@@ -8,8 +8,9 @@ import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
 import { PreviewToolbar, sortDirEntries, sortByName, nameLocaleFromSortMode, extensionKeyFromPath } from "@/components/preview/PreviewToolbar";
 import { measureAsync } from "@/lib/performance";
 import { gridMinCellSize } from "@/lib/previewScale";
+import { ALL_FILES_PATH, isAllFilesPath } from "@/lib/projectViewPaths";
 import { isEditableElement, isSelectAllShortcut } from "@/lib/keyboard";
-import { useT } from "@/lib/i18n";
+import { useT, type TranslationKey } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useWorkdirFolderEntries } from "@/hooks/useWorkdirFolderEntries";
@@ -27,7 +28,17 @@ import {
 const LARGE_REPO_FILE_COUNT = 10000;
 const LARGE_FOLDER_ENTRY_COUNT = 1000;
 
-function breadcrumbSegments(folderPath: string): { label: string; path: string }[] {
+function breadcrumbSegments(
+  folderPath: string,
+  repoName: string | null,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): { label: string; path: string }[] {
+  if (isAllFilesPath(folderPath)) {
+    const label = repoName
+      ? t("sidebar.allFilesProject", { name: repoName })
+      : t("sidebar.allFiles");
+    return [{ label, path: ALL_FILES_PATH }];
+  }
   if (folderPath === "") {
     return [{ label: "root", path: "" }];
   }
@@ -80,6 +91,7 @@ export async function loadProjectData() {
 export function ProjectPreviewPanel() {
   const t = useT();
   const repoPath = useAppStore((s) => s.repoPath);
+  const repoName = useAppStore((s) => s.repoName);
   const setError = useAppStore((s) => s.setError);
   const setNotice = useAppStore((s) => s.setNotice);
   const selectedFolderPath = useProjectStore((s) => s.selectedFolderPath);
@@ -211,7 +223,8 @@ export function ProjectPreviewPanel() {
     openFileViewer(path);
   };
 
-  const crumbs = breadcrumbSegments(selectedFolderPath);
+  const crumbs = breadcrumbSegments(selectedFolderPath, repoName, t);
+  const allFilesView = isAllFilesPath(selectedFolderPath);
   const nameLocale = nameLocaleFromSortMode(sortMode);
   const sortedSubfolders = sortByName(subfolders, nameLocale);
   const filteredEntries = useMemo(
@@ -387,7 +400,7 @@ export function ProjectPreviewPanel() {
           <p className="text-sm text-muted-foreground">{t("common.loading")}…</p>
         ) : (
           <div className="space-y-6">
-            {!showChangedOnly && subfolders.length > 0 ? (
+            {!showChangedOnly && !allFilesView && subfolders.length > 0 ? (
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                   {t("common.folders")}
@@ -420,14 +433,18 @@ export function ProjectPreviewPanel() {
                 <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
                   {showChangedOnly
                     ? t("preview.changedFilesCount", { count: sortedEntries.length })
-                    : `${t("common.files")}${selectedFolderPath ? ` (${selectedFolderPath.split("/").pop()})` : ""}${
-                        entriesTotal > sortedEntries.length
-                          ? ` — ${t("preview.showingFilesOfTotal", {
-                              shown: sortedEntries.length,
-                              total: entriesTotal,
-                            })}`
-                          : ""
-                      }`}
+                    : allFilesView
+                      ? repoName
+                        ? t("sidebar.allFilesProject", { name: repoName })
+                        : t("sidebar.allFiles")
+                      : `${t("common.files")} (${selectedFolderPath.split("/").pop()})${
+                          entriesTotal > sortedEntries.length
+                            ? ` — ${t("preview.showingFilesOfTotal", {
+                                shown: sortedEntries.length,
+                                total: entriesTotal,
+                              })}`
+                            : ""
+                        }`}
                 </p>
                 {entriesHasMore && !showChangedOnly ? (
                   <p className="mb-2 text-xs text-muted-foreground">
@@ -447,7 +464,7 @@ export function ProjectPreviewPanel() {
                   vcsStatusFor={(path) => vcsFileStatus(path, status)}
                   lockUserFor={(path) => lockedByPath[path] ?? null}
                   subtitleFor={
-                    showChangedOnly
+                    showChangedOnly || allFilesView
                       ? (entry) => parentFolderPath(entry.path) || "root"
                       : undefined
                   }

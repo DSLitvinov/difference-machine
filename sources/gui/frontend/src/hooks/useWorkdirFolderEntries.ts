@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { measureAsync } from "@/lib/performance";
+import { ALL_FILES_PATH, isAllFilesPath } from "@/lib/projectViewPaths";
 import { useProjectStore } from "@/stores/projectStore";
 import {
   committableFilesInSubtree,
@@ -63,6 +64,16 @@ export function useWorkdirFolderEntries({
             setTotal(result.entries.length);
             setHasMore(false);
           }
+        } else if (isAllFilesPath(folderPath)) {
+          const result = await measureAsync("workdir.entries:*:0", () =>
+            fetchWorkdirEntries(ALL_FILES_PATH, 0, PAGE_SIZE),
+          );
+          if (!cancelled && loadGeneration === loadGenerationRef.current) {
+            setEntries(result.entries.filter((entry) => !entry.is_dir));
+            setSubfolders([]);
+            setTotal(result.total);
+            setHasMore(result.has_more);
+          }
         } else {
           const result = await measureAsync(`workdir.entries:${folderPath || "root"}:0`, () =>
             fetchWorkdirEntries(folderPath, 0, PAGE_SIZE),
@@ -99,11 +110,12 @@ export function useWorkdirFolderEntries({
 
     const loadGeneration = loadGenerationRef.current;
     const offset = entries.length;
+    const entriesPath = isAllFilesPath(folderPath) ? ALL_FILES_PATH : folderPath;
     loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
-      const result = await measureAsync(`workdir.entries:${folderPath || "root"}:${offset}`, () =>
-        fetchWorkdirEntries(folderPath, offset, PAGE_SIZE),
+      const result = await measureAsync(`workdir.entries:${entriesPath}:${offset}`, () =>
+        fetchWorkdirEntries(entriesPath, offset, PAGE_SIZE),
       );
       if (loadGeneration !== loadGenerationRef.current) {
         return;

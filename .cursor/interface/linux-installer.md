@@ -225,4 +225,4 @@ sudo rm -f /usr/local/share/applications/difference-machine.desktop
 
 ## 8. Related specs
 
-- [paths.md §9.3](./paths.md) · [multi-repo.md](./multi-repo.md) · [smoke-checklist.md §Platform release](./smoke-checklist.md)
+- [paths.md §9.3](./paths.md) · [multi-repo.md](./multi-repo.md)

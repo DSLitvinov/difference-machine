@@ -143,4 +143,4 @@ Quit — через системный `AppMenu` (Wails), не кастомны�
 - [x] Window → Minimize / Zoom
 - [x] About показывает title + message из `mac.About`
 
-Проверено в [smoke-checklist.md §7.5](./smoke-checklist.md).
+Проверено вручную при v2 фазе 1 ([implementation-plan-v2.md](./implementation-plan-v2.md)).

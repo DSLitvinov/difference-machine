@@ -2,15 +2,15 @@
 
 QA, платформы и фичи после закрытия **v1.0 / v1.1** — [implementation-plan.md](./implementation-plan.md).
 
-**Канон scope v2:** [decisions.md §1](./decisions.md) · **ручная проверка:** [smoke-checklist.md](./smoke-checklist.md)
+**Канон scope v2:** [decisions.md §1](./decisions.md)
 
 ---
 
 ## Как пользоваться
 
-1. v1 code complete — не возвращайтесь к фазам 0–8 в [implementation-plan.md](./implementation-plan.md), кроме багфиксов по итогам smoke.
+1. v1 code complete — не возвращайтесь к фазам 0–8 в [implementation-plan.md](./implementation-plan.md), кроме багфиксов по итогам QA.
 2. Перед паузой — отмечайте `[x]` здесь и обновляйте **«Сейчас»**.
-3. Definition of done фазы — все `[x]` в секции + прохождение связанного раздела [smoke-checklist.md](./smoke-checklist.md) (для фазы 1).
+3. Definition of done фазы — все `[x]` в секции.
 
 ### Легенда
 
@@ -62,9 +62,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ---
 
-## Фаза 1 — Manual smoke (macOS) `[x]`
+## Фаза 1 — Manual QA (macOS) `[x]`
 
-Ручная проверка перед релизом v1.x на macOS. Детали сценариев — [smoke-checklist.md](./smoke-checklist.md). **Закрыта 2025-06-24.**
+Ручная проверка перед релизом v1.x на macOS. **Закрыта 2025-06-24.**
 
 ### 1.1 Предусловия
 
@@ -83,7 +83,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ### 1.3 Corner cases (architecture §6)
 
-- [x] **1.3.1** Таблица 6.1–6.10 — [smoke-checklist.md §Corner cases](./smoke-checklist.md)
+- [x] **1.3.1** Таблица 6.1–6.10 — [architecture.md §6](./architecture.md)
 
 ### 1.4 v1.1 polish (§7)
 
@@ -97,9 +97,9 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 - [x] **1.5.1** `./builder/build.sh --dmg` (macOS) — без ошибок; DMG открывается
 - [x] **1.5.2** DMG install → first launch → `~/.dfm/setup.cfg` с путями `/Applications/Difference Machine/...`
-- [x] **1.5.3** Заметки сессии — [smoke-checklist.md §Заметки](./smoke-checklist.md)
+- [x] **1.5.3** Заметки сессии зафиксированы в implementation-plan-v2
 
-**Проверка:** все пункты [smoke-checklist.md](./smoke-checklist.md) отмечены `[x]`; критичные баги заведены или исправлены.
+**Проверка:** критичные баги заведены или исправлены.
 
 ---
 

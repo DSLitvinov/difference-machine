@@ -214,7 +214,7 @@ Install root uses hyphenated folder `Difference-Machine` (no space). See [linux-
 | `dfm.gui.theme` | `light` \| `dark` \| `system` | [settings-dialog.md §4.3](./settings-dialog.md) |
 | `dfm.gui.font` | `inter` | [settings-dialog.md §4.1](./settings-dialog.md) |
 | `dfm.sidebar.showChangedOnly::<repoKey>` | per-repo | §11 ниже |
-| `dfm.sidebar.selectedFolderPath::<repoKey>` | per-repo | [architecture.md §3.2](./architecture.md) |
+| `dfm.sidebar.selectedFolderPath::<repoKey>` | per-repo (`'*'` = All files) | [architecture.md §3.2](./architecture.md) |
 | `dfm.info.fileHistoryBranch::<repoKey>` | per-repo | [content-info-project-view.md §5.1](./content-info-project-view.md) |
 
 `repoKey` = канонический abs ([§3](./paths.md#3-канонизация-путей)).

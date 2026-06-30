@@ -1,23 +1,25 @@
 # Forester GUI — архитектура
 
-Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**. Sidebar, Content Preview и Content Info (Project) задокументированы.
+Документация для разработчиков. Три панели: **Sidebar**, **Content Preview**, **Content Info**.
 
 **Стек:** Wails (Go backend) + React + shadcn/ui  
-**Дизайн:** [design-tokens.md](./design-tokens.md) (канон цветов и item states) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
+**Дизайн:** [design-tokens.md](./design-tokens.md) (канон цветов и item states) · Sidebar Project [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · All files [4090:4628](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628) · History [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547)
 
-**Канон:** события §3.1 · API [api-contract.md](./api-contract.md) · решения [decisions.md](./decisions.md) · пути [paths.md](./paths.md) · multi-repo [multi-repo.md](./multi-repo.md) · resize [panel-layout.md](./panel-layout.md)
+**Канон:** события §3.1 · API [api-contract.md](./api-contract.md) · решения [decisions.md](./decisions.md) · пути [paths.md](./paths.md) · multi-repo [multi-repo.md](./multi-repo.md) · resize [panel-layout.md](./panel-layout.md) · план реализации [implementation-plan-v2.md](./implementation-plan-v2.md)
 
 ---
 
 ## 1. Назначение
 
-Sidebar управляет выбором **папки**, **ветки/коммита**. Выбор **файла** — в Content Preview, не в Sidebar.
+Интерфейс разделён на три секции. **Sidebar** управляет режимом просмотра: структура папок рабочей директории (**Project view**) или история веток и коммитов (**History**). В зависимости от режима Content Preview и Content Info меняют layout.
+
+Sidebar управляет выбором **All files / папки**, **ветки/коммита**. Выбор **файла** — в Content Preview, не в Sidebar.
 
 Два режима основной панели:
 
 | Режим | Документ | Кратко |
 |-------|----------|--------|
-| **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | Дерево папок (lazy expand v1.0) + toggle «Changed» |
+| **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | **All files** + дерево папок (lazy expand) + toggle «Changed» |
 | **History** | [sidebar-history-view.md](./sidebar-history-view.md) | Ветка + список коммитов + поиск |
 
 **Content Preview (Project view):** [content-preview-project-view.md](./content-preview-project-view.md) — сетка папок/файлов, drill-down, multiselect, поиск, slider.  
@@ -198,7 +200,7 @@ interface SidebarState {
 
   // Project view — folders only
   showChangedOnly: boolean
-  selectedFolderPath: string | null   // relative; '' = repo root
+  selectedFolderPath: string | null   // relative; '*' = All files; folder path otherwise
   folderTree: FolderTreeNode | null   // from workdir.tree
 
   // History view
@@ -224,7 +226,7 @@ type SidebarCommitSelection =
 
 // Project: папка + Changed — единственный канал (нет kind: 'folder')
 interface ProjectViewContext {
-  selectedFolderPath: string   // '' = repo root
+  selectedFolderPath: string   // '*' = All files; folder rel path otherwise
   showChangedOnly: boolean
 }
 
@@ -261,7 +263,7 @@ interface SidebarEvents {
 | `localStorage` `dfm.sidebar.collapsed` | boolean |
 | `localStorage` `dfm.sidebar.mode` | `project` \| `history` |
 | per-repo `dfm.sidebar.showChangedOnly` | boolean |
-| per-repo `dfm.sidebar.selectedFolderPath` | string (`''` = root) |
+| per-repo `dfm.sidebar.selectedFolderPath` | string (`'*'` = All files default) |
 | per-repo `dfm.sidebar.expandedPaths` | JSON string array, capped at 512 expanded folder paths |
 | `localStorage` `dfm.debug.performance` | `"true"` enables `[dfm:perf]` console timings |
 
@@ -334,7 +336,7 @@ interface SidebarEvents {
 | Панель | `false` | `true` |
 |--------|---------|--------|
 | **Sidebar** | Полное дерево папок | Только папки с committable в поддереве |
-| **Content Preview** | Все files в выбранной папке | Все committable files **рекурсивно** в поддереве выбранной папки |
+| **Content Preview** | All files (`'*'`) или immediate files в папке | Committable в scope (весь репо или поддерево папки) |
 
 Сигнал: `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })`.
 
@@ -465,36 +467,31 @@ sources/gui/
 | Detached HEAD banner | Реализовано |
 | Rename `R` in diff | Реализовано |
 | Branch delete and init repository wizard | Реализовано |
-| Platform hardening | Windows smoke and Linux build/QA remain tracked in [implementation-plan-v2.md](./implementation-plan-v2.md) |
-
-**Порядок:** [decisions.md §4](./decisions.md) · backend ([api-contract.md §7](./api-contract.md)) → UI slices.
-
-**Окно:** enforce min size — [panel-layout.md §5](./panel-layout.md) (1435px Project / 1081px History).
+| Sidebar **All files** + expand/collapse toggle | Реализовано — [sidebar-project-view.md](./sidebar-project-view.md) |
+| Platform hardening | Windows QA and Linux build remain tracked in [implementation-plan-v2.md](./implementation-plan-v2.md) |
 
 ---
 
-## 9. Связанные документы
+## 9. Карта документации (GUI)
 
-- [decisions.md](./decisions.md) — decision log and shipped scope summary
-- [implementation-plan.md](./implementation-plan.md) — чеклист v1.0 / v1.1 (закрыт)
-- [implementation-plan-v2.md](./implementation-plan-v2.md) — active platform QA and release hardening checklist
-- [macos-installer.md](./macos-installer.md) — macOS DMG + `setup.cfg` bootstrap
-- [api-contract.md](./api-contract.md) — JSON API + UI events
-- [paths.md](./paths.md) — пути (relative `/`, absolute native, macOS/Windows)
-- [panel-layout.md](./panel-layout.md) — resize Sidebar / Preview / Info
-- [multi-repo.md](./multi-repo.md) — multi-repo (`~/.dfm/setup.cfg`)
-- [sidebar-project-view.md](./sidebar-project-view.md) — режим папок
-- [sidebar-history-view.md](./sidebar-history-view.md) — ветки и коммиты
-- [commit-card.md](./commit-card.md) — карточка коммита
-- [design-tokens.md](./design-tokens.md) — shadcn/ui цвета (Figma kit)
-- [content-preview-project-view.md](./content-preview-project-view.md) — Content Preview (Project view)
-- [content-preview-history-view.md](./content-preview-history-view.md) — Content Preview (History / diff)
-- [preview-commit-header.md](./preview-commit-header.md) — header коммита в Preview
-- [history-changed-file-item.md](./history-changed-file-item.md) — changed file row
-- [diff-view.md](./diff-view.md) — Diff view container
-- [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md)
-- [folder-preview-item.md](./folder-preview-item.md) — item папки
-- [file-preview-item.md](./file-preview-item.md) — item файла
-- [content-info-project-view.md](./content-info-project-view.md) — Content Info (Project)
-- [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) · [create-commit-dialog.md](./create-commit-dialog.md) · [init-repository-dialog.md](./init-repository-dialog.md) · [merge-dialog.md](./merge-dialog.md) · [settings-dialog.md](./settings-dialog.md)
-- [plan.md](./plan.md) — исходное ТЗ
+Atom-спеки и инфраструктура. При конфликте — [decisions.md](./decisions.md).
+
+| Область | Документы |
+|---------|-----------|
+| Токены / цвета | [design-tokens.md](./design-tokens.md) |
+| API + UI events | [api-contract.md](./api-contract.md) |
+| Пути | [paths.md](./paths.md) |
+| Multi-repo | [multi-repo.md](./multi-repo.md) |
+| Resize панелей | [panel-layout.md](./panel-layout.md) |
+| Settings | [settings-dialog.md](./settings-dialog.md) |
+| Application menu | [application-menu.md](./application-menu.md) |
+| Installers | [macos-installer.md](./macos-installer.md) · [windows-installer.md](./windows-installer.md) · [linux-installer.md](./linux-installer.md) |
+| **Sidebar** | [sidebar-project-view.md](./sidebar-project-view.md) · [sidebar-history-view.md](./sidebar-history-view.md) · [commit-card.md](./commit-card.md) |
+| **Content Preview (Project)** | [content-preview-project-view.md](./content-preview-project-view.md) · [file-viewer.md](./file-viewer.md) · [file-history-view.md](./file-history-view.md) · [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md) |
+| **Content Preview (History)** | [content-preview-history-view.md](./content-preview-history-view.md) · [preview-commit-header.md](./preview-commit-header.md) · [history-changed-file-item.md](./history-changed-file-item.md) · [diff-view.md](./diff-view.md) · [text-diff-panel.md](./text-diff-panel.md) · [image-diff-panel.md](./image-diff-panel.md) · [binary-diff-stub.md](./binary-diff-stub.md) · [deleted-diff-stub.md](./deleted-diff-stub.md) |
+| **Content Info** | [content-info-project-view.md](./content-info-project-view.md) · [info-file-preview-single.md](./info-file-preview-single.md) · [info-file-preview-multi.md](./info-file-preview-multi.md) · [info-file-preview-tile.md](./info-file-preview-tile.md) · [info-metadata-section.md](./info-metadata-section.md) · [info-history-section.md](./info-history-section.md) |
+| **Dialogs** | [create-commit-dialog.md](./create-commit-dialog.md) · [dirty-branch-switch-dialog.md](./dirty-branch-switch-dialog.md) · [create-branch-dialog.md](./create-branch-dialog.md) · [init-repository-dialog.md](./init-repository-dialog.md) · [merge-dialog.md](./merge-dialog.md) |
+
+**MVP (shipped):** Shell + multi-repo + 3-panel resize · Sidebar (Project + History) · Content Preview · Content Info · Create commit · dirty branch dialog. **Branch UX:** GitHub Desktop — `currentBranch`; History dropdown = checkout on select.
+
+**План реализации:** [implementation-plan.md](./implementation-plan.md) (v1, закрыт) · [implementation-plan-v2.md](./implementation-plan-v2.md) (активный).

@@ -18,6 +18,7 @@ import { rangePathsBetween } from "@/lib/fileSelection";
 import { useAppStore } from "@/stores/appStore";
 
 import { collectFolderPaths } from "@/lib/flattenFolderTree";
+import { ALL_FILES_PATH } from "@/lib/projectViewPaths";
 import type { FolderNode, StatusPayload } from "@/wails/forester";
 import { committablePaths, fetchWorkdirTree } from "@/wails/forester";
 
@@ -123,7 +124,7 @@ const initialState = {
   fileHistoryPath: null as string | null,
   fileHistoryReturnMode: "grid" as FileHistoryReturnMode,
   fileViewerPath: null as string | null,
-  selectedFolderPath: "",
+  selectedFolderPath: ALL_FILES_PATH,
   selectedFilePaths: [] as string[],
   anchorPath: null as string | null,
   showChangedOnly: false,
@@ -136,7 +137,7 @@ const initialState = {
   workdirGeneration: 0,
   sortMode: "name-en" as PreviewSortMode,
   thumbScale: DEFAULT_THUMB_SCALE,
-  navStack: [""] as string[],
+  navStack: [ALL_FILES_PATH] as string[],
   navIndex: 0,
   previewSearchQuery: "",
   treeLoading: false,

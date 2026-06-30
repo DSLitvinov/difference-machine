@@ -57,7 +57,13 @@ func handleWorkdirEntries(workPath string, args json.RawMessage) (interface{}, e
 
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
 		scanner := newWorkdirScanner(repoPath)
-		all, err := scanner.listEntries(params.Path)
+		var all []dirEntry
+		var err error
+		if params.Path == "*" {
+			all, err = scanner.listAllFiles()
+		} else {
+			all, err = scanner.listEntries(params.Path)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("workdir.entries: %w", err)
 		}

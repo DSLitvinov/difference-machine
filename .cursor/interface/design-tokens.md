@@ -90,6 +90,7 @@
 | Экран | Node |
 |-------|------|
 | Sidebar Project view | [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) |
+| Project — All files screen | [4090:4628](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628) |
 | Sidebar History | [4026:4547](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547) |
 | Content Preview | [4026:4988](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4988) |
 | Folder Item | [4026:5059](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-5059) |
@@ -130,6 +131,8 @@
 | List Container | `background/default` | `bg-background` (no side border; shell column owns `border-r`) |
 | Header title | `foreground/accent` | `text-foreground font-semibold` |
 | Section label «Folders» | `foreground/muted` | `text-muted-foreground text-xs font-semibold` |
+| Folders expand/collapse toggle | `Button` ghost 32×32 | `Expand` / `Shrink` icon 16 — [sidebar-project-view.md §2.3](./sidebar-project-view.md) |
+| **All files** row Selected | `background/primary/light` | `bg-accent` (канон §4 `treeRowStateClasses`) |
 | Row label | `foreground/secondary` | `text-secondary-foreground` |
 | Row count badge | `foreground/default` | `text-foreground text-xs font-semibold` |
 | Folder row Hover | `background/primary/light-hover` | см. §4 `treeRowStateClasses.hover` |

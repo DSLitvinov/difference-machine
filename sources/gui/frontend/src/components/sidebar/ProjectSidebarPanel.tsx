@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GitBranch, Loader2, Plus } from "lucide-react";
+import { Expand, GitBranch, Loader2, Plus, Shrink } from "lucide-react";
 
 import { FolderTree } from "@/components/sidebar/FolderTree";
 import { RepoSelector } from "@/components/sidebar/RepoSelector";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
+import { treeHasExpandedFolders } from "@/lib/projectViewPaths";
 import { useT } from "@/lib/i18n";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -75,9 +76,13 @@ export function ProjectSidebarPanel() {
   const collapseAllFolders = useProjectStore((s) => s.collapseAllFolders);
   const treeLoading = useProjectStore((s) => s.treeLoading);
   const folderTree = useProjectStore((s) => s.folderTree);
+  const expandedPaths = useProjectStore((s) => s.expandedPaths);
   const [repoMenuOpen, setRepoMenuOpen] = useState(false);
   const [treeScrollElement, setTreeScrollElement] = useState<HTMLElement | null>(null);
-  const expandAllDisabled = treeLoading || Boolean(folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT);
+
+  const treeExpanded = treeHasExpandedFolders(expandedPaths);
+  const expandAllDisabled =
+    treeLoading || Boolean(folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT);
 
   useEffect(() => {
     if (!repoPath) {
@@ -93,6 +98,14 @@ export function ProjectSidebarPanel() {
   if (!repoPath) {
     return <EmptyRepoState />;
   }
+
+  const handleTreeExpandToggle = () => {
+    if (treeExpanded) {
+      collapseAllFolders();
+      return;
+    }
+    void expandAllFolders();
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -123,32 +136,27 @@ export function ProjectSidebarPanel() {
       <div ref={setTreeScrollElement} className="min-h-0 flex-1 overflow-auto bg-background">
         <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-3">
           <p className="text-xs font-semibold uppercase text-muted-foreground">{t("common.folders")}</p>
-          <div className="flex items-center gap-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-[10px] font-medium"
-              disabled={expandAllDisabled}
-              title={
-                folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            disabled={!treeExpanded && expandAllDisabled}
+            title={
+              treeExpanded
+                ? t("sidebar.collapseAllFolders")
+                : folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT
                   ? t("repo.largeDisabled")
-                  : undefined
-              }
-              onClick={() => void expandAllFolders()}
-            >
-              {t("common.expandAll")}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-[10px] font-medium"
-              onClick={collapseAllFolders}
-            >
-              {t("common.collapse")}
-            </Button>
-          </div>
+                  : t("sidebar.expandAllFolders")
+            }
+            onClick={handleTreeExpandToggle}
+          >
+            {treeExpanded ? (
+              <Shrink className="h-4 w-4" />
+            ) : (
+              <Expand className="h-4 w-4" />
+            )}
+          </Button>
         </div>
         <FolderTree
           scrollElement={treeScrollElement}

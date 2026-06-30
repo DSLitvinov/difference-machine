@@ -332,6 +332,49 @@ func (s *workdirScanner) listEntries(rel string) ([]dirEntry, error) {
 	return out, nil
 }
 
+func (s *workdirScanner) listAllFiles() ([]dirEntry, error) {
+	out := make([]dirEntry, 0, 256)
+	err := filepath.Walk(s.repoPath, func(path string, fi os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relPath, err := filepath.Rel(s.repoPath, path)
+		if err != nil {
+			return err
+		}
+		relPath = filepath.ToSlash(relPath)
+		if relPath == "." {
+			return nil
+		}
+		isDir := fi.IsDir()
+		if s.shouldSkipName(fi.Name(), relPath, isDir) {
+			if isDir {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if isDir {
+			return nil
+		}
+		item := dirEntry{
+			Name:  fi.Name(),
+			Path:  relPath,
+			IsDir: false,
+			Size:  fi.Size(),
+		}
+		fillEntryTimestamps(&item, fi)
+		out = append(out, item)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return strings.ToLower(out[i].Path) < strings.ToLower(out[j].Path)
+	})
+	return out, nil
+}
+
 func (s *workdirScanner) treeNode(rel string, depth int) (folderNode, error) {
 	rel = canonicalRelPath(rel)
 	absDir, err := s.absDir(rel)

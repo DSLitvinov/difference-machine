@@ -1,3 +1,5 @@
+import { ALL_FILES_PATH, normalizeSelectedFolderPath } from "@/lib/projectViewPaths";
+
 const SIDEBAR_COLLAPSED = "dfm.sidebar.collapsed";
 const MAX_PERSISTED_EXPANDED_PATHS = 512;
 
@@ -39,9 +41,11 @@ export function saveShowChangedOnly(repoPath: string, value: boolean): void {
 
 export function loadSelectedFolderPath(repoPath: string): string {
   try {
-    return localStorage.getItem(perRepoKey("dfm.sidebar.selectedFolderPath", repoPath)) ?? "";
+    const raw = localStorage.getItem(perRepoKey("dfm.sidebar.selectedFolderPath", repoPath));
+    if (raw === null) return ALL_FILES_PATH;
+    return normalizeSelectedFolderPath(raw);
   } catch {
-    return "";
+    return ALL_FILES_PATH;
   }
 }
 

@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { flattenVisibleFolderTree } from "@/lib/flattenFolderTree";
+import { ALL_FILES_PATH, isAllFilesPath } from "@/lib/projectViewPaths";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useProjectStore } from "@/stores/projectStore";
@@ -94,6 +95,11 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
   const mergeFolderChildren = useProjectStore((s) => s.mergeFolderChildren);
   const treeLoading = useProjectStore((s) => s.treeLoading);
 
+  const allFilesCount = useMemo(() => {
+    if (!folderTree) return 0;
+    return showChangedOnly ? committable.length : folderTree.item_count;
+  }, [folderTree, showChangedOnly, committable]);
+
   const flatRows = useMemo(() => {
     if (!folderTree) return [];
     return flattenVisibleFolderTree(
@@ -134,30 +140,23 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
     return <p className="p-4 text-sm text-muted-foreground">{t("folder.noFolders")}</p>;
   }
 
-  const rootVisible =
-    !showChangedOnly || folderHasCommittable("", committable) || folderTree.children.length > 0;
-
   const virtualRows = rowVirtualizer.getVirtualItems();
 
   return (
     <div className="flex flex-col gap-0.5 p-2">
-      {rootVisible ? (
-        <Button
-          type="button"
-          variant="ghost"
-          className={cn(
-            "h-9 w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left text-sm font-normal",
-            selectedFolderPath === "" ? "bg-accent" : "",
-          )}
-          onClick={() => onFolderSelect("")}
-        >
-          <Folder className="h-4 w-4 text-muted-foreground" />
-          <span className="flex-1 truncate" title={folderTree.name}>
-            {folderTree.name}
-          </span>
-          <span className="text-xs font-semibold text-muted-foreground">{folderTree.item_count}</span>
-        </Button>
-      ) : null}
+      <Button
+        type="button"
+        variant="ghost"
+        className={cn(
+          "h-9 w-full justify-start gap-2 rounded-md px-3 py-1.5 text-left text-sm font-medium",
+          isAllFilesPath(selectedFolderPath) ? "bg-accent text-secondary-foreground" : "",
+        )}
+        onClick={() => onFolderSelect(ALL_FILES_PATH)}
+      >
+        <Folder className="h-4 w-4 text-muted-foreground" />
+        <span className="flex-1 truncate">{t("sidebar.allFiles")}</span>
+        <span className="text-xs font-semibold text-muted-foreground">{allFilesCount}</span>
+      </Button>
       {flatRows.length > 0 ? (
         <div
           className="relative w-full"
@@ -185,10 +184,10 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
             );
           })}
         </div>
-      ) : rootVisible ? (
-        <p className="px-2 py-1 text-xs text-muted-foreground">{t("folder.noSubfolders")}</p>
       ) : (
-        <p className="px-2 py-1 text-xs text-muted-foreground">{t("folder.noChangedFolders")}</p>
+        <p className="px-2 py-1 text-xs text-muted-foreground">
+          {showChangedOnly ? t("folder.noChangedFolders") : t("folder.noSubfolders")}
+        </p>
       )}
     </div>
   );

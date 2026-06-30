@@ -17,16 +17,31 @@
 
 ## 1. Назначение и связь с Sidebar
 
-Content Preview работает **в связке с Sidebar (Project view)**. Когда в дереве Sidebar выбрана папка рабочей категории, Preview показывает её содержимое в виде сетки:
+Content Preview работает **в связке с Sidebar (Project view)**. Выбор в Sidebar определяет scope сетки:
 
-| Секция | Содержимое |
-|--------|------------|
-| **Folders** | Immediate subfolders выбранной папки (`FolderItem`) |
-| **Files (`<folder>`)** | Immediate files выбранной папки (`FilePreviewItem`) |
+| `selectedFolderPath` | Preview |
+|----------------------|---------|
+| `'*'` (**All files**) | Flat grid **всех** файлов репозитория; секция **Folders скрыта**; toolbar title `All files <repoName>` |
+| folder path | Immediate subfolders (`FolderItem`) + immediate files (`FilePreviewItem`) |
+
+**Figma (All files):** [4090:4628](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)
 
 Источник входа: `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` (см. [architecture.md §3.1](./architecture.md), [sidebar-project-view.md §3.3](./sidebar-project-view.md)).
 
-### 1.1 Зафиксированные решения
+### 1.2 Режим All files (`selectedFolderPath === '*'`)
+
+| # | Поведение |
+|---|-----------|
+| Toolbar title | `All files <repoName>` — `text-lg/regular`, truncate ([Figma `4090:4628`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)) |
+| Folders section | **Скрыта** |
+| Files grid | Все файлы репо (рекурсивно), flat; сортировка/фильтр/поиск как в §6–7 |
+| Subtitle на карточке | Parent folder path (`assets/refs`) для различения одноимённых имён |
+| Back/Forward | Работают; выход из All files → переход на конкретную папку синхронизирует Sidebar |
+| Drill-down subfolder | Клик по подпапке в Preview (если есть) → `selectedFolderPath` = эта папка; Sidebar sync |
+| Changed ON | Flat grid всех committable (как §8) |
+| Data | `workdir.entries_by_paths` с полным списком paths **или** dedicated recursive listing; не `workdir.entries('')` (только immediate root) |
+
+### 1.3 Зафиксированные решения
 
 | # | Тема | Решение |
 |---|------|---------|
@@ -82,13 +97,13 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 - Header `Folders` — `h4` (Inter Semi Bold 20, tracking −0.5).
 - Сетка `FolderItem`, gap `8px`, wrap.
-- Скрывается полностью, если у папки нет подпапок **или** при Changed ON (§8).
+- Скрывается полностью, если у папки нет подпапок, при **All files** (`'*'`), **или** при Changed ON (§8).
 
 ### 2.3 Секция Files (node `7310:16010`)
 
 - Header `Files (<folderName>)` — `h4`; имя текущей папки в скобках.
 - Сетка `FilePreviewItem`, gap `8px`, wrap.
-- Корень репо: header `Files` без скобок (или `Files (root)`).
+- **All files:** toolbar/section title `All files <repoName>`; без секции Folders (§1.2).
 
 ### 2.4 Сетка (layout)
 
@@ -507,7 +522,7 @@ const collator = new Intl.Collator(sortLocale, {
 
 При Changed ON и отсутствии committable-файлов в scope → empty state «No changed files».
 
-**Типичный UX:** toggle ON + root в Sidebar → все изменённые файлы репо в одной сетке → multiselect → **Create commit** в Content Info.
+**Типичный UX:** toggle ON + **All files** в Sidebar → все изменённые файлы репо в одной сетке → multiselect → **Create commit** в Content Info.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Канон продуктовых и технических решений **до и во время реализации**. При конфликте со спекой atom-компонента — **этот документ главнее**, если в спеке нет явной ссылки сюда.
 
-**Связанные:** [plan.md](./plan.md) · [architecture.md](./architecture.md) · [api-contract.md](./api-contract.md)
+**Связанные:** [architecture.md](./architecture.md) · [api-contract.md](./api-contract.md)
 
 **Статус:** historical decision log, refreshed against shipped v1.1/v2 scope on 2026-06-25. Active release hardening is tracked in [implementation-plan-v2.md](./implementation-plan-v2.md).
 
@@ -256,10 +256,6 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ## 10. Связанные документы (обновлены под этот log)
 
-- [plan.md](./plan.md) — original doc map plus current scope summary
-- [api-contract.md](./api-contract.md) — API дополнения
-- [sidebar-history-view.md](./sidebar-history-view.md) — branch flowchart
-- [sidebar-project-view.md](./sidebar-project-view.md) — lazy tree v1.0
-- [architecture.md](./architecture.md) — фазы реализации
+- [architecture.md](./architecture.md) — архитектура GUI и карта документации §9
 - [implementation-plan.md](./implementation-plan.md) — v1.0 / v1.1 (закрыт)
 - [implementation-plan-v2.md](./implementation-plan-v2.md) — active platform QA and release hardening

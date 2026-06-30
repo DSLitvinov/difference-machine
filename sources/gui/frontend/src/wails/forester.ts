@@ -135,7 +135,7 @@ export function committablePaths(status: StatusPayload): string[] {
 }
 
 export function committableFilesInSubtree(folderPath: string, committable: string[]): string[] {
-  if (folderPath === "") {
+  if (folderPath === "" || folderPath === "*") {
     return [...committable];
   }
   const prefix = `${folderPath}/`;
