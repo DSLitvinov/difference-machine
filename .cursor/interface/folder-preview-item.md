@@ -103,7 +103,7 @@ Transition: `transition-colors duration-150`.
 | Событие | Sidebar |
 |---------|---------|
 | Double-click / drill-down в Preview | Обновить `selectedFolderPath`, scroll-to узел |
-| Back/Forward в Preview | Sync Sidebar selection |
+| Back/Forward в Preview | **Удалены**; sync Sidebar — breadcrumbs / drill-down |
 | Выбор папки в Sidebar | Preview сбрасывает `previewFolderPath` на неё |
 | Changed ON | Секция Folders **скрыта** целиком (не фильтруется) |
 
@@ -127,9 +127,9 @@ interface FolderPreviewItemData {
 
 ---
 
-## 6. Changed mode (Sidebar toggle)
+## 6. Changed mode (Preview toolbar)
 
-При `showChangedOnly = true` секция **Folders скрывается** в Preview ([content-preview-project-view.md](./content-preview-project-view.md) §8). Компонент не рендерится.
+При `showChangedOnly = true` (toggle в **Content Preview**, [content-preview-project-view.md §8](./content-preview-project-view.md)) секция **Folders скрывается** в Preview. Компонент не рендерится.
 
 ---
 

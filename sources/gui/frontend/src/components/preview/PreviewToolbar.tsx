@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  ArrowDownAZ,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-  Search,
-} from "lucide-react";
+import { ArrowDownAZ, Check, Filter, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,9 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import {
   sliderIndexFromThumbScale,
   THUMB_SCALE_STEPS,
@@ -40,9 +35,6 @@ export interface BreadcrumbSegment {
 }
 
 interface PreviewToolbarProps {
-  breadcrumbs: BreadcrumbSegment[];
-  canGoBack: boolean;
-  canGoForward: boolean;
   showChangedOnly: boolean;
   searchQuery: string;
   searchLoading?: boolean;
@@ -50,9 +42,7 @@ interface PreviewToolbarProps {
   thumbScale: ThumbScalePx;
   availableExtensions: string[];
   hiddenExtensions: Set<string>;
-  onBack: () => void;
-  onForward: () => void;
-  onBreadcrumbSelect: (path: string) => void;
+  onShowChangedOnlyChange: (value: boolean) => void;
   onSearchChange: (query: string) => void;
   onSearchClear: () => void;
   onSortModeChange: (mode: PreviewSortMode) => void;
@@ -92,9 +82,6 @@ function sortModeLabel(mode: PreviewSortMode, t: ReturnType<typeof useT>): strin
 }
 
 export function PreviewToolbar({
-  breadcrumbs,
-  canGoBack,
-  canGoForward,
   showChangedOnly,
   searchQuery,
   searchLoading,
@@ -102,9 +89,7 @@ export function PreviewToolbar({
   thumbScale,
   availableExtensions,
   hiddenExtensions,
-  onBack,
-  onForward,
-  onBreadcrumbSelect,
+  onShowChangedOnlyChange,
   onSearchChange,
   onSearchClear,
   onSortModeChange,
@@ -125,65 +110,35 @@ export function PreviewToolbar({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-1.5">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-10 w-10 shrink-0"
-        disabled={!canGoBack}
-        title={t("preview.back")}
-        onClick={onBack}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-10 w-10 shrink-0"
-        disabled={!canGoForward}
-        title={t("preview.forward")}
-        onClick={onForward}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
+    <div className="flex items-center gap-1 border-b border-border px-2 py-1.5">
+      <div className="h-10 w-10 shrink-0" aria-hidden />
 
-      <Separator orientation="vertical" className="mx-1 h-6" />
+      <div className="flex shrink-0 items-center gap-2">
+        <Label htmlFor="preview-changed-only" className="text-sm font-medium text-foreground">
+          {t("common.changed")}
+        </Label>
+        <Switch
+          id="preview-changed-only"
+          checked={showChangedOnly}
+          onCheckedChange={onShowChangedOnlyChange}
+        />
+      </div>
 
-      <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-lg">
-        {breadcrumbs.map((segment, index) => (
-          <span key={segment.path || "root"} className="flex min-w-0 items-center gap-1">
-            {index > 0 ? <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" /> : null}
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-auto max-w-[12rem] truncate px-1 py-0 text-lg font-normal text-foreground hover:text-foreground"
-              title={segment.label}
-              onClick={() => onBreadcrumbSelect(segment.path)}
-            >
-              {segment.label}
-            </Button>
-          </span>
-        ))}
-        {showChangedOnly ? (
-          <span className="text-xs text-muted-foreground">· {t("preview.changedOnly")}</span>
-        ) : null}
-      </nav>
+      <Separator orientation="vertical" className="mx-1 h-6 shrink-0" />
 
-      <div className="flex w-[120px] shrink-0 items-center gap-2 px-1">
+      <div className="flex min-w-0 flex-1 items-center justify-center px-2">
         <Slider
           min={0}
           max={THUMB_SCALE_STEPS.length - 1}
           step={1}
           value={[sliderIndex]}
-          className="flex-1"
+          className="w-[120px]"
           title={t("preview.thumbnailSize")}
           onValueChange={([index]) => onThumbScaleChange(thumbScaleFromSliderValue(index))}
         />
       </div>
 
-      <div className="relative w-[200px] shrink-0">
+      <div className="relative w-[250px] shrink-0">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={searchQuery}

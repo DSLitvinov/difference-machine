@@ -5,8 +5,6 @@ import { FolderTree } from "@/components/sidebar/FolderTree";
 import { RepoSelector } from "@/components/sidebar/RepoSelector";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { treeHasExpandedFolders } from "@/lib/projectViewPaths";
 import { useT } from "@/lib/i18n";
@@ -69,8 +67,6 @@ export function ProjectSidebarPanel() {
   const status = useProjectStore((s) => s.status);
   const isDetached = Boolean(status?.is_detached);
 
-  const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
-  const setShowChangedOnly = useProjectStore((s) => s.setShowChangedOnly);
   const navigateToFolder = useProjectStore((s) => s.navigateToFolder);
   const expandAllFolders = useProjectStore((s) => s.expandAllFolders);
   const collapseAllFolders = useProjectStore((s) => s.collapseAllFolders);
@@ -109,18 +105,8 @@ export function ProjectSidebarPanel() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex shrink-0 items-center justify-between border-b border-sidebar-border px-4 py-3">
+      <header className="flex shrink-0 items-center border-b border-sidebar-border px-4 py-3">
         <h1 className="text-base font-semibold">{t("common.projectView")}</h1>
-        <div className="flex items-center gap-2">
-          <Label htmlFor="changed-only" className="text-sm font-normal text-muted-foreground">
-            {t("common.changed")}
-          </Label>
-          <Switch
-            id="changed-only"
-            checked={showChangedOnly}
-            onCheckedChange={setShowChangedOnly}
-          />
-        </div>
       </header>
 
       <div className="relative z-20 shrink-0 space-y-3 border-b border-sidebar-border p-3">

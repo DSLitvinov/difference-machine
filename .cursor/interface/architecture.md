@@ -19,7 +19,7 @@ Sidebar управляет выбором **All files / папки**, **ветк
 
 | Режим | Документ | Кратко |
 |-------|----------|--------|
-| **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | **All files** + дерево папок (lazy expand) + toggle «Changed» |
+| **Project view** | [sidebar-project-view.md](./sidebar-project-view.md) | **All files** + дерево папок (lazy expand); Changed — в Preview |
 | **History** | [sidebar-history-view.md](./sidebar-history-view.md) | Ветка + список коммитов + поиск |
 
 **Content Preview (Project view):** [content-preview-project-view.md](./content-preview-project-view.md) — сетка папок/файлов, drill-down, multiselect, поиск, slider.  
@@ -160,7 +160,7 @@ onSettingsClick={() => setSettingsOpen(true)}
 | Settings | `Button ghost` + `Settings` icon → `Dialog` |
 | Dropdowns | v1.0: `DropdownSelector` / `RepoSelector` — [design-tokens.md §4.5](./design-tokens.md); v1.1: `Popover` + `Command` |
 | Search | `Input` |
-| Changed toggle | `Switch` + `Label` |
+| Changed toggle | `Switch` + `Label` — **Content Preview toolbar** ([content-preview-project-view.md §2.1](./content-preview-project-view.md)) |
 | Folder tree rows | `FolderTreeRow` + virtual scroll |
 | Commit cards | `Card` + `Badge` + `Tooltip` + `DropdownMenu` |
 | Scroll area | `ScrollArea` |
@@ -239,7 +239,7 @@ interface SidebarEvents {
   /** History only */
   onSelectionChange(selection: SidebarCommitSelection): void
   onModeChange(mode: SidebarMode): void
-  /** Project: folder + Changed toggle */
+  /** Project: folder (Sidebar/Preview) + Changed (Preview toolbar) */
   onProjectViewContextChange(ctx: ProjectViewContext): void
 }
 ```
@@ -326,6 +326,8 @@ interface SidebarEvents {
 ---
 
 ## 5. VCS-статусы и toggle «Changed»
+
+Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-project-view.md §2.1](./content-preview-project-view.md)). State `showChangedOnly` в project store; persist per-repo (`dfm.sidebar.showChangedOnly` — legacy key).
 
 ### 5.1 Committable files
 
@@ -468,6 +470,7 @@ sources/gui/
 | Rename `R` in diff | Реализовано |
 | Branch delete and init repository wizard | Реализовано |
 | Sidebar **All files** + expand/collapse toggle | Реализовано — [sidebar-project-view.md](./sidebar-project-view.md) |
+| Changed toggle в Preview toolbar | Реализовано — [content-preview-project-view.md §2.1](./content-preview-project-view.md) |
 | Platform hardening | Windows QA and Linux build remain tracked in [implementation-plan-v2.md](./implementation-plan-v2.md) |
 
 ---

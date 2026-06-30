@@ -399,7 +399,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 
 | Событие | Когда |
 |---------|-------|
-| `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` | Клик **All files** / папки Sidebar, drill-down Preview, toggle Changed |
+| `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` | Клик **All files** / папки (Sidebar или Preview), drill-down, **toggle Changed в Preview** |
 
 **`selectedFolderPath`:** `'*'` = All files (flat grid всех файлов репо); иначе relative path папки (`assets/foo`). Значение `''` в UI не используется — зарезервировано для tree API root.
 | `onSelectionChange({ kind: 'commit', hash, branch })` | Выбор коммита в History; `branch` = `currentBranch` |

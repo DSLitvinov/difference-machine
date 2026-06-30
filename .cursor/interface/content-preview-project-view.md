@@ -21,7 +21,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 | `selectedFolderPath` | Preview |
 |----------------------|---------|
-| `'*'` (**All files**) | Flat grid **всех** файлов репозитория; секция **Folders скрыта**; toolbar title `All files <repoName>` |
+| `'*'` (**All files**) | Flat grid **всех** файлов репозитория; секция **Folders скрыта**; breadcrumbs `All files <repoName>` |
 | folder path | Immediate subfolders (`FolderItem`) + immediate files (`FilePreviewItem`) |
 
 **Figma (All files):** [4090:4628](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)
@@ -32,11 +32,12 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 | # | Поведение |
 |---|-----------|
-| Toolbar title | `All files <repoName>` — `text-lg/regular`, truncate ([Figma `4090:4628`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)) |
+| Toolbar title | — (breadcrumbs в content area, §2.2) |
+| Breadcrumbs | `All files <repoName>` — `text-lg/regular` 18px ([Figma `4090:5042`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4090-4628)) |
 | Folders section | **Скрыта** |
 | Files grid | Все файлы репо (рекурсивно), flat; сортировка/фильтр/поиск как в §6–7 |
 | Subtitle на карточке | Parent folder path (`assets/refs`) для различения одноимённых имён |
-| Back/Forward | Работают; выход из All files → переход на конкретную папку синхронизирует Sidebar |
+| Back/Forward | **Удалены** из toolbar; навигация — breadcrumbs (§2.2), Sidebar, drill-down |
 | Drill-down subfolder | Клик по подпапке в Preview (если есть) → `selectedFolderPath` = эта папка; Sidebar sync |
 | Changed ON | Flat grid всех committable (как §8) |
 | Data | `workdir.entries_by_paths` с полным списком paths **или** dedicated recursive listing; не `workdir.entries('')` (только immediate root) |
@@ -45,14 +46,15 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Навигация | **Drill-down в Preview + двусторонняя синхронизация**: клик по подпапке открывает её в Preview **и** выделяет узел в дереве Sidebar |
-| 2 | Кнопки `<` `>` | **История навигации** (back/forward) по посещённым папкам внутри Preview |
-| 3 | Сортировка | **Имя** — popover `ArrowDownAZ` (`A–Z` / `А–Я`); **дата** — radio в dropdown «Фильтр» (§6.4); Folders всегда по имени |
-| 4 | Мультиселект | **Только файлы**. Папки — одиночный выбор; double-click для входа |
-| 5 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
-| 6 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
-| 7 | Слайдер | Масштаб миниатюр **48px → 128px**, шаг **18px** (§5) |
-| 8 | Double-click файл | **[File Viewer](./file-viewer.md)** (§4.4); ОС — context menu `workdir.open` |
+| 2 | Навигация | **Drill-down в Preview + двусторонняя sync с Sidebar**; breadcrumbs в content area (§2.2) |
+| 3 | Back/Forward | **Удалены** (заменены Changed toggle в toolbar, Figma `4026:4988`) |
+| 4 | Changed toggle | **В toolbar Preview** (слева); фильтрует Preview **и** дерево Sidebar (§8) |
+| 5 | Сортировка | **Имя** — popover `ArrowDownAZ` (`A–Z` / `А–Я`); **дата** — radio в dropdown «Фильтр» (§6.4); Folders всегда по имени |
+| 6 | Мультиселект | **Только файлы**. Папки — одиночный выбор; double-click для входа |
+| 7 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
+| 8 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
+| 9 | Слайдер | Масштаб миниатюр **48px → 128px**, шаг **18px**; **строго по центру** toolbar (§2.1) |
+| 10 | Double-click файл | **[File Viewer](./file-viewer.md)** (§4.4); ОС — context menu `workdir.open` |
 
 ---
 
@@ -60,63 +62,74 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [<] [>] │ Title (breadcrumbs)   [——●——— slider]   [🔍 Search ] [⇅] [⛃] │  Toolbar
+│ [  ] Changed [○]  │        [——●——— slider]        │ 🔍 [⇅][⛃] │  Toolbar
 ├──────────────────────────────────────────────────────────────┤
+│ Title / breadcrumbs (text-lg)                                 │  Content
+│                                                                │
 │ Folders                                                        │
-│ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                   │
-│ │ 📁     │ │ 📁     │ │ 📁     │ │ 📁     │   (wrap grid)      │
-│ │Refs    │ │Textures│ │Models  │ │Scenes  │                   │
-│ │5 Files │ │12 Files│ │3 Files │ │8 Files │                   │
-│ └────────┘ └────────┘ └────────┘ └────────┘                   │
+│ ┌────────┐ ┌────────┐ …                                       │
 │                                                                │
 │ Files (References)                                             │
-│ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                   │
-│ │ ▦      │ │ ▦      │ │ ▦      │ │ ▦      │                   │
-│ │(status)│ │        │ │(status)│ │        │                   │
-│ │file.png│ │a.fbx   │ │b.png   │ │c.obj   │                   │
-│ └────────┘ └────────┘ └────────┘ └────────┘                   │
+│ ┌────────┐ ┌────────┐ …                                       │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### 2.1 Toolbar (node `7310:15989`)
+Figma: [4026:4988](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4988)
 
-`flex items-center gap-1`, `px-2 py-1.5`, нижняя граница `Separator`.
+### 2.1 Toolbar (node `4026:4989`–`4026:5000`)
+
+`flex items-center gap-1`, `px-2 py-1.5` (`padding-xxs` 8 / `py-1.5` 6), нижняя граница `Separator` (`4026:5001`).
 
 | # | Элемент | Spec | Поведение |
 |---|---------|------|-----------|
-| 1 | **Back** `<` | `Button` ghost 40×40, `ChevronLeft` 16 | Назад по истории навигации (§4) |
-| 2 | **Forward** `>` | `Button` ghost 40×40, `ChevronRight` 16 | Вперёд по истории навигации (§4) |
-| — | Separator | vertical, 24px | разделитель групп |
-| 3 | **Breadcrumbs / Title** | `text-lg/regular` 18px, `flex-1`, truncate | путь текущей папки; клик по сегменту → переход (§4.3) |
-| 4 | **Slider** | `120px`, shadcn `Slider` sm | масштаб миниатюр (§5) |
-| 5 | **Search** | `Input` 200px, `Search` icon 20, placeholder `Search` | global search (§7) |
-| 6 | **Sort** | `Button` ghost, `ArrowDownAZ` 16 | popover: сортировка по имени `A–Z` / `А–Я` (§6) |
-| 7 | **Filter** | `Button` ghost, `Filter` 16 | dropdown: сортировка по дате + фильтр типов файла (§6.4) |
+| 1 | **Spacer** | `40×40` fixed, empty | Зарезервировано (Figma `4026:4992`); **не** back/forward |
+| 2 | **Changed** | Label `Changed` `text-sm/medium` + `Switch` sm (`showText={false}`) | Toggle `showChangedOnly`; эмит `onProjectViewContextChange` (§8) |
+| — | Separator | vertical, `24px` | между Changed и центральной зоной |
+| 3 | **Slider** | `120px`, shadcn `Slider` sm | **Строго по центру** toolbar: `flex-1` + `items-center justify-center` на обёртке (`4026:4998` / `Scale Preview Items`) |
+| 4 | **Search** | `Input` **250px**, `Search` icon 20, placeholder `Search` | global search (§7) |
+| 5 | **Sort** | `Button` ghost 40×40, `ArrowDownAZ` 16 | popover: сортировка по имени `A–Z` / `А–Я` (§6) |
+| 6 | **Filter** | `Button` ghost 40×40, `Filter` 16 | dropdown: сортировка по дате + фильтр типов файла (§6.4) |
 
-### 2.2 Секция Folders (node `7310:16002`)
+**Удалено из toolbar:** кнопки **Back** `<` / **Forward** `>`; **breadcrumbs** (перенесены в content area §2.2).
+
+Layout (слева направо): `Spacer 40` · `Changed` · `|` · `flex-1 [Slider centered]` · `Search 250` · `Sort` · `Filter`.
+
+### 2.2 Breadcrumbs (node `4090:5042`)
+
+**Расположение:** в **scroll content area**, **над** секциями Folders / Files — **не** в toolbar.
+
+| Property | Spec |
+|----------|------|
+| Container | `px-4 py-3` content; breadcrumb row `px-2` |
+| Typography | `text-lg/regular` 18px, `leading-7` (28px), `text-foreground` |
+| All files | `All files <repoName>` — один сегмент |
+| Folder | Сегменты от root / parent / current; клик → переход (§4.3) |
+| Truncate | middle-truncation при длинном пути |
+
+### 2.3 Секция Folders (node `4026:5003`)
 
 - Header `Folders` — `h4` (Inter Semi Bold 20, tracking −0.5).
 - Сетка `FolderItem`, gap `8px`, wrap.
 - Скрывается полностью, если у папки нет подпапок, при **All files** (`'*'`), **или** при Changed ON (§8).
 
-### 2.3 Секция Files (node `7310:16010`)
+### 2.4 Секция Files (node `4026:5011`)
 
 - Header `Files (<folderName>)` — `h4`; имя текущей папки в скобках.
 - Сетка `FilePreviewItem`, gap `8px`, wrap.
-- **All files:** toolbar/section title `All files <repoName>`; без секции Folders (§1.2).
+- **All files:** breadcrumbs `All files <repoName>`; без секции Folders (§1.2).
 
-### 2.4 Сетка (layout)
+### 2.5 Сетка (layout)
 
 - Direction: `flex-row flex-wrap` (или CSS grid `auto-fill`), gap `8px`.
 - Размер ячейки = текущий масштаб слайдера (§5).
 - Контейнер контента: `flex-col gap-6`, `px-4 py-3`, вертикальный скролл (`ScrollArea`).
 
-### 2.5 shadcn/ui mapping
+### 2.6 shadcn/ui mapping
 
 | UI | shadcn |
 |----|--------|
-| Back/Forward | `Button` variant `ghost` |
-| Breadcrumbs | `Breadcrumb` |
+| Changed toggle | `Switch` + `Label` |
+| Breadcrumbs | `Breadcrumb` (content area) |
 | Slider | `Slider` |
 | Search | `Input` |
 | Sort | `Button` variant `ghost` + `Popover` |
@@ -224,28 +237,16 @@ Thumbnail: **48×48** (Min) → **128×128** (Max). Status badge — VCS-код�
 ### 4.1 Модель
 
 - Текущая папка Preview = `previewFolderPath`.
-- Источники изменения `previewFolderPath`:
-  1. Выбор папки в дереве Sidebar (`onProjectViewContextChange`).
+- Источники изменения `previewFolderPath` / `selectedFolderPath`:
+  1. Выбор папки / **All files** в Sidebar.
   2. Double-click по `FolderItem` в Preview.
-  3. Back/Forward кнопки.
-  4. Клик по сегменту breadcrumbs.
-- При **любом** изменении `previewFolderPath` → **`PreviewSelection = { kind: 'none' }`** ([api-contract.md §6](./api-contract.md)).
-- При изменении из Preview (пп. 2–4): синхронизировать выделение узла в дереве Sidebar (scroll-to + highlight).
+  3. Клик по сегменту **breadcrumbs** (§4.3).
+- При **любом** изменении папки → **`PreviewSelection = { kind: 'none' }`** ([api-contract.md §6](./api-contract.md)).
+- При изменении из Preview (пп. 2–3): синхронизировать выделение узла в дереве Sidebar (scroll-to + highlight).
 
-### 4.2 История навигации (back/forward)
+### 4.2 История навигации (back/forward) — **удалена из UI**
 
-```ts
-interface NavHistory {
-  stack: string[]   // посещённые папки
-  index: number     // указатель текущей
-}
-```
-
-- Drill-down / выбор папки → `push` (обрезает forward-хвост).
-- `<` Back → `index--`; `>` Forward → `index++`.
-- Кнопки `disabled`, когда нет цели (`index===0` / `index===stack.length-1`).
-- Синхронизация Sidebar при back/forward тоже срабатывает.
-- Изменение папки **из Sidebar** также добавляется в стек (единая история).
+Кнопки `<` `>` **не рендерятся** (Figma `4026:4988`). Внутренний `navStack` / back-forward **не обязателен** в v1.1+; достаточно breadcrumbs + Sidebar. Если стек остаётся в store — не экспонировать в toolbar.
 
 ### 4.3 Breadcrumbs
 
@@ -505,9 +506,9 @@ const collator = new Intl.Collator(sortLocale, {
 
 ---
 
-## 8. Режим Changed (Switch ON в Sidebar)
+## 8. Режим Changed (Switch в Preview toolbar)
 
-Сигнал `showChangedOnly` приходит из Sidebar (`onProjectViewContextChange`).
+Toggle в **toolbar** Preview (§2.1). При изменении → `setShowChangedOnly` + `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })`. Sidebar слушает тот же флаг ([sidebar-project-view.md §3](./sidebar-project-view.md)).
 
 | Аспект | Changed OFF | Changed ON |
 |--------|-------------|------------|
@@ -650,7 +651,8 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 frontend/src/
   components/preview/
     ContentPreview.tsx              # shell: router OFF-search / search-results
-    PreviewToolbar.tsx              # back/forward, breadcrumbs, slider, search
+    PreviewToolbar.tsx              # Changed toggle, slider (center), search, sort, filter
+    PreviewBreadcrumbs.tsx          # content area, above Folders/Files
     PreviewNavButtons.tsx
     PreviewBreadcrumbs.tsx
     PreviewScaleSlider.tsx
@@ -676,14 +678,15 @@ frontend/src/
 
 | # | Тема | Решение |
 |---|------|---------|
-| 1 | Навигация | Drill-down в Preview + двусторонняя sync с деревом Sidebar |
-| 2 | `<` `>` | История посещённых папок (back/forward), общая с Sidebar-выбором |
-| 3 | Сортировка | Имя (`A–Z` / `А–Я`) в popover; дата (modified / created, recent first) в Filter dropdown; Folders — только по имени |
+| 1 | Навигация | Drill-down + sync Sidebar; breadcrumbs в content area (§2.2) |
+| 2 | Back/Forward | **Удалены** из UI; навигация breadcrumbs + Sidebar |
+| 3 | Changed toggle | **Preview toolbar** (слева); фильтр Preview + Sidebar tree |
+| 4 | Сортировка | Имя (`A–Z` / `А–Я`) в popover; дата в Filter dropdown; Folders — по имени |
 | 3a | Фильтр типов | Checkbox по расширению в Filter dropdown; session-only |
-| 4 | Мультиселект | Только файлы (Shift / Ctrl / рамка); папки — single-select + double-click вход |
-| 5 | Поиск | Global по репозиторию, отдельный results view |
-| 6 | Changed ON | Folders скрыты; recursive committable flat list |
-| 7 | Слайдер | 48→128px, шаг 18px (6 позиций), Min-визуал ≤84, Max-визуал ≥102, per-repo persist |
-| 8 | Status badge | VCS-код (A/M/D/N), скрыт для clean; только у файлов |
-| 9 | Lock badge | Текст `lock`, tooltip `Locked by {user}`; только у заблокированных файлов |
-| 10 | Double-click файл | **[File Viewer](./file-viewer.md)** — `openFileViewer` (§4.4); ОС — context menu |
+| 5 | Мультиселект | Только файлы (Shift / Ctrl / рамка); папки — single-select + double-click |
+| 6 | Поиск | Global по репозиторию, отдельный results view |
+| 7 | Changed ON | Folders скрыты; recursive committable flat list |
+| 8 | Слайдер | 48→128px, шаг 18px; **центр toolbar** (§2.1), per-repo persist |
+| 9 | Status badge | VCS-код (A/M/D/N), скрыт для clean; только у файлов |
+| 10 | Lock badge | Текст `lock`, tooltip `Locked by {user}` |
+| 11 | Double-click файл | **[File Viewer](./file-viewer.md)** — `openFileViewer` (§4.4) |

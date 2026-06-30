@@ -20,7 +20,9 @@ Sidebar показывает **только папки** в виде **полн�
 | **Sidebar (Project view)** | Дерево папок + count badge |
 | **Content Preview** | Файлы выбранной папки, preview, diff |
 
-Выбор папки или **All files** в Sidebar → `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })`. См. [api-contract.md §6](./api-contract.md).
+Выбор папки или **All files** в Sidebar → обновляет `selectedFolderPath` в project store и эмитит `onProjectViewContextChange` (см. [api-contract.md §6](./api-contract.md)).
+
+Toggle **Changed** — **только в Content Preview** ([content-preview-project-view.md §2.1](./content-preview-project-view.md), [§8](./content-preview-project-view.md)). Sidebar **реагирует** на `showChangedOnly` (фильтр дерева), но **не рендерит** Switch.
 
 | `selectedFolderPath` | Значение |
 |----------------------|----------|
@@ -28,9 +30,7 @@ Sidebar показывает **только папки** в виде **полн�
 | `''` | *(не используется в UI v1.1+)* — зарезервировано для API |
 | `'assets/…'` | Конкретная папка — immediate children в Preview |
 
-Toggle **Changed** одновременно:
-1. Фильтрует дерево папок в Sidebar (только ветки с изменениями).
-2. Сигнализирует Content Preview показывать **только committable** файлы (§3).
+При `showChangedOnly = true` Sidebar дополнительно фильтрует дерево папок (§3).
 
 ---
 
@@ -38,13 +38,13 @@ Toggle **Changed** одновременно:
 
 ```
 ┌─────────────────────────────────────┐
-│ Project view          Changed [○]   │
+│ Project view                        │  ← без Changed (переехал в Preview)
 ├─────────────────────────────────────┤
 │ [📁] Project name            [⇕]    │
 │ ⎇ main                              │
 ├─────────────────────────────────────┤
-│ FOLDERS                        [⤢]  │  ← один toggle expand/collapse
-│ [📁] All files                972   │  ← виртуальный пункт (всегда первый)
+│ FOLDERS                        [⤢]  │
+│ [📁] All files                972   │
 │ ▼ [📁] assets                 120   │
 │     ▼ [📁] References         972   │
 │         [📁] chars             12   │
@@ -59,9 +59,10 @@ Toggle **Changed** одновременно:
 
 | Элемент | Поведение |
 |---------|-----------|
-| Title `Project view` | Статичный label |
-| Label `Changed` | Подпись к Switch |
-| Switch | Фильтр дерева папок **и** режим списка файлов в Preview (§3) |
+| Title `Project view` | Статичный label (`text-base/semibold`) |
+| Changed toggle | **Не в Sidebar** — см. [content-preview-project-view.md §2.1](./content-preview-project-view.md) |
+
+Figma [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812): header `4026:4823` — только title, без Switch.
 
 ### 2.2 Repo selector
 
@@ -180,9 +181,9 @@ Figma: row `4090:4185` (Selected) в [4026:4812](https://www.figma.com/design/Vh
 
 ---
 
-## 3. Режим «Changed» (Switch ON) — **зафиксировано**
+## 3. Режим «Changed» — эффект на Sidebar (toggle в Preview)
 
-Toggle влияет на **две панели одновременно**: Sidebar и Content Preview.
+Toggle UI живёт в **Content Preview** ([content-preview-project-view.md §8](./content-preview-project-view.md)). При `showChangedOnly = true` Sidebar **дополнительно** фильтрует дерево; Preview — committable-only (§3.3 в content-preview).
 
 ### 3.1 Sidebar: фильтр дерева папок
 
@@ -221,21 +222,21 @@ function committablePaths(status: Status): string[] {
 }
 ```
 
-### 3.3 Content Preview: сигнал от Sidebar
+### 3.2 Content Preview (ссылка)
 
-При изменении Switch **или** выбранной папки Sidebar эмитит единый контекст:
+Поведение Preview при Changed ON — [content-preview-project-view.md §8](./content-preview-project-view.md). Сигнал `showChangedOnly` в `onProjectViewContextChange` выставляет **Preview toolbar**, не Sidebar.
 
 ```ts
 interface ProjectViewContext {
   selectedFolderPath: string   // '*' = All files; folder rel path otherwise
-  showChangedOnly: boolean
+  showChangedOnly: boolean     // источник UI: Content Preview toolbar
 }
 
-// App-level event (Zustand / context)
+// App-level event — эмит при смене folder (Sidebar/Preview) или showChangedOnly (Preview)
 onProjectViewContextChange(ctx: ProjectViewContext): void
 ```
 
-**Preview поведение:**
+**Preview поведение** (кратко):
 
 | `showChangedOnly` | Файлы в Preview для `selectedFolderPath` |
 |-------------------|------------------------------------------|
@@ -345,7 +346,7 @@ sequenceDiagram
 | Component | Notes |
 |-----------|-------|
 | `ProjectViewPanel` | Container |
-| `ProjectHeader` | Title + Changed switch |
+| `ProjectHeader` | Title only (no Changed switch) |
 | `RepoSelector` | `DropdownSelector` pattern + Add repository footer — [design-tokens.md §4.5](./design-tokens.md) |
 | `AllFilesRow` | Virtual «All files» entry; `selectedFolderPath === '*'` |
 | `FolderTreeExpandToggle` | Single expand/collapse button in Folders header |
@@ -391,7 +392,7 @@ type FolderTreeNode struct {
 | 3 | **All files** | Виртуальный пункт `'*'` — flat grid всех файлов (Edge-style) |
 | 4 | Файлы в Sidebar | **Нет** — только в Content Preview |
 | 5 | Drill-down | **Отменён** (только в Preview) |
-| 6 | Changed toggle | Фильтр папок в Sidebar **+** committable-only в Preview (§3) |
+| 6 | Changed toggle | **Content Preview toolbar**; Sidebar только фильтрует дерево при ON (§3) |
 | 7 | Repo root row | **Удалён** — заменён **All files** |
 | 8 | Collapse узлов | Per-node chevron + global toggle §2.3 |
 | 9 | Multi-repo | [multi-repo.md](./multi-repo.md) — `~/.dfm/setup.cfg` `[current repo]` + `[repo]` |

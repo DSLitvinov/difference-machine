@@ -5,6 +5,7 @@ import { FilePreviewGrid } from "@/components/preview/FilePreviewGrid";
 import { FileHistoryView } from "@/components/preview/FileHistoryView";
 import { FileViewer } from "@/components/preview/FileViewer";
 import { FolderPreviewItem } from "@/components/preview/FolderPreviewItem";
+import { PreviewBreadcrumbs } from "@/components/preview/PreviewBreadcrumbs";
 import { PreviewToolbar, sortDirEntries, sortByName, nameLocaleFromSortMode, extensionKeyFromPath } from "@/components/preview/PreviewToolbar";
 import { measureAsync } from "@/lib/performance";
 import { gridMinCellSize } from "@/lib/previewScale";
@@ -96,11 +97,8 @@ export function ProjectPreviewPanel() {
   const setNotice = useAppStore((s) => s.setNotice);
   const selectedFolderPath = useProjectStore((s) => s.selectedFolderPath);
   const navigateToFolder = useProjectStore((s) => s.navigateToFolder);
-  const navigateBack = useProjectStore((s) => s.navigateBack);
-  const navigateForward = useProjectStore((s) => s.navigateForward);
-  const navStack = useProjectStore((s) => s.navStack);
-  const navIndex = useProjectStore((s) => s.navIndex);
   const showChangedOnly = useProjectStore((s) => s.showChangedOnly);
+  const setShowChangedOnly = useProjectStore((s) => s.setShowChangedOnly);
   const committable = useProjectStore((s) => s.committable);
   const status = useProjectStore((s) => s.status);
   const folderTree = useProjectStore((s) => s.folderTree);
@@ -297,9 +295,6 @@ export function ProjectPreviewPanel() {
   return (
     <div className="flex h-full flex-col">
       <PreviewToolbar
-        breadcrumbs={crumbs}
-        canGoBack={navIndex > 0}
-        canGoForward={navIndex < navStack.length - 1}
         showChangedOnly={showChangedOnly}
         searchQuery={previewSearchQuery}
         searchLoading={searchLoading}
@@ -307,9 +302,7 @@ export function ProjectPreviewPanel() {
         thumbScale={thumbScale}
         availableExtensions={availableExtensions}
         hiddenExtensions={hiddenExtensions}
-        onBack={navigateBack}
-        onForward={navigateForward}
-        onBreadcrumbSelect={navigateToFolder}
+        onShowChangedOnlyChange={setShowChangedOnly}
         onSearchChange={setPreviewSearchQuery}
         onSearchClear={() => setPreviewSearchQuery("")}
         onSortModeChange={setSortMode}
@@ -318,6 +311,11 @@ export function ProjectPreviewPanel() {
       />
 
       <div ref={setScrollElement} className="flex-1 overflow-auto px-4 py-3">
+        {!isSearchActive ? (
+          <div className="mb-4">
+            <PreviewBreadcrumbs segments={crumbs} onSelect={navigateToFolder} />
+          </div>
+        ) : null}
         {folderTree && folderTree.item_count >= LARGE_REPO_FILE_COUNT ? (
           <p className="mb-3 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
             {t("preview.largeRepository", { count: folderTree.item_count.toLocaleString() })}

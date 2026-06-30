@@ -49,7 +49,7 @@
 ### 2.1 Header
 
 - Только заголовок `History` (semibold 16px).
-- Без toggle «Changed» — он относится только к Project view.
+- Без toggle «Changed» в History — в Project view он в **Content Preview toolbar** ([content-preview-project-view.md §2.1](./content-preview-project-view.md)).
 
 ### 2.2 Branch selector
 
@@ -395,7 +395,7 @@ interface HistoryViewState {
 | | Project view | History view |
 |---|-------------|--------------|
 | Rail icon active | `FolderGit2` | `GitFork` |
-| Header extra | Changed Switch | — |
+| Header extra | — | — |
 | Context dropdown | Repo name | `currentBranch` (checkout on select) |
 | List content | Folders / changed files | Commits |
 | Primary API | `status.get`, `workdir.tree` | `branch.list`, `log.get`, `commit.get`, `diff.*` |
