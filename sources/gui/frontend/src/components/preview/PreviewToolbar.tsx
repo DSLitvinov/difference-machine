@@ -14,6 +14,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -68,6 +70,27 @@ const SORT_OPTIONS: { mode: PreviewSortMode; labelKey: "preview.sortNameEn" | "p
   { mode: "name-ru", labelKey: "preview.sortNameRu" },
 ];
 
+const DATE_SORT_OPTIONS: {
+  mode: PreviewSortMode;
+  labelKey: "preview.sortModified" | "preview.sortCreated";
+}[] = [
+  { mode: "modified-desc", labelKey: "preview.sortModified" },
+  { mode: "created-desc", labelKey: "preview.sortCreated" },
+];
+
+function sortModeLabel(mode: PreviewSortMode, t: ReturnType<typeof useT>): string {
+  switch (mode) {
+    case "name-ru":
+      return t("preview.sortNameRu");
+    case "modified-desc":
+      return t("preview.sortModified");
+    case "created-desc":
+      return t("preview.sortCreated");
+    default:
+      return t("preview.sortNameEn");
+  }
+}
+
 export function PreviewToolbar({
   breadcrumbs,
   canGoBack,
@@ -91,8 +114,10 @@ export function PreviewToolbar({
   const t = useT();
   const [sortOpen, setSortOpen] = useState(false);
   const sliderIndex = sliderIndexFromThumbScale(thumbScale);
-  const sortLabel = sortMode === "name-ru" ? t("preview.sortNameRu") : t("preview.sortNameEn");
+  const sortLabel = sortModeLabel(sortMode, t);
   const typeFilterActive = hiddenExtensions.size > 0;
+  const dateSortValue =
+    sortMode === "modified-desc" || sortMode === "created-desc" ? sortMode : "";
 
   const handleSortSelect = (mode: PreviewSortMode) => {
     onSortModeChange(mode);
@@ -225,6 +250,17 @@ export function PreviewToolbar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[12rem]">
+          <DropdownMenuRadioGroup
+            value={dateSortValue}
+            onValueChange={(value) => onSortModeChange(value as PreviewSortMode)}
+          >
+            {DATE_SORT_OPTIONS.map((option) => (
+              <DropdownMenuRadioItem key={option.mode} value={option.mode}>
+                {t(option.labelKey)}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
           <DropdownMenuLabel>{t("merge.filterTypes")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {availableExtensions.length === 0 ? (
@@ -260,11 +296,17 @@ function sortByPath<T extends { path: string }>(items: T[], locale: SortLocale):
   return [...items].sort((a, b) => collator.compare(a.path, b.path));
 }
 
-export function sortDirEntries<T extends { name: string; path: string }>(
+export function sortDirEntries<T extends { name: string; path: string; modified?: number; created?: number }>(
   items: T[],
   mode: PreviewSortMode,
   options?: { byPath?: boolean },
 ): T[] {
+  if (mode === "modified-desc") {
+    return [...items].sort((a, b) => (b.modified ?? 0) - (a.modified ?? 0));
+  }
+  if (mode === "created-desc") {
+    return [...items].sort((a, b) => (b.created ?? 0) - (a.created ?? 0));
+  }
   const locale = nameLocaleFromSortMode(mode);
   return options?.byPath ? sortByPath(items, locale) : sortByName(items, locale);
 }

@@ -32,7 +32,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 |---|------|---------|
 | 1 | Навигация | **Drill-down в Preview + двусторонняя синхронизация**: клик по подпапке открывает её в Preview **и** выделяет узел в дереве Sidebar |
 | 2 | Кнопки `<` `>` | **История навигации** (back/forward) по посещённым папкам внутри Preview |
-| 3 | Сортировка | **Переключатель En-us / A-я** в toolbar (`ArrowUpDown`); Folders и Files сортируются независимо (см. §6) |
+| 3 | Сортировка | **Имя** — popover `ArrowDownAZ` (`A–Z` / `А–Я`); **дата** — radio в dropdown «Фильтр» (§6.4); Folders всегда по имени |
 | 4 | Мультиселект | **Только файлы**. Папки — одиночный выбор; double-click для входа |
 | 5 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
 | 6 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
@@ -45,7 +45,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [<] [>] │ Title (breadcrumbs)   [——●——— slider]   [🔍 Search ] │  Toolbar
+│ [<] [>] │ Title (breadcrumbs)   [——●——— slider]   [🔍 Search ] [⇅] [⛃] │  Toolbar
 ├──────────────────────────────────────────────────────────────┤
 │ Folders                                                        │
 │ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐                   │
@@ -74,8 +74,9 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | — | Separator | vertical, 24px | разделитель групп |
 | 3 | **Breadcrumbs / Title** | `text-lg/regular` 18px, `flex-1`, truncate | путь текущей папки; клик по сегменту → переход (§4.3) |
 | 4 | **Slider** | `120px`, shadcn `Slider` sm | масштаб миниатюр (§5) |
-| 5 | **Search** | `Input` 250px, `Search` icon 20, placeholder `Search` | global search (§7) |
-| 6 | **Sort** | `Button` ghost, `ArrowUpDown` 16 | toggle `En-us` ↔ `A-я` (§6) |
+| 5 | **Search** | `Input` 200px, `Search` icon 20, placeholder `Search` | global search (§7) |
+| 6 | **Sort** | `Button` ghost, `ArrowDownAZ` 16 | popover: сортировка по имени `A–Z` / `А–Я` (§6) |
+| 7 | **Filter** | `Button` ghost, `Filter` 16 | dropdown: сортировка по дате + фильтр типов файла (§6.4) |
 
 ### 2.2 Секция Folders (node `7310:16002`)
 
@@ -103,6 +104,8 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | Breadcrumbs | `Breadcrumb` |
 | Slider | `Slider` |
 | Search | `Input` |
+| Sort | `Button` variant `ghost` + `Popover` |
+| Filter | `Button` variant `ghost` + `DropdownMenu` (`RadioGroup` + `CheckboxItem`) |
 | Folder / File item | custom + `Badge` (status) + `Tooltip` (truncated name) |
 | Scroll | `ScrollArea` |
 | Loading | `Skeleton` |
@@ -359,14 +362,43 @@ function isMaxVisual(px: number): boolean {
 
 ---
 
-## 6. Сортировка (En-us / A-я)
+## 6. Сортировка
 
-**Переключатель в toolbar** — иконка `ArrowUpDown`; tooltip показывает активный режим.
+Два UI-контрола в toolbar; общий state `sortMode` (`PreviewSortMode`), persist per-repo: `localStorage` `dfm.preview.sortMode`.
 
-| Режим | `Intl.Collator` locale | Label в UI |
-|-------|------------------------|------------|
-| **En-us** | `en-US` | `A–Z` / `En-us` |
-| **A-я** | `ru` | `А–Я` / `A-я` |
+### 6.1 Режимы
+
+| `sortMode` | UI | Поле / ключ | Порядок |
+|------------|-----|-------------|---------|
+| `name-en` | Sort popover | `name` / `path`* | `Intl.Collator('en-US')`, по возрастанию |
+| `name-ru` | Sort popover | `name` / `path`* | `Intl.Collator('ru')`, по возрастанию |
+| `modified-desc` | Filter dropdown (radio) | `DirEntry.modified` (Unix sec) | **Недавние первые** (desc) |
+| `created-desc` | Filter dropdown (radio) | `DirEntry.created` (Unix sec) | **Недавние первые** (desc) |
+
+\* При **Changed ON** (§8) сортировка по имени — по полному `path`; при сортировке по дате — по timestamp, `byPath` не применяется.
+
+```ts
+type PreviewSortMode = 'name-en' | 'name-ru' | 'modified-desc' | 'created-desc'
+```
+
+### 6.2 Sort popover (`ArrowDownAZ`)
+
+- Tooltip: `Sort: {label}` (`preview.sortTitle`).
+- Два пункта с галочкой: `A–Z` (`name-en`), `А–Я` (`name-ru`).
+- Выбор → `setSortMode`; закрывает popover.
+
+### 6.3 Область применения
+
+| Секция / view | Сортировка |
+|---------------|------------|
+| **Folders** | Всегда по имени (`name-en` / `name-ru` locale); режимы даты **не** применяются |
+| **Files** (folder view) | Активный `sortMode` |
+| **Search results** — Files | Активный `sortMode` |
+| **Changed ON** — flat list | Имя → по `path`; дата → по `modified` / `created` |
+
+- Записи без `created` (платформа не отдаёт birth time) сортируются как `0` → в конец списка.
+- При смене сортировки selection файлов сохраняется **по path**; `anchorPath` пересчитывается.
+- Shift+click диапазон — по текущему порядку сортировки Files.
 
 ```ts
 const collator = new Intl.Collator(sortLocale, {
@@ -375,10 +407,45 @@ const collator = new Intl.Collator(sortLocale, {
 })
 ```
 
-- Folders и Files сортируются **независимо**, по возрастанию.
-- Persist per-repo: `localStorage` `dfm.preview.sortLocale` → `'en-US'` | `'ru'`.
-- При смене сортировки selection файлов сохраняется **по path**; `anchorPath` пересчитывается.
-- Смешанные алфавиты: упорядочение по правилам выбранной locale (ограничение `Intl` — v2: ICU root).
+---
+
+## 6.4 Dropdown «Фильтр» (иконка `Filter`)
+
+Объединяет **сортировку по дате** и **фильтр по расширению**. Кнопка `disabled`, если в текущем scope нет файлов (нет расширений для списка).
+
+### Структура меню
+
+```
+┌─────────────────────────┐
+│ ○ Date modified         │  ← radio (modified-desc)
+│ ● Date created          │  ← radio (created-desc)
+├─────────────────────────┤  ← DropdownMenuSeparator
+│ Filter types            │  ← DropdownMenuLabel
+├─────────────────────────┤
+│ ☑ .png                  │  ← CheckboxItem
+│ ☑ .blend                │
+│ ☐ .fbx                  │
+└─────────────────────────┘
+```
+
+| Блок | Компонент | Поведение |
+|------|-----------|-----------|
+| Дата изменения | `DropdownMenuRadioItem` | `sortMode = 'modified-desc'` |
+| Дата создания | `DropdownMenuRadioItem` | `sortMode = 'created-desc'` |
+| Разделитель | `DropdownMenuSeparator` | отделяет дату от типов |
+| Filter types | `DropdownMenuLabel` + separator | заголовок секции расширений |
+| `.ext` | `DropdownMenuCheckboxItem` | checked = тип **виден**; unchecked = скрыт |
+
+- Radio-группа дат: активна только при `modified-desc` / `created-desc`; при сортировке по имени оба radio сняты.
+- Выбор даты **не** сбрасывает скрытые расширения.
+- Кнопка Filter подсвечивается (`border-ring bg-accent`) только при **активном фильтре типов** (`hiddenExtensions.size > 0`), не при сортировке по дате.
+
+### Фильтр по расширению
+
+- Список `availableExtensions` — уникальные расширения файлов в текущем scope (folder entries или search results); `(none)` для файлов без расширения.
+- Состояние `hiddenExtensions: Set<string>` — **session-only** (не persist).
+- Фильтр применяется к секции **Files** и к **Files** в search results; папки не фильтруются.
+- При смене папки / repo / выходе из поиска — `hiddenExtensions` сбрасывается (реализация: local `useState` в `ProjectPreviewPanel`).
 
 ---
 
@@ -410,7 +477,7 @@ const collator = new Intl.Collator(sortLocale, {
 - Под каждым item — относительный путь (`text-xs muted`), чтобы различать одноимённые.
 - Клик по папке в результатах → drill-down туда (выход из поиска + sync Sidebar).
 - Клик по файлу → выбор файла; **double-click → [File Viewer](./file-viewer.md)** (§4.4).
-- Сортировка результатов — та же locale-сортировка (§6); внутри групп.
+| Сортировка результатов — активный `sortMode` (§6); внутри групп Folders / Files |
 - При Changed ON поиск ограничен committable-файлами (см. §8).
 
 ### 7.3 Состояния поиска
@@ -433,7 +500,7 @@ const collator = new Intl.Collator(sortLocale, {
 | Секция **Files** | Все immediate files | **Все committable** в поддереве `selectedFolderPath` (рекурсивно) |
 | Header Files | `Files (<folder>)` | `Changed files (N)` |
 | Карточка файла | имя | имя + subtitle parent folder |
-| Сортировка Files | по `name` | по полному `path` |
+| Сортировка Files | по `name` (§6) | по `path` при name-sort; по `modified`/`created` при date-sort; API: `workdir.entries_by_paths` |
 | Поиск | по всему репо | по committable-файлам всего репо |
 
 Фильтр committable — см. [sidebar-project-view.md §3.2–3.3](./sidebar-project-view.md) (`committableFilesInSubtree`).
@@ -506,8 +573,9 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 
 | JSON method | Назначение |
 |-------------|------------|
-| `workdir.entries` | Immediate папки + файлы текущей папки |
-| `workdir.search` | Global search |
+| `workdir.entries` | Immediate папки + файлы текущей папки; файлы включают `modified`, `created` |
+| `workdir.entries_by_paths` | `DirEntry[]` по списку paths — Changed ON flat list с timestamps |
+| `workdir.search` | Global search; файлы включают `modified`, `created` |
 | `workdir.thumbnail` | Миниатюра — images, text snippet, `.blend` ([api-contract.md §4.3](./api-contract.md)) |
 | `workdir.open` | Double-click → ОС; context menu → optional `editor` (§4.4) |
 | `workdir.rename` | Context menu Rename |
@@ -555,6 +623,8 @@ Content Info: `paths.length === 1` → single layout; `paths.length > 1` → mul
 | Слайдер на Max при узкой панели | Сетка переносит на меньшее число колонок (wrap) |
 | Double-click по файлу | `workdir.open` → приложение ОС (§4.4) |
 | Нет приложения для расширения | Toast с ошибкой от ОС |
+| Сортировка по дате, нет `created` на FS | Файл в конце списка (`created = 0`) |
+| Сортировка по дате + Changed ON | `workdir.entries_by_paths` для timestamps |
 | Файл deleted в VCS, отсутствует на диске | Toast «File not found»; open не вызывается |
 
 ---
@@ -593,7 +663,8 @@ frontend/src/
 |---|------|---------|
 | 1 | Навигация | Drill-down в Preview + двусторонняя sync с деревом Sidebar |
 | 2 | `<` `>` | История посещённых папок (back/forward), общая с Sidebar-выбором |
-| 3 | Сортировка | Переключатель En-us / A-я в toolbar; `Intl.Collator`, Folders и Files раздельно |
+| 3 | Сортировка | Имя (`A–Z` / `А–Я`) в popover; дата (modified / created, recent first) в Filter dropdown; Folders — только по имени |
+| 3a | Фильтр типов | Checkbox по расширению в Filter dropdown; session-only |
 | 4 | Мультиселект | Только файлы (Shift / Ctrl / рамка); папки — single-select + double-click вход |
 | 5 | Поиск | Global по репозиторию, отдельный results view |
 | 6 | Changed ON | Folders скрыты; recursive committable flat list |

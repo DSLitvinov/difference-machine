@@ -81,6 +81,29 @@ func handleWorkdirEntries(workPath string, args json.RawMessage) (interface{}, e
 	})
 }
 
+func handleWorkdirEntriesByPaths(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Paths []string `json:"paths"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
+		entries, err := scanner.entriesForPaths(params.Paths)
+		if err != nil {
+			return nil, fmt.Errorf("workdir.entries_by_paths: %w", err)
+		}
+		if entries == nil {
+			entries = []dirEntry{}
+		}
+		return map[string]interface{}{
+			"entries": entries,
+		}, nil
+	})
+}
+
 // handleWorkdirMetadata returns file stat and mime type for Content Info (stub mime).
 func handleWorkdirMetadata(workPath string, args json.RawMessage) (interface{}, error) {
 	var params struct {

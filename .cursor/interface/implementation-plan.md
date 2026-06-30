@@ -89,7 +89,8 @@
 ### 1.1 Workdir
 
 - [x] **1.1.1** `workdir.tree` — lazy `{ path, depth }` — [api-contract.md §4.1](./api-contract.md)
-- [x] **1.1.2** `workdir.entries` — pagination `{ path, offset, limit }`
+- [x] **1.1.2** `workdir.entries` — pagination `{ path, offset, limit }`; файлы: `modified`, `created`
+- [x] **1.1.2a** `workdir.entries_by_paths` — `DirEntry[]` по списку paths (Changed ON)
 - [x] **1.1.3** `workdir.metadata` — stat + mime
 - [x] **1.1.4** `workdir.open` — OS default app (macOS / Windows)
 - [x] **1.1.5** `workdir.search` — global search по репо
@@ -168,7 +169,7 @@
 
 ### 3.2 Content Preview — Project view
 
-- [x] **3.2.1** Toolbar: breadcrumb drill-down, search, sort, size slider
+- [x] **3.2.1** Toolbar: breadcrumb drill-down, search, sort (name + date), extension filter, size slider
 - [x] **3.2.2** Folders section + Files grid — `workdir.entries` (pagination, load more)
 - [x] **3.2.3** `FolderPreviewItem` / `FilePreviewItem` — [folder-preview-item.md](./folder-preview-item.md) · [file-preview-item.md](./file-preview-item.md)
 - [x] **3.2.4** VCS badges из `status.get` only

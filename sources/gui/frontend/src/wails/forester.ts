@@ -34,6 +34,8 @@ export interface DirEntry {
   is_dir: boolean;
   item_count: number;
   size: number;
+  modified?: number;
+  created?: number;
 }
 
 export interface StatusPayload {
@@ -154,6 +156,12 @@ export async function fetchWorkdirEntries(path = "", offset = 0, limit = 200) {
     total: number;
     has_more: boolean;
   }>("workdir.entries", { path, offset, limit });
+}
+
+export async function fetchWorkdirEntriesByPaths(paths: string[]) {
+  return foresterCall<{
+    entries: DirEntry[];
+  }>("workdir.entries_by_paths", { paths });
 }
 
 export async function fetchWorkdirSearch(query: string, limit = 200) {

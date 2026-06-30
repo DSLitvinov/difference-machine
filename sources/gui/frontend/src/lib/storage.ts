@@ -86,13 +86,18 @@ export function saveExpandedFolderPaths(repoPath: string, expandedPaths: Record<
 
 export type SortLocale = "en-US" | "ru";
 
-/** Preview grid sort: English or Russian file name. */
-export type PreviewSortMode = "name-en" | "name-ru";
+/** Preview grid sort: English or Russian file name, or by file timestamps. */
+export type PreviewSortMode = "name-en" | "name-ru" | "modified-desc" | "created-desc";
 
 export function loadSortMode(repoPath: string): PreviewSortMode {
   try {
     const value = localStorage.getItem(perRepoKey("dfm.preview.sortMode", repoPath));
-    if (value === "name-en" || value === "name-ru") {
+    if (
+      value === "name-en" ||
+      value === "name-ru" ||
+      value === "modified-desc" ||
+      value === "created-desc"
+    ) {
       return value;
     }
     if (value === "type") {

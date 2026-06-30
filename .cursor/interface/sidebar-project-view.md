@@ -216,7 +216,7 @@ function committableFilesInSubtree(
 
 - **Root (`''`):** flat-список всех committable файлов репозитория — удобно для multiselect и **Create commit**.
 - **Подпапка:** только committable внутри этой папки и вложенных подпапок.
-- Сортировка: по **полному относительному path** (не только basename).
+- Сортировка: см. [content-preview-project-view.md §6](./content-preview-project-view.md) — по умолчанию name-sort по **полному относительному path** (не только basename).
 - В карточке файла: subtitle = parent folder (`assets` / `root`) для различения одноимённых имён.
 - Секция **Folders** в Preview скрыта; навигация по scope — через дерево Sidebar или breadcrumbs.
 

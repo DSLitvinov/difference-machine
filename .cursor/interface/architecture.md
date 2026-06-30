@@ -281,7 +281,7 @@ interface SidebarEvents {
 |--------|--------|
 | **VCS (есть)** | `status.get`, `index.add`, `commit.create`, `commit.get`, `log.get`, `branch.list`, `compare.extract`, `restore.version`, `commit.revert`, `commit.reset`, `lock.list` |
 | **VCS (новые)** | `diff.name_status`, `diff.text`, `diff.stat`, `blob.get`, `restore.file`; `log.get` + `path` |
-| **Workdir** | `workdir.tree`, `workdir.entries`, `workdir.search`, `workdir.metadata`, `workdir.thumbnail`, `workdir.open`, `workdir.rename`, `workdir.delete` |
+| **Workdir** | `workdir.tree`, `workdir.entries`, `workdir.entries_by_paths`, `workdir.search`, `workdir.metadata`, `workdir.thumbnail`, `workdir.open`, `workdir.rename`, `workdir.delete` |
 | **Shell** | `OpenRepo`, `GetKnownRepos`, … — [multi-repo.md](./multi-repo.md) |
 
 ### 4.1 Формат `status.get` (уже есть)

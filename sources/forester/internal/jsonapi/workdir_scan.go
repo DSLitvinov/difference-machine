@@ -264,6 +264,18 @@ type dirEntry struct {
 	IsDir     bool   `json:"is_dir"`
 	ItemCount int    `json:"item_count"`
 	Size      int64  `json:"size"`
+	Modified  int64  `json:"modified,omitempty"`
+	Created   int64  `json:"created,omitempty"`
+}
+
+func fillEntryTimestamps(item *dirEntry, info os.FileInfo) {
+	if info == nil || info.IsDir() {
+		return
+	}
+	item.Modified = info.ModTime().Unix()
+	if created, ok := fileCreatedUnix(info); ok {
+		item.Created = created
+	}
 }
 
 func (s *workdirScanner) listEntries(rel string) ([]dirEntry, error) {
@@ -306,6 +318,7 @@ func (s *workdirScanner) listEntries(rel string) ([]dirEntry, error) {
 				return nil, err
 			}
 			item.Size = info.Size()
+			fillEntryTimestamps(&item, info)
 		}
 		out = append(out, item)
 	}
@@ -402,6 +415,7 @@ func (s *workdirScanner) search(query string, limit int) ([]dirEntry, bool, erro
 			item.ItemCount = count
 		} else {
 			item.Size = fi.Size()
+			fillEntryTimestamps(&item, fi)
 		}
 		results = append(results, item)
 		return nil
@@ -417,4 +431,34 @@ func (s *workdirScanner) search(query string, limit int) ([]dirEntry, bool, erro
 		return strings.ToLower(results[i].Name) < strings.ToLower(results[j].Name)
 	})
 	return results, capped, nil
+}
+
+func (s *workdirScanner) entriesForPaths(paths []string) ([]dirEntry, error) {
+	out := make([]dirEntry, 0, len(paths))
+	for _, rel := range paths {
+		rel = canonicalRelPath(rel)
+		abs, err := s.absFile(rel)
+		if err != nil {
+			return nil, err
+		}
+		info, err := os.Stat(abs)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
+		}
+		if info.IsDir() {
+			continue
+		}
+		item := dirEntry{
+			Name:  info.Name(),
+			Path:  rel,
+			IsDir: false,
+			Size:  info.Size(),
+		}
+		fillEntryTimestamps(&item, info)
+		out = append(out, item)
+	}
+	return out, nil
 }

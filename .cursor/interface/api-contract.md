@@ -187,7 +187,8 @@ Content Info History — commit combobox.
 | JSON method | Назначение |
 |-------------|------------|
 | `workdir.tree` | Sidebar: папки only, recursive `item_count`; **v1.0:** lazy `depth` ([decisions.md §7.6](./decisions.md)) |
-| `workdir.entries` | Preview: immediate subfolders + files папки; **v1.0:** pagination |
+| `workdir.entries` | Preview: immediate subfolders + files папки; **v1.0:** pagination; файлы: `modified`, `created` |
+| `workdir.entries_by_paths` | Preview Changed ON: `DirEntry[]` по списку paths с timestamps |
 | `workdir.search` | Global search по репо |
 | `workdir.metadata` | Content Info: stat + mime |
 | `workdir.thumbnail` | Preview / Info thumbnails — images, text snippet, `.blend` (OS cache + embedded) |
@@ -235,8 +236,12 @@ type DirEntry struct {
     IsDir     bool   `json:"is_dir"`
     ItemCount int    `json:"item_count"`  // folders: recursive files
     Size      int64  `json:"size"`        // files only
+    Modified  int64  `json:"modified,omitempty"` // files only; ModTime Unix sec
+    Created   int64  `json:"created,omitempty"`  // files only; birth time if OS provides
 }
 ```
+
+Поля `modified` / `created` возвращаются для **файлов** в `workdir.entries`, `workdir.search`, `workdir.entries_by_paths`. Для папок — опущены. `created` — через `fileCreatedUnix` (macOS: birth time; иначе может отсутствовать).
 
 **Pagination (v1.0):**
 
@@ -246,6 +251,18 @@ type DirEntry struct {
 ```
 
 Default `limit`: 200.
+
+### 4.2.1 `workdir.entries_by_paths`
+
+Стат по списку repo-relative paths (без пагинации). Используется Content Preview при **Changed ON** — flat list committable с timestamps для сортировки по дате.
+
+```json
+{ "paths": ["assets/a.png", "src/main.go"] }
+→ { "entries": [ /* DirEntry[], files only */ ] }
+```
+
+- Несуществующие paths **пропускаются** (не error).
+- Директории в `paths` **пропускаются**.
 
 ### 4.3 `workdir.thumbnail`
 

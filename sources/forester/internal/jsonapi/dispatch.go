@@ -46,6 +46,7 @@ var handlers = map[string]handlerFunc{
 	"commit.reset":         handleCommitReset,
 	"workdir.tree":         handleWorkdirTree,
 	"workdir.entries":      handleWorkdirEntries,
+	"workdir.entries_by_paths": handleWorkdirEntriesByPaths,
 	"workdir.metadata":     handleWorkdirMetadata,
 	"workdir.thumbnail":    handleWorkdirThumbnail,
 	"workdir.open":         handleWorkdirOpen,

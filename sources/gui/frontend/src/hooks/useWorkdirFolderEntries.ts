@@ -5,20 +5,11 @@ import { useProjectStore } from "@/stores/projectStore";
 import {
   committableFilesInSubtree,
   fetchWorkdirEntries,
+  fetchWorkdirEntriesByPaths,
   type DirEntry,
 } from "@/wails/forester";
 
 const PAGE_SIZE = 200;
-
-function dirEntriesFromPaths(paths: string[]): DirEntry[] {
-  return paths.map((path) => ({
-    name: path.split("/").pop() ?? path,
-    path,
-    is_dir: false,
-    item_count: 0,
-    size: 0,
-  }));
-}
 
 interface UseWorkdirFolderEntriesOptions {
   folderPath: string;
@@ -63,10 +54,13 @@ export function useWorkdirFolderEntries({
       try {
         if (showChangedOnly) {
           const paths = committableFilesInSubtree(folderPath, committable);
+          const result = await measureAsync(`workdir.entries_by_paths:${folderPath || "root"}`, () =>
+            fetchWorkdirEntriesByPaths(paths),
+          );
           if (!cancelled && loadGeneration === loadGenerationRef.current) {
-            setEntries(dirEntriesFromPaths(paths));
+            setEntries(result.entries);
             setSubfolders([]);
-            setTotal(paths.length);
+            setTotal(result.entries.length);
             setHasMore(false);
           }
         } else {
