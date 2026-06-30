@@ -10,16 +10,19 @@
 
 set -euo pipefail
 
-INSTALL_FOLDER_NAME="Difference Machine"
+INSTALL_FOLDER_NAME="Difference-Machine"
 FORESTER_CLI_NAME="forester"
 API_LIB_NAME="libforester.so"
 FFMPEG_BIN_NAME="ffmpeg"
 GUI_BIN_NAME="difference-machine"
 
 DESKTOP_NAME="difference-machine.desktop"
+GUI_ICON_NAME="difference-machine"
+FORESTER_ICON_NAME="forester"
 SYMLINK_CLI="/usr/local/bin/forester"
 SYMLINK_GUI="/usr/local/bin/difference-machine"
-DESKTOP_PATH="/usr/local/share/applications/${DESKTOP_NAME}"
+DESKTOP_PATH="/usr/share/applications/${DESKTOP_NAME}"
+SYSTEM_ICONS_DIR="/usr/share/icons"
 
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_PREFIX="/opt"
@@ -162,16 +165,16 @@ remove_symlinks() {
 }
 
 remove_desktop_entry() {
-    if [ -f "${DESKTOP_PATH}" ]; then
-        rm -f "${DESKTOP_PATH}"
-        echo "Removed desktop entry: ${DESKTOP_PATH}"
-    fi
-    local user_desktop
-    user_desktop="$(target_user_home)/.local/share/applications/${DESKTOP_NAME}"
-    if [ -f "${user_desktop}" ]; then
-        rm -f "${user_desktop}"
-        echo "Removed desktop entry: ${user_desktop}"
-    fi
+    local desktop_path
+    for desktop_path in \
+        "${DESKTOP_PATH}" \
+        "/usr/local/share/applications/${DESKTOP_NAME}" \
+        "$(target_user_home)/.local/share/applications/${DESKTOP_NAME}"; do
+        if [ -f "${desktop_path}" ]; then
+            rm -f "${desktop_path}"
+            echo "Removed desktop entry: ${desktop_path}"
+        fi
+    done
 }
 
 remove_user_symlinks() {
@@ -234,16 +237,45 @@ copy_payload() {
     fi
 
     echo "Installing to ${INSTALL_ROOT} ..."
-    mkdir -p "${INSTALL_ROOT}"
+    mkdir -p "${INSTALL_ROOT}/bin" "${INSTALL_ROOT}/lib"
 
-    shopt -s dotglob nullglob
-    for item in "${SOURCE_DIR}"/*; do
-        cp -a "${item}" "${INSTALL_ROOT}/"
-    done
-    shopt -u dotglob nullglob
+    cp -a "${SOURCE_DIR}/${GUI_BIN_NAME}" "${INSTALL_ROOT}/"
+    cp -a "${SOURCE_DIR}/bin/." "${INSTALL_ROOT}/bin/"
+    cp -a "${SOURCE_DIR}/lib/." "${INSTALL_ROOT}/lib/"
+
+    if [ -d "${SOURCE_DIR}/addons" ]; then
+        cp -a "${SOURCE_DIR}/addons" "${INSTALL_ROOT}/"
+    fi
+
+    if [ -d "${SOURCE_DIR}/share" ]; then
+        cp -a "${SOURCE_DIR}/share" "${INSTALL_ROOT}/"
+    fi
+
+    if [ -f "${SOURCE_DIR}/README.txt" ]; then
+        cp -a "${SOURCE_DIR}/README.txt" "${INSTALL_ROOT}/"
+    fi
 
     chmod +x "${INSTALL_ROOT}/${GUI_BIN_NAME}" 2>/dev/null || true
     chmod +x "${INSTALL_ROOT}/bin/"* 2>/dev/null || true
+
+    fix_install_permissions_and_selinux
+}
+
+fix_install_permissions_and_selinux() {
+    if [ "${USER_MODE}" = true ]; then
+        return 0
+    fi
+    if [ "$(id -u)" -ne 0 ]; then
+        return 0
+    fi
+
+    chown -R root:root "${INSTALL_ROOT}" 2>/dev/null || true
+    chmod +x "${INSTALL_ROOT}/${GUI_BIN_NAME}" 2>/dev/null || true
+    chmod +x "${INSTALL_ROOT}/bin/"* 2>/dev/null || true
+
+    if command -v restorecon >/dev/null 2>&1; then
+        restorecon -RF "${INSTALL_ROOT}" 2>/dev/null || true
+    fi
 }
 
 strip_toolchain_sections() {
@@ -306,6 +338,116 @@ EOF
     echo "Updated ${cfg_file}"
 }
 
+# resolve_hicolor_icon_path INSTALL_ROOT ICON_BASENAME
+# Prints an absolute path to the best available PNG/SVG icon under share/icons/hicolor.
+resolve_hicolor_icon_path() {
+    local install_root="$1"
+    local icon_basename="$2"
+    local hicolor="${install_root}/share/icons/hicolor"
+    local size_dir icon_file
+
+    if [ ! -d "${hicolor}" ]; then
+        return 1
+    fi
+
+    for size_dir in \
+        "${hicolor}/256x256/apps" \
+        "${hicolor}/128x128/apps" \
+        "${hicolor}/64x64/apps" \
+        "${hicolor}/48x48/apps" \
+        "${hicolor}/32x32/apps" \
+        "${hicolor}/scalable/apps"; do
+        for icon_file in \
+            "${size_dir}/${icon_basename}.png" \
+            "${size_dir}/${icon_basename}.svg"; do
+            if [ -f "${icon_file}" ]; then
+                printf '%s\n' "${icon_file}"
+                return 0
+            fi
+        done
+    done
+
+    return 1
+}
+
+# desktop_icon_name INSTALL_ROOT
+# Prefer hicolor theme lookup (Icon=difference-machine) when PNGs are bundled.
+desktop_icon_name() {
+    local install_root="$1"
+    if resolve_hicolor_icon_path "${install_root}" "${GUI_ICON_NAME}" >/dev/null 2>&1; then
+        printf '%s\n' "${GUI_ICON_NAME}"
+        return 0
+    fi
+    printf '%s\n' "${GUI_ICON_NAME}"
+}
+
+# write_desktop_entry_file OUTPUT_PATH
+write_desktop_entry_file() {
+    local output_path="$1"
+    local gui_exec="${INSTALL_ROOT}/${GUI_BIN_NAME}"
+    local icon_name
+    icon_name="$(desktop_icon_name "${INSTALL_ROOT}")"
+
+    cat > "${output_path}" <<EOF
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Difference Machine
+GenericName=Version Control
+Comment=Forester GUI for Difference Machine
+Exec=${gui_exec} %F
+TryExec=${gui_exec}
+Path=${INSTALL_ROOT}
+Icon=${icon_name}
+Terminal=false
+Categories=Development;
+Keywords=forester;vcs;git;blender;
+StartupWMClass=difference-machine
+EOF
+}
+
+# install_hicolor_icons_to_theme SOURCE_HICOLOR DEST_HICOLOR
+# Merges PNG/SVG app icons into the system or user hicolor theme.
+install_hicolor_icons_to_theme() {
+    local source_hicolor="$1"
+    local dest_hicolor="$2"
+    local size_dir apps_dir icon_file dest_apps
+
+    if [ ! -d "${source_hicolor}" ]; then
+        return 1
+    fi
+
+    mkdir -p "${dest_hicolor}"
+
+    shopt -s nullglob
+    for size_dir in "${source_hicolor}"/*/; do
+        apps_dir="${size_dir}apps"
+        [ -d "${apps_dir}" ] || continue
+        dest_apps="${dest_hicolor}/$(basename "${size_dir}")/apps"
+        mkdir -p "${dest_apps}"
+        for icon_file in "${apps_dir}/"*; do
+            [ -f "${icon_file}" ] || continue
+            case "${icon_file}" in
+                *.png|*.svg|*.xpm)
+                    cp -a "${icon_file}" "${dest_apps}/"
+                    ;;
+            esac
+        done
+    done
+    shopt -u nullglob
+
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+        gtk-update-icon-cache -f -t "${dest_hicolor}" 2>/dev/null || true
+    fi
+}
+
+update_applications_database() {
+    local apps_dir="$1"
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database "${apps_dir}" 2>/dev/null || true
+    fi
+}
+
 create_symlinks() {
   local cli_target="${INSTALL_ROOT}/bin/${FORESTER_CLI_NAME}"
   local gui_target="${INSTALL_ROOT}/${GUI_BIN_NAME}"
@@ -327,34 +469,59 @@ create_symlinks() {
 }
 
 create_desktop_entry() {
-  local desktop_path
-  local gui_exec="${INSTALL_ROOT}/${GUI_BIN_NAME}"
+    local desktop_path tmp_dir tmp_desktop apps_dir
 
-  if [ "${USER_MODE}" = true ]; then
-      desktop_path="$(resolve_target_home)/.local/share/applications/${DESKTOP_NAME}"
-      mkdir -p "$(dirname "${desktop_path}")"
-  else
-      desktop_path="${DESKTOP_PATH}"
-      mkdir -p "$(dirname "${desktop_path}")"
-  fi
+    if [ "${USER_MODE}" = true ]; then
+        desktop_path="$(resolve_target_home)/.local/share/applications/${DESKTOP_NAME}"
+    else
+        desktop_path="${DESKTOP_PATH}"
+    fi
+    apps_dir="$(dirname "${desktop_path}")"
 
-  cat > "${desktop_path}" <<EOF
-[Desktop Entry]
-Type=Application
-Name=Difference Machine
-Comment=Forester GUI for Difference Machine
-Exec=${gui_exec}
-Icon=difference-machine
-Terminal=false
-Categories=Development;VersionControl;
-StartupWMClass=difference-machine
-EOF
+    remove_desktop_entry
+    mkdir -p "${apps_dir}"
 
-  if [ "${USER_MODE}" = false ] && [ "$(id -u)" -eq 0 ]; then
-      chmod 644 "${desktop_path}"
-  fi
+    tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/dfm-desktop.XXXXXX")"
+    tmp_desktop="${tmp_dir}/${DESKTOP_NAME}"
+    write_desktop_entry_file "${tmp_desktop}"
 
-  echo "Desktop entry: ${desktop_path}"
+    if command -v desktop-file-validate >/dev/null 2>&1; then
+        if ! desktop-file-validate "${tmp_desktop}" >/dev/null 2>&1; then
+            echo "WARNING: desktop entry validation failed; installing anyway." >&2
+            desktop-file-validate "${tmp_desktop}" >&2 || true
+        fi
+    fi
+
+    install -m 0644 "${tmp_desktop}" "${desktop_path}"
+    install -m 0644 "${tmp_desktop}" "${INSTALL_ROOT}/${DESKTOP_NAME}"
+    rm -rf "${tmp_dir}"
+
+    update_applications_database "${apps_dir}"
+    update_applications_database "/usr/local/share/applications"
+    echo "Desktop entry: ${desktop_path}"
+}
+
+install_app_icons() {
+    local src_hicolor="${INSTALL_ROOT}/share/icons/hicolor"
+    local dest_hicolor
+
+    if [ ! -d "${src_hicolor}" ]; then
+        src_hicolor="${SOURCE_DIR}/share/icons/hicolor"
+    fi
+    if [ ! -d "${src_hicolor}" ]; then
+        echo "WARNING: No hicolor icons found; menu entry may use a generic icon." >&2
+        return 0
+    fi
+
+    if [ "${USER_MODE}" = true ]; then
+        dest_hicolor="$(resolve_target_home)/.local/share/icons/hicolor"
+    else
+        dest_hicolor="${SYSTEM_ICONS_DIR}/hicolor"
+    fi
+
+    install_hicolor_icons_to_theme "${src_hicolor}" "${dest_hicolor}"
+    echo "Theme icons: ${dest_hicolor}/ (GUI: ${GUI_ICON_NAME}, CLI: ${FORESTER_ICON_NAME})"
+    echo "Bundled icons remain at: ${INSTALL_ROOT}/share/icons/"
 }
 
 if [ "${UNINSTALL}" = true ]; then
@@ -375,30 +542,11 @@ if [ "${CREATE_SYMLINKS}" = true ]; then
 fi
 
 if [ "${CREATE_DESKTOP}" = true ]; then
+    install_app_icons
     create_desktop_entry
+else
+    install_app_icons
 fi
-
-install_app_icons() {
-    local src="${INSTALL_ROOT}/share/icons"
-    if [ ! -d "${src}" ]; then
-        return 0
-    fi
-    local dest
-    if [ "${USER_MODE}" = true ]; then
-        dest="$(resolve_target_home)/.local/share/icons"
-    else
-        dest="/usr/local/share/icons"
-        mkdir -p "${dest}"
-    fi
-    mkdir -p "${dest}"
-    cp -R "${src}/." "${dest}/"
-    if [ -d "${dest}/hicolor" ] && command -v gtk-update-icon-cache >/dev/null 2>&1; then
-        gtk-update-icon-cache -f -t "${dest}/hicolor" 2>/dev/null || true
-    fi
-    echo "App icons: ${dest}/"
-}
-
-install_app_icons
 
 echo ""
 echo "Install complete: ${INSTALL_ROOT}"

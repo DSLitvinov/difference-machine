@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Difference Machine
+GenericName=Version Control
+Comment=Forester GUI for Difference Machine
+Exec=@GUI_EXEC@ %F
+TryExec=@TRY_EXEC@
+Path=@INSTALL_ROOT@
+Icon=@ICON_NAME@
+Terminal=false
+Categories=Development;
+Keywords=forester;vcs;git;blender;
+StartupWMClass=difference-machine

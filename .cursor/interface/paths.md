@@ -145,13 +145,13 @@ path_1 = /Users/me/projects/scene-a
 path_2 = "/Users/me/My Projects/scene-b"
 
 [forester]
-path = "/opt/Difference Machine/bin/forester"
+path = "/opt/Difference-Machine/bin/forester"
 
 [blender]
 path = /Applications/Blender.app/Contents/MacOS/Blender
 
 [addons]
-diffmachine_path = "/opt/Difference Machine/addons/blender/difference_machine"
+diffmachine_path = "/opt/Difference-Machine/addons/blender/difference_machine"
 
 [gui]
 theme = light

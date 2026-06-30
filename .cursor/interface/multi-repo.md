@@ -48,7 +48,7 @@ path_1 = /Users/me/projects/scene-a
 path_2 = /Users/me/projects/scene-b
 
 [forester]
-path = "/opt/Difference Machine/bin/forester"
+path = "/opt/Difference-Machine/bin/forester"
 
 [user]
 name = Artist

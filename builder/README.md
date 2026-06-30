@@ -41,8 +41,8 @@ After extracting the release archive:
 
 ```bash
 tar -xzf builder/dist/DifferenceMachine-*-linux.tar.gz
-cd "Difference Machine"
-sudo ./install.sh                     # → /opt/Difference Machine/
+cd Difference-Machine
+sudo ./install.sh                     # → /opt/Difference-Machine/
 ```
 
 `install.sh` copies the payload to `/opt`, writes Forester/API paths in `~/.dfm/setup.cfg`, and creates `/usr/local/bin` symlinks, a **applications menu** `.desktop` entry, and Forester hicolor icons. Install the Blender addon from `addons/blender/difference_machine.zip` in Blender. Use `./install.sh --user` for a home-directory install without sudo.

@@ -4,6 +4,27 @@
 INSTALL_FOLDER_NAME="${INSTALL_FOLDER_NAME:-Difference Machine}"
 ADDON_REL="addons/blender/difference_machine"
 ADDON_ZIP_NAME="difference_machine.zip"
+LINUX_DESKTOP_NAME="difference-machine.desktop"
+
+# render_linux_desktop_entry INSTALL_DIR
+# Writes INSTALL_DIR/difference-machine.desktop from builder/linux template.
+# Placeholders @GUI_EXEC@ and @ICON_PATH@ are resolved by install.sh after /opt install.
+render_linux_desktop_entry() {
+    local install_dir="$1"
+    local lib_dir template output
+
+    lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    template="${lib_dir}/../../linux/difference-machine.desktop.in"
+    output="${install_dir}/${LINUX_DESKTOP_NAME}"
+
+    if [ ! -f "${template}" ]; then
+        echo "Desktop template not found: ${template}" >&2
+        return 1
+    fi
+
+    cp "${template}" "${output}"
+    chmod 644 "${output}"
+}
 
 # package_blender_addon_for_release DEST_BLENDER_DIR DFM_DIST
 # Leaves only difference_machine.zip in DEST_BLENDER_DIR (no unpacked addon folder).

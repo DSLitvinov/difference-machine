@@ -13,8 +13,6 @@ SCRIPTS_DIR="${BUILDER_DIR}/scripts"
 
 # shellcheck source=../scripts/lib/detect_platform.sh
 . "${SCRIPTS_DIR}/lib/detect_platform.sh"
-# shellcheck source=../scripts/lib/release_install_folder.sh
-. "${SCRIPTS_DIR}/lib/release_install_folder.sh"
 # shellcheck source=../scripts/lib/dfm_dist.sh
 . "${SCRIPTS_DIR}/lib/dfm_dist.sh"
 
@@ -24,7 +22,10 @@ ensure_dfm_dist "${BUILDER_DIR}"
 DFM_DIST="${DFM_DIST}"
 DIST_DIR="${BUILDER_DIR}/dist"
 STAGING="${BUILDER_DIR}/.staging/linux_installer"
-INSTALL_FOLDER_NAME="${INSTALL_FOLDER_NAME:-Difference Machine}"
+INSTALL_FOLDER_NAME="Difference-Machine"
+
+# shellcheck source=../scripts/lib/release_install_folder.sh
+. "${SCRIPTS_DIR}/lib/release_install_folder.sh"
 
 VERSION="$(head -1 "${DFM_DIST}/VERSION" 2>/dev/null | tr -d '[:space:]' || echo "0.0.0")"
 ARCHIVE_BASENAME="DifferenceMachine-${VERSION}-linux"
@@ -63,10 +64,11 @@ Quick install (recommended)
   sudo ./install.sh
 
 The installer will:
-  - copy files to /opt/${INSTALL_FOLDER_NAME}/
+  - copy files to /opt/${INSTALL_FOLDER_NAME}/ (GUI, CLI, API, icons, addon zip)
   - write ~/.dfm/setup.cfg (Forester CLI and API paths)
   - create /usr/local/bin/forester and /usr/local/bin/difference-machine symlinks
-  - add a desktop menu entry
+  - add a desktop menu entry in /usr/share/applications/
+  - register app icons in /usr/share/icons/hicolor/ (menu uses /opt icon path)
 
 Install the Blender addon (once per Blender version)
 ----------------------------------------------------
