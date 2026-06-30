@@ -36,6 +36,7 @@ console.log("Wrote public/app-icon-32.png");
 const buildDir = join(guiDir, "build");
 const windowsDir = join(buildDir, "windows");
 const exportDir = join(imagesDir, "export");
+mkdirSync(buildDir, { recursive: true });
 mkdirSync(windowsDir, { recursive: true });
 mkdirSync(exportDir, { recursive: true });
 

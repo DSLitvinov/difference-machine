@@ -130,12 +130,104 @@ run_wails_doctor_summary() {
     fi
 }
 
+# Remove stale Wails binary output. frontend/dist is rebuilt explicitly before wails build.
+clean_gui_build_artifacts() {
+    local gui_dir="$1"
+
+    echo ""
+    echo "=== Clean stale GUI artifacts ==="
+    rm -rf \
+        "${gui_dir}/frontend/node_modules/.vite" \
+        "${gui_dir}/build/bin" \
+        "${gui_dir}/build/darwin" \
+        "${gui_dir}/build/linux" \
+        "${gui_dir}/build/windows"
+    echo -e "${GREEN:-}✓ Cleared Vite cache and Wails build output${NC:-}"
+}
+
+# Wails splits frontend:build on spaces (no shell); run the full frontend pipeline here.
+build_gui_frontend() {
+    local gui_dir="$1"
+
+    echo ""
+    echo "=== Build frontend (Vite) ==="
+    mkdir -p "${gui_dir}/build"
+    (
+        cd "${gui_dir}/frontend"
+        npm install
+        npm run build
+    )
+
+    if [ ! -f "${gui_dir}/frontend/dist/index.html" ]; then
+        echo -e "${RED:-}frontend/dist/index.html missing after npm run build${NC:-}" >&2
+        return 1
+    fi
+    echo -e "${GREEN:-}✓ frontend/dist ready${NC:-}"
+}
+
+resolve_gui_wails_binary_path() {
+    local gui_dir="$1"
+    local bin_path=""
+
+    case "${CURRENT_OS}" in
+        macos)
+            shopt -s nullglob
+            local macos_bins=("${gui_dir}/build/bin"/*.app/Contents/MacOS/*)
+            shopt -u nullglob
+            if [ "${#macos_bins[@]}" -gt 0 ]; then
+                bin_path="${macos_bins[0]}"
+            fi
+            ;;
+        linux)
+            bin_path="${gui_dir}/build/bin/${GUI_WAILS_OUTPUT}"
+            ;;
+        windows)
+            bin_path="${gui_dir}/build/bin/${GUI_WAILS_OUTPUT}.exe"
+            ;;
+    esac
+
+    printf '%s' "${bin_path}"
+}
+
+# Fail the build if go:embed did not pick up the Vite output (headless-safe on Linux CI).
+verify_gui_wails_binary() {
+    local gui_dir="$1"
+    local bin_path
+    bin_path="$(resolve_gui_wails_binary_path "${gui_dir}")"
+
+    echo ""
+    echo "=== Verify GUI binary ==="
+
+    if [ -z "${bin_path}" ] || [ ! -f "${bin_path}" ]; then
+        echo -e "${RED:-}GUI binary not found after wails build (${CURRENT_OS})${NC:-}" >&2
+        return 1
+    fi
+
+    if ! command -v strings >/dev/null 2>&1; then
+        echo -e "${YELLOW:-}⚠ strings not found; skipping embedded asset check${NC:-}" >&2
+        echo -e "${GREEN:-}✓ ${bin_path}${NC:-}"
+        return 0
+    fi
+
+    local embedded_hits
+    embedded_hits="$(strings "${bin_path}" 2>/dev/null | grep -c 'index.html' || true)"
+    if [ "${embedded_hits}" -eq 0 ]; then
+        echo -e "${RED:-}GUI binary is missing embedded frontend assets (index.html)${NC:-}" >&2
+        echo "Check sources/gui/wails.json frontend:build — do not use shell operators like &&." >&2
+        return 1
+    fi
+
+    echo -e "${GREEN:-}✓ ${bin_path} (embedded frontend OK)${NC:-}"
+}
+
 run_wails_build() {
     local gui_dir="$1"
     local lib_dir
     lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
     detect_linux_wails_tags
+    clean_gui_build_artifacts "${gui_dir}"
+    build_gui_frontend "${gui_dir}" || return 1
 
     if [ "${CURRENT_OS}" = "windows" ]; then
         # shellcheck source=embed_gui_windows_icon.sh
@@ -147,17 +239,11 @@ run_wails_build() {
     echo "=== wails build ==="
     cd "${gui_dir}"
 
-    local wails_args=()
-    if [ "${CURRENT_OS}" = "windows" ]; then
-        wails_args+=("-clean")
-    fi
+    local wails_args=("-clean")
     if [ -n "${WAILS_BUILD_TAGS:-}" ]; then
         wails_args+=("-tags" "${WAILS_BUILD_TAGS}")
     fi
 
-    if [ "${#wails_args[@]}" -gt 0 ]; then
-        wails build "${wails_args[@]}"
-    else
-        wails build
-    fi
+    wails build "${wails_args[@]}"
+    verify_gui_wails_binary "${gui_dir}" || return 1
 }

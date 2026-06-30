@@ -3,7 +3,7 @@
   "name": "difference-machine-gui",
   "outputfilename": "difference-machine",
   "frontend:install": "npm install",
-  "frontend:build": "npm run icons:generate && npm run build",
+  "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
