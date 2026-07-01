@@ -90,8 +90,11 @@ History:
 | 4 | **Settings** | `Settings` | Открыть [settings-dialog.md](./settings-dialog.md) |
 | 5 | User avatar | image 32×32 | Зарезервировано (профиль — вне scope v1) |
 
-**Header (верх):** Home → Project view → History — один stack `flex flex-col gap-1 p-2` под логотипом.  
-**Footer (низ):** Settings → avatar — `flex flex-col gap-1 p-2`. Между ними `flex-1` spacer.
+**Header (верх):**  
+- **Expanded:** Home (logo) → Project view → History — stack `flex flex-col gap-1 p-2`.  
+- **Collapsed** ([`4096:12811`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4096-12811)): **Collapse/expand** (`PanelLeft`, 28×28) **над** logo; затем logo → mode icons.
+
+**Footer (низ):** Settings → avatar — `flex flex-col gap-1 p-2`. Между header и footer `flex-1` spacer.
 
 #### Settings button
 
@@ -114,13 +117,29 @@ onSettingsClick={() => setSettingsOpen(true)}
 
 Общие блоки:
 
-1. **Header** — заголовок режима (`Project view` / `History`).
+1. **Header** — заголовок режима (`Project view` / `History`) + **Collapse control** справа (см. ниже).
 2. **Context selector** — dropdown:
    - Project view → имя репозитория (basename root path); read-only label **`currentBranch`** под repo name (muted, `text-xs`) — без checkout из Project mode в v1.
    - History → **`BranchSelector`**: `currentBranch`, checkout on select — [sidebar-history-view.md §2.6](./sidebar-history-view.md).
 3. **Mode-specific controls** — см. дочерние документы.
 4. **Scrollable list** — папки / коммиты (белый фон Container, §2.5).
-5. **Collapse control** — кнопка `PanelLeft` на правом краю; сворачивает всю Sidebar (состояние в `ui.sidebarCollapsed`).
+
+#### Collapse control (`PanelLeft`)
+
+| Состояние Sidebar | Расположение кнопки | Figma |
+|-------------------|---------------------|-------|
+| **Expanded** | В **header** main panel — справа от title (`Project view` / `History`) | `4096:4593` · `4096:4655` |
+| **Collapsed** | В **Rail header** — **над** logo (app icon) | `4096:12805` |
+
+| Property | Spec |
+|----------|------|
+| Icon | `PanelLeft` 16×16 |
+| Button | `Button` ghost **28×28** (`size-[28px]`, `p-2`) |
+| Action | Toggle `ui.sidebarCollapsed` |
+| Tooltip expanded | `Collapse sidebar` |
+| Tooltip collapsed | `Expand sidebar` |
+
+**Удалено:** floating кнопка на правом краю main panel; fixed «Expand sidebar» chip внизу окна.
 
 ### 2.5 Цвета и фоны
 
@@ -411,6 +430,8 @@ Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-proje
 ### 6.9 Collapse
 
 - `collapsed === true` → Sidebar column **48px** (только Rail). Min окна в collapse: см. [panel-layout.md §5](./panel-layout.md).
+- **Expand:** кнопка `PanelLeft` в Rail header (над logo) — [`4096:12811`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4096-12811).
+- **Collapse:** кнопка `PanelLeft` в header main panel — [`4026:4812`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812) · [`4026:4547`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4547).
 - Folder/commit context **сохраняется**.
 
 ### 6.10 Переключение Project ↔ History

@@ -12,7 +12,7 @@ import { ProjectPreviewPanel } from "@/components/preview/ProjectPreviewPanel";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { AppToast } from "@/components/shell/AppToast";
 import { PanelResizeHandle } from "@/components/shell/PanelResizeHandle";
-import { SidebarCollapseButton, SidebarRail } from "@/components/shell/SidebarRail";
+import { SidebarRail } from "@/components/shell/SidebarRail";
 import { usePanelLayout } from "@/hooks/usePanelLayout";
 import { useProjectStatusPolling } from "@/hooks/useProjectStatusPolling";
 import {
@@ -25,7 +25,6 @@ import {
 } from "@/lib/layout";
 import { useT } from "@/lib/i18n";
 import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
-import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -113,14 +112,17 @@ export function AppShell() {
 
   return (
     <div className="flex h-screen min-h-0 overflow-hidden bg-sidebar">
-      <SidebarRail onSettingsClick={() => setSettingsOpen(true)} />
+      <SidebarRail
+        collapsed={sidebarCollapsed}
+        onSettingsClick={() => setSettingsOpen(true)}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
 
       {!sidebarCollapsed ? (
         <div
           className="relative flex min-h-0 shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
           style={{ width: sidebarMainWidth, minWidth: sidebarMainWidth }}
         >
-          <SidebarCollapseButton onClick={() => setSidebarCollapsed(true)} />
           {sidebarMode === "project" ? (
             <ProjectSidebarPanel />
           ) : (
@@ -154,18 +156,6 @@ export function AppShell() {
             <ContentInfoPanel />
           </aside>
         </>
-      ) : null}
-
-      {sidebarCollapsed ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="fixed bottom-4 left-14 z-20 h-auto px-3 py-1 text-xs shadow-sm"
-          onClick={() => setSidebarCollapsed(false)}
-        >
-          {t("common.expandSidebar")}
-        </Button>
       ) : null}
 
       <AppToast />

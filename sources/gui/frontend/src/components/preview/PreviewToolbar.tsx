@@ -1,17 +1,8 @@
 import { useState } from "react";
-import { ArrowUpAZ, Check, Filter, Search } from "lucide-react";
+import { ArrowUpAZ, Check, Search } from "lucide-react";
 
+import { PreviewFilterMenu } from "@/components/preview/PreviewFilterMenu";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -47,12 +38,8 @@ interface PreviewToolbarProps {
   onSearchClear: () => void;
   onSortModeChange: (mode: PreviewSortMode) => void;
   onToggleExtensionFilter: (ext: string, checked: boolean) => void;
+  onClearExtensionFilters: () => void;
   onThumbScaleChange: (px: ThumbScalePx) => void;
-}
-
-function extensionLabel(ext: string, t: ReturnType<typeof useT>): string {
-  if (ext === "(none)") return t("merge.extensionNone");
-  return `.${ext}`;
 }
 
 const SORT_OPTIONS: { mode: PreviewSortMode; labelKey: "preview.sortNameEn" | "preview.sortNameRu" }[] = [
@@ -81,6 +68,28 @@ function sortModeLabel(mode: PreviewSortMode, t: ReturnType<typeof useT>): strin
   }
 }
 
+function SortMenuItem({
+  active,
+  label,
+  onSelect,
+}: {
+  active: boolean;
+  label: string;
+  onSelect: () => void;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
+      onClick={onSelect}
+    >
+      {active ? <Check className="h-4 w-4 shrink-0" /> : <span className="h-4 w-4 shrink-0" />}
+      {label}
+    </Button>
+  );
+}
+
 export function PreviewToolbar({
   showChangedOnly,
   searchQuery,
@@ -94,15 +103,13 @@ export function PreviewToolbar({
   onSearchClear,
   onSortModeChange,
   onToggleExtensionFilter,
+  onClearExtensionFilters,
   onThumbScaleChange,
 }: PreviewToolbarProps) {
   const t = useT();
   const [sortOpen, setSortOpen] = useState(false);
   const sliderIndex = sliderIndexFromThumbScale(thumbScale);
   const sortLabel = sortModeLabel(sortMode, t);
-  const typeFilterActive = hiddenExtensions.size > 0;
-  const dateSortValue =
-    sortMode === "modified-desc" || sortMode === "created-desc" ? sortMode : "";
 
   const handleSortSelect = (mode: PreviewSortMode) => {
     onSortModeChange(mode);
@@ -171,66 +178,31 @@ export function PreviewToolbar({
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {SORT_OPTIONS.map((option) => (
-            <Button
+            <SortMenuItem
               key={option.mode}
-              type="button"
-              variant="ghost"
-              className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
-              onClick={() => handleSortSelect(option.mode)}
-            >
-              {sortMode === option.mode ? (
-                <Check className="h-4 w-4 shrink-0" />
-              ) : (
-                <span className="h-4 w-4 shrink-0" />
-              )}
-              {t(option.labelKey)}
-            </Button>
+              active={sortMode === option.mode}
+              label={t(option.labelKey)}
+              onSelect={() => handleSortSelect(option.mode)}
+            />
+          ))}
+          <Separator className="my-1" />
+          {DATE_SORT_OPTIONS.map((option) => (
+            <SortMenuItem
+              key={option.mode}
+              active={sortMode === option.mode}
+              label={t(option.labelKey)}
+              onSelect={() => handleSortSelect(option.mode)}
+            />
           ))}
         </PopoverContent>
       </Popover>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn("h-10 w-10 shrink-0", typeFilterActive && "border border-ring bg-accent")}
-            title={t("merge.filterTypes")}
-            disabled={availableExtensions.length === 0}
-          >
-            <Filter className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[12rem]">
-          <DropdownMenuRadioGroup
-            value={dateSortValue}
-            onValueChange={(value) => onSortModeChange(value as PreviewSortMode)}
-          >
-            {DATE_SORT_OPTIONS.map((option) => (
-              <DropdownMenuRadioItem key={option.mode} value={option.mode}>
-                {t(option.labelKey)}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>{t("merge.filterTypes")}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {availableExtensions.length === 0 ? (
-            <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("common.noFilesInFolder")}</p>
-          ) : (
-            availableExtensions.map((ext) => (
-              <DropdownMenuCheckboxItem
-                key={ext}
-                checked={!hiddenExtensions.has(ext)}
-                onCheckedChange={(checked) => onToggleExtensionFilter(ext, checked === true)}
-              >
-                {extensionLabel(ext, t)}
-              </DropdownMenuCheckboxItem>
-            ))
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <PreviewFilterMenu
+        availableExtensions={availableExtensions}
+        hiddenExtensions={hiddenExtensions}
+        onToggleExtensionFilter={onToggleExtensionFilter}
+        onClearExtensionFilters={onClearExtensionFilters}
+      />
     </div>
   );
 }

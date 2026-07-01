@@ -38,7 +38,7 @@ Toggle **Changed** — **только в Content Preview** ([content-preview-pro
 
 ```
 ┌─────────────────────────────────────┐
-│ Project view                        │  ← без Changed (переехал в Preview)
+│ Project view              [⊟]       │  ← collapse в header (Figma 4096:4593)
 ├─────────────────────────────────────┤
 │ [📁] Project name            [⇕]    │
 │ ⎇ main                              │
@@ -60,9 +60,10 @@ Toggle **Changed** — **только в Content Preview** ([content-preview-pro
 | Элемент | Поведение |
 |---------|-----------|
 | Title `Project view` | Статичный label (`text-base/semibold`) |
+| **Collapse** | `Button` ghost 28×28, `PanelLeft` 16 — **справа** в строке title; сворачивает Sidebar → Rail only |
 | Changed toggle | **Не в Sidebar** — см. [content-preview-project-view.md §2.1](./content-preview-project-view.md) |
 
-Figma [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812): header `4026:4823` — только title, без Switch.
+Figma [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812): header row `4026:4823` — title + collapse (`4096:4593`).
 
 ### 2.2 Repo selector
 

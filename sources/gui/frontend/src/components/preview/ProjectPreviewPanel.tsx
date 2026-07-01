@@ -148,6 +148,10 @@ export function ProjectPreviewPanel() {
     });
   }, []);
 
+  const clearExtensionFilters = useCallback(() => {
+    setHiddenExtensions(new Set());
+  }, []);
+
   const passesExtensionFilter = useCallback(
     (entry: DirEntry) => entry.is_dir || !hiddenExtensions.has(extensionKeyFromPath(entry.path)),
     [hiddenExtensions],
@@ -309,6 +313,7 @@ export function ProjectPreviewPanel() {
         onSearchClear={() => setPreviewSearchQuery("")}
         onSortModeChange={setSortMode}
         onToggleExtensionFilter={toggleExtensionFilter}
+        onClearExtensionFilters={clearExtensionFilters}
         onThumbScaleChange={setThumbScale}
       />
 
@@ -435,14 +440,7 @@ export function ProjectPreviewPanel() {
                       ? repoName
                         ? t("sidebar.allFilesProject", { name: repoName })
                         : t("sidebar.allFiles")
-                      : `${t("common.files")} (${selectedFolderPath.split("/").pop()})${
-                          entriesTotal > sortedEntries.length
-                            ? ` — ${t("preview.showingFilesOfTotal", {
-                                shown: sortedEntries.length,
-                                total: entriesTotal,
-                              })}`
-                            : ""
-                        }`}
+                      : `${t("common.files")} (${selectedFolderPath.split("/").pop() ?? ""})`}
                 </p>
                 {entriesHasMore && !showChangedOnly ? (
                   <p className="mb-2 text-xs text-muted-foreground">

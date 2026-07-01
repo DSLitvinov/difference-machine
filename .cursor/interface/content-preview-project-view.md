@@ -49,7 +49,7 @@ Content Preview работает **в связке с Sidebar (Project view)**. 
 | 2 | Навигация | **Drill-down в Preview + двусторонняя sync с Sidebar**; breadcrumbs в content area (§2.2) |
 | 3 | Back/Forward | **Удалены** (заменены Changed toggle в toolbar, Figma `4026:4988`) |
 | 4 | Changed toggle | **В toolbar Preview** (слева); фильтрует Preview **и** дерево Sidebar (§8) |
-| 5 | Сортировка | **Имя** — popover `ArrowUpAZ` (`A–Z` / `А–Я`); **дата** — radio в dropdown «Фильтр» (§6.4); Folders всегда по имени |
+| 5 | Сортировка | **Имя** + **дата** — popover `ArrowUpAZ` (§6.2); **типы** — Filter menu (§6.4); Folders всегда по имени |
 | 6 | Мультиселект | **Только файлы**. Папки — одиночный выбор; double-click для входа |
 | 7 | Поиск | **По всему репозиторию** (global search), результаты в отдельном results view (§7) |
 | 8 | Changed ON | Секция **Folders скрывается**; flat-список **всех committable** в поддереве выбранной папки (§8) |
@@ -89,7 +89,7 @@ Figma: [4026:4988](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=
 | 2 | **Slider** | `120px`, shadcn `Slider` sm | **Строго по центру** toolbar: `flex-1` + `items-center justify-center` на обёртке (`4026:4998` / `Scale Preview Items`) |
 | 3 | **Search** | `Input` **250px**, `Search` icon 20, placeholder `Search` | global search (§7) |
 | 4 | **Sort** | `Button` ghost 40×40, `ArrowUpAZ` 16 | popover: сортировка по имени `A–Z` / `А–Я` (§6) |
-| 5 | **Filter** | `Button` ghost 40×40, `Filter` 16 | dropdown: сортировка по дате + фильтр типов файла (§6.4) |
+| 5 | **Filter** | `Button` ghost 40×40, `Filter` 16 | [preview-filter-menu.md](./preview-filter-menu.md) — типы + Clean filters |
 
 **Удалено из toolbar:** кнопки **Back** `<` / **Forward** `>`; **breadcrumbs** (§2.2); **Spacer 40×40** (Figma `4026:4992` — больше не в макете).
 
@@ -393,8 +393,8 @@ function isMaxVisual(px: number): boolean {
 |------------|-----|-------------|---------|
 | `name-en` | Sort popover | `name` / `path`* | `Intl.Collator('en-US')`, по возрастанию |
 | `name-ru` | Sort popover | `name` / `path`* | `Intl.Collator('ru')`, по возрастанию |
-| `modified-desc` | Filter dropdown (radio) | `DirEntry.modified` (Unix sec) | **Недавние первые** (desc) |
-| `created-desc` | Filter dropdown (radio) | `DirEntry.created` (Unix sec) | **Недавние первые** (desc) |
+| `modified-desc` | Sort popover | `DirEntry.modified` (Unix sec) | **Недавние первые** (desc) |
+| `created-desc` | Sort popover | `DirEntry.created` (Unix sec) | **Недавние первые** (desc) |
 
 \* При **Changed ON** (§8) сортировка по имени — по полному `path`; при сортировке по дате — по timestamp, `byPath` не применяется.
 
@@ -405,7 +405,8 @@ type PreviewSortMode = 'name-en' | 'name-ru' | 'modified-desc' | 'created-desc'
 ### 6.2 Sort popover (`ArrowUpAZ`)
 
 - Tooltip: `Sort: {label}` (`preview.sortTitle`).
-- Два пункта с галочкой: `A–Z` (`name-en`), `А–Я` (`name-ru`).
+- Имя: `A–Z` (`name-en`), `А–Я` (`name-ru`).
+- Разделитель, затем дата: **Date modified** (`modified-desc`), **Date created** (`created-desc`).
 - Выбор → `setSortMode`; закрывает popover.
 
 ### 6.3 Область применения
@@ -432,41 +433,24 @@ const collator = new Intl.Collator(sortLocale, {
 
 ## 6.4 Dropdown «Фильтр» (иконка `Filter`)
 
-Объединяет **сортировку по дате** и **фильтр по расширению**. Кнопка `disabled`, если в текущем scope нет файлов (нет расширений для списка).
+Полная спека: **[preview-filter-menu.md](./preview-filter-menu.md)** (Figma [`4096:14305`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/shadcn-ui--The-Ultimate-UI-Kit-for-Figma--Community-?node-id=4096-14305)).
 
-### Структура меню
+Только **фильтр по расширению** + **Clean filters**. Сортировка по дате — в Sort popover (§6.2).
 
 ```
-┌─────────────────────────┐
-│ ○ Date modified         │  ← radio (modified-desc)
-│ ● Date created          │  ← radio (created-desc)
-├─────────────────────────┤  ← DropdownMenuSeparator
-│ Filter types            │  ← DropdownMenuLabel
-├─────────────────────────┤
-│ ☑ .png                  │  ← CheckboxItem
-│ ☑ .blend                │
-│ ☐ .fbx                  │
-└─────────────────────────┘
+┌──────────────────────────────┐
+│ Filter types                 │
+├──────────────────────────────┤
+│ ☑ [icon] .png                │
+│ ☐ [icon] .fbx                │
+├──────────────────────────────┤
+│       Clean filters          │
+└──────────────────────────────┘
 ```
 
-| Блок | Компонент | Поведение |
-|------|-----------|-----------|
-| Дата изменения | `DropdownMenuRadioItem` | `sortMode = 'modified-desc'` |
-| Дата создания | `DropdownMenuRadioItem` | `sortMode = 'created-desc'` |
-| Разделитель | `DropdownMenuSeparator` | отделяет дату от типов |
-| Filter types | `DropdownMenuLabel` + separator | заголовок секции расширений |
-| `.ext` | `DropdownMenuCheckboxItem` | checked = тип **виден**; unchecked = скрыт |
-
-- Radio-группа дат: активна только при `modified-desc` / `created-desc`; при сортировке по имени оба radio сняты.
-- Выбор даты **не** сбрасывает скрытые расширения.
-- Кнопка Filter подсвечивается (`border-ring bg-accent`) только при **активном фильтре типов** (`hiddenExtensions.size > 0`), не при сортировке по дате.
-
-### Фильтр по расширению
-
-- Список `availableExtensions` — уникальные расширения файлов в текущем scope (folder entries или search results); `(none)` для файлов без расширения.
-- Состояние `hiddenExtensions: Set<string>` — **session-only** (не persist).
-- Фильтр применяется к секции **Files** и к **Files** в search results; папки не фильтруются.
-- При смене папки / repo / выходе из поиска — `hiddenExtensions` сбрасывается (реализация: local `useState` в `ProjectPreviewPanel`).
+- **Clean filters** → `hiddenExtensions = ∅`.
+- Кнопка Filter подсвечивается только при `hiddenExtensions.size > 0`.
+- Фильтр session-only; сброс при смене repo (см. [preview-filter-menu.md](./preview-filter-menu.md)).
 
 ---
 

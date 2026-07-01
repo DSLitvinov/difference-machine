@@ -8,6 +8,7 @@ import { DeleteBranchDialog } from "@/components/sidebar/DeleteBranchDialog";
 import { DirtyBranchSwitchDialog } from "@/components/sidebar/DirtyBranchSwitchDialog";
 import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
 import { MergeBranchPickDialog } from "@/components/merge/MergeBranchPickDialog";
+import { SidebarPanelTitleBar } from "@/components/shell/SidebarRail";
 import { mergeSuccessNotice, MergeDialog } from "@/components/merge/MergeDialog";
 import { MergeInProgressBanner } from "@/components/merge/MergeInProgressBanner";
 import { DetachedHeadBanner } from "@/components/sidebar/DetachedHeadBanner";
@@ -42,6 +43,7 @@ export function HistorySidebarPanel() {
   const setRepo = useAppStore((s) => s.setRepo);
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
+  const setSidebarCollapsed = useAppStore((s) => s.setSidebarCollapsed);
 
   const searchQuery = useHistoryStore((s) => s.searchQuery);
   const selectedCommitHash = useHistoryStore((s) => s.selectedCommitHash);
@@ -293,13 +295,26 @@ export function HistorySidebarPanel() {
   };
 
   if (!repoPath) {
-    return <EmptyRepoState />;
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="shrink-0 border-b border-sidebar-border px-4 py-4">
+          <SidebarPanelTitleBar
+            title={t("common.history")}
+            onCollapse={() => setSidebarCollapsed(true)}
+          />
+        </header>
+        <EmptyRepoState />
+      </div>
+    );
   }
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="shrink-0 space-y-3 border-b border-sidebar-border px-3 py-3">
-        <h2 className="text-base font-semibold">{t("common.history")}</h2>
+      <header className="shrink-0 space-y-4 border-b border-sidebar-border px-4 py-4">
+        <SidebarPanelTitleBar
+          title={t("common.history")}
+          onCollapse={() => setSidebarCollapsed(true)}
+        />
         <BranchSelector
           branches={branches}
           currentBranch={currentBranch ?? branches[0] ?? ""}

@@ -119,6 +119,7 @@ function clamp(width: number, min: number, max: number): number {
 - Double-click на H1/H2 — **v1.1** (reset to defaults); в v1 не обязательно.
 - Курсор: `col-resize`.
 - Sidebar **collapse** → колонка **48px** (только Rail); H1 скрыт; saved `sidebarWidth` восстанавливается при expand.
+- **Expand** при collapse: кнопка `PanelLeft` в Rail header (над logo), не отдельный chip внизу окна — [architecture.md §2.3](./architecture.md).
 
 ---
 

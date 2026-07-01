@@ -4,6 +4,7 @@ import { Expand, GitBranch, Loader2, Plus, Shrink } from "lucide-react";
 import { FolderTree } from "@/components/sidebar/FolderTree";
 import { RepoSelector } from "@/components/sidebar/RepoSelector";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
+import { SidebarPanelTitleBar } from "@/components/shell/SidebarRail";
 import { Button } from "@/components/ui/button";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { treeHasExpandedFolders } from "@/lib/projectViewPaths";
@@ -70,6 +71,7 @@ export function ProjectSidebarPanel() {
   const navigateToFolder = useProjectStore((s) => s.navigateToFolder);
   const expandAllFolders = useProjectStore((s) => s.expandAllFolders);
   const collapseAllFolders = useProjectStore((s) => s.collapseAllFolders);
+  const setSidebarCollapsed = useAppStore((s) => s.setSidebarCollapsed);
   const treeLoading = useProjectStore((s) => s.treeLoading);
   const folderTree = useProjectStore((s) => s.folderTree);
   const expandedPaths = useProjectStore((s) => s.expandedPaths);
@@ -92,7 +94,17 @@ export function ProjectSidebarPanel() {
   }, [repoPath, sidebarMode]);
 
   if (!repoPath) {
-    return <EmptyRepoState />;
+    return (
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="shrink-0 border-b border-sidebar-border px-4 py-4">
+          <SidebarPanelTitleBar
+            title={t("common.projectView")}
+            onCollapse={() => setSidebarCollapsed(true)}
+          />
+        </header>
+        <EmptyRepoState />
+      </div>
+    );
   }
 
   const handleTreeExpandToggle = () => {
@@ -105,19 +117,19 @@ export function ProjectSidebarPanel() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex shrink-0 items-center border-b border-sidebar-border px-4 py-3">
-        <h1 className="text-base font-semibold">{t("common.projectView")}</h1>
-      </header>
-
-      <div className="relative z-20 shrink-0 space-y-3 border-b border-sidebar-border p-3">
+      <header className="shrink-0 space-y-4 border-b border-sidebar-border px-4 py-4">
+        <SidebarPanelTitleBar
+          title={t("common.projectView")}
+          onCollapse={() => setSidebarCollapsed(true)}
+        />
         <RepoSelector onOpenChange={setRepoMenuOpen} />
         {currentBranch && !repoMenuOpen ? (
-          <p className="flex items-center gap-1 px-1 text-xs text-muted-foreground">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <GitBranch className="h-3 w-3" />
             {isDetached ? `${currentBranch} (${t("branch.detached")})` : currentBranch}
           </p>
         ) : null}
-      </div>
+      </header>
 
       <div ref={setTreeScrollElement} className="min-h-0 flex-1 overflow-auto bg-background">
         <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-3">

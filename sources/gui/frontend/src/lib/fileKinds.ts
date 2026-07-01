@@ -23,6 +23,45 @@ const TEXT_EXTENSIONS = new Set([
   "sh",
 ]);
 
+export type FileExtensionKind =
+  | "image"
+  | "text"
+  | "blend"
+  | "mesh3d"
+  | "video"
+  | "audio"
+  | "document"
+  | "none"
+  | "other";
+
+const MESH3D_EXTENSIONS = new Set([
+  "fbx",
+  "obj",
+  "gltf",
+  "glb",
+  "usd",
+  "usdz",
+  "abc",
+  "dae",
+  "stl",
+  "ply",
+]);
+const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "avi", "mkv", "webm"]);
+const AUDIO_EXTENSIONS = new Set(["wav", "mp3", "ogg", "flac", "aac"]);
+const DOCUMENT_EXTENSIONS = new Set(["pdf", "doc", "docx", "xls", "xlsx", "csv"]);
+
+export function fileExtensionKind(ext: string): FileExtensionKind {
+  if (ext === "(none)") return "none";
+  if (ext === "blend") return "blend";
+  if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  if (TEXT_EXTENSIONS.has(ext)) return "text";
+  if (MESH3D_EXTENSIONS.has(ext)) return "mesh3d";
+  if (VIDEO_EXTENSIONS.has(ext)) return "video";
+  if (AUDIO_EXTENSIONS.has(ext)) return "audio";
+  if (DOCUMENT_EXTENSIONS.has(ext)) return "document";
+  return "other";
+}
+
 export function fileExtension(path: string): string {
   const name = path.split("/").pop() ?? path;
   const dot = name.lastIndexOf(".");

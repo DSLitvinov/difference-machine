@@ -14,7 +14,9 @@ import { cn } from "@/lib/utils";
 import { useAppStore, type SidebarMode } from "@/stores/appStore";
 
 interface SidebarRailProps {
+  collapsed?: boolean;
   onSettingsClick?: () => void;
+  onToggleCollapse?: () => void;
 }
 
 function RailButton({
@@ -46,7 +48,49 @@ function RailButton({
   );
 }
 
-export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
+export function SidebarCollapseButton({
+  expanded,
+  onClick,
+}: {
+  expanded: boolean;
+  onClick: () => void;
+}) {
+  const t = useT();
+  const label = expanded ? t("common.collapseSidebar") : t("common.expandSidebar");
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7 shrink-0"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+    >
+      <PanelLeft className="h-4 w-4" />
+    </Button>
+  );
+}
+
+export function SidebarPanelTitleBar({
+  title,
+  onCollapse,
+}: {
+  title: string;
+  onCollapse: () => void;
+}) {
+  return (
+    <div className="flex h-6 items-center gap-2">
+      <h1 className="min-w-0 flex-1 truncate text-base font-semibold leading-6 text-foreground">
+        {title}
+      </h1>
+      <SidebarCollapseButton expanded onClick={onCollapse} />
+    </div>
+  );
+}
+
+export function SidebarRail({ collapsed = false, onSettingsClick, onToggleCollapse }: SidebarRailProps) {
   const t = useT();
   const sidebarMode = useAppStore((s) => s.sidebarMode);
   const userName = useAppStore((s) => s.userName);
@@ -59,7 +103,10 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
 
   return (
     <aside className="flex h-full w-12 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      <div className="flex flex-col items-center gap-1 p-2">
+      <div className="flex flex-col items-center gap-2 p-2">
+        {collapsed && onToggleCollapse ? (
+          <SidebarCollapseButton expanded={false} onClick={onToggleCollapse} />
+        ) : null}
         <RailButton label={t("common.home")} onClick={() => {}}>
           <img src="/app-icon-32.png" alt="" className="h-4 w-4" draggable={false} />
         </RailButton>
@@ -94,22 +141,5 @@ export function SidebarRail({ onSettingsClick }: SidebarRailProps) {
         </div>
       </div>
     </aside>
-  );
-}
-
-export function SidebarCollapseButton({ onClick }: { onClick: () => void }) {
-  const t = useT();
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className="absolute -right-3 top-3 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-sm"
-      onClick={onClick}
-      title={t("common.collapseSidebar")}
-      aria-label={t("common.collapseSidebar")}
-    >
-      <PanelLeft className="h-3.5 w-3.5" />
-    </Button>
   );
 }

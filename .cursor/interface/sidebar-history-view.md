@@ -48,7 +48,7 @@
 
 ### 2.1 Header
 
-- Только заголовок `History` (semibold 16px).
+- Заголовок `History` (semibold 16px) + **Collapse** справа (`PanelLeft`, 28×28) — Figma `4096:4655`.
 - Без toggle «Changed» в History — в Project view он в **Content Preview toolbar** ([content-preview-project-view.md §2.1](./content-preview-project-view.md)).
 
 ### 2.2 Branch selector
