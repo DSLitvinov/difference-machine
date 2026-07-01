@@ -4,7 +4,7 @@
 
 **Принцип:** обёртки над существующими `commands.*` (как Git CLI). Новые методы — тонкий JSON-слой, не параллельный API.
 
-**Связанные:** [architecture.md](./architecture.md) · [paths.md](./paths.md) · [decisions.md](./decisions.md)
+**Связанные:** [architecture.md](./architecture.md) · [paths.md](./paths.md) · [decisions.md](./decisions.md) · [vcs-gui-coverage.md](./vcs-gui-coverage.md) (аудит покрытия GUI)
 
 ---
 

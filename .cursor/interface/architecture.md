@@ -508,7 +508,7 @@ Atom-спеки и инфраструктура. При конфликте — [
 | Область | Документы |
 |---------|-----------|
 | Токены / цвета | [design-tokens.md](./design-tokens.md) |
-| API + UI events | [api-contract.md](./api-contract.md) |
+| API + UI events | [api-contract.md](./api-contract.md) · [vcs-gui-coverage.md](./vcs-gui-coverage.md) |
 | Пути | [paths.md](./paths.md) |
 | Multi-repo | [multi-repo.md](./multi-repo.md) |
 | Resize панелей | [panel-layout.md](./panel-layout.md) |
