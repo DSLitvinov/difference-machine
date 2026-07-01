@@ -5,9 +5,13 @@ export function isAllFilesPath(path: string): boolean {
   return path === ALL_FILES_PATH;
 }
 
-/** Map legacy persisted root selection to All files. */
+/** Repo root folder — immediate children in Content Preview. */
+export function isRootFolderPath(path: string): boolean {
+  return path === "";
+}
+
 export function normalizeSelectedFolderPath(path: string): string {
-  return path === "" ? ALL_FILES_PATH : path;
+  return path;
 }
 
 export function treeHasExpandedFolders(expandedPaths: Record<string, boolean>): boolean {

@@ -52,6 +52,8 @@ async function validateSelectedFiles() {
 
 async function refreshWorkdirFromWatcher() {
   const { repoPath, sidebarMode } = useAppStore.getState();
+  const generationBefore = useProjectStore.getState().workdirGeneration;
+
   if (!repoPath || sidebarMode !== "project") {
     await refreshStatus();
     return;
@@ -59,7 +61,11 @@ async function refreshWorkdirFromWatcher() {
 
   await refreshStatus();
   await validateSelectedFiles();
-  useProjectStore.getState().bumpWorkdirGeneration();
+
+  // setStatus already bumps workdirGeneration when committable changes — avoid double soft refresh.
+  if (useProjectStore.getState().workdirGeneration === generationBefore) {
+    useProjectStore.getState().bumpWorkdirGeneration();
+  }
 }
 
 export function useProjectStatusPolling() {

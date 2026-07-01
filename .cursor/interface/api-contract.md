@@ -405,7 +405,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 |---------|-------|
 | `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })` | Клик **All files** / папки (Sidebar или Preview), drill-down, **toggle Changed в Preview** |
 
-**`selectedFolderPath`:** `'*'` = All files (flat grid всех файлов репо); иначе relative path папки (`assets/foo`). Значение `''` в UI не используется — зарезервировано для tree API root.
+**`selectedFolderPath`:** `'*'` = All files (flat grid всех файлов репо); `''` = repo root (immediate children); иначе relative path папки (`assets/foo`).
 | `onSelectionChange({ kind: 'commit', hash, branch })` | Выбор коммита в History; `branch` = `currentBranch` |
 | `onSelectionChange({ kind: 'none' })` | Сброс commit selection |
 | `onPreviewSelectionChange(PreviewSelection)` | File multiselect в Preview |

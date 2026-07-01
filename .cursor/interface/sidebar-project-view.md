@@ -27,7 +27,7 @@ Toggle **Changed** — **только в Content Preview** ([content-preview-pro
 | `selectedFolderPath` | Значение |
 |----------------------|----------|
 | `'*'` | **All files** — все файлы репозитория (рекурсивно), как в Anchorpoint Edge |
-| `''` | *(не используется в UI v1.1+)* — зарезервировано для API |
+| `''` | **Repo root** — immediate children в Preview (файлы и подпапки в корне репо) |
 | `'assets/…'` | Конкретная папка — immediate children в Preview |
 
 При `showChangedOnly = true` Sidebar дополнительно фильтрует дерево папок (§3).
@@ -43,9 +43,10 @@ Toggle **Changed** — **только в Content Preview** ([content-preview-pro
 │ [📁] Project name            [⇕]    │
 │ ⎇ main                              │
 ├─────────────────────────────────────┤
-│ FOLDERS                        [⤢]  │
-│ [📁] All files                972   │
-│ ▼ [📁] assets                 120   │
+│ FOLDERS                        [≡]  │
+│ [📁] All files                972   │  ← отдельная зона (§2.4)
+│ ─────────────────────────────────── │  ← Separator
+│ [📁] Project name folder  972  [›]  │  ← repo root (§2.5)
 │     ▼ [📁] References         972   │
 │         [📁] chars             12   │
 │     [📁] Textures              56   │
@@ -83,19 +84,21 @@ Figma [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4
 | Элемент | Spec |
 |---------|------|
 | Label | `Folders` — `text-xs font-semibold uppercase text-muted-foreground` ([design-tokens.md §3.1](./design-tokens.md)) |
-| **Toggle button** | Один `Button ghost` 32×32, icon 16×16 — **замена** двум кнопкам «Expand all» / «Collapse» |
-| Icon collapsed | `Expand` (lucide) — дерево свёрнуто до top-level |
-| Icon expanded | `Shrink` (lucide) — хотя бы один узел раскрыт |
-| Click collapsed | `expandAllFolders()` — загрузить полное дерево (с лимитом `EXPAND_ALL_FILE_LIMIT`) |
-| Click expanded | `collapseAllFolders()` — свернуть все узлы, оставить top-level + **All files** |
+| **Toggle button** | `Toggle` 32×32 — `pressed` = дерево раскрыто (хотя бы один узел, включая repo root) |
+| Icon OFF (collapsed) | `ListTree` (lucide) 16×16 |
+| Icon ON (expanded) | `ListCollapse` (lucide) 16×16 — `data-[state=on]:bg-accent` |
+| Click OFF → ON | `expandAllFolders()` — загрузить полное дерево (с лимитом `EXPAND_ALL_FILE_LIMIT`) |
+| Click ON → OFF | `collapseAllFolders()` — свернуть все узлы, включая repo root; **All files** остаётся |
 | Disabled | `treeLoading` или `folderTree.item_count >= EXPAND_ALL_FILE_LIMIT` (только для expand) |
 | Tooltip | `Expand all folders` / `Collapse all folders` |
 
-Figma: кнопка `4089:3646` в [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812).
+Figma: кнопка `4089:3646` (`ListCollapse`) в [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812).
 
 ### 2.4 All files (виртуальный пункт)
 
-Первый row в scroll-области, **над** деревом папок. UX как **Anchorpoint Edge** — flat-просмотр всех файлов репозитория.
+**Отдельная зона** над деревом папок — **не** часть folder tree. От **All files** отделяет `Separator` (Figma `555:1335` в контейнере `4096:4271`).
+
+Первый row в scroll-области, **над** separator и деревом. UX как **Anchorpoint Edge** — flat-просмотр всех файлов репозитория.
 
 | Property | Spec |
 |----------|------|
@@ -103,7 +106,8 @@ Figma: кнопка `4089:3646` в [4026:4812](https://www.figma.com/design/Vhp8
 | Icon | `Folder` 16×16 |
 | Selection value | `selectedFolderPath = '*'` |
 | Count badge | **OFF Changed:** `folderTree.item_count` (recursive files, весь репо). **ON Changed:** число committable файлов |
-| Row style | Канон [design-tokens.md §4](./design-tokens.md) — Default / Hover / Selected (`bg-accent`) |
+| Row style | Selected: `bg-sidebar` (`background/primary/light`). Default: transparent. Hover: канон [design-tokens.md §4](./design-tokens.md) |
+| Padding | `px-3 py-2` (`padding-xs` / `padding-xxs`) |
 | Default on open | **All files** выбран при первом открытии репо (если нет сохранённого per-repo pref) |
 | Changed filter | Строка **всегда видна**; при ON без committable — count `0`, Preview empty |
 
@@ -121,15 +125,30 @@ Figma: row `4090:4185` (Selected) в [4026:4812](https://www.figma.com/design/Vh
 |---|-----------|
 | Содержимое | **Только папки**, файлы не рендерятся |
 | Layout | **Tree**, не drill-down |
+| **Repo root row** | Первая строка дерева **под** separator — `name` = basename репо, `path: ''`, count = recursive file count |
 | Раскрытие | **Lazy expand** per-node (chevron) + **global toggle** в заголовке §2.3 |
-| Repo root row | **Удалён** — заменён пунктом **All files** §2.4 |
+| Root default | Repo root **раскрыт** при первом открытии (если нет persisted `expandedPaths`) |
+
+#### Repo root row
+
+| Property | Spec |
+|----------|------|
+| Label | `folderTree.name` (basename репо из API) |
+| Icon | `Folder` 16×16 слева |
+| Selection value | `selectedFolderPath = ''` |
+| Count badge | `folderTree.item_count` (или committable count при Changed ON) |
+| Chevron | **Справа** после count — expand/collapse root (`path: ''`) |
+| Row style | Selected: `bg-accent`. Default / Hover: канон [design-tokens.md §4](./design-tokens.md) |
+
+Figma: row `4096:3949` в [4026:4812](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=4026-4812).
 
 #### Lazy expand
 
 - Первый запрос: `workdir.tree({ path: '', depth: 1 })`.
 - Клик chevron на узле без загруженных детей → `workdir.tree({ path: '<node>', depth: 1 })` → merge в локальное дерево.
-- Chevron **активен** (rotate on expand/collapse локального узла).
-- Global toggle §2.3: expand all → `depth: -1` (или полный обход); collapse → сброс `expandedPaths`.
+- Chevron **активен** на дочерних узлах — **слева** (rotate on expand/collapse).
+- Repo root: chevron **справа** (§2.5).
+- Global toggle §2.3: expand all → `depth: -1` (или полный обход); collapse → сброс `expandedPaths` (включая root).
 
 #### Визуал строки папки
 
@@ -141,10 +160,11 @@ Figma: row `4090:4185` (Selected) в [4026:4812](https://www.figma.com/design/Vh
 - **Default:** прозрачный фон на белом Container.
 - **Hover / Selected:** канон [design-tokens.md §4](./design-tokens.md) — `treeRowStateClasses` (`bg-accent` only; **без** border).
 
-#### Клик по папке / All files
+#### Клик по папке / All files / root
 
 - Highlight row (`selected`).
 - `path: '*'` — **All files**; Preview — flat grid всех файлов репо (§2.4).
+- `path: ''` — **repo root**; Preview — immediate children корня репо.
 - `path: 'assets/References'` — Preview показывает immediate subfolders + files этой папки.
 - Emit `onProjectViewContextChange` (§3.3) при каждом изменении selection или toggle.
 
@@ -350,7 +370,7 @@ sequenceDiagram
 
 | Ситуация | Поведение |
 |----------|-----------|
-| Нет папок (только файлы в root) | Дерево пустое; **All files** выбран; Preview — flat grid всех файлов |
+| Нет подпапок (только файлы в root) | **All files** + repo root row; root без дочерних папок; Preview root — файлы в корне |
 | Changed ON, All files | Preview — все committable репо (flat) |
 | Changed ON, нет изменений | Empty tree «No changed folders»; Preview «No changed files» |
 | Пустая папка в дереве | Показать узел, count `0`, лист без детей |
@@ -372,7 +392,8 @@ sequenceDiagram
 | `ProjectViewPanel` | Container |
 | `ProjectHeader` | Title only (no Changed switch) |
 | `RepoSelector` | `DropdownSelector` pattern + Add repository footer — [design-tokens.md §4.5](./design-tokens.md) |
-| `AllFilesRow` | Virtual «All files» entry; `selectedFolderPath === '*'` |
+| `AllFilesRow` | Virtual «All files» entry; `selectedFolderPath === '*'`; отделён `Separator` от дерева |
+| `RootFolderRow` | Repo root (`path: ''`); chevron справа |
 | `FolderTreeExpandToggle` | Single expand/collapse button in Folders header |
 | `FolderTree` | Virtualized flat list from expanded tree |
 | `FolderTreeRow` | indent, icon, name, count, selected |
@@ -417,6 +438,6 @@ type FolderTreeNode struct {
 | 4 | Файлы в Sidebar | **Нет** — только в Content Preview |
 | 5 | Drill-down | **Отменён** (только в Preview) |
 | 6 | Changed toggle | **Content Preview toolbar**; Sidebar только фильтрует дерево при ON (§3) |
-| 7 | Repo root row | **Удалён** — заменён **All files** |
+| 7 | Repo root row | **Восстановлен** под separator — `path: ''`; **All files** остаётся отдельным пунктом §2.4 |
 | 8 | Collapse узлов | Per-node chevron + global toggle §2.3 |
 | 9 | Multi-repo | [multi-repo.md](./multi-repo.md) — `~/.dfm/setup.cfg` `[current repo]` + `[repo]` |

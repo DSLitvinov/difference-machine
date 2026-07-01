@@ -177,6 +177,8 @@ export function ProjectPreviewPanel() {
     committable,
   });
 
+  const showEntriesLoading = loading && entries.length === 0 && subfolders.length === 0;
+
   const handleNearEnd = useCallback(() => {
     void loadMore();
   }, [loadMore]);
@@ -438,7 +440,7 @@ export function ProjectPreviewPanel() {
               </>
             )}
           </div>
-        ) : loading ? (
+        ) : showEntriesLoading ? (
           <p className="text-sm text-muted-foreground">{t("common.loading")}…</p>
         ) : (
           <div className="flex flex-col gap-4">

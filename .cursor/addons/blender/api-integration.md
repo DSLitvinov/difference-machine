@@ -29,7 +29,7 @@ Python bindings: **только** `addon/api/python/python_bindings_json.py` (с
 | `add` | `index.add` | Save Version, Restore, Auto Save |
 | `commit` | `commit.create` | Save Version, Restore, Auto Save |
 | `log` | `log.get` | Compare panel, Object History (`path` filter) |
-| `switch` | `repo.switch` | (wrapper есть; UI switch branch ограничен) |
+| `switch` | `repo.switch` | Compare panel `df.switch_branch` |
 | `get_branches` | `branch.list` | `df.refresh_branches` |
 | `create_branch` | `branch.create` | wrapper only |
 | `delete_branch` | `branch.delete` | wrapper only |

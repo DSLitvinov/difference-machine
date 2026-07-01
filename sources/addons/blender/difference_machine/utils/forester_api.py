@@ -122,6 +122,9 @@ class ForesterAPIWrapper:
                         "modified": status_dict.get("unstaged_modified_files", []),
                         "deleted": status_dict.get("unstaged_deleted_files", []),
                         "untracked": status_dict.get("untracked_files", []),
+                        "staged_new": status_dict.get("staged_new_files", []),
+                        "staged_modified": status_dict.get("staged_modified_files", []),
+                        "staged_deleted": status_dict.get("staged_deleted_files", []),
                     }, None
                 else:
                     return False, None, "Failed to get status"

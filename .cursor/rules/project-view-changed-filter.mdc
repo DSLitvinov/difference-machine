@@ -63,6 +63,8 @@ Do **not** compare raw `startsWith` without normalization (Windows `\` breaks fi
 
 On `workdirGeneration` bump alone, `useWorkdirFolderEntries` performs a **soft refresh** (keep visible entries until fetch completes; skip `setEntries` when `sameDirEntryList`). See [virtual-scroll-preview-ux.mdc](../rules/virtual-scroll-preview-ux.mdc).
 
+**Scope key:** `committable` in `scopeKey` **only** when `showChangedOnly` — with Changed OFF, committable churn must not hard-reset the grid.
+
 ## Backend `workdir.entries_by_paths`
 
 `entriesForPaths` skips per path: empty, inaccessible, missing file, directory. One bad path must not fail the whole request.

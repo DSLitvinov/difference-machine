@@ -55,7 +55,28 @@ A **global invalidation counter** (e.g. `previewGeneration` on every `status.get
 
 `useWorkdirFolderEntries`: on `workdirGeneration` bump alone — **do not** clear `entries` before fetch; call `setEntries` only when `sameDirEntryList` is false (`dirEntries.ts`).
 
-## Do not
+### Anti-flicker invariants (regression — do not break)
+
+**`useWorkdirFolderEntries`**
+
+- `scopeKey` includes `committable` **only when** `showChangedOnly === true`. With Changed OFF, committable updates must **not** hard-reset the grid.
+- Hard reset (`clear entries`, `loading=true`) **only** when `scopeKey` changes (folder, Changed toggle, committable set while Changed ON).
+- Soft refresh (`workdirGeneration++` alone): keep visible `entries`/`subfolders`; `setLoading(true)` **never**; on API error **do not** clear entries.
+- `applyFileEntries` + `sameDirEntryList`: return previous array ref when fingerprint unchanged.
+
+**`ProjectPreviewPanel`**
+
+- Show full-screen «Loading…» **only** when `loading && entries.length === 0 && subfolders.length === 0` (`showEntriesLoading`). Never unmount the grid during background refresh.
+
+**`useProjectStatusPolling`**
+
+- On `workdir:changed`: `refreshStatus()` first; call `bumpWorkdirGeneration()` **only if** `setStatus` did not already bump (committable changed). Avoid double soft refresh.
+- **Never** `loadProjectData()` on watcher/poll — only repo open / explicit retry.
+
+**`ContentInfoPanel`**
+
+- `setLoading(true)` on metadata fetch **only** when file path / `metadataKey` / branch changes — **not** on `workdirGeneration` alone (soft metadata refresh keeps current UI visible).
+
 
 - Do **not** load previews only in `useEffect` → `useState` with cleanup that ignores completed promises
 - Do **not** use a global `previewGeneration` (or similar) to invalidate all thumbnails on `status.get` or `workdir:changed`

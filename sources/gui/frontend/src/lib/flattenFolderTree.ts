@@ -37,10 +37,7 @@ export function flattenVisibleFolderTree(
 }
 
 export function collectFolderPaths(node: FolderNode): string[] {
-  const paths: string[] = [];
-  if (node.path !== "") {
-    paths.push(node.path);
-  }
+  const paths: string[] = [node.path];
   for (const child of node.children) {
     paths.push(...collectFolderPaths(child));
   }

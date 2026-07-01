@@ -219,7 +219,7 @@ interface SidebarState {
 
   // Project view — folders only
   showChangedOnly: boolean
-  selectedFolderPath: string | null   // relative; '*' = All files; folder path otherwise
+  selectedFolderPath: string | null   // relative; '*' = All files; '' = repo root; folder path otherwise
   folderTree: FolderTreeNode | null   // from workdir.tree
 
   // History view
@@ -245,7 +245,7 @@ type SidebarCommitSelection =
 
 // Project: папка + Changed — единственный канал (нет kind: 'folder')
 interface ProjectViewContext {
-  selectedFolderPath: string   // '*' = All files; folder rel path otherwise
+  selectedFolderPath: string   // '*' = All files; '' = repo root; folder rel path otherwise
   showChangedOnly: boolean
 }
 

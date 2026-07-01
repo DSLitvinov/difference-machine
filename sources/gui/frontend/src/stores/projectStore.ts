@@ -398,9 +398,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   restoreRepoPrefs: (repoPath) => {
     const folderPath = loadSelectedFolderPath(repoPath);
     const savedThumb = loadThumbScale(repoPath);
+    const loadedExpanded = loadExpandedFolderPaths(repoPath);
     set({
       selectedFolderPath: folderPath,
-      expandedPaths: loadExpandedFolderPaths(repoPath),
+      expandedPaths:
+        Object.keys(loadedExpanded).length > 0 ? loadedExpanded : { "": true },
       showChangedOnly: loadShowChangedOnly(repoPath),
       sortMode: loadSortMode(repoPath),
       thumbScale: (savedThumb as ThumbScalePx | null) ?? DEFAULT_THUMB_SCALE,

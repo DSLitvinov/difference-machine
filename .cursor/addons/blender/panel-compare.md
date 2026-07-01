@@ -16,8 +16,11 @@
 
 ```
 Branch
-  Branch: {current}          ← get_current_branch_name()
-  [ Load Commits ]             ← df.load_branch_commits(branch_name=current)
+  { UIList df_branches }       ← DF_UL_branch_list, 4 rows (* = checked out)
+  — OR —
+  No branches / [ Refresh Branches ]  ← df.refresh_branches (auto on empty)
+  [ Refresh ] [ Switch Branch ] [ Load Commits ]
+                ↑ hidden when selected row is current (*)
 
 Commits
   { UIList df_commits }        ← DF_UL_commit_list, 5 rows
@@ -47,8 +50,22 @@ Commits
 
 ## Branch section
 
-- `current_branch` из `status.get` или fallback `df_commit_props.branch` / `"main"`
-- **Load Commits** — загружает log для отображаемой ветки (не переключает ветку в Forester)
+**UIList:** `DF_UL_branch_list`
+
+| Row content | Condition |
+|-------------|-----------|
+| `* {name}` + commit count | `is_current` (checked-out branch) |
+| `{name}` + commit count | otherwise |
+
+**Auto-refresh:** если `len(df_branches)==0` и file saved → `bpy.ops.df.refresh_branches()` (best-effort). После refresh выбирается строка с `is_current`.
+
+| Control | Operator |
+|---------|----------|
+| Refresh Branches | `df.refresh_branches` — заполняет `df_branches`, выделяет текущую ветку |
+| Switch Branch | `df.switch_branch` — `repo.switch` на выбранную строку; reload `.blend`; скрыта для `is_current` |
+| Load Commits | `df.load_branch_commits` — log для **выбранной** строки (`df_branch_list_index`); browse-only |
+
+**Switch Branch:** при незакоммиченных изменениях — диалог с `auto_stash` (default on). После switch: refresh branches, load commits, `wm.open_mainfile`.
 
 ---
 

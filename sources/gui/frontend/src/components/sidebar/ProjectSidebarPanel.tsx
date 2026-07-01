@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Expand, GitBranch, Loader2, Plus, Shrink } from "lucide-react";
+import { GitBranch, ListCollapse, ListTree, Loader2, Plus } from "lucide-react";
 
 import { FolderTree } from "@/components/sidebar/FolderTree";
 import { RepoSelector } from "@/components/sidebar/RepoSelector";
 import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { SidebarPanelTitleBar } from "@/components/shell/SidebarRail";
 import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { treeHasExpandedFolders } from "@/lib/projectViewPaths";
 import { useT } from "@/lib/i18n";
@@ -107,13 +108,19 @@ export function ProjectSidebarPanel() {
     );
   }
 
-  const handleTreeExpandToggle = () => {
-    if (treeExpanded) {
-      collapseAllFolders();
+  const handleTreeExpandToggle = (pressed: boolean) => {
+    if (pressed) {
+      void expandAllFolders();
       return;
     }
-    void expandAllFolders();
+    collapseAllFolders();
   };
+
+  const expandToggleLabel = treeExpanded
+    ? t("sidebar.collapseAllFolders")
+    : folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT
+      ? t("repo.largeDisabled")
+      : t("sidebar.expandAllFolders");
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -134,27 +141,23 @@ export function ProjectSidebarPanel() {
       <div ref={setTreeScrollElement} className="min-h-0 flex-1 overflow-auto bg-background">
         <div className="flex items-center justify-between gap-2 px-3 pb-1 pt-3">
           <p className="text-xs font-semibold uppercase text-muted-foreground">{t("common.folders")}</p>
-          <Button
+          <Toggle
             type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
+            variant="default"
+            size="sm"
+            className="h-8 w-8 shrink-0 p-0"
+            pressed={treeExpanded}
             disabled={!treeExpanded && expandAllDisabled}
-            title={
-              treeExpanded
-                ? t("sidebar.collapseAllFolders")
-                : folderTree && folderTree.item_count >= EXPAND_ALL_FILE_LIMIT
-                  ? t("repo.largeDisabled")
-                  : t("sidebar.expandAllFolders")
-            }
-            onClick={handleTreeExpandToggle}
+            title={expandToggleLabel}
+            aria-label={expandToggleLabel}
+            onPressedChange={handleTreeExpandToggle}
           >
             {treeExpanded ? (
-              <Shrink className="h-4 w-4" />
+              <ListCollapse className="h-4 w-4" />
             ) : (
-              <Expand className="h-4 w-4" />
+              <ListTree className="h-4 w-4" />
             )}
-          </Button>
+          </Toggle>
         </div>
         <FolderTree
           scrollElement={treeScrollElement}

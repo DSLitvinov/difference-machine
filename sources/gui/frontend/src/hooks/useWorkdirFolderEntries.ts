@@ -53,7 +53,9 @@ export function useWorkdirFolderEntries({
   const [loadingMore, setLoadingMore] = useState(false);
   const workdirGeneration = useProjectStore((s) => s.workdirGeneration);
   const committableKey = committable.join("\0");
-  const scopeKey = `${folderPath}\0${showChangedOnly}\0${committableKey}`;
+  const scopeKey = showChangedOnly
+    ? `${folderPath}\0${showChangedOnly}\0${committableKey}`
+    : `${folderPath}\0${showChangedOnly}`;
   const prevScopeKeyRef = useRef(scopeKey);
   const loadGenerationRef = useRef(0);
   const loadingMoreRef = useRef(false);
@@ -91,6 +93,12 @@ export function useWorkdirFolderEntries({
         if (showChangedOnly) {
           const paths = committableFilesInSubtree(folderPath, committable);
           if (paths.length === 0) {
+            if (!cancelled && loadGeneration === loadGenerationRef.current) {
+              setEntries((prev) => (prev.length === 0 ? prev : []));
+              setSubfolders((prev) => (prev.length === 0 ? prev : []));
+              setTotal((prev) => (prev === 0 ? prev : 0));
+              setHasMore((prev) => (prev ? false : prev));
+            }
             return;
           }
           const result = await measureAsync(`workdir.entries_by_paths:${folderPath || "root"}`, () =>
@@ -128,7 +136,7 @@ export function useWorkdirFolderEntries({
           }
         }
       } catch {
-        if (!cancelled && loadGeneration === loadGenerationRef.current) {
+        if (!cancelled && loadGeneration === loadGenerationRef.current && scopeChanged) {
           setEntries([]);
           setSubfolders([]);
           setTotal(0);
@@ -143,7 +151,7 @@ export function useWorkdirFolderEntries({
     return () => {
       cancelled = true;
     };
-  }, [enabled, scopeKey, workdirGeneration, folderPath, showChangedOnly, committable]);
+  }, [enabled, scopeKey, workdirGeneration, folderPath, showChangedOnly, committableKey]);
 
   const loadMore = useCallback(async () => {
     if (

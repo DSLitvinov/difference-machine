@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import {
@@ -49,9 +49,11 @@ export function ContentInfoPanel() {
   const [commitPaths, setCommitPaths] = useState<string[]>([]);
   const [metadataKey, setMetadataKey] = useState(0);
   const [fileCommitCount, setFileCommitCount] = useState<number | null>(null);
+  const prevMetadataScopeRef = useRef("");
 
   const isMulti = selectedFilePaths.length > 1;
   const selectedFilePath = selectedFilePaths.length === 1 ? selectedFilePaths[0]! : null;
+  const metadataScope = `${selectedFilePath ?? ""}\0${metadataKey}\0${currentBranch ?? ""}`;
 
   useEffect(() => {
     void fetchRepoUser()
@@ -63,13 +65,19 @@ export function ContentInfoPanel() {
     if (!selectedFilePath || isMulti) {
       setMetadata(null);
       setFileCommitCount(null);
+      prevMetadataScopeRef.current = "";
       return;
     }
 
+    const hardReset = prevMetadataScopeRef.current !== metadataScope;
+    prevMetadataScopeRef.current = metadataScope;
+
     let cancelled = false;
     const load = async () => {
-      setLoading(true);
-      setFileCommitCount(null);
+      if (hardReset) {
+        setLoading(true);
+        setFileCommitCount(null);
+      }
       try {
         const branch = currentBranch ?? "main";
         const [meta, locks, fileLog] = await Promise.all([
@@ -104,7 +112,7 @@ export function ContentInfoPanel() {
     return () => {
       cancelled = true;
     };
-  }, [selectedFilePath, isMulti, setError, metadataKey, currentBranch, workdirGeneration]);
+  }, [selectedFilePath, isMulti, setError, metadataScope, workdirGeneration]);
 
   if (selectedFilePaths.length === 0) {
     return (

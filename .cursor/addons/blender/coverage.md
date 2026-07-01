@@ -46,8 +46,8 @@
 
 | Функция | GUI | Addon |
 |---------|-----|-------|
-| Branch list | ✅ dropdown | 🔶 `df.refresh_branches` + `DF_UL_branch_list` **не в панелях** |
-| Switch branch | ✅ | 🔶 `api.switch` в wrapper; Compare показывает current branch label only |
+| Branch list | ✅ dropdown | ✅ Compare panel `DF_UL_branch_list` |
+| Switch branch | ✅ | ✅ Compare panel `df.switch_branch` |
 | Create branch | ✅ dialog | ❌ |
 | Rename branch | ✅ dialog | ❌ |
 | Delete branch | — | 🔶 wrapper only |

@@ -55,6 +55,7 @@
 |----|-------|--------|------------|
 | `df.refresh_branches` | Refresh Branches | branch_operators | fills `df_branches` |
 | `df.load_branch_commits` | Load Branch Commits | branch_operators | `branch_name` |
+| `df.switch_branch` | Switch Branch | branch_operators | `branch_name`, `auto_stash` |
 
 ---
 

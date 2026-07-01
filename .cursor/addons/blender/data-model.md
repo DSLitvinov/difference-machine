@@ -59,7 +59,7 @@
 | `is_current` | |
 | `parent_branch` | не заполняется в текущем UI |
 
-`df_branch_list_index` — индекс в UIList (панель branch list не отображается).
+`df_branch_list_index` — активная ветка в UIList (панель Compare).
 
 ### `df_stashes` — `DFStashItem`
 

@@ -131,8 +131,8 @@
 | List Container | `background/default` | `bg-background` (no side border; shell column owns `border-r`) |
 | Header title | `foreground/accent` | `text-foreground font-semibold` |
 | Section label «Folders» | `foreground/muted` | `text-muted-foreground text-xs font-semibold` |
-| Folders expand/collapse toggle | `Button` ghost 32×32 | `Expand` / `Shrink` icon 16 — [sidebar-project-view.md §2.3](./sidebar-project-view.md) |
-| **All files** row Selected | `background/primary/light` | `bg-accent` (канон §4 `treeRowStateClasses`) |
+| Folders expand/collapse toggle | `Toggle` 32×32 | OFF: `ListTree` 16 · ON: `ListCollapse` 16 + `data-[state=on]:bg-accent` — [sidebar-project-view.md §2.3](./sidebar-project-view.md) |
+| **All files** row Selected | `background/primary/light` | `bg-sidebar` |
 | Row label | `foreground/secondary` | `text-secondary-foreground` |
 | Row count badge | `foreground/default` | `text-foreground text-xs font-semibold` |
 | Folder row Hover | `background/primary/light-hover` | см. §4 `treeRowStateClasses.hover` |

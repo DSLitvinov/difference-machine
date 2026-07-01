@@ -3,8 +3,9 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronDown, ChevronRight, Folder } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { flattenVisibleFolderTree } from "@/lib/flattenFolderTree";
-import { ALL_FILES_PATH, isAllFilesPath } from "@/lib/projectViewPaths";
+import { ALL_FILES_PATH, isAllFilesPath, isRootFolderPath } from "@/lib/projectViewPaths";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useProjectStore } from "@/stores/projectStore";
@@ -12,6 +13,7 @@ import type { FolderNode } from "@/wails/forester";
 import { fetchWorkdirTree, folderHasCommittable } from "@/wails/forester";
 
 const FOLDER_ROW_HEIGHT = 36;
+const ROOT_FOLDER_PATH = "";
 
 interface FolderTreeRowProps {
   node: FolderNode;
@@ -38,10 +40,10 @@ function FolderTreeRow({
       type="button"
       variant="ghost"
       className={cn(
-        "h-9 w-full justify-start gap-1 rounded-md px-2 py-1.5 text-left text-sm font-normal",
+        "h-9 w-full justify-start gap-1 rounded-md px-3 py-2 text-left text-sm font-normal",
         isSelected ? "bg-accent text-secondary-foreground" : "",
       )}
-      style={{ paddingLeft: `${depth * 12 + 8}px` }}
+      style={{ paddingLeft: `${depth * 12 + 20}px` }}
       onClick={() => onSelect(node.path)}
     >
       <span
@@ -65,6 +67,61 @@ function FolderTreeRow({
         {node.name}
       </span>
       <span className="text-xs font-semibold text-muted-foreground">{node.item_count}</span>
+    </Button>
+  );
+}
+
+interface RootFolderRowProps {
+  node: FolderNode;
+  count: number;
+  selectedPath: string;
+  expanded: boolean;
+  onSelect: (path: string) => void;
+  onToggle: (path: string) => void;
+}
+
+function RootFolderRow({
+  node,
+  count,
+  selectedPath,
+  expanded,
+  onSelect,
+  onToggle,
+}: RootFolderRowProps) {
+  const isSelected = isRootFolderPath(selectedPath);
+  const hasChildren = node.children.length > 0 || node.item_count > 0;
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      className={cn(
+        "h-9 w-full justify-start gap-2 rounded-md px-3 py-2 text-left text-sm font-normal",
+        isSelected ? "bg-accent text-secondary-foreground" : "",
+      )}
+      onClick={() => onSelect(ROOT_FOLDER_PATH)}
+    >
+      <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="min-w-0 flex-1 truncate" title={node.name}>
+        {node.name}
+      </span>
+      <span className="text-xs font-semibold text-muted-foreground">{count}</span>
+      {hasChildren ? (
+        <span
+          className="flex h-4 w-4 shrink-0 items-center justify-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(ROOT_FOLDER_PATH);
+          }}
+          role="presentation"
+        >
+          {expanded ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+        </span>
+      ) : null}
     </Button>
   );
 }
@@ -100,16 +157,31 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
     return showChangedOnly ? committable.length : folderTree.item_count;
   }, [folderTree, showChangedOnly, committable]);
 
+  const rootCount = useMemo(() => {
+    if (!folderTree) return 0;
+    return showChangedOnly
+      ? committable.length
+      : folderTree.item_count;
+  }, [folderTree, showChangedOnly, committable]);
+
+  const rootExpanded = !!expandedPaths[ROOT_FOLDER_PATH];
+
+  const showRoot = useMemo(() => {
+    if (!folderTree) return false;
+    if (!showChangedOnly) return true;
+    return folderHasCommittable(ROOT_FOLDER_PATH, committable);
+  }, [folderTree, showChangedOnly, committable]);
+
   const flatRows = useMemo(() => {
-    if (!folderTree) return [];
+    if (!folderTree || !rootExpanded) return [];
     return flattenVisibleFolderTree(
       folderTree.children,
       expandedPaths,
-      0,
+      1,
       showChangedOnly,
       committable,
     );
-  }, [folderTree, expandedPaths, showChangedOnly, committable]);
+  }, [folderTree, expandedPaths, rootExpanded, showChangedOnly, committable]);
 
   const rowVirtualizer = useVirtualizer({
     count: flatRows.length,
@@ -143,13 +215,13 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
   const virtualRows = rowVirtualizer.getVirtualItems();
 
   return (
-    <div className="flex flex-col gap-0.5 p-2">
+    <div className="flex flex-col gap-2 p-2">
       <Button
         type="button"
         variant="ghost"
         className={cn(
-          "h-9 w-full justify-start gap-2 rounded-md px-3 py-1.5 text-left text-sm font-medium",
-          isAllFilesPath(selectedFolderPath) ? "bg-accent text-secondary-foreground" : "",
+          "h-9 w-full justify-start gap-2 rounded-md px-3 py-2 text-left text-sm font-medium",
+          isAllFilesPath(selectedFolderPath) ? "bg-sidebar text-secondary-foreground" : "",
         )}
         onClick={() => onFolderSelect(ALL_FILES_PATH)}
       >
@@ -157,7 +229,21 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
         <span className="flex-1 truncate">{t("sidebar.allFiles")}</span>
         <span className="text-xs font-semibold text-muted-foreground">{allFilesCount}</span>
       </Button>
-      {flatRows.length > 0 ? (
+
+      <Separator />
+
+      {showRoot ? (
+        <RootFolderRow
+          node={folderTree}
+          count={rootCount}
+          selectedPath={selectedFolderPath}
+          expanded={rootExpanded}
+          onSelect={onFolderSelect}
+          onToggle={(path) => void onToggle(path)}
+        />
+      ) : null}
+
+      {rootExpanded && flatRows.length > 0 ? (
         <div
           className="relative w-full"
           style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
@@ -184,11 +270,11 @@ export function FolderTree({ scrollElement, onFolderSelect }: FolderTreeProps) {
             );
           })}
         </div>
-      ) : (
+      ) : rootExpanded ? (
         <p className="px-2 py-1 text-xs text-muted-foreground">
           {showChangedOnly ? t("folder.noChangedFolders") : t("folder.noSubfolders")}
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

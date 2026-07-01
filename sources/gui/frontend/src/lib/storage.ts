@@ -2,6 +2,8 @@ import { ALL_FILES_PATH, normalizeSelectedFolderPath } from "@/lib/projectViewPa
 
 const SIDEBAR_COLLAPSED = "dfm.sidebar.collapsed";
 const MAX_PERSISTED_EXPANDED_PATHS = 512;
+/** Persisted marker for repo root (`""`) in expanded folder paths. */
+const ROOT_EXPANDED_SENTINEL = ".";
 
 function perRepoKey(base: string, repoPath: string): string {
   return `${base}::${repoPath}`;
@@ -66,7 +68,10 @@ export function loadExpandedFolderPaths(repoPath: string): Record<string, boolea
 
     const expanded: Record<string, boolean> = {};
     for (const path of value) {
-      if (typeof path === "string" && path.length > 0) {
+      if (typeof path !== "string") continue;
+      if (path === ROOT_EXPANDED_SENTINEL) {
+        expanded[""] = true;
+      } else if (path.length > 0) {
         expanded[path] = true;
       }
     }
@@ -80,6 +85,7 @@ export function saveExpandedFolderPaths(repoPath: string, expandedPaths: Record<
   try {
     const paths = Object.keys(expandedPaths)
       .filter((path) => expandedPaths[path])
+      .map((path) => (path === "" ? ROOT_EXPANDED_SENTINEL : path))
       .sort((a, b) => a.localeCompare(b, "en-US"))
       .slice(0, MAX_PERSISTED_EXPANDED_PATHS);
     localStorage.setItem(perRepoKey("dfm.sidebar.expandedPaths", repoPath), JSON.stringify(paths));

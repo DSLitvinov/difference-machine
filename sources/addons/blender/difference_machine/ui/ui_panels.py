@@ -11,36 +11,6 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-def get_current_branch_name(context: Context) -> str:
-    """Get current branch name from repository or return default."""
-    try:
-        blend_file = Path(bpy.data.filepath)
-        if not blend_file:
-            return "main"
-        
-        from ..utils.helpers import find_repository_root
-        from ..utils.forester_api import get_api
-        
-        project_root = blend_file.parent
-        repo_path = find_repository_root(project_root)
-        if repo_path:
-            api = get_api()
-            success, status_data, _ = api.status(repo_path)
-            if success and status_data:
-                return status_data.get("branch", "main")
-    except (AttributeError, RuntimeError, ValueError, KeyError) as e:
-        logger.debug(f"Error getting current branch name: {e}")
-    except Exception as e:
-        logger.warning(f"Unexpected error getting current branch name: {e}")
-    
-    # Fallback to props or default
-    try:
-        props = context.scene.df_commit_props
-        return props.branch if props and props.branch else "main"
-    except (AttributeError, KeyError):
-        return "main"
-
-
 class DF_PT_save_version_panel(Panel):
     """Panel for Save Version - save file and create commit."""
     bl_label = "Save Version"
@@ -158,16 +128,40 @@ class DF_PT_compare_panel(Panel):
         # Section: Branch
         layout.separator()
         box = layout.box()
-        #box.label(text="Branch", icon='OUTLINER_OB_GROUP_INSTANCE')
-        
-        current_branch = get_current_branch_name(context)
-        row = box.row()
-        row.label(text=f"Branch: {current_branch}", icon='OUTLINER_OB_GROUP_INSTANCE')
-        row = box.row()
-        row.scale_y = 1.2
-        op = row.operator("df.load_branch_commits", text="Load Commits", icon='FILE_REFRESH')
-        op.branch_name = current_branch
-        
+        box.label(text="Branch", icon='OUTLINER_OB_GROUP_INSTANCE')
+
+        branches = scene.df_branches
+        if len(branches) == 0 and bpy.data.filepath:
+            try:
+                bpy.ops.df.refresh_branches()
+            except (RuntimeError, AttributeError, KeyError) as e:
+                logger.debug(f"Failed to auto-refresh branches: {e}")
+            except Exception as e:
+                logger.warning(f"Unexpected error auto-refreshing branches: {e}")
+
+        if len(branches) == 0:
+            box.label(text="No branches found", icon='INFO')
+            row = box.row()
+            row.operator("df.refresh_branches", icon='FILE_REFRESH', text="Refresh Branches")
+        else:
+            row = box.row()
+            row.template_list(
+                "DF_UL_branch_list", "",
+                scene, "df_branches",
+                scene, "df_branch_list_index",
+                rows=4
+            )
+            row = box.row()
+            row.scale_y = 1.2
+            row.operator("df.refresh_branches", text="Refresh", icon='FILE_REFRESH')
+            branch_idx = scene.df_branch_list_index
+            selected_is_current = (
+                0 <= branch_idx < len(branches) and branches[branch_idx].is_current
+            )
+            if not selected_is_current:
+                row.operator("df.switch_branch", text="Switch Branch", icon='FORWARD')
+            row.operator("df.load_branch_commits", text="Load Commits", icon='FILE_REFRESH')
+
         # Section: Commits (shared list for both tabs)
         layout.separator()
         box = layout.box()
