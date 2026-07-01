@@ -288,6 +288,20 @@ export function ProjectPreviewPanel() {
   const sortedEntryPaths = useMemo(() => sortedEntries.map((f) => f.path), [sortedEntries]);
   const selectableFilePaths = isSearchActive ? searchFilePaths : sortedEntryPaths;
 
+  const vcsStatusFor = useCallback((path: string) => vcsFileStatus(path, status), [status]);
+  const lockUserFor = useCallback(
+    (path: string) => lockedByPath[path] ?? null,
+    [lockedByPath],
+  );
+  const searchSubtitleFor = useCallback(
+    (entry: DirEntry) => parentFolderPath(entry.path) || "root",
+    [],
+  );
+  const changedSubtitleFor = useCallback(
+    (entry: DirEntry) => parentFolderPath(entry.path) || "root",
+    [],
+  );
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -414,9 +428,9 @@ export function ProjectPreviewPanel() {
                       orderedPaths={searchFilePaths}
                       thumbScale={thumbScale}
                       scrollElement={scrollElement}
-                      vcsStatusFor={(path) => vcsFileStatus(path, status)}
-                      lockUserFor={(path) => lockedByPath[path] ?? null}
-                      subtitleFor={(entry) => parentFolderPath(entry.path) || "root"}
+                      vcsStatusFor={vcsStatusFor}
+                      lockUserFor={lockUserFor}
+                      subtitleFor={searchSubtitleFor}
                       onOpen={openFile}
                     />
                   </div>
@@ -481,12 +495,10 @@ export function ProjectPreviewPanel() {
                   orderedPaths={sortedEntryPaths}
                   thumbScale={thumbScale}
                   scrollElement={scrollElement}
-                  vcsStatusFor={(path) => vcsFileStatus(path, status)}
-                  lockUserFor={(path) => lockedByPath[path] ?? null}
+                  vcsStatusFor={vcsStatusFor}
+                  lockUserFor={lockUserFor}
                   subtitleFor={
-                    showChangedOnly || allFilesView
-                      ? (entry) => parentFolderPath(entry.path) || "root"
-                      : undefined
+                    showChangedOnly || allFilesView ? changedSubtitleFor : undefined
                   }
                   onOpen={openFile}
                   onNearEnd={entriesHasMore ? handleNearEnd : undefined}

@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { changedPreviewPaths, sameDirEntryList } from "@/lib/dirEntries";
 import { measureAsync } from "@/lib/performance";
 import { ALL_FILES_PATH, isAllFilesPath } from "@/lib/projectViewPaths";
+import { invalidateWorkdirPreview } from "@/lib/workdirPreviewCache";
+import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import {
   committableFilesInSubtree,
@@ -17,6 +20,23 @@ interface UseWorkdirFolderEntriesOptions {
   enabled: boolean;
   showChangedOnly: boolean;
   committable: string[];
+}
+
+function applyFileEntries(
+  prev: DirEntry[],
+  next: DirEntry[],
+  repoPath: string | null,
+): DirEntry[] {
+  if (sameDirEntryList(prev, next)) {
+    return prev;
+  }
+  if (repoPath) {
+    const changed = changedPreviewPaths(prev, next);
+    if (changed.length > 0) {
+      invalidateWorkdirPreview(repoPath, changed);
+    }
+  }
+  return next;
 }
 
 export function useWorkdirFolderEntries({
@@ -66,6 +86,7 @@ export function useWorkdirFolderEntries({
       if (scopeChanged) {
         setLoading(true);
       }
+      const repoPath = useAppStore.getState().repoPath;
       try {
         if (showChangedOnly) {
           const paths = committableFilesInSubtree(folderPath, committable);
@@ -76,30 +97,34 @@ export function useWorkdirFolderEntries({
             fetchWorkdirEntriesByPaths(paths),
           );
           if (!cancelled && loadGeneration === loadGenerationRef.current) {
-            setEntries(result.entries.filter((entry) => !entry.is_dir));
-            setSubfolders([]);
-            setTotal(result.entries.length);
-            setHasMore(false);
+            const nextFiles = result.entries.filter((entry) => !entry.is_dir);
+            setEntries((prev) => applyFileEntries(prev, nextFiles, repoPath));
+            setSubfolders((prev) => (prev.length === 0 ? prev : []));
+            setTotal((prev) => (prev === result.entries.length ? prev : result.entries.length));
+            setHasMore((prev) => (prev ? false : prev));
           }
         } else if (isAllFilesPath(folderPath)) {
           const result = await measureAsync("workdir.entries:*:0", () =>
             fetchWorkdirEntries(ALL_FILES_PATH, 0, PAGE_SIZE),
           );
           if (!cancelled && loadGeneration === loadGenerationRef.current) {
-            setEntries(result.entries.filter((entry) => !entry.is_dir));
-            setSubfolders([]);
-            setTotal(result.total);
-            setHasMore(result.has_more);
+            const nextFiles = result.entries.filter((entry) => !entry.is_dir);
+            setEntries((prev) => applyFileEntries(prev, nextFiles, repoPath));
+            setSubfolders((prev) => (prev.length === 0 ? prev : []));
+            setTotal((prev) => (prev === result.total ? prev : result.total));
+            setHasMore((prev) => (prev === result.has_more ? prev : result.has_more));
           }
         } else {
           const result = await measureAsync(`workdir.entries:${folderPath || "root"}:0`, () =>
             fetchWorkdirEntries(folderPath, 0, PAGE_SIZE),
           );
           if (!cancelled && loadGeneration === loadGenerationRef.current) {
-            setEntries(result.entries.filter((entry) => !entry.is_dir));
-            setSubfolders(result.entries.filter((entry) => entry.is_dir));
-            setTotal(result.total);
-            setHasMore(result.has_more);
+            const nextFiles = result.entries.filter((entry) => !entry.is_dir);
+            const nextFolders = result.entries.filter((entry) => entry.is_dir);
+            setEntries((prev) => applyFileEntries(prev, nextFiles, repoPath));
+            setSubfolders((prev) => (sameDirEntryList(prev, nextFolders) ? prev : nextFolders));
+            setTotal((prev) => (prev === result.total ? prev : result.total));
+            setHasMore((prev) => (prev === result.has_more ? prev : result.has_more));
           }
         }
       } catch {

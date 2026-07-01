@@ -51,6 +51,8 @@ Thumbnail async через `workdir.thumbnail` ([api-contract.md §4.3](./api-co
 
 **Загрузка thumbnail в grid:** `isThumbnailPreviewPath` — raster images + `.blend` (`useWorkdirPreview`).
 
+**Кэш и virtual scroll:** shared cache `workdirPreviewCache.ts` — ключ `repoPath + path`; без global generation. Инвалидация точечная (`invalidateWorkdirPreview`). Подробно: [virtual-scroll-preview-ux rule](../rules/virtual-scroll-preview-ux.mdc) · [content-preview-project-view.md §8.7](./content-preview-project-view.md).
+
 **Blend:** превью появляется после сохранения файла в Blender (кэш ОС или embedded preview). Нет превью → generic file icon.
 
 ### 2.2 Status badge
@@ -273,9 +275,15 @@ type VcsFileStatus =
 
 ```
 components/preview/
-  FilePreviewItem.tsx
+  FilePreviewItem.tsx      # React.memo; useWorkdirPreview
   FilePreviewGrid.tsx       # context menu, rename/delete dialogs
   RenameFileDialog.tsx
+
+lib/
+  workdirPreviewCache.ts
+  dirEntries.ts             # sameDirEntryList, changedPreviewPaths
+hooks/
+  useWorkdirPreview.ts
 ```
 
 ### Props

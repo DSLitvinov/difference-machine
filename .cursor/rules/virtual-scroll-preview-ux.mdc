@@ -8,6 +8,8 @@ alwaysApply: true
 
 **Rule:** Thumbnails and file previews in virtualized lists must **not reset when the user scrolls away and back**, and loading must **continue off-screen**. Never tie preview data to component-local async state alone.
 
+Specs: `.cursor/interface/content-preview-project-view.md` §8.7 · `.cursor/interface/file-preview-item.md` §2.1.
+
 ## Why
 
 Virtual scroll (`@tanstack/react-virtual`, windowing) **unmounts** off-screen items. If preview loading lives only in `useEffect` + `useState` with `cancelled = true` on cleanup:
@@ -16,33 +18,67 @@ Virtual scroll (`@tanstack/react-virtual`, windowing) **unmounts** off-screen it
 - Remount shows an empty placeholder and may never restart
 - User sees thumbnails disappear after scroll — broken UX
 
+A **global invalidation counter** (e.g. `previewGeneration` on every `status.get` or `workdir:changed`) causes the same flicker without scroll: icon flash → reload for every visible cell.
+
 ## Required pattern
 
-1. **Shared cache** outside React tree (`workdirPreviewCache.ts` or equivalent)
-2. **Subscribe** to cache changes (`subscribeWorkdirPreview`) so remounted items update when a background load finishes
-3. **Sync read on mount** (`useLayoutEffect`) — show cached preview on the first frame, no icon flash
-4. **Inflight keyed by invalidation** (`repo + path + generation`), not path alone — avoids stale requests clobbering active ones
-5. **Do not abort work on unmount** — only skip `setState` if needed; the shared store must retain the result
-6. **Skip duplicate fetches** — if cached or already inflight for the current generation, do not start another request
+### Thumbnail cache (`workdirPreviewCache.ts`)
+
+1. **Shared cache** outside React tree — keyed by `repoPath + path` only (no global generation).
+2. **Per-path invalidation** — `invalidateWorkdirPreview(repoPath, paths)` when file content changes (`modified` / `size` on soft entries refresh, file restore, rename).
+3. **Full clear** — `clearWorkdirPreviewCache()` only on repo switch (`useWorkdirPreview` when `repoPath` changes).
+4. **Inflight** — keyed by `repoPath + path`; skip duplicate fetches if cached or already inflight.
+5. **Notify subscribers** — `subscribeWorkdirPreview` on cache **write** (load complete, invalidate, clear). Do **not** notify on inflight start (avoids grid-wide `setState`).
+6. **LRU** — max 128 entries; eviction revokes `blob:` URLs (scroll through many files may reload off-screen thumbs — expected).
+
+### Hook (`useWorkdirPreview.ts`)
+
+1. **Sync read on mount** — `useLayoutEffect` + `readPreviewSnapshot` from cache on first frame (no icon flash).
+2. **Subscribe** to cache changes so remounted items update when a background load finishes.
+3. **Do not abort** thumbnail fetch on unmount — cache retains the result.
+4. **No dependency** on `workdirGeneration` / `status` — VCS badge updates must not invalidate thumbnails.
+
+### Grid consumer (`FilePreviewItem` / `FilePreviewGrid`)
+
+1. `FilePreviewItem` wrapped in `React.memo`.
+2. Stable callbacks from parent (`useCallback` for `vcsStatusFor`, `lockUserFor`, `subtitleFor` in `ProjectPreviewPanel`).
+3. Reuse `useWorkdirPreview` — do not invent per-item local loading.
+
+### Workdir refresh (must not flicker Content Preview)
+
+| Signal | Grid entries | Thumbnails | Sidebar tree |
+|--------|--------------|------------|--------------|
+| `workdir:changed` (debounced) | Soft refresh via `workdirGeneration++` | Keep cache; invalidate only paths with changed `modified`/`size` | **No** `loadProjectData` on every event |
+| `setStatus` / polling | `workdirGeneration++` **only** when `committable` changes | Unchanged | Status/locks update only |
+| Scope change (folder, Changed toggle) | Hard clear + loading | Unchanged unless path left repo | — |
+| Repo switch | Clear entries | `clearWorkdirPreviewCache()` | `loadProjectData` |
+
+`useWorkdirFolderEntries`: on `workdirGeneration` bump alone — **do not** clear `entries` before fetch; call `setEntries` only when `sameDirEntryList` is false (`dirEntries.ts`).
 
 ## Do not
 
 - Do **not** load previews only in `useEffect` → `useState` with cleanup that ignores completed promises
-- Do **not** use a single `inflight` map keyed only by file path when `previewGeneration` can change
+- Do **not** use a global `previewGeneration` (or similar) to invalidate all thumbnails on `status.get` or `workdir:changed`
+- Do **not** call `loadProjectData()` on every `workdir:changed` — use `refreshStatus` + `bumpWorkdirGeneration`; reserve full tree load for repo open / explicit retry
 - Do **not** assume a mounted component will receive the async result — virtual scroll breaks that assumption
-- Do **not** clear visible previews on scroll; only invalidate on real data changes (status bump, file change, repo switch)
+- Do **not** clear visible previews on scroll; only invalidate on real file content changes or repo switch
+- Do **not** replace `entries` with a new array when fingerprint is unchanged — causes unnecessary virtualizer re-renders
 
 ## Canonical implementation
 
 | Module | Role |
 |--------|------|
-| `sources/gui/frontend/src/lib/workdirPreviewCache.ts` | Cache, inflight queue, `subscribeWorkdirPreview` |
+| `sources/gui/frontend/src/lib/workdirPreviewCache.ts` | Cache, inflight, `invalidateWorkdirPreview`, `clearWorkdirPreviewCache` |
+| `sources/gui/frontend/src/lib/dirEntries.ts` | `sameDirEntryList`, `changedPreviewPaths` |
 | `sources/gui/frontend/src/hooks/useWorkdirPreview.ts` | Hook: layout sync + subscription + kick off load |
+| `sources/gui/frontend/src/hooks/useWorkdirFolderEntries.ts` | Soft/hard entries refresh |
+| `sources/gui/frontend/src/hooks/useProjectStatusPolling.ts` | Watcher: `refreshStatus` + `bumpWorkdirGeneration` (no `loadProjectData`) |
 | `sources/gui/frontend/src/components/preview/FilePreviewGrid.tsx` | Virtualized grid consumer |
-| `sources/gui/frontend/src/components/preview/FilePreviewItem.tsx` | Per-file thumbnail via `useWorkdirPreview` |
+| `sources/gui/frontend/src/components/preview/FilePreviewItem.tsx` | Per-file thumbnail via `useWorkdirPreview` (`memo`) |
 
 ## When adding new virtualized previews
 
 1. Reuse `useWorkdirPreview` / `workdirPreviewCache` — do not invent per-item local loading
 2. Test: scroll away while thumbnails load, scroll back — previews must appear without manual refresh
 3. Test: scroll through many files — already-loaded thumbnails must stay stable
+4. Test: wait on polling / `workdir:changed` — grid must not flash Loading or icon placeholders

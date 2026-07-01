@@ -110,7 +110,7 @@
 | `workdir.entries_by_paths` | Changed flat list | **Да** | Changed ON → timestamps для sort |
 | `workdir.search` | Global search | **Да** | Preview toolbar Search |
 | `workdir.metadata` | File stat + mime | **Да** | Content Info; polling deleted files |
-| `workdir.thumbnail` | Thumbnails | **Да** | `workdirPreviewCache`, grid + Info |
+| `workdir.thumbnail` | Thumbnails | **Да** | `workdirPreviewCache` (per-path), `dirEntries.ts`, grid + Info — [virtual-scroll-preview-ux.mdc](../rules/virtual-scroll-preview-ux.mdc) |
 | `workdir.open` | OS / editor open | **Да** | Double-click, Edit in…, tmp_review |
 | `workdir.rename` | Rename file | **Да** | File context menu |
 | `workdir.delete` | OS Trash | **Да** | File context menu (не VCS `rm`) |

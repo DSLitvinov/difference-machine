@@ -521,10 +521,47 @@ Toggle в **toolbar** Preview (§2.1). При изменении → `setShowCha
 | 2 | Секция **Folders** скрыта; subfolders в hook = `[]` |
 | 3 | Пути сравниваются через `normalizeRepoRelPath` (forward slashes, без `./` и trailing `/`) |
 | 4 | `vcsFileStatus` использует те же нормализованные сравнения |
-| 5 | `status.get` обновление → `committable` + `workdirGeneration++` → reload grid |
+| 5 | `status.get` → `setStatus`: `workdirGeneration++` **только** при изменении `committable`; VCS-only update не перезагружает grid |
 | 6 | Toggle Changed → немедленный clear grid + reload (hook `useWorkdirFolderEntries`) |
 
-Канон: `.cursor/rules/project-view-changed-filter.mdc`.
+Канон Changed filter: `.cursor/rules/project-view-changed-filter.mdc`.
+
+### 8.7 Стабильность grid и thumbnails (virtual scroll)
+
+Канон: `.cursor/rules/virtual-scroll-preview-ux.mdc`.
+
+**Проблема:** virtual scroll размонтирует ячейки; глобальная инвалидация превью или полный сброс `entries` на каждый FS-event даёт мерцание (иконка ↔ миниатюра, «Loading…»).
+
+**Thumbnail cache**
+
+| Правило | Реализация |
+|---------|------------|
+| Ключ кэша | `repoPath + path` (без global generation) |
+| Инвалидация | `invalidateWorkdirPreview(repo, paths)` — точечно при смене `modified`/`size`, restore, rename |
+| Полный сброс | `clearWorkdirPreviewCache()` — только смена репозитория |
+| Подписка | `subscribeWorkdirPreview` — уведомление при записи в кэш, **не** при старте inflight |
+| Grid item | `useWorkdirPreview` + `React.memo(FilePreviewItem)` + стабильные `useCallback` в `ProjectPreviewPanel` |
+
+**Обновление списка файлов (`useWorkdirFolderEntries`)**
+
+| Триггер | Поведение |
+|---------|-----------|
+| Смена scope (папка, Changed, committable set) | Hard reset: clear `entries`, `loading=true` |
+| `workdirGeneration++` (watcher / file ops) | Soft refresh: fetch в фоне, **не** очищать grid; `setEntries` только если `sameDirEntryList` = false |
+| Изменился `modified`/`size` у файла | `invalidateWorkdirPreview` для этих paths |
+
+**`workdir:changed` (Project mode, debounce 300ms)**
+
+1. `refreshStatus()` — badges / `committable` без лишнего bump grid, если committable не изменился  
+2. `validateSelectedFiles()`  
+3. `bumpWorkdirGeneration()` — soft entries refresh  
+4. **Не** вызывать `loadProjectData()` на каждое событие (полная перезагрузка дерева + `treeLoading` → мерцание UI)
+
+Полный `loadProjectData()` — открытие репо, retry connection, явные действия пользователя (commit, merge, branch switch).
+
+**Content Info metadata:** перезагрузка `workdir.metadata` по `workdirGeneration` (не по thumbnail cache).
+
+Канонические модули: `workdirPreviewCache.ts`, `dirEntries.ts`, `useWorkdirPreview.ts`, `useWorkdirFolderEntries.ts`, `useProjectStatusPolling.ts`.
 
 **Типичный UX:** toggle ON + **All files** в Sidebar → все изменённые файлы репо в одной сетке → multiselect → **Create commit** в Content Info.
 

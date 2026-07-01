@@ -233,7 +233,21 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 ### 8.6 Конкурентность
 
 - GUI + Blender + CLI: **fs watcher** (`workdir:changed`, debounce 300ms) + polling `status.get` (5s, window focus) + refresh on window focus.
+- Watcher (Project): `refreshStatus` + soft `workdir.entries` refresh — **не** full `loadProjectData` на каждое FS-событие.
 - `setup.cfg`: last-write-wins в v1.0.
+
+### 8.6.1 Content Preview — стабильность thumbnails (virtual scroll)
+
+**Решение (2026-07):** мерцание grid из-за глобальной инвалидации превью и полного сброса `entries`.
+
+| Не делать | Делать |
+|-----------|--------|
+| Global `previewGeneration` на `status.get` / `workdir:changed` | Кэш `repoPath + path`; `invalidateWorkdirPreview(paths)` точечно |
+| `loadProjectData()` на каждый `workdir:changed` | `refreshStatus` + `bumpWorkdirGeneration` (soft entries) |
+| Clear `entries` на каждый `workdirGeneration` | Hard clear только при смене scope; `sameDirEntryList` |
+| `notifyWorkdirPreviewChange` при inflight start | Notify при записи в кэш |
+
+Канон: `.cursor/rules/virtual-scroll-preview-ux.mdc` · `content-preview-project-view.md` §8.7.
 
 ### 8.7 Язык UI
 
@@ -251,6 +265,7 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 | 4 | Old object-by-file alias vs canonical method | **`object.list_by_file`** | §7.1 |
 | 5 | Index metadata storage | **JSON** `.DFM/index` (SQLite removed) | — |
 | 6 | Fully expanded tree vs performance | **Lazy v1.0** | §5 |
+| 7 | Global preview invalidation vs virtual-scroll UX | **Per-path cache** + soft entries refresh | §8.6.1 |
 
 ---
 

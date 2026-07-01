@@ -412,7 +412,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 | `gui:open-settings` | Application menu View → Settings ([application-menu.md](./application-menu.md)) |
 | `gui:switch-mode` | `"project"` \| `"history"` — Application menu или shortcut |
 | `gui:toggle-sidebar` | Collapse / expand sidebar column (`⌘B`) |
-| `workdir:changed` | Go `fsnotify` на repo workdir (skip `.DFM`) → debounced refresh status + tree (Project) |
+| `workdir:changed` | Go `fsnotify` на repo workdir (skip `.DFM`) → debounced `refreshStatus` + soft `workdir.entries` refresh (Project); **не** full `loadProjectData` на каждое событие |
 
 **Нет** `kind: 'folder'` в `onSelectionChange` — папка только через `ProjectViewContext`.
 

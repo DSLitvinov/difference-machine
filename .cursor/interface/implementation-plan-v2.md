@@ -126,7 +126,7 @@ QA, платформы и фичи после закрытия **v1.0 / v1.1** �
 
 ## Фаза 4 — Fs watcher
 
-- [x] **4.1** Wails / OS watcher → invalidate `status.get` / tree без full polling-only
+- [x] **4.1** Wails / OS watcher → `refreshStatus` + soft entries refresh (не full `loadProjectData` на каждое событие) — [decisions.md §8.6.1](./decisions.md)
 - [x] **4.2** Debounce + corner cases (external delete, rename)
 
 ---

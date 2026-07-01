@@ -51,22 +51,6 @@ function evictOldest(): void {
   const oldestKey = cache.keys().next().value as string | undefined;
   if (!oldestKey) return;
   const entry = cache.get(oldestKey);
-  // #region agent log
-  const evictedPath = oldestKey.split("\0")[1] ?? oldestKey;
-  fetch("http://127.0.0.1:7622/ingest/6a6025bf-706d-42c5-983c-cc603dda0e71", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b5b4c3" },
-    body: JSON.stringify({
-      sessionId: "b5b4c3",
-      runId: "post-fix",
-      hypothesisId: "C",
-      location: "workdirPreviewCache.ts:evictOldest",
-      message: "cache entry evicted",
-      data: { path: evictedPath, cacheSize: cache.size, hadUrl: Boolean(entry?.previewUrl) },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
   revokePreviewUrl(entry?.previewUrl ?? null);
   cache.delete(oldestKey);
 }
@@ -222,7 +206,7 @@ export async function loadWorkdirPreview(
     });
 
   inflight.set(key, promise);
-  notifyWorkdirPreviewChange();
+  // Notify only when a load completes — avoids grid-wide re-renders on inflight start.
 
   try {
     const entry = await promise;

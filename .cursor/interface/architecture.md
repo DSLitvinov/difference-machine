@@ -409,7 +409,7 @@ Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-proje
 
 ### 6.5 Конкурентные изменения на диске
 
-- **Fs watcher:** OS `fsnotify` на workdir → Wails event `workdir:changed` → debounced refresh `status.get` + `workdir.tree` / entries (Project mode). Реализация: `sources/gui/internal/workdirwatch/`.
+- **Fs watcher:** OS `fsnotify` на workdir → Wails event `workdir:changed` → debounced `refreshStatus` + soft entries refresh (`workdirGeneration++`); без full `loadProjectData` на каждое событие. Thumbnails: shared cache, per-path invalidation — [virtual-scroll-preview-ux.mdc](../rules/virtual-scroll-preview-ux.mdc). Реализация: `sources/gui/internal/workdirwatch/`.
 - **Polling fallback:** `status.get` каждые 5s + window focus ([decisions.md §8.6](./decisions.md)).
 - При расхождении selection (файл удалён) → сбросить selection, toast.
 

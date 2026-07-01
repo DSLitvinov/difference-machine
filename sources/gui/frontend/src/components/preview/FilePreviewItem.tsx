@@ -1,4 +1,4 @@
-import type { MouseEvent } from "react";
+import { memo, type MouseEvent } from "react";
 import { File } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ interface FilePreviewItemProps {
   onContextMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
-export function FilePreviewItem({
+export const FilePreviewItem = memo(function FilePreviewItem({
   name,
   path,
   selected,
@@ -127,4 +127,4 @@ export function FilePreviewItem({
       ) : null}
     </Button>
   );
-}
+});

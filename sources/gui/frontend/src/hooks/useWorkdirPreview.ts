@@ -79,27 +79,6 @@ export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "
     const applySnapshot = () => {
       setPreview((prev) => {
         const next = readPreviewSnapshot(repoPath, path, kind);
-        // #region agent log
-        if (prev.previewUrl && !next.previewUrl) {
-          fetch("http://127.0.0.1:7622/ingest/6a6025bf-706d-42c5-983c-cc603dda0e71", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b5b4c3" },
-            body: JSON.stringify({
-              sessionId: "b5b4c3",
-              runId: "post-fix",
-              hypothesisId: "D",
-              location: "useWorkdirPreview.ts:applySnapshot",
-              message: "previewUrl cleared (flicker)",
-              data: {
-                path,
-                nextLoading: next.loading,
-                nextFailed: next.failed,
-              },
-              timestamp: Date.now(),
-            }),
-          }).catch(() => {});
-        }
-        // #endregion
         if (
           prev.loading === next.loading &&
           prev.previewUrl === next.previewUrl &&
@@ -111,28 +90,6 @@ export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "
         return next;
       });
     };
-
-    const initial = readPreviewSnapshot(repoPath, path, kind);
-    // #region agent log
-    fetch("http://127.0.0.1:7622/ingest/6a6025bf-706d-42c5-983c-cc603dda0e71", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b5b4c3" },
-      body: JSON.stringify({
-        sessionId: "b5b4c3",
-        runId: "post-fix",
-        hypothesisId: "B",
-        location: "useWorkdirPreview.ts:layoutEffect",
-        message: "mount/remount snapshot",
-        data: {
-          path,
-          hasUrl: Boolean(initial.previewUrl),
-          loading: initial.loading,
-          failed: initial.failed,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
 
     applySnapshot();
     const unsubscribe = subscribeWorkdirPreview(applySnapshot);

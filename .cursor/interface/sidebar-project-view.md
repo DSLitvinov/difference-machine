@@ -230,7 +230,7 @@ function committablePaths(status: Status): string[] {
 }
 ```
 
-Каноническая реализация: `sources/gui/frontend/src/wails/forester.ts` (`committablePaths`, `normalizeRepoRelPath`). Store: `projectStore.setStatus` → `committable[]`; при изменении status также `workdirGeneration++`.
+Каноническая реализация: `sources/gui/frontend/src/wails/forester.ts` (`committablePaths`, `normalizeRepoRelPath`). Store: `projectStore.setStatus` → `committable[]`; `workdirGeneration++` **только** при изменении `committable` (не на каждый VCS-only poll). См. [content-preview-project-view.md §8.7](./content-preview-project-view.md).
 
 ### 3.2 Content Preview (ссылка)
 

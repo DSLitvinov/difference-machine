@@ -90,7 +90,7 @@ interface InfoHistorySectionProps {
 }
 ```
 
-`ContentInfoPanel` держит `fileCommitCount`; сбрасывает в `null` при смене файла и в начале load; инвалидирует вместе с `previewGeneration` и `currentBranch`.
+`ContentInfoPanel` держит `fileCommitCount`; сбрасывает в `null` при смене файла и в начале load; инвалидирует вместе с `workdirGeneration` и `currentBranch`.
 
 ---
 
@@ -105,4 +105,4 @@ interface InfoHistorySectionProps {
 | `fileViewer` + View | `fileHistoryReturnMode = 'fileViewer'`; `fileViewerPath` сохраняется |
 | Rail → History | `exitSubPreviewViews()` — viewer и history сброшены |
 | Collapsed header | Body (кнопка и Alert) скрыты вместе |
-| Первый коммит после создания | После `previewGeneration` bump — `commitCount > 0`, показать кнопку |
+| Первый коммит после создания | После `workdirGeneration` bump (commit / status) — `commitCount > 0`, показать кнопку |
