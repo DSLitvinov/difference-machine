@@ -808,6 +808,7 @@ class DF_OT_replace_mesh(Operator):
             
             objects_to_process.append({
                 'base_name': base_name,
+                'source_name': obj.name,
                 'object_type': object_type,
                 'original_obj': original_obj,
                 'target_blend': target_blend,
@@ -817,58 +818,53 @@ class DF_OT_replace_mesh(Operator):
             self.report({'ERROR'}, "No valid objects to process")
             return {'CANCELLED'}
 
-        # Use bpy.data.libraries.load() for better control
         try:
+            from .mesh_io import _resolve_blend_object_name
+
             loaded_objects = []
             existing_object_names = set(bpy.data.objects.keys())
-            
+
             for obj_info in objects_to_process:
                 target_blend = obj_info['target_blend']
                 base_name = obj_info['base_name']
+                source_name = obj_info['source_name']
                 object_type = obj_info['object_type']
-                
-                # Load objects from library
+
+                file_obj_name = _resolve_blend_object_name(target_blend, source_name)
+                if not file_obj_name:
+                    logger.warning(
+                        "Object '%s' not found in %s",
+                        source_name,
+                        target_blend,
+                    )
+                    continue
+
+                target_obj_name = None
                 with bpy.data.libraries.load(str(target_blend), link=False) as (data_from, data_to):
-                    # Find matching object
-                    obj_found = False
-                    target_obj_name = None
-                    for obj_name in data_from.objects:
-                        if _normalize_object_name(obj_name) == base_name:
-                            data_to.objects = [obj_name]
-                            target_obj_name = obj_name
-                            obj_found = True
-                            break
-                    
-                    if not obj_found:
-                        logger.warning("Object '%s' not found in %s", base_name, target_blend)
-                        continue
-                
-                # Find the loaded object (it will be in bpy.data.objects after the with block)
-                if target_obj_name:
-                    # Wait a bit for object to be loaded
-                    import time
-                    time.sleep(0.1)
-                    
-                    # Find newly loaded object
-                    current_object_names = set(bpy.data.objects.keys())
-                    new_object_names = current_object_names - existing_object_names
-                    
-                    new_obj = None
-                    for obj_name in new_object_names:
-                        obj = bpy.data.objects.get(obj_name)
-                        if obj and obj.type == object_type:
-                            # Check if it matches our target
-                            if _normalize_object_name(obj_name) == base_name or obj_name == target_obj_name:
-                                new_obj = obj
-                                break
-                    
-                    if new_obj:
-                        loaded_objects.append({
-                            'new_obj': new_obj,
-                            'original_obj': obj_info['original_obj'],
-                            'base_name': base_name,
-                        })
-                        existing_object_names.add(new_obj.name)
+                    data_to.objects = [file_obj_name]
+                    target_obj_name = file_obj_name
+
+                new_obj = _find_newly_linked_object(
+                    existing_object_names,
+                    base_name,
+                    object_type,
+                    target_obj_name,
+                    target_blend,
+                )
+                if new_obj is None:
+                    logger.warning(
+                        "Retrieved object '%s' not found after library load from %s",
+                        source_name,
+                        target_blend,
+                    )
+                    continue
+
+                loaded_objects.append({
+                    'new_obj': new_obj,
+                    'original_obj': obj_info['original_obj'],
+                    'base_name': base_name,
+                })
+                existing_object_names.add(new_obj.name)
             
             if not loaded_objects:
                 self.report({'ERROR'}, "Failed to load objects from commit")
@@ -899,18 +895,7 @@ class DF_OT_replace_mesh(Operator):
                 else:
                     # Retrieve: keep original, add new with suffix
                     new_obj.name = f"{base_name}_retrieved"
-            
-            # Fix asset paths
-            from ..utils.asset_path import fix_retrieved_assets
-            assets = []
-            for item in loaded_objects:
-                new_obj = item['new_obj']
-                # Collect asset information (simplified - would need more detailed collection)
-                if hasattr(new_obj, 'data') and new_obj.data:
-                    # Add logic to collect assets from object
-                    pass
-            # fix_retrieved_assets(assets, repo_path)
-            
+
             # Select loaded objects
             bpy.ops.object.select_all(action='DESELECT')
             for item in loaded_objects:

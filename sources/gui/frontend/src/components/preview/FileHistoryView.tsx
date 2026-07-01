@@ -21,6 +21,7 @@ import {
   type HistoryTextLayout,
 } from "@/lib/storage";
 import { diffStatusBadgeClass } from "@/lib/vcsBadge";
+import { invalidateWorkdirPreview } from "@/lib/workdirPreviewCache";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
@@ -78,7 +79,6 @@ export function FileHistoryView({ filePath, onBack }: FileHistoryViewProps) {
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const setStatus = useProjectStore((s) => s.setStatus);
-  const bumpPreviewGeneration = useProjectStore((s) => s.bumpPreviewGeneration);
   const fileHistoryReturnMode = useProjectStore((s) => s.fileHistoryReturnMode);
 
   const [branches, setBranches] = useState<string[]>([]);
@@ -410,7 +410,9 @@ export function FileHistoryView({ filePath, onBack }: FileHistoryViewProps) {
       await restoreFile(selectedCommitHash, [filePath]);
       const status = await fetchStatus();
       setStatus(status);
-      bumpPreviewGeneration();
+      if (repoPath) {
+        invalidateWorkdirPreview(repoPath, [filePath]);
+      }
       setNotice(t("history.restoredFile", { path: filePath, hash: shortHash(selectedCommitHash) }));
       setRevertOpen(false);
     } catch (err) {

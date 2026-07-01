@@ -10,7 +10,6 @@ import {
   type WorkdirPreviewState,
 } from "@/lib/workdirPreviewCache";
 import { useAppStore } from "@/stores/appStore";
-import { useProjectStore } from "@/stores/projectStore";
 
 export type { WorkdirPreviewState };
 
@@ -39,19 +38,18 @@ function failOnPlaceholder(kind: InfoPreviewKind | "image"): boolean {
 function readPreviewSnapshot(
   repoPath: string | null,
   path: string | null,
-  generation: number,
   kind: InfoPreviewKind | "image",
 ): WorkdirPreviewState {
   if (!path || !repoPath || !shouldLoad(kind)) {
     return emptyState;
   }
 
-  const cached = getWorkdirPreviewCached(repoPath, path, generation);
+  const cached = getWorkdirPreviewCached(repoPath, path);
   if (cached) {
     return cached;
   }
 
-  if (isWorkdirPreviewLoading(repoPath, path, generation)) {
+  if (isWorkdirPreviewLoading(repoPath, path)) {
     return loadingState;
   }
 
@@ -60,9 +58,8 @@ function readPreviewSnapshot(
 
 export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "image"): WorkdirPreviewState {
   const repoPath = useAppStore((s) => s.repoPath);
-  const previewGeneration = useProjectStore((s) => s.previewGeneration);
   const [preview, setPreview] = useState<WorkdirPreviewState>(() =>
-    readPreviewSnapshot(repoPath, path, previewGeneration, kind),
+    readPreviewSnapshot(repoPath, path, kind),
   );
   const prevRepoPathRef = useRef(repoPath);
 
@@ -81,7 +78,28 @@ export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "
 
     const applySnapshot = () => {
       setPreview((prev) => {
-        const next = readPreviewSnapshot(repoPath, path, previewGeneration, kind);
+        const next = readPreviewSnapshot(repoPath, path, kind);
+        // #region agent log
+        if (prev.previewUrl && !next.previewUrl) {
+          fetch("http://127.0.0.1:7622/ingest/6a6025bf-706d-42c5-983c-cc603dda0e71", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b5b4c3" },
+            body: JSON.stringify({
+              sessionId: "b5b4c3",
+              runId: "post-fix",
+              hypothesisId: "D",
+              location: "useWorkdirPreview.ts:applySnapshot",
+              message: "previewUrl cleared (flicker)",
+              data: {
+                path,
+                nextLoading: next.loading,
+                nextFailed: next.failed,
+              },
+              timestamp: Date.now(),
+            }),
+          }).catch(() => {});
+        }
+        // #endregion
         if (
           prev.loading === next.loading &&
           prev.previewUrl === next.previewUrl &&
@@ -94,15 +112,37 @@ export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "
       });
     };
 
+    const initial = readPreviewSnapshot(repoPath, path, kind);
+    // #region agent log
+    fetch("http://127.0.0.1:7622/ingest/6a6025bf-706d-42c5-983c-cc603dda0e71", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b5b4c3" },
+      body: JSON.stringify({
+        sessionId: "b5b4c3",
+        runId: "post-fix",
+        hypothesisId: "B",
+        location: "useWorkdirPreview.ts:layoutEffect",
+        message: "mount/remount snapshot",
+        data: {
+          path,
+          hasUrl: Boolean(initial.previewUrl),
+          loading: initial.loading,
+          failed: initial.failed,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+
     applySnapshot();
     const unsubscribe = subscribeWorkdirPreview(applySnapshot);
 
-    if (!getWorkdirPreviewCached(repoPath, path, previewGeneration)) {
-      void loadWorkdirPreview(repoPath, path, previewGeneration, failOnPlaceholder(kind));
+    if (!getWorkdirPreviewCached(repoPath, path)) {
+      void loadWorkdirPreview(repoPath, path, failOnPlaceholder(kind));
     }
 
     return unsubscribe;
-  }, [path, kind, repoPath, previewGeneration]);
+  }, [path, kind, repoPath]);
 
   return preview;
 }

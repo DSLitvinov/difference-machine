@@ -38,7 +38,7 @@ export function ContentInfoPanel() {
   const selectedFilePaths = useProjectStore((s) => s.selectedFilePaths);
   const status = useProjectStore((s) => s.status);
   const committable = useProjectStore((s) => s.committable);
-  const previewGeneration = useProjectStore((s) => s.previewGeneration);
+  const workdirGeneration = useProjectStore((s) => s.workdirGeneration);
   const projectPreviewMode = useProjectStore((s) => s.projectPreviewMode);
   const currentBranch = useAppStore((s) => s.currentBranch);
 
@@ -104,7 +104,7 @@ export function ContentInfoPanel() {
     return () => {
       cancelled = true;
     };
-  }, [selectedFilePath, isMulti, setError, metadataKey, currentBranch, previewGeneration]);
+  }, [selectedFilePath, isMulti, setError, metadataKey, currentBranch, workdirGeneration]);
 
   if (selectedFilePaths.length === 0) {
     return (

@@ -10,7 +10,7 @@ export interface WorkdirPreviewState {
 const MAX_CACHE_ENTRIES = 128;
 const MAX_CONCURRENT = 4;
 
-type CachedPreview = Omit<WorkdirPreviewState, "loading"> & { generation: number };
+type CachedPreview = Omit<WorkdirPreviewState, "loading">;
 
 const cache = new Map<string, CachedPreview>();
 const inflight = new Map<string, Promise<CachedPreview>>();
@@ -23,10 +23,6 @@ const listeners = new Set<PreviewListener>();
 
 function cacheKey(repoPath: string, path: string): string {
   return `${repoPath}\0${path}`;
-}
-
-function inflightKey(repoPath: string, path: string, generation: number): string {
-  return `${cacheKey(repoPath, path)}\0${generation}`;
 }
 
 function notifyWorkdirPreviewChange(): void {
@@ -55,6 +51,22 @@ function evictOldest(): void {
   const oldestKey = cache.keys().next().value as string | undefined;
   if (!oldestKey) return;
   const entry = cache.get(oldestKey);
+  // #region agent log
+  const evictedPath = oldestKey.split("\0")[1] ?? oldestKey;
+  fetch("http://127.0.0.1:7622/ingest/6a6025bf-706d-42c5-983c-cc603dda0e71", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "b5b4c3" },
+    body: JSON.stringify({
+      sessionId: "b5b4c3",
+      runId: "post-fix",
+      hypothesisId: "C",
+      location: "workdirPreviewCache.ts:evictOldest",
+      message: "cache entry evicted",
+      data: { path: evictedPath, cacheSize: cache.size, hadUrl: Boolean(entry?.previewUrl) },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
   revokePreviewUrl(entry?.previewUrl ?? null);
   cache.delete(oldestKey);
 }
@@ -91,13 +103,11 @@ function runWithConcurrencyLimit<T>(task: () => Promise<T>): Promise<T> {
 }
 
 function toCachedPreview(
-  generation: number,
   result: Awaited<ReturnType<typeof fetchWorkdirThumbnail>>,
   failOnPlaceholder: boolean,
 ): CachedPreview {
   if (result.kind === "image" && result.content_base64) {
     return {
-      generation,
       previewUrl: base64ToObjectUrl(result.content_base64, result.mime),
       textPreview: null,
       failed: false,
@@ -106,7 +116,6 @@ function toCachedPreview(
 
   if (result.kind === "text" && result.text_preview) {
     return {
-      generation,
       previewUrl: null,
       textPreview: result.text_preview,
       failed: false,
@@ -114,7 +123,6 @@ function toCachedPreview(
   }
 
   return {
-    generation,
     previewUrl: null,
     textPreview: null,
     failed: failOnPlaceholder,
@@ -130,14 +138,27 @@ export function clearWorkdirPreviewCache(): void {
   notifyWorkdirPreviewChange();
 }
 
-export function getWorkdirPreviewCached(
-  repoPath: string,
-  path: string,
-  generation: number,
-): WorkdirPreviewState | null {
+export function invalidateWorkdirPreview(repoPath: string, paths: string[]): void {
+  let changed = false;
+  for (const path of paths) {
+    const key = cacheKey(repoPath, path);
+    const entry = cache.get(key);
+    if (entry) {
+      revokePreviewUrl(entry.previewUrl);
+      cache.delete(key);
+      changed = true;
+    }
+    inflight.delete(key);
+  }
+  if (changed) {
+    notifyWorkdirPreviewChange();
+  }
+}
+
+export function getWorkdirPreviewCached(repoPath: string, path: string): WorkdirPreviewState | null {
   const key = cacheKey(repoPath, path);
   const entry = cache.get(key);
-  if (!entry || entry.generation !== generation) {
+  if (!entry) {
     return null;
   }
   touch(key, entry);
@@ -149,24 +170,18 @@ export function getWorkdirPreviewCached(
   };
 }
 
-export function isWorkdirPreviewLoading(
-  repoPath: string,
-  path: string,
-  generation: number,
-): boolean {
-  return inflight.has(inflightKey(repoPath, path, generation));
+export function isWorkdirPreviewLoading(repoPath: string, path: string): boolean {
+  return inflight.has(cacheKey(repoPath, path));
 }
 
 export async function loadWorkdirPreview(
   repoPath: string,
   path: string,
-  generation: number,
   failOnPlaceholder: boolean,
 ): Promise<WorkdirPreviewState> {
   const key = cacheKey(repoPath, path);
-  const requestKey = inflightKey(repoPath, path, generation);
   const cached = cache.get(key);
-  if (cached && cached.generation === generation) {
+  if (cached) {
     touch(key, cached);
     return {
       loading: false,
@@ -176,7 +191,7 @@ export async function loadWorkdirPreview(
     };
   }
 
-  const pending = inflight.get(requestKey);
+  const pending = inflight.get(key);
   if (pending) {
     try {
       const entry = await pending;
@@ -193,20 +208,20 @@ export async function loadWorkdirPreview(
 
   const promise = runWithConcurrencyLimit(async () => {
     const result = await fetchWorkdirThumbnail(path);
-    return toCachedPreview(generation, result, failOnPlaceholder);
+    return toCachedPreview(result, failOnPlaceholder);
   })
     .then((entry) => {
       storeEntry(key, entry);
       return entry;
     })
     .finally(() => {
-      if (inflight.get(requestKey) === promise) {
-        inflight.delete(requestKey);
+      if (inflight.get(key) === promise) {
+        inflight.delete(key);
       }
       notifyWorkdirPreviewChange();
     });
 
-  inflight.set(requestKey, promise);
+  inflight.set(key, promise);
   notifyWorkdirPreviewChange();
 
   try {

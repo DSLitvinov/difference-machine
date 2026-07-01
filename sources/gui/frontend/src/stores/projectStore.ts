@@ -56,7 +56,6 @@ interface ProjectState {
   status: StatusPayload | null;
   committable: string[];
   lockedByPath: Record<string, string>;
-  previewGeneration: number;
   workdirGeneration: number;
   sortMode: PreviewSortMode;
   thumbScale: ThumbScalePx;
@@ -88,7 +87,6 @@ interface ProjectState {
   mergeFolderChildren: (path: string, children: FolderNode[]) => void;
   setStatus: (status: StatusPayload | null) => void;
   setLocks: (lockedByPath: Record<string, string>) => void;
-  bumpPreviewGeneration: () => void;
   bumpWorkdirGeneration: () => void;
   setSortMode: (mode: PreviewSortMode) => void;
   setThumbScale: (px: ThumbScalePx) => void;
@@ -133,7 +131,6 @@ const initialState = {
   status: null as StatusPayload | null,
   committable: [] as string[],
   lockedByPath: {} as Record<string, string>,
-  previewGeneration: 0,
   workdirGeneration: 0,
   sortMode: "name-en" as PreviewSortMode,
   thumbScale: DEFAULT_THUMB_SCALE,
@@ -328,11 +325,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (sameStatusPayload(state.status, status) && sameStringArrays(state.committable, committable)) {
         return state;
       }
+      const committableChanged = !sameStringArrays(state.committable, committable);
       return {
         status,
         committable,
-        previewGeneration: state.previewGeneration + 1,
-        workdirGeneration: state.workdirGeneration + 1,
+        workdirGeneration: committableChanged
+          ? state.workdirGeneration + 1
+          : state.workdirGeneration,
       };
     }),
   setLocks: (lockedByPath) =>
@@ -342,8 +341,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       }
       return { lockedByPath };
     }),
-  bumpPreviewGeneration: () =>
-    set((state) => ({ previewGeneration: state.previewGeneration + 1 })),
   bumpWorkdirGeneration: () =>
     set((state) => ({ workdirGeneration: state.workdirGeneration + 1 })),
   setSortMode: (mode) => {

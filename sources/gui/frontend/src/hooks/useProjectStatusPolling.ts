@@ -62,7 +62,6 @@ async function refreshWorkdirFromWatcher() {
   await validateSelectedFiles();
   const projectStore = useProjectStore.getState();
   projectStore.bumpWorkdirGeneration();
-  projectStore.bumpPreviewGeneration();
 }
 
 export function useProjectStatusPolling() {
