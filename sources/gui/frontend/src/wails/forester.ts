@@ -360,6 +360,10 @@ export async function deleteBranch(name: string): Promise<void> {
   await foresterCall("branch.delete", { name });
 }
 
+export async function renameBranch(oldName: string, newName: string): Promise<void> {
+  await foresterCall("branch.rename", { old_name: oldName, new_name: newName });
+}
+
 export interface CommitDetail extends CommitLogEntry {
   screenshot_path?: string;
   screenshot_base64?: string;

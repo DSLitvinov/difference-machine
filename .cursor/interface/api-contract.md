@@ -32,6 +32,7 @@ ForesterCall(repoPath: string, method: string, args: object): Promise<unknown>
 | `log.get` | `git log` | Sidebar History; **+ `path` filter** (см. §3) |
 | `branch.list` | `git branch` | History branch selector |
 | `branch.create` | `git branch <name>` | History **Create new branch…** — [create-branch-dialog.md](./create-branch-dialog.md) |
+| `branch.rename` | `git branch -m` | History **Rename branch…** — [rename-branch-dialog.md](./rename-branch-dialog.md) |
 | `compare.extract` | worktree extract | Content Info Compare, card menu |
 | `restore.version` | restore whole tree | Card menu «Restore this version» |
 | `lock.list` | — (Forester) | lock badge (Content Preview + Content Info); check before `restore.file` |

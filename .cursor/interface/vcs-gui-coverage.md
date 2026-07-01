@@ -6,7 +6,7 @@
 **Обёртки GUI:** `sources/gui/frontend/src/wails/forester.ts`, `bridge.ts`, `settings.ts`  
 **Связанные:** [api-contract.md](./api-contract.md) · [architecture.md](./architecture.md) · [decisions.md](./decisions.md)
 
-Обновлено: 2026-06-30.
+Обновлено: 2026-07-01.
 
 ---
 
@@ -65,7 +65,7 @@
 | `branch.list` | `forester branch` | **Да** | `BranchSelector`, File History branch filter |
 | `branch.create` | `forester branch <name>` | **Да** | Create branch dialog |
 | `branch.delete` | `forester branch -d` | **Да** | Delete branch confirm |
-| `branch.rename` | `forester branch -m` | **Нет** | — |
+| `branch.rename` | `forester branch -m` | **Да** | Rename branch dialog |
 
 ### 1.5 Merge
 
@@ -171,7 +171,7 @@
 
 | Категория | Всего в API | Да / частично | Нет / обёртка | Только CLI |
 |-----------|-------------|---------------|---------------|------------|
-| JSON API (`dispatch.go`) | 48 handlers¹ | **38** | **10** | **1** (`index.drop` отсутствует в API) |
+| JSON API (`dispatch.go`) | 48 handlers¹ | **39** | **9** | **1** (`index.drop` отсутствует в API) |
 | Wails shell | 17 | **15** | **2** (`RemoveKnownRepo`, `SetRepoUser`) | — |
 | Расширенный CLI (без API) | ~20 команд | ~8 частичных аналогов | — | **остальное** |
 
@@ -182,16 +182,15 @@
 | Вопрос | Ответ |
 |--------|--------|
 | Задокументированный desktop-workflow (v1/v2)? | **Да** — browse, commit, history, diff, branches, merge, init |
-| Весь Forester JSON API? | **Нет** — ~79% методов с UI; gaps: `branch.rename`, `gc.run`, `repo.rebuild`, object CRUD |
+| Весь Forester JSON API? | **Нет** — ~81% методов с UI; gaps: `gc.run`, `repo.rebuild`, object CRUD |
 | Весь Forester CLI? | **Нет** — maintenance, stash UI, tags, cherry-pick, unstage, hooks, review |
 
 ### Приоритетные пробелы (если расширять GUI)
 
 1. **Unstage** — нужен `index.drop` в API + кнопка в Create commit / context menu  
-2. **Branch rename** — API уже есть  
-3. **`commit.get`** — обёртка есть; можно подключить screenshot в History header  
-4. **Stash browser** — после `Stash & switch` нет просмотра stash  
-5. **Object workflow** — намеренно Blender; GUI только merge preview  
+2. **`commit.get`** — обёртка есть; можно подключить screenshot в History header  
+3. **Stash browser** — после `Stash & switch` нет просмотра stash  
+4. **Object workflow** — намеренно Blender; GUI только merge preview  
 
 ---
 
@@ -203,7 +202,7 @@
 | Repo / init | `sources/gui/frontend/src/wails/bridge.ts` |
 | Settings | `sources/gui/frontend/src/wails/settings.ts` |
 | Project + commit | `ContentInfoPanel`, `CreateCommitDialog`, `ProjectPreviewPanel`, `FilePreviewGrid` |
-| History + diff | `HistorySidebarPanel`, `HistoryPreviewPanel`, `CommitCardMenu` |
+| History + diff | `HistorySidebarPanel`, `HistoryPreviewPanel`, `CommitCardMenu`, `RenameBranchDialog` |
 | File history | `FileHistoryView` |
 | Merge | `MergeDialog`, merge banner в `HistorySidebarPanel` |
 | Init | `InitRepositoryWizard`, `RepositoryAddProvider` |

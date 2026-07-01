@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ChevronDown, GitBranch, GitMerge, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronDown, GitBranch, GitMerge, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +17,8 @@ interface BranchSelectorProps {
   mergeBranch?: string | null;
   onSelect: (branch: string) => void;
   onCreateClick?: () => void;
+  onRenameClick?: () => void;
+  renameDisabled?: boolean;
   onMergeIntoCurrentClick?: () => void;
   onDeleteClick?: (branch: string) => void;
   mergeDisabled?: boolean;
@@ -31,6 +33,8 @@ export function BranchSelector({
   mergeBranch,
   onSelect,
   onCreateClick,
+  onRenameClick,
+  renameDisabled,
   onMergeIntoCurrentClick,
   onDeleteClick,
   mergeDisabled,
@@ -62,6 +66,11 @@ export function BranchSelector({
   const handleCreateClick = () => {
     handleOpenChange(false);
     onCreateClick?.();
+  };
+
+  const handleRenameClick = () => {
+    handleOpenChange(false);
+    onRenameClick?.();
   };
 
   const handleMergeClick = () => {
@@ -154,18 +163,32 @@ export function BranchSelector({
             })
           )}
         </div>
-        {onCreateClick ? (
+        {onCreateClick || onRenameClick ? (
           <>
             <Separator className="my-1" />
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
-              onClick={handleCreateClick}
-            >
-              <Plus className="h-4 w-4" />
-              {t("branch.createNew")}
-            </Button>
+            {onCreateClick ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
+                onClick={handleCreateClick}
+              >
+                <Plus className="h-4 w-4" />
+                {t("branch.createNew")}
+              </Button>
+            ) : null}
+            {onRenameClick ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="h-auto w-full justify-start gap-2 px-3 py-2 font-normal"
+                disabled={renameDisabled}
+                onClick={handleRenameClick}
+              >
+                <Pencil className="h-4 w-4" />
+                {t("branch.renameNew")}
+              </Button>
+            ) : null}
           </>
         ) : null}
         {onMergeIntoCurrentClick ? (

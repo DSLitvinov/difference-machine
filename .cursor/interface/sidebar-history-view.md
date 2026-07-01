@@ -55,7 +55,7 @@
 
 - Icon `GitBranch`, label = **`currentBranch`** (ветка рабочей копии и History log).
 - Dropdown — `Popover` + список веток (checkmark у текущей); паттерн как `RepoSelector` в Project view.
-- Footer: `Separator` + **Create new branch…** (`Plus`) → [create-branch-dialog.md](./create-branch-dialog.md).
+- Footer: `Separator` + **Create new branch…** (`Plus`) → [create-branch-dialog.md](./create-branch-dialog.md); **Rename branch…** (`Pencil`) → [rename-branch-dialog.md](./rename-branch-dialog.md).
 - Фон: `bg-background` (white) + border.
 - Общий компонент `BranchSelector` — в History он в context slot Sidebar; checkout on select — §2.6.
 
@@ -152,6 +152,7 @@ You have uncommitted changes:
 | CLI switch извне | Refresh `branch.list`; обновить label и log |
 | Единственная ветка | Dropdown кликабелен; **Create new branch…** доступен |
 | Create branch | Dialog → `branch.create`; refresh list; **не** checkout |
+| Rename branch | **Rename branch…** в footer → [rename-branch-dialog.md](./rename-branch-dialog.md); `branch.rename` текущей ветки; refresh list + log |
 | Duplicate / invalid name | Error toast; dialog остаётся open |
 
 #### File history (исключение)
@@ -366,6 +367,14 @@ interface HistoryViewState {
 - Успех: toast + refresh `branch.list`; **не** switch на новую ветку.
 - Checkout новой ветки — отдельный выбор в dropdown (§2.6, dirty dialog при необходимости).
 
+### 5.17 Rename branch
+
+- Триггер: **Rename branch…** в dropdown (сразу после create).
+- Dialog: [rename-branch-dialog.md](./rename-branch-dialog.md).
+- API: `branch.rename({ old_name: currentBranch, new_name })`.
+- Успех: toast + refresh `branch.list` + `log.get`; `currentBranch` обновляется при переименовании активной ветки.
+- Disabled при detached HEAD, merge in progress, отсутствии `currentBranch`.
+
 ---
 
 ## 6. Компоненты (React)
@@ -374,8 +383,9 @@ interface HistoryViewState {
 |-----------|----------------|
 | `HistoryViewPanel` | Orchestration |
 | `HistoryHeader` | Title |
-| `BranchSelector` | Popover + branch list + **Create new branch…**; checkout flow §2.6 |
+| `BranchSelector` | Popover + branch list + **Create new branch…** + **Rename branch…**; checkout flow §2.6 |
 | `CreateBranchDialog` | [create-branch-dialog.md](./create-branch-dialog.md) |
+| `RenameBranchDialog` | [rename-branch-dialog.md](./rename-branch-dialog.md) |
 | `CommitSearch` | Controlled Input |
 | `CommitList` | `ScrollArea`, gap `space-2`, padding `px-2` |
 | `CommitCard` | Card layout §2.4; states Default/Hover/Selected |

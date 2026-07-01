@@ -5,6 +5,7 @@ import { BranchSelector } from "@/components/sidebar/BranchSelector";
 import { CommitList } from "@/components/sidebar/CommitList";
 import { CreateBranchDialog } from "@/components/sidebar/CreateBranchDialog";
 import { DeleteBranchDialog } from "@/components/sidebar/DeleteBranchDialog";
+import { RenameBranchDialog } from "@/components/sidebar/RenameBranchDialog";
 import { DirtyBranchSwitchDialog } from "@/components/sidebar/DirtyBranchSwitchDialog";
 import { EmptyRepoState } from "@/components/sidebar/ProjectSidebarPanel";
 import { MergeBranchPickDialog } from "@/components/merge/MergeBranchPickDialog";
@@ -68,6 +69,7 @@ export function HistorySidebarPanel() {
   const [dirtyDialogOpen, setDirtyDialogOpen] = useState(false);
   const [dirtyStatus, setDirtyStatus] = useState<StatusPayload | null>(null);
   const [createBranchDialogOpen, setCreateBranchDialogOpen] = useState(false);
+  const [renameBranchDialogOpen, setRenameBranchDialogOpen] = useState(false);
   const [deleteBranchTarget, setDeleteBranchTarget] = useState<string | null>(null);
   const [deletingBranch, setDeletingBranch] = useState(false);
   const [mergePickOpen, setMergePickOpen] = useState(false);
@@ -279,6 +281,11 @@ export function HistorySidebarPanel() {
     }
   };
 
+  const handleRenameBranchRefresh = useCallback(async () => {
+    await loadBranches();
+    await loadLog();
+  }, [loadBranches, loadLog]);
+
   const handleDeleteBranch = async () => {
     if (!deleteBranchTarget) return;
     setDeletingBranch(true);
@@ -325,6 +332,10 @@ export function HistorySidebarPanel() {
           mergeDisabled={Boolean(mergeStatus?.in_progress) || isDetached}
           onSelect={(target) => void handleBranchSelect(target)}
           onCreateClick={() => setCreateBranchDialogOpen(true)}
+          onRenameClick={() => setRenameBranchDialogOpen(true)}
+          renameDisabled={
+            isDetached || Boolean(mergeStatus?.in_progress) || !currentBranch
+          }
           onMergeIntoCurrentClick={() => void handleMergeIntoCurrentClick()}
           onDeleteClick={(branch) => setDeleteBranchTarget(branch)}
         />
@@ -392,6 +403,15 @@ export function HistorySidebarPanel() {
         open={createBranchDialogOpen}
         onOpenChange={setCreateBranchDialogOpen}
         onCreated={loadBranches}
+        onError={setError}
+        onNotice={setNotice}
+      />
+
+      <RenameBranchDialog
+        open={renameBranchDialogOpen}
+        branchName={currentBranch ?? ""}
+        onOpenChange={setRenameBranchDialogOpen}
+        onRenamed={handleRenameBranchRefresh}
         onError={setError}
         onNotice={setNotice}
       />
