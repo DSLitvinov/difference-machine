@@ -234,11 +234,92 @@ class DF_OT_restore_version(Operator):
 _replace_state = {}
 _compare_object_state = {}
 
+_DFM_COMPARE_REF_KEY = "dfm_compare_ref"
+_DFM_COMPARE_BASE_LOC_KEY = "dfm_compare_base_loc"
+_DFM_COMPARE_SOURCE_KEY = "dfm_compare_source"
+_DFM_COMPARE_NAME_PREFIX = "DFM_Compare_"
+_BLENDER_ID_NAME_MAX_LEN = 63
+
+
+def _is_compare_reference_object(obj) -> bool:
+    """True for objects created by Compare Object (never the scene original)."""
+    if obj is None:
+        return False
+    if obj.get(_DFM_COMPARE_REF_KEY):
+        return True
+    return obj.name.startswith(_DFM_COMPARE_NAME_PREFIX)
+
+
+def _iter_compare_reference_objects():
+    for obj in bpy.data.objects:
+        if _is_compare_reference_object(obj):
+            yield obj
+
+
+def _make_compare_object_name(commit_hash: str, source_name: str) -> str:
+    """Build a unique compare object name within Blender's 63-char ID limit."""
+    hash_part = commit_hash[:8]
+    prefix = f"{_DFM_COMPARE_NAME_PREFIX}{hash_part}_"
+    max_tail = max(1, _BLENDER_ID_NAME_MAX_LEN - len(prefix))
+    tail = source_name if len(source_name) <= max_tail else source_name[:max_tail]
+    compare_name = f"{prefix}{tail}"
+    if compare_name not in bpy.data.objects:
+        return compare_name
+    suffix = 1
+    while suffix < 1000:
+        suffix_text = f".{suffix:03d}"
+        trimmed = source_name[: max(1, max_tail - len(suffix_text))]
+        candidate = f"{prefix}{trimmed}{suffix_text}"
+        if len(candidate) > _BLENDER_ID_NAME_MAX_LEN:
+            candidate = candidate[:_BLENDER_ID_NAME_MAX_LEN]
+        if candidate not in bpy.data.objects:
+            return candidate
+        suffix += 1
+    return f"{prefix}{hash_part}"
+
+
+def _mark_as_compare_reference(
+    linked_obj,
+    commit_hash: str,
+    source_name: str,
+    base_location: Tuple[float, float, float],
+) -> str:
+    """Tag a compare copy and rename it when Blender allows (appended/local copies only)."""
+    linked_obj[_DFM_COMPARE_REF_KEY] = 1
+    linked_obj[_DFM_COMPARE_BASE_LOC_KEY] = (
+        f"{base_location[0]},{base_location[1]},{base_location[2]}"
+    )
+    linked_obj[_DFM_COMPARE_SOURCE_KEY] = source_name
+
+    compare_name = _make_compare_object_name(commit_hash, source_name)
+    if getattr(linked_obj, "library", None):
+        # Linked library objects keep their library name; cleanup uses dfm_compare_ref.
+        return linked_obj.name
+
+    try:
+        linked_obj.name = compare_name
+    except (AttributeError, TypeError) as e:
+        logger.debug("Compare object rename skipped for %s: %s", source_name, e)
+        return linked_obj.name
+    return linked_obj.name
+
+
+def _get_compare_base_location(obj, scene) -> Tuple[float, float, float]:
+    loc_str = obj.get(_DFM_COMPARE_BASE_LOC_KEY) if obj else None
+    if loc_str:
+        try:
+            parts = [float(part) for part in str(loc_str).split(",")]
+            if len(parts) == 3:
+                return parts[0], parts[1], parts[2]
+        except (TypeError, ValueError):
+            pass
+    return tuple(getattr(scene, "df_compare_object_original_location", (0.0, 0.0, 0.0)))
+
 class DF_OT_compare_object(Operator):
-    """Compare selected object(s) with object(s) from commit by linking them."""
+    """Compare selected object(s) with object(s) from commit by appending a copy."""
     bl_idname = "df.compare_object"
     bl_label = "Compare Object"
-    bl_description = "Link object(s) from commit for comparison with offset"
+    bl_description = "Append object copy from commit for comparison with offset"
     bl_options = {'REGISTER', 'UNDO'}
 
     commit_hash: bpy.props.StringProperty(
@@ -273,23 +354,26 @@ class DF_OT_compare_object(Operator):
             self.report({'ERROR'}, "Please save the Blender file first")
             return {'CANCELLED'}
 
-        selected_objects = context.selected_objects
-        if not selected_objects:
-            self.report({'ERROR'}, "Please select at least one object")
-            return {'CANCELLED'}
-
-        # Check if already comparing
         scene = context.scene
         is_active = (
             getattr(scene, 'df_compare_object_active', False) and
             getattr(scene, 'df_compare_object_commit_hash', '') == commit_hash
         )
 
+        # Toggle off: cleanup before selection checks (user may have deselected originals)
         if is_active:
-            # Cleanup existing comparison
             _cleanup_compare_object(context)
             self.report({'INFO'}, "Comparison stopped")
             return {'FINISHED'}
+
+        selected_objects = context.selected_objects
+        if not selected_objects:
+            self.report({'ERROR'}, "Please select at least one object")
+            return {'CANCELLED'}
+
+        # Starting compare for a different commit — remove previous linked objects first
+        if getattr(scene, 'df_compare_object_active', False):
+            _cleanup_compare_object(context)
 
         self.report({'INFO'}, f"Extracting commit {commit_hash[:16]}... to tmp_review")
         success, tmp_review_path, error_msg = _extract_commit_to_tmp_review(repo_path, commit_hash)
@@ -310,64 +394,92 @@ class DF_OT_compare_object(Operator):
         
         # Process each selected object
         linked_objects = []
+        existing_object_names = set(bpy.data.objects.keys())
         for obj in selected_objects:
-            base_name = _normalize_object_name(obj.name)
+            source_name = obj.name
+            original_location = tuple(obj.location)
+            base_name = _normalize_object_name(source_name)
             object_type = obj.type
-            
+
             target_blend = _select_replace_blend(tmp_review_path, current_blend, obj)
             if not target_blend:
-                self.report({'WARNING'}, f"No .blend file found for object '{obj.name}'")
+                self.report({'WARNING'}, f"No .blend file found for object '{source_name}'")
                 continue
-            
-            # Use bpy.data.libraries.load() for better control
+
+            target_obj_name = None
             try:
-                with bpy.data.libraries.load(str(target_blend), link=True) as (data_from, data_to):
-                    # Find matching object
-                    obj_found = False
-                    for obj_name in data_from.objects:
-                        if _normalize_object_name(obj_name) == base_name:
-                            data_to.objects = [obj_name]
-                            obj_found = True
-                            break
-                    
-                    if not obj_found:
-                        logger.warning("Object '%s' not found in %s", base_name, target_blend)
-                        continue
-                
-                # Find the linked object
-                for linked_obj in data_to.objects:
-                    if linked_obj and hasattr(linked_obj, 'library') and linked_obj.library:
-                        # Add to collection
-                        if compare_collection:
-                            compare_collection.objects.link(linked_obj)
-                        else:
-                            # Single object - link to scene collection
-                            context.collection.objects.link(linked_obj)
-                        
-                        # Apply offset
-                        original_location = tuple(obj.location)
-                        props = scene.df_commit_props
-                        offset_axis = props.offset_axis
-                        offset_value = props.offset_value
-                        
-                        new_location = list(original_location)
-                        axis_index = {'X': 0, 'Y': 1, 'Z': 2}.get(offset_axis, 0)
-                        new_location[axis_index] = original_location[axis_index] + offset_value
-                        linked_obj.location = tuple(new_location)
-                        
-                        # Apply ghost mode if enabled
-                        if self.ghost_mode:
-                            linked_obj.display_type = 'WIRE'
-                            linked_obj.hide_select = True
-                            linked_obj.show_in_front = False
-                        
-                        linked_objects.append(linked_obj)
-                        break
-                        
+                from .mesh_io import _resolve_blend_object_name
+
+                file_obj_name = _resolve_blend_object_name(target_blend, source_name)
+                if not file_obj_name:
+                    logger.warning(
+                        "Object '%s' not found in %s",
+                        source_name,
+                        target_blend,
+                    )
+                    continue
+
+                # Append a local copy: link=True reuses local objects with the same name.
+                with bpy.data.libraries.load(str(target_blend), link=False) as (data_from, data_to):
+                    data_to.objects = [file_obj_name]
+                    target_obj_name = file_obj_name
+
+                linked_obj = _find_newly_linked_object(
+                    existing_object_names,
+                    base_name,
+                    object_type,
+                    target_obj_name,
+                    target_blend,
+                )
+                if linked_obj is None:
+                    logger.warning(
+                        "Linked object '%s' not found in scene after library load from %s",
+                        base_name,
+                        target_blend,
+                    )
+                    continue
+
+                if compare_collection:
+                    if linked_obj.name not in compare_collection.objects:
+                        compare_collection.objects.link(linked_obj)
+                elif linked_obj.name not in context.collection.objects:
+                    context.collection.objects.link(linked_obj)
+
+                props = scene.df_commit_props
+                offset_axis = props.offset_axis
+                offset_value = props.offset_value
+
+                new_location = list(original_location)
+                axis_index = {'X': 0, 'Y': 1, 'Z': 2}.get(offset_axis, 0)
+                new_location[axis_index] = original_location[axis_index] + offset_value
+                linked_obj.location = tuple(new_location)
+
+                if self.ghost_mode:
+                    linked_obj.display_type = 'WIRE'
+                    linked_obj.hide_select = True
+                    linked_obj.show_in_front = False
+
+                compare_name = _mark_as_compare_reference(
+                    linked_obj,
+                    commit_hash,
+                    source_name,
+                    original_location,
+                )
+                marked_obj = bpy.data.objects.get(compare_name) or linked_obj
+                if not _is_compare_reference_object(marked_obj):
+                    logger.warning("Compare marker missing after setup for %s", source_name)
+                    continue
+
+                linked_objects.append(marked_obj)
+                existing_object_names.add(marked_obj.name)
+
             except Exception as e:
-                logger.warning(f"Failed to link object {base_name}: {e}")
+                logger.warning("Failed to link object %s: %s", base_name, e, exc_info=True)
                 continue
         
+        if not linked_objects:
+            linked_objects = list(_iter_compare_reference_objects())
+
         if not linked_objects:
             self.report({'ERROR'}, "Failed to link any objects from commit")
             return {'CANCELLED'}
@@ -386,44 +498,139 @@ class DF_OT_compare_object(Operator):
         return {'FINISHED'}
 
 
+def _find_newly_linked_object(
+    existing_object_names: set,
+    base_name: str,
+    object_type: str,
+    target_obj_name: Optional[str],
+    target_blend: Optional[Path] = None,
+):
+    """Find an object linked/appended since existing_object_names was captured."""
+    new_names = set(bpy.data.objects.keys()) - existing_object_names
+
+    if target_obj_name and target_obj_name in bpy.data.objects:
+        if target_obj_name in new_names or target_obj_name not in existing_object_names:
+            candidate = bpy.data.objects.get(target_obj_name)
+            if candidate and candidate.type == object_type:
+                return candidate
+
+    for name in new_names:
+        candidate = bpy.data.objects.get(name)
+        if not candidate or candidate.type != object_type:
+            continue
+        if _normalize_object_name(name) == base_name:
+            return candidate
+
+    for name in new_names:
+        candidate = bpy.data.objects.get(name)
+        if candidate and candidate.type == object_type:
+            return candidate
+
+    if target_blend is not None:
+        return _find_linked_object_from_blend(target_blend, base_name, object_type)
+
+    return None
+
+
+def _blend_paths_equal(path_a: str, path_b: str) -> bool:
+    try:
+        left = Path(path_a).resolve().as_posix().lower()
+        right = Path(path_b).resolve().as_posix().lower()
+        return left == right
+    except Exception:
+        return (path_a or "").replace("\\", "/").lower() == (path_b or "").replace("\\", "/").lower()
+
+
+def _find_linked_object_from_blend(
+    target_blend: Path,
+    base_name: str,
+    object_type: str,
+):
+    """Fallback when library link reuses an existing datablock (no new object name)."""
+    try:
+        blend_abs = str(Path(target_blend).resolve())
+    except Exception:
+        blend_abs = str(target_blend)
+
+    for obj in bpy.data.objects:
+        if obj.type != object_type:
+            continue
+        if _is_compare_reference_object(obj):
+            continue
+        lib = getattr(obj, "library", None)
+        if not lib or not getattr(lib, "filepath", ""):
+            continue
+        try:
+            lib_abs = bpy.path.abspath(lib.filepath)
+        except Exception:
+            lib_abs = lib.filepath
+        if not _blend_paths_equal(lib_abs, blend_abs):
+            continue
+        if _normalize_object_name(obj.name) == base_name:
+            return obj
+    return None
+
+
+def _remove_compare_linked_object(linked_obj) -> None:
+    """Remove a linked compare reference object from the scene and data."""
+    if linked_obj is None:
+        return
+    if not _is_compare_reference_object(linked_obj):
+        logger.warning(
+            "Refusing to remove object without compare marker: %s",
+            getattr(linked_obj, "name", "?"),
+        )
+        return
+    for coll in list(linked_obj.users_collection):
+        coll.objects.unlink(linked_obj)
+    try:
+        bpy.data.objects.remove(linked_obj, do_unlink=True)
+    except TypeError:
+        bpy.data.objects.remove(linked_obj)
+
+
+def _cleanup_compare_collection(compare_collection) -> None:
+    """Remove compare reference objects in a collection, then the collection."""
+    if compare_collection is None:
+        return
+    for linked_obj in list(compare_collection.objects):
+        if _is_compare_reference_object(linked_obj):
+            _remove_compare_linked_object(linked_obj)
+    for coll in list(compare_collection.users_collection):
+        coll.children.unlink(compare_collection)
+    if compare_collection.name in bpy.data.collections:
+        bpy.data.collections.remove(compare_collection)
+
+
+def _compare_reference_collection_names(linked_name: str, commit_hash: str) -> list:
+    """Build deduplicated Compare_Reference_* collection names to clean up."""
+    names = []
+    if linked_name and linked_name.startswith("Compare_Reference_"):
+        names.append(linked_name)
+    if commit_hash:
+        names.append(f"Compare_Reference_{commit_hash[:16]}")
+    return list(dict.fromkeys(names))
+
+
 def _cleanup_compare_object(context):
     """Cleanup linked object(s) from comparison."""
     scene = context.scene
     linked_name = getattr(scene, 'df_compare_object_linked_name', '')
     commit_hash = getattr(scene, 'df_compare_object_commit_hash', '')
-    
-    # Check if it's a collection name (multiple objects)
-    if linked_name and linked_name.startswith("Compare_Reference_"):
-        compare_collection = bpy.data.collections.get(linked_name)
-        if compare_collection:
-            # Remove all linked objects from collection
-            linked_objs = [obj for obj in compare_collection.objects if hasattr(obj, 'library') and obj.library]
-            for linked_obj in linked_objs:
-                for coll in list(linked_obj.users_collection):
-                    coll.objects.unlink(linked_obj)
-                bpy.data.objects.remove(linked_obj)
-            
-            # Remove collection
-            for coll in list(compare_collection.users_collection):
-                coll.children.unlink(compare_collection)
-            bpy.data.collections.remove(compare_collection)
-    elif linked_name and linked_name in bpy.data.objects:
-        # Single object
-        linked_obj = bpy.data.objects[linked_name]
-        if hasattr(linked_obj, 'library') and linked_obj.library:
-            # Remove from collections
-            for coll in list(linked_obj.users_collection):
-                coll.objects.unlink(linked_obj)
-            # Remove object
-            bpy.data.objects.remove(linked_obj)
-    
+
+    for obj in list(_iter_compare_reference_objects()):
+        _remove_compare_linked_object(obj)
+
+    for coll_name in _compare_reference_collection_names(linked_name, commit_hash):
+        _cleanup_compare_collection(bpy.data.collections.get(coll_name))
+
     # Cleanup tmp_review
     if commit_hash:
         repo_path, _ = get_repository_path()
         if repo_path:
             api = get_api()
             api.compare_extract(repo_path, commit_hash, cleanup=True)
-    
+
     scene.df_compare_object_active = False
     scene.df_compare_object_commit_hash = ""
     scene.df_compare_object_linked_name = ""
@@ -487,22 +694,18 @@ def _compare_object_link_monitor():
 
 def _apply_offset_to_object(obj, scene):
     """Apply offset to linked object based on settings."""
-    if not obj:
+    if not obj or not _is_compare_reference_object(obj):
         return
-    
+
     try:
         props = scene.df_commit_props
-        original_location = tuple(scene.df_compare_object_original_location)
+        original_location = list(_get_compare_base_location(obj, scene))
         offset_axis = props.offset_axis
         offset_value = props.offset_value
-        
-        # Calculate new location based on axis and offset
-        new_location = list(original_location)
+
         axis_index = {'X': 0, 'Y': 1, 'Z': 2}.get(offset_axis, 0)
-        new_location[axis_index] = original_location[axis_index] + offset_value
-        
-        # Apply the new location
-        obj.location = tuple(new_location)
+        original_location[axis_index] = original_location[axis_index] + offset_value
+        obj.location = tuple(original_location)
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)
@@ -513,21 +716,19 @@ def _update_compared_object_position(context):
     """Update position of compared object when offset settings change."""
     if not context:
         return
-    
+
     scene = context.scene
     if not getattr(scene, 'df_compare_object_active', False):
         return
-    
-    linked_name = getattr(scene, 'df_compare_object_linked_name', '')
-    if not linked_name or linked_name not in bpy.data.objects:
+
+    updated = False
+    for linked_obj in _iter_compare_reference_objects():
+        _apply_offset_to_object(linked_obj, scene)
+        updated = True
+
+    if not updated:
         return
-    
-    linked_obj = bpy.data.objects[linked_name]
-    if not hasattr(linked_obj, 'library') or not linked_obj.library:
-        return
-    
-    _apply_offset_to_object(linked_obj, scene)
-    
+
     # Update viewport to reflect changes
     try:
         for area in context.screen.areas:

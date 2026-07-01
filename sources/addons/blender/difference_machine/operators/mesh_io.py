@@ -636,15 +636,17 @@ def _find_object_in_blend_file(
         return None
     
     try:
-        with bpy.data.libraries.load(str(blend_path), link=False) as (data_from, data_to):
-            logger.debug(f"File contains {len(data_from.objects)} objects")
-            if data_from.objects:
-                logger.debug(f"Object names in file: {list(data_from.objects)[:20]}")
-            
-            target_name = _normalize_object_name(object_name)
+        target_name = _normalize_object_name(object_name)
+        exact_name = None
+        catalog_objects: list = []
+        existing_before: set = set()
 
-            # First, try exact name match
-            exact_name = None
+        with bpy.data.libraries.load(str(blend_path), link=False) as (data_from, data_to):
+            catalog_objects = list(data_from.objects)
+            logger.debug(f"File contains {len(catalog_objects)} objects")
+            if catalog_objects:
+                logger.debug(f"Object names in file: {catalog_objects[:20]}")
+
             if object_name in data_from.objects:
                 exact_name = object_name
             else:
@@ -653,74 +655,77 @@ def _find_object_in_blend_file(
                         exact_name = candidate_name
                         break
 
-            if exact_name:
+            if exact_name and not object_type:
+                logger.debug(f"✓ Exact match found (no type check): '{exact_name}'")
+                return exact_name
+
+            if exact_name and object_type:
                 logger.debug(f"Found exact match: '{exact_name}'")
-                if object_type:
-                    # Load temporarily to check type
+            elif catalog_objects:
+                existing_before = set(bpy.data.objects.keys())
+                data_to.objects = catalog_objects
+
+        if exact_name and object_type:
+            existing_before = set(bpy.data.objects.keys())
+            with bpy.data.libraries.load(str(blend_path), link=False) as (data_from, data_to):
+                if exact_name in data_from.objects:
                     data_to.objects = [exact_name]
-                    # After loading, objects are in bpy.data.objects, not in data_to.objects
-                    # data_to.objects is just a list of names that were requested
-                    if exact_name in bpy.data.objects:
-                        obj = bpy.data.objects[exact_name]
-                        logger.debug(f"Loaded object type: {obj.type}, expected: {object_type}")
-                        if obj.type == object_type:
-                            obj_name = obj.name
-                            bpy.data.objects.remove(obj)
-                            logger.debug(f"✓ Exact match found and type matches: '{obj_name}'")
-                            return obj_name
-                        bpy.data.objects.remove(obj)
-                        logger.debug(f"Type mismatch: {obj.type} != {object_type}")
-                    else:
-                        logger.debug(f"Object '{exact_name}' was not loaded into bpy.data.objects")
-                else:
-                    logger.debug(f"✓ Exact match found (no type check): '{exact_name}'")
+            for name in sorted(set(bpy.data.objects.keys()) - existing_before):
+                obj = bpy.data.objects.get(name)
+                if obj and obj.type == object_type:
+                    bpy.data.objects.remove(obj)
+                    logger.debug(f"✓ Exact match found and type matches: '{exact_name}'")
                     return exact_name
-            
-            # If not found by exact name, check all objects
-            # Load all objects to check names and types
-            if data_from.objects:
-                # Load all objects to check
-                object_names_to_load = list(data_from.objects)
-                data_to.objects = object_names_to_load
-                
-                # After loading, objects are in bpy.data.objects, not in data_to.objects
-                # Get the loaded objects from bpy.data.objects
-                loaded_objects = []
-                for obj_name in object_names_to_load:
-                    if obj_name in bpy.data.objects:
-                        loaded_objects.append(bpy.data.objects[obj_name])
-                
-                logger.debug(f"Loaded {len(loaded_objects)} objects from file")
-                for obj in loaded_objects:
-                    logger.debug(f"  Checking object: '{obj.name}' (type: {obj.type})")
-                    # Check if name matches (case-insensitive or partial match)
-                    obj_norm = _normalize_object_name(obj.name)
-                    if (obj.name == object_name or 
+            logger.debug(f"✓ Exact match found in file catalog: '{exact_name}'")
+            return exact_name
+
+        if not exact_name and catalog_objects:
+            loaded_objects = []
+            for name in sorted(set(bpy.data.objects.keys()) - existing_before):
+                obj = bpy.data.objects.get(name)
+                if obj:
+                    loaded_objects.append(obj)
+
+            logger.debug(f"Loaded {len(loaded_objects)} new objects from file")
+            for obj in loaded_objects:
+                logger.debug(f"  Checking object: '{obj.name}' (type: {obj.type})")
+                obj_norm = _normalize_object_name(obj.name)
+                if (obj.name == object_name or
                         obj.name.lower() == object_name.lower() or
                         object_name in obj.name or
                         obj.name in object_name or
                         obj_norm == target_name):
-                        # Check type if specified
-                        if not object_type or obj.type == object_type:
-                            obj_name = obj.name
-                            logger.debug(f"✓ Found matching object: '{obj_name}' (type: {obj.type})")
-                            # Clean up all loaded objects
-                            for loaded_obj in loaded_objects:
-                                bpy.data.objects.remove(loaded_obj)
-                            return obj_name
-                        else:
-                            logger.debug(f"  Object type mismatch: expected {object_type}, got {obj.type}")
-                    else:
-                        logger.debug(f"  Name mismatch: '{obj.name}' != '{object_name}'")
-                
-                # Clean up if no match found
-                logger.debug(f"No matching object found in {len(loaded_objects)} objects")
-                for obj in loaded_objects:
-                    bpy.data.objects.remove(obj)
+                    if not object_type or obj.type == object_type:
+                        obj_name = obj.name
+                        logger.debug(f"✓ Found matching object: '{obj_name}' (type: {obj.type})")
+                        for loaded_obj in loaded_objects:
+                            bpy.data.objects.remove(loaded_obj)
+                        return obj_name
+
+            logger.debug(f"No matching object found in {len(loaded_objects)} objects")
+            for obj in loaded_objects:
+                bpy.data.objects.remove(obj)
     except Exception as e:
         logger.error(f"Failed to check blend file {blend_path}: {e}", exc_info=True)
     
     logger.debug(f"✗ Object '{object_name}' (type: {object_type}) not found in {blend_path}")
+    return None
+
+
+def _resolve_blend_object_name(blend_path: Path, object_name: str) -> Optional[str]:
+    """Resolve an object name in a .blend file without loading datablocks into the scene."""
+    if not blend_path.exists():
+        return None
+    try:
+        with bpy.data.libraries.load(str(blend_path), link=False) as (data_from, data_to):
+            if object_name in data_from.objects:
+                return object_name
+            target_name = _normalize_object_name(object_name)
+            for candidate_name in data_from.objects:
+                if _normalize_object_name(candidate_name) == target_name:
+                    return candidate_name
+    except Exception as e:
+        logger.warning("Failed to resolve object '%s' in %s: %s", object_name, blend_path, e)
     return None
 
 
