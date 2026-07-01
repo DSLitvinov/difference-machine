@@ -66,19 +66,42 @@ export interface RenamedFileEntry {
   path: string;
 }
 
+/** Repository-relative path with forward slashes (matches Forester API). */
+export function normalizeRepoRelPath(path: string): string {
+  return path
+    .replace(/\\/g, "/")
+    .replace(/^\.\//, "")
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
+}
+
+function statusListIncludes(list: string[] | undefined, path: string): boolean {
+  if (!list?.length) return false;
+  const normalized = normalizeRepoRelPath(path);
+  return list.some((item) => normalizeRepoRelPath(item) === normalized);
+}
+
+export function isFileInRepoFolder(filePath: string, folderPath: string): boolean {
+  const file = normalizeRepoRelPath(filePath);
+  const folder = normalizeRepoRelPath(folderPath);
+  if (!file) return false;
+  if (!folder || folder === "*") return true;
+  return file === folder || file.startsWith(`${folder}/`);
+}
+
 export function vcsFileStatus(path: string, status: StatusPayload | null): VcsFileStatus | null {
   if (!status) return null;
   if (Array.isArray(status.renamed_files)) {
     for (const entry of status.renamed_files) {
-      if (entry.path === path) return "renamed";
+      if (normalizeRepoRelPath(entry.path) === normalizeRepoRelPath(path)) return "renamed";
     }
   }
-  if (status.staged_new_files?.includes(path)) return "staged-new";
-  if (status.staged_modified_files?.includes(path)) return "staged-modified";
-  if (status.staged_deleted_files?.includes(path)) return "staged-deleted";
-  if (status.unstaged_modified_files?.includes(path)) return "modified";
-  if (status.unstaged_deleted_files?.includes(path)) return "deleted";
-  if (status.untracked_files?.includes(path)) return "untracked";
+  if (statusListIncludes(status.staged_new_files, path)) return "staged-new";
+  if (statusListIncludes(status.staged_modified_files, path)) return "staged-modified";
+  if (statusListIncludes(status.staged_deleted_files, path)) return "staged-deleted";
+  if (statusListIncludes(status.unstaged_modified_files, path)) return "modified";
+  if (statusListIncludes(status.unstaged_deleted_files, path)) return "deleted";
+  if (statusListIncludes(status.untracked_files, path)) return "untracked";
   return null;
 }
 
@@ -108,8 +131,7 @@ export async function openWorkdirFile(path: string, editor?: string): Promise<vo
 export const HIDDEN_REPO_PATHS = new Set([".dfmignore"]);
 
 export function isHiddenRepoPath(path: string): boolean {
-  const normalized = path.replace(/^\.\//, "").replace(/\\/g, "/");
-  return HIDDEN_REPO_PATHS.has(normalized);
+  return HIDDEN_REPO_PATHS.has(normalizeRepoRelPath(path));
 }
 
 export function committablePaths(status: StatusPayload): string[] {
@@ -124,22 +146,26 @@ export function committablePaths(status: StatusPayload): string[] {
   const out = new Set<string>();
   for (const list of sets) {
     if (!list) continue;
-    for (const p of list) out.add(p);
+    for (const p of list) {
+      const normalized = normalizeRepoRelPath(p);
+      if (normalized) out.add(normalized);
+    }
   }
   if (status.renamed_files) {
     for (const entry of status.renamed_files) {
-      out.add(entry.path);
+      const normalized = normalizeRepoRelPath(entry.path);
+      if (normalized) out.add(normalized);
     }
   }
   return [...out].filter((p) => !isHiddenRepoPath(p));
 }
 
 export function committableFilesInSubtree(folderPath: string, committable: string[]): string[] {
-  if (folderPath === "" || folderPath === "*") {
+  const folder = normalizeRepoRelPath(folderPath);
+  if (!folder || folder === "*") {
     return [...committable];
   }
-  const prefix = `${folderPath}/`;
-  return committable.filter((filePath) => filePath.startsWith(prefix));
+  return committable.filter((filePath) => isFileInRepoFolder(filePath, folder));
 }
 
 export function folderHasCommittable(folderPath: string, committable: string[]): boolean {

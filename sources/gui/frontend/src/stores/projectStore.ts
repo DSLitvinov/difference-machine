@@ -328,7 +328,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (sameStatusPayload(state.status, status) && sameStringArrays(state.committable, committable)) {
         return state;
       }
-      return { status, committable, previewGeneration: state.previewGeneration + 1 };
+      return {
+        status,
+        committable,
+        previewGeneration: state.previewGeneration + 1,
+        workdirGeneration: state.workdirGeneration + 1,
+      };
     }),
   setLocks: (lockedByPath) =>
     set((state) => {

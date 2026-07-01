@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { SettingsLabeledPathRow, SettingsPathListRow } from "@/components/settings/SettingsPathRow";
+import { RemoveRepositoryFromListDialog } from "@/components/settings/RemoveRepositoryFromListDialog";
 import { ThemePreviewCard } from "@/components/settings/ThemePreviewCard";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -57,7 +58,15 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const [theme, setTheme] = useState<GuiTheme>("light");
   const [font, setFont] = useState<GuiFont>("inter");
   const [language, setLanguage] = useState<GuiLanguage>("en");
+  const [repoRemovePending, setRepoRemovePending] = useState<{ index: number; path: string } | null>(
+    null,
+  );
   const { pickRepositoryPath } = useRepositoryAdd();
+
+  useEffect(() => {
+    if (open) return;
+    setRepoRemovePending(null);
+  }, [open]);
 
   useEffect(() => {
     if (!open || loading) return;
@@ -339,7 +348,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                                 setRepos((list) => list.map((item, i) => (i === index ? picked : item)));
                               });
                             }}
-                            onRemove={() => setRepos((list) => list.filter((_, i) => i !== index))}
+                            onRemove={() => setRepoRemovePending({ index, path })}
                           />
                         ))}
                       </div>
@@ -457,6 +466,17 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           </div>
         </div>
       </DialogContent>
+      <RemoveRepositoryFromListDialog
+        open={repoRemovePending !== null}
+        repoPath={repoRemovePending?.path ?? ""}
+        onConfirm={() => {
+          if (repoRemovePending === null) return;
+          const { index } = repoRemovePending;
+          setRepos((list) => list.filter((_, i) => i !== index));
+          setRepoRemovePending(null);
+        }}
+        onCancel={() => setRepoRemovePending(null)}
+      />
     </Dialog>
   );
 }

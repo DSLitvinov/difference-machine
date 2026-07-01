@@ -32,6 +32,7 @@ export function useWorkdirFolderEntries({
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const workdirGeneration = useProjectStore((s) => s.workdirGeneration);
+  const committableKey = committable.join("\0");
   const loadGenerationRef = useRef(0);
   const loadingMoreRef = useRef(false);
 
@@ -48,6 +49,10 @@ export function useWorkdirFolderEntries({
     const loadGeneration = loadGenerationRef.current;
     loadingMoreRef.current = false;
     setLoadingMore(false);
+    setEntries([]);
+    setSubfolders([]);
+    setTotal(0);
+    setHasMore(false);
 
     let cancelled = false;
     const load = async () => {
@@ -55,11 +60,14 @@ export function useWorkdirFolderEntries({
       try {
         if (showChangedOnly) {
           const paths = committableFilesInSubtree(folderPath, committable);
+          if (paths.length === 0) {
+            return;
+          }
           const result = await measureAsync(`workdir.entries_by_paths:${folderPath || "root"}`, () =>
             fetchWorkdirEntriesByPaths(paths),
           );
           if (!cancelled && loadGeneration === loadGenerationRef.current) {
-            setEntries(result.entries);
+            setEntries(result.entries.filter((entry) => !entry.is_dir));
             setSubfolders([]);
             setTotal(result.entries.length);
             setHasMore(false);
@@ -85,6 +93,13 @@ export function useWorkdirFolderEntries({
             setHasMore(result.has_more);
           }
         }
+      } catch {
+        if (!cancelled && loadGeneration === loadGenerationRef.current) {
+          setEntries([]);
+          setSubfolders([]);
+          setTotal(0);
+          setHasMore(false);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -94,7 +109,7 @@ export function useWorkdirFolderEntries({
     return () => {
       cancelled = true;
     };
-  }, [enabled, folderPath, showChangedOnly, committable, workdirGeneration]);
+  }, [enabled, folderPath, showChangedOnly, committableKey, workdirGeneration]);
 
   const loadMore = useCallback(async () => {
     if (

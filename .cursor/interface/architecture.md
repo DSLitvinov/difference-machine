@@ -350,14 +350,16 @@ Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-proje
 
 ### 5.1 Committable files
 
-Файлы, которые можно поместить в коммит — объединение всех непустых списков `status.get` (см. [sidebar-project-view.md](./sidebar-project-view.md) §3.2).
+Файлы, которые можно поместить в коммит — объединение всех непустых списков `status.get` **плюс** `renamed_files[].path` (см. [sidebar-project-view.md](./sidebar-project-view.md) §3.2). Все пути нормализуются через `normalizeRepoRelPath` перед сравнением и фильтром.
 
 ### 5.2 Двойной эффект `showChangedOnly`
 
 | Панель | `false` | `true` |
 |--------|---------|--------|
-| **Sidebar** | Полное дерево папок | Только папки с committable в поддереве |
-| **Content Preview** | All files (`'*'`) или immediate files в папке | Committable в scope (весь репо или поддерево папки) |
+| **Sidebar** | Полное дерево папок | Только папки с committable в поддереве (`folderHasCommittable`) |
+| **Content Preview** | All files (`'*'`) или immediate files в папке | Committable в scope → `workdir.entries_by_paths` + client safety filter |
+
+**Модули:** `wails/forester.ts` (paths + status), `hooks/useWorkdirFolderEntries.ts` (load), `components/preview/ProjectPreviewPanel.tsx` (display filter), `stores/projectStore.ts` (`showChangedOnly`, `committable`, `setStatus`).
 
 Сигнал: `onProjectViewContextChange({ selectedFolderPath, showChangedOnly })`.
 
@@ -371,6 +373,9 @@ Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-proje
 | `modified` | `M` | `unstaged_modified_files` |
 | `deleted` | `D` | `unstaged_deleted_files` |
 | `untracked` | `N` | `untracked_files` |
+| `renamed` | `R` | `renamed_files[].path` |
+
+Сравнение path ↔ status lists: `normalizeRepoRelPath` в `vcsFileStatus` (`wails/forester.ts`).
 
 Цвета: `vcsStatusBadgeClass` — [design-tokens.md §3.5](./design-tokens.md). Lock badge (`lock`) — отдельно, `lock.list`.
 

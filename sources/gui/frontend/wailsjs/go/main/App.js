@@ -6,6 +6,10 @@ export function AddKnownRepo(arg1) {
   return window['go']['main']['App']['AddKnownRepo'](arg1);
 }
 
+export function CloseRepository() {
+  return window['go']['main']['App']['CloseRepository']();
+}
+
 export function ForesterCall(arg1, arg2) {
   return window['go']['main']['App']['ForesterCall'](arg1, arg2);
 }
@@ -56,10 +60,6 @@ export function PickSettingsFile() {
 
 export function PickSettingsFolder() {
   return window['go']['main']['App']['PickSettingsFolder']();
-}
-
-export function CloseRepository() {
-  return window['go']['main']['App']['CloseRepository']();
 }
 
 export function RemoveKnownRepo(arg1) {

@@ -16,11 +16,13 @@ import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 import { useWorkdirFolderEntries } from "@/hooks/useWorkdirFolderEntries";
 import {
+  committableFilesInSubtree,
   fetchStatus,
   fetchLockList,
   fetchWorkdirSearch,
   fetchWorkdirTree,
   locksByPath,
+  normalizeRepoRelPath,
   vcsFileStatus,
   type DirEntry,
   type StatusPayload,
@@ -200,8 +202,12 @@ export function ProjectPreviewPanel() {
         if (cancelled) return;
         let entries = result.entries;
         if (showChangedOnly) {
-          const allowed = new Set(committable);
-          entries = entries.filter((entry) => !entry.is_dir && allowed.has(entry.path));
+          const allowed = new Set(
+            committableFilesInSubtree(selectedFolderPath, committable).map(normalizeRepoRelPath),
+          );
+          entries = entries.filter(
+            (entry) => !entry.is_dir && allowed.has(normalizeRepoRelPath(entry.path)),
+          );
         }
         setSearchResults(entries);
         setSearchCapped(result.capped);
@@ -221,7 +227,17 @@ export function ProjectPreviewPanel() {
     return () => {
       cancelled = true;
     };
-  }, [repoPath, debouncedSearch, showChangedOnly, committable, isSearchActive, setError, setNotice, t]);
+  }, [
+    repoPath,
+    debouncedSearch,
+    showChangedOnly,
+    committable,
+    selectedFolderPath,
+    isSearchActive,
+    setError,
+    setNotice,
+    t,
+  ]);
 
   const openFile = (path: string) => {
     openFileViewer(path);
@@ -231,10 +247,18 @@ export function ProjectPreviewPanel() {
   const allFilesView = isAllFilesPath(selectedFolderPath);
   const nameLocale = nameLocaleFromSortMode(sortMode);
   const sortedSubfolders = sortByName(subfolders, nameLocale);
-  const filteredEntries = useMemo(
-    () => entries.filter(passesExtensionFilter),
-    [entries, passesExtensionFilter],
-  );
+  const filteredEntries = useMemo(() => {
+    let scoped = entries;
+    if (showChangedOnly) {
+      const allowed = new Set(
+        committableFilesInSubtree(selectedFolderPath, committable).map(normalizeRepoRelPath),
+      );
+      scoped = entries.filter(
+        (entry) => !entry.is_dir && allowed.has(normalizeRepoRelPath(entry.path)),
+      );
+    }
+    return scoped.filter(passesExtensionFilter);
+  }, [entries, showChangedOnly, selectedFolderPath, committable, passesExtensionFilter]);
   const sortedEntries = sortDirEntries(filteredEntries, sortMode, { byPath: showChangedOnly });
 
   const fileSourcesForExtensions = useMemo(

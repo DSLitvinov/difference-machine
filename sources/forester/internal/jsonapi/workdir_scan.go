@@ -480,9 +480,12 @@ func (s *workdirScanner) entriesForPaths(paths []string) ([]dirEntry, error) {
 	out := make([]dirEntry, 0, len(paths))
 	for _, rel := range paths {
 		rel = canonicalRelPath(rel)
+		if rel == "" {
+			continue
+		}
 		abs, err := s.absFile(rel)
 		if err != nil {
-			return nil, err
+			continue
 		}
 		info, err := os.Stat(abs)
 		if err != nil {

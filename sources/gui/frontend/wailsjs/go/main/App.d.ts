@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function AddKnownRepo(arg1:string):Promise<main.RepoState>;
 
+export function CloseRepository():Promise<void>;
+
 export function ForesterCall(arg1:string,arg2:string):Promise<string>;
 
 export function GetCurrentRepoPath():Promise<string>;
@@ -29,8 +31,6 @@ export function PickRepositoryFolder():Promise<string>;
 export function PickSettingsFile():Promise<string>;
 
 export function PickSettingsFolder():Promise<string>;
-
-export function CloseRepository():Promise<void>;
 
 export function RemoveKnownRepo(arg1:string):Promise<void>;
 

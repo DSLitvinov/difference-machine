@@ -208,20 +208,29 @@ Toggle UI живёт в **Content Preview** ([content-preview-project-view.md §
 | Unstaged modified | `unstaged_modified_files` | ✓ |
 | Unstaged deleted | `unstaged_deleted_files` | ✓ |
 | Untracked | `untracked_files` | ✓ |
+| Renamed (new path) | `renamed_files[].path` | ✓ |
 | Clean (tracked, без изменений) | — | ✗ |
 
 ```ts
+function normalizeRepoRelPath(path: string): string {
+  return path.replace(/\\/g, '/').replace(/^\.\//, '').replace(/^\/+/, '').replace(/\/+$/, '')
+}
+
 function committablePaths(status: Status): string[] {
-  return unique([
+  const raw = unique([
     ...status.staged_new_files,
     ...status.staged_modified_files,
     ...status.staged_deleted_files,
     ...status.unstaged_modified_files,
     ...status.unstaged_deleted_files,
     ...status.untracked_files,
+    ...(status.renamed_files?.map((e) => e.path) ?? []),
   ])
+  return raw.map(normalizeRepoRelPath).filter((p) => p && p !== '.dfmignore')
 }
 ```
+
+Каноническая реализация: `sources/gui/frontend/src/wails/forester.ts` (`committablePaths`, `normalizeRepoRelPath`). Store: `projectStore.setStatus` → `committable[]`; при изменении status также `workdirGeneration++`.
 
 ### 3.2 Content Preview (ссылка)
 
@@ -249,17 +258,30 @@ onProjectViewContextChange(ctx: ProjectViewContext): void
 Фильтр Preview при `showChangedOnly = true`:
 
 ```ts
-function committableFilesInSubtree(
-  folderPath: string,
-  committable: string[],
-): string[] {
-  if (folderPath === '') {
-    return [...committable]
-  }
-  const prefix = folderPath + '/'
-  return committable.filter((filePath) => filePath.startsWith(prefix))
+function isFileInRepoFolder(filePath: string, folderPath: string): boolean {
+  const file = normalizeRepoRelPath(filePath)
+  const folder = normalizeRepoRelPath(folderPath)
+  if (!file) return false
+  if (!folder || folder === '*') return true
+  return file === folder || file.startsWith(`${folder}/`)
+}
+
+function committableFilesInSubtree(folderPath: string, committable: string[]): string[] {
+  const folder = normalizeRepoRelPath(folderPath)
+  if (!folder || folder === '*') return [...committable]
+  return committable.filter((filePath) => isFileInRepoFolder(filePath, folder))
 }
 ```
+
+**Загрузка Preview (Changed ON):**
+
+1. `paths = committableFilesInSubtree(selectedFolderPath, committable)`
+2. Сразу очистить grid (не показывать файлы из режима OFF во время load)
+3. `workdir.entries_by_paths({ paths })` → flat `DirEntry[]` (только файлы)
+4. **Клиентский safety filter:** оставить только entries, чей `normalizeRepoRelPath(path)` ∈ `paths` (на случай рассинхрона API)
+5. При ошибке API — пустой grid, не stale list
+
+Хук: `useWorkdirFolderEntries`; UI filter: `ProjectPreviewPanel` (`filteredEntries`).
 
 - **All files (`'*'`):** flat-список всех committable файлов репозитория — удобно для multiselect и **Create commit**.
 - **Подпапка:** только committable внутри этой папки и вложенных подпапок.
@@ -318,6 +340,7 @@ sequenceDiagram
   else showChangedOnly ON
     PV->>App: committable from status
     PV->>PV: committableFilesInSubtree(folderPath)
+    PV->>W: workdir.entries_by_paths(paths)
   end
 ```
 

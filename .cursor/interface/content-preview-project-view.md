@@ -507,11 +507,24 @@ Toggle в **toolbar** Preview (§2.1). При изменении → `setShowCha
 | Header Files | `Files (<folder>)` | `Changed files (N)` |
 | Карточка файла | имя | имя + subtitle parent folder |
 | Сортировка Files | по `name` (§6) | по `path` при name-sort; по `modified`/`created` при date-sort; API: `workdir.entries_by_paths` |
-| Поиск | по всему репо | по committable-файлам всего репо |
+| Поиск | по всему репо | по committable в scope (`committableFilesInSubtree` + normalized path match) |
 
-Фильтр committable — см. [sidebar-project-view.md §3.2–3.3](./sidebar-project-view.md) (`committableFilesInSubtree`).
+Фильтр committable — см. [sidebar-project-view.md §3.2–3.3](./sidebar-project-view.md) (`committableFilesInSubtree`, `normalizeRepoRelPath`).
 
 При Changed ON и отсутствии committable-файлов в scope → empty state «No changed files».
+
+**Инварианты (не ломать):**
+
+| # | Правило |
+|---|---------|
+| 1 | Changed ON **никогда** не показывает unchanged files — ни из stale state, ни из `workdir.entries` |
+| 2 | Секция **Folders** скрыта; subfolders в hook = `[]` |
+| 3 | Пути сравниваются через `normalizeRepoRelPath` (forward slashes, без `./` и trailing `/`) |
+| 4 | `vcsFileStatus` использует те же нормализованные сравнения |
+| 5 | `status.get` обновление → `committable` + `workdirGeneration++` → reload grid |
+| 6 | Toggle Changed → немедленный clear grid + reload (hook `useWorkdirFolderEntries`) |
+
+Канон: `.cursor/rules/project-view-changed-filter.mdc`.
 
 **Типичный UX:** toggle ON + **All files** в Sidebar → все изменённые файлы репо в одной сетке → multiselect → **Create commit** в Content Info.
 

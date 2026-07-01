@@ -95,6 +95,10 @@ const translations = {
     "settings.manageSettings": "Manage repository and your account settings",
     "settings.profileDescription": "This is how others will see you on the site.",
     "settings.repositories": "Repositories",
+    "settings.removeRepoTitle": "Remove from list?",
+    "settings.removeRepoDescription":
+      "Remove this repository from Difference Machine?\n\n{path}\n\nFiles on disk will not be deleted.",
+    "settings.removeRepoAction": "Remove from list",
     "settings.theme": "Theme",
     "settings.username": "Username",
     "settings.yourName": "Your name",
@@ -440,6 +444,10 @@ const translations = {
     "settings.manageSettings": "Управление репозиториями и настройками аккаунта",
     "settings.profileDescription": "Так вас будут видеть другие участники.",
     "settings.repositories": "Репозитории",
+    "settings.removeRepoTitle": "Убрать из списка?",
+    "settings.removeRepoDescription":
+      "Убрать этот репозиторий из Difference Machine?\n\n{path}\n\nФайлы на диске не будут удалены.",
+    "settings.removeRepoAction": "Убрать из списка",
     "settings.theme": "Тема",
     "settings.username": "Имя пользователя",
     "settings.yourName": "Ваше имя",

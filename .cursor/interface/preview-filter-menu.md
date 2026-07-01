@@ -14,7 +14,7 @@
 
 ## 1. Назначение
 
-Сужает секцию **Files** (и Files в search results) по расширению. Не влияет на Folders, Changed toggle, sort mode и global search scope.
+Сужает секцию **Files** (и Files в search results) по расширению. Не влияет на Folders, **Changed** toggle ([project-view-changed-filter.mdc](../rules/project-view-changed-filter.mdc)), sort mode и global search scope.
 
 ---
 

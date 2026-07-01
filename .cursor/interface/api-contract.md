@@ -262,7 +262,10 @@ Default `limit`: 200.
 ```
 
 - Несуществующие paths **пропускаются** (не error).
+- Недоступные / невалидные paths (пустой path, `.DFM/`, ignore) **пропускаются** per-path — один bad path не ломает весь batch.
 - Директории в `paths` **пропускаются**.
+
+Реализация: `sources/forester/internal/jsonapi/workdir_scan.go` → `entriesForPaths`.
 
 ### 4.3 `workdir.thumbnail`
 
