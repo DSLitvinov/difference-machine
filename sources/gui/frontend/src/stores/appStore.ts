@@ -1,5 +1,13 @@
 import { create } from "zustand";
 
+import {
+  dismissErrorToast,
+  dismissForesterToast,
+  dismissPersistentToasts,
+  notifyError,
+  notifyForesterError,
+  notifyNotice,
+} from "@/lib/appNotifications";
 import { loadSidebarCollapsed, saveSidebarCollapsed } from "@/lib/storage";
 
 export type SidebarMode = "project" | "history";
@@ -60,21 +68,36 @@ export const useAppStore = create<AppState>((set) => ({
       ) {
         return state;
       }
+      if (state.error || state.foresterError) {
+        dismissPersistentToasts();
+      }
       return { repoPath, repoName, currentBranch, error: null, foresterError: null };
     }),
   setUserName: (userName) => set({ userName }),
   setLanguage: (language) => set({ language }),
   setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-  setForesterError: (foresterError) => set({ foresterError }),
-  setNotice: (notice) => set({ notice }),
+  setError: (error) => {
+    set({ error });
+    if (error) notifyError(error);
+    else dismissErrorToast();
+  },
+  setForesterError: (foresterError) => {
+    set({ foresterError });
+    if (foresterError) notifyForesterError(foresterError);
+    else dismissForesterToast();
+  },
+  setNotice: (notice) => {
+    if (notice) notifyNotice(notice);
+  },
   setExternalEditorPaths: (externalEditorPaths) => set({ externalEditorPaths }),
-  clearRepo: () =>
+  clearRepo: () => {
+    dismissPersistentToasts();
     set({
       repoPath: null,
       repoName: null,
       currentBranch: null,
       error: null,
       foresterError: null,
-    }),
+    });
+  },
 }));

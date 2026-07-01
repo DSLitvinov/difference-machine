@@ -388,7 +388,7 @@ Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-proje
 ### 6.2 Путь не является Forester repo
 
 - При **Add repository** / folder picker: [init-repository-dialog.md](./init-repository-dialog.md).
-- **Cancel** → `not a Forester repository` в `appStore.error`; toast destructive (`AppToast`), **не** в Sidebar.
+- **Cancel** → `not a Forester repository` в `appStore.error`; toast destructive (shadcn `Toaster`, top-right) — [toast.md](./toast.md); **не** в Sidebar.
 - **Create** → `repo.init` + добавление в список.
 - При открытии уже добавленного битого пути: `status.get` → error `not a Forester repository`; toast + **Re-open…**.
 
@@ -399,7 +399,7 @@ Toggle **Changed** — UI в **Content Preview toolbar** ([content-preview-proje
 
 ### 6.4 Forester API / Wails binding недоступен
 
-- `foresterError` → toast «Forester unavailable» + **Re-open** / **Retry** (`AppToast`).
+- `foresterError` → toast «Forester unavailable» + **Re-open** / **Retry** — [toast.md](./toast.md).
 - Retry по кнопке.
 
 ### 6.5 Конкурентные изменения на диске

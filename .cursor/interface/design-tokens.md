@@ -305,7 +305,7 @@ export const treeRowStateClasses = {
 | Диалоги (Settings, Create commit) | `Dialog` (`@radix-ui/react-dialog`) |
 | Подтверждения (revert, dirty branch) | `ConfirmAlertDialog` → `AlertDialog` |
 | Переключатель Changed | `Switch` + `Label` — **Content Preview toolbar** ([content-preview-project-view.md §2.1](./content-preview-project-view.md)) |
-| **Toast** (`AppToast`) | `fixed bottom-4 right-4`; notice — auto-dismiss 4s; errors — destructive, manual dismiss |
+| **Toast** | shadcn `Toast` + `Toaster` — **top-right** (`fixed top-0 right-0`); notice auto-dismiss 4s; errors `variant="destructive"`, manual dismiss — [toast.md](./toast.md), [Figma `794:4504`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/shadcn-ui--The-Ultimate-UI-Kit-for-Figma--Community-?node-id=794-4504) |
 | **`Alert`** | Inline callout ([Figma `162:2550`](https://www.figma.com/design/Vhp8g306WGBcjSzL4lnl23/?node-id=162-2550)) — preview panels, warnings; **не** для глобальных ошибок |
 | Layout toggle (text/image diff) | `ToggleGroup` + `ToggleGroupItem` |
 | Opacity slider (image overlay) | `Slider` |
@@ -349,4 +349,4 @@ export const commitCardStateClasses = {
 - [content-info-project-view.md](./content-info-project-view.md)
 - [folder-preview-item.md](./folder-preview-item.md)
 - [file-preview-item.md](./file-preview-item.md)
-- [commit-card.md](./commit-card.md)
+- [toast.md](./toast.md)
