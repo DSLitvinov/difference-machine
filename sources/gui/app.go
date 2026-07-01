@@ -151,6 +151,12 @@ func (a *App) OpenRepo(path string) (*RepoState, error) {
 	return a.openRepo(path, true)
 }
 
+// CloseRepository releases the Forester client and stops workdir watching.
+func (a *App) CloseRepository() error {
+	a.closeRepo()
+	return nil
+}
+
 // PickRepositoryFolder opens a native folder picker.
 func (a *App) PickRepositoryFolder() (string, error) {
 	if a.ctx == nil {
@@ -252,13 +258,7 @@ func (a *App) openRepo(path string, persist bool) (*RepoState, error) {
 		return nil, fmt.Errorf("repository not found")
 	}
 
-	if a.client != nil {
-		a.client.Close()
-		a.client = nil
-	}
-	if a.workdirWatch != nil {
-		a.workdirWatch.Stop()
-	}
+	a.closeRepo()
 
 	client, err := forester.Open(canonical)
 	if err != nil {
@@ -294,4 +294,14 @@ func (a *App) openRepo(path string, persist bool) (*RepoState, error) {
 		RepoName: paths.Basename(canonical),
 		Status:   string(statusResp.Result),
 	}, nil
+}
+
+func (a *App) closeRepo() {
+	if a.client != nil {
+		a.client.Close()
+		a.client = nil
+	}
+	if a.workdirWatch != nil {
+		a.workdirWatch.Stop()
+	}
 }

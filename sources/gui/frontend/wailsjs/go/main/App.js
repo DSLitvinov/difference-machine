@@ -58,6 +58,10 @@ export function PickSettingsFolder() {
   return window['go']['main']['App']['PickSettingsFolder']();
 }
 
+export function CloseRepository() {
+  return window['go']['main']['App']['CloseRepository']();
+}
+
 export function RemoveKnownRepo(arg1) {
   return window['go']['main']['App']['RemoveKnownRepo'](arg1);
 }

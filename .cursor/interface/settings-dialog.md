@@ -237,6 +237,7 @@ Load order: `localStorage` → fallback `[gui]` in cfg → defaults (`light`, `i
 
 - Remove из списка **не удаляет** файлы на диске
 - Если удалён **текущий** репо → `[current repo]` → первый в списке или empty
+- **Последний репо в списке** (Trash + **Save list**): `CloseRepository`, `clearRepo`, Project view, sidebar `EmptyRepoState` («Open repository» + **+ Add repository**)
 - Dedupe: [paths.md §3](./paths.md) `SamePath`
 - Порядок: `path_1`, `path_2`, … по UI order
 
@@ -418,7 +419,7 @@ interface SettingsSnapshot {
 | `setup.cfg` missing | create minimal on first save |
 | Invalid repo path in list | block Save list; highlight row |
 | Add non-repo folder | [init-repository-dialog.md](./init-repository-dialog.md) → **Create** before Save list |
-| Remove last repo | allow; app → empty state |
+| Remove last repo | allow; **Save list** → `CloseRepository` + empty state (sidebar «Open repository», preview idle) |
 | Forester path wrong after save | next API call fails → banner «Forester unavailable» + link Settings |
 | Concurrent CLI `config --global` | v1: last-write-wins |
 | Open settings during merge | allowed |

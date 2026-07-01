@@ -151,7 +151,7 @@ name = Artist
 | Concurrent edit cfg (CLI + GUI) | v1.1: re-read-merge; v1: last-write-wins |
 | Только `[repo]`, нет `[current repo]` | Старт: empty state; выбрать из dropdown |
 | UNC / пробелы / mixed slashes | [paths.md §11](./paths.md) |
-| Удаление репо из списка | [settings-dialog.md §4](./settings-dialog.md) — Trash + Save list |
+| Удаление репо из списка | [settings-dialog.md §4](./settings-dialog.md) — Trash + **Save list**; последний репо → пустое начальное состояние |
 
 ---
 

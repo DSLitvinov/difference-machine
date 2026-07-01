@@ -110,8 +110,11 @@ func (a *App) SaveSettingsRepos(repoPaths []string) error {
 				if err := a.cfg.Save(); err != nil {
 					return err
 				}
+				a.closeRepo()
 			}
 		}
+	} else if len(canonical) == 0 {
+		a.closeRepo()
 	}
 	return nil
 }

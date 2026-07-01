@@ -26,7 +26,7 @@ import {
   saveSettingsProfile,
   saveSettingsRepos,
 } from "@/wails/settings";
-import { openRepository } from "@/wails/bridge";
+import { applyKnownReposAfterSave } from "@/wails/bridge";
 
 type SettingsTab = "profile" | "appearance" | "repositories" | "external-editors" | "forester";
 
@@ -36,13 +36,11 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const setRepo = useAppStore((s) => s.setRepo);
   const setNotice = useAppStore((s) => s.setNotice);
   const setError = useAppStore((s) => s.setError);
   const setUserNameInStore = useAppStore((s) => s.setUserName);
   const setLanguageInStore = useAppStore((s) => s.setLanguage);
   const setExternalEditorPaths = useAppStore((s) => s.setExternalEditorPaths);
-  const repoPath = useAppStore((s) => s.repoPath);
   const t = useT();
 
   const [tab, setTab] = useState<SettingsTab>("profile");
@@ -127,23 +125,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       await saveSettingsRepos(repos);
       setNotice(t("common.repositoryListSaved"));
       const data = await fetchSettings();
-      if (repoPath) {
-        const stillCurrent = data.repos.some((p) => p === repoPath);
-        if (!stillCurrent) {
-          if (data.repos[0]) {
-            const state = await openRepository(data.repos[0]);
-            setRepo(
-              state.repoPath,
-              state.repoName,
-              typeof state.status.current_branch === "string"
-                ? state.status.current_branch
-                : null,
-            );
-          } else {
-            setRepo(null, null, null);
-          }
-        }
-      }
+      await applyKnownReposAfterSave(data.repos ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

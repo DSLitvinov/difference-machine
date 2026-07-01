@@ -30,6 +30,8 @@ export function PickSettingsFile():Promise<string>;
 
 export function PickSettingsFolder():Promise<string>;
 
+export function CloseRepository():Promise<void>;
+
 export function RemoveKnownRepo(arg1:string):Promise<void>;
 
 export function SaveSettingsAppearance(arg1:string,arg2:string):Promise<void>;

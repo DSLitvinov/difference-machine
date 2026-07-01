@@ -388,7 +388,7 @@ Canonical path перед URI: `filepath.Abs` + `Clean` + `EvalSymlinks` (есл
 
 | Wails | Источник |
 |-------|----------|
-| `GetKnownRepos` / `AddKnownRepo` / `RemoveKnownRepo` / `OpenRepo` | `~/.dfm/setup.cfg` — [multi-repo.md](./multi-repo.md) · [settings-dialog.md §4](./settings-dialog.md) |
+| `GetKnownRepos` / `AddKnownRepo` / `RemoveKnownRepo` / `OpenRepo` / `CloseRepository` | `~/.dfm/setup.cfg` — [multi-repo.md](./multi-repo.md) · [settings-dialog.md §4](./settings-dialog.md) |
 | `IsForesterRepository` / `InitRepository` | Проверка `.DFM` и `repo.init` — [init-repository-dialog.md](./init-repository-dialog.md) |
 | `GetRepoUser` / `SetRepoUser` | `setup.cfg` `[user]` — [settings-dialog.md §3](./settings-dialog.md) |
 | `settings.get` / `settings.save` | full / partial `setup.cfg` — [settings-dialog.md §8](./settings-dialog.md) |

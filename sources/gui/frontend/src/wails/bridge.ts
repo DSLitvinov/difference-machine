@@ -1,5 +1,6 @@
 import {
   AddKnownRepo,
+  CloseRepository,
   GetCurrentRepoPath,
   GetKnownRepos,
   GetRepoUser,
@@ -10,7 +11,10 @@ import {
   PickRepositoryFolder,
 } from "../../wailsjs/go/main/App";
 import type { StatusPayload } from "@/wails/forester";
+import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
+import { repoPathInList } from "@/lib/repoPaths";
 import { switchSidebarMode } from "@/lib/sidebarModeSwitch";
+import { useAppStore } from "@/stores/appStore";
 import { useProjectStore } from "@/stores/projectStore";
 
 export const NOT_FORESTER_REPOSITORY_ERROR = "not a Forester repository";
@@ -50,6 +54,33 @@ export async function fetchCurrentRepoPath(): Promise<string> {
 export async function openRepository(path: string) {
   const raw = await OpenRepo(path);
   return parseRepoState(raw);
+}
+
+export async function closeRepository(): Promise<void> {
+  await CloseRepository();
+}
+
+/** Sync open repo after Settings → Save list (empty state or switch to first remaining). */
+export async function applyKnownReposAfterSave(savedRepos: string[]): Promise<void> {
+  const { repoPath, clearRepo, setRepo } = useAppStore.getState();
+
+  if (savedRepos.length === 0) {
+    await closeRepository();
+    clearRepo();
+    switchSidebarMode("project");
+    useProjectStore.getState().reset();
+    return;
+  }
+
+  if (!repoPath || repoPathInList(repoPath, savedRepos)) {
+    return;
+  }
+
+  const nextPath = savedRepos[0];
+  const state = await openRepository(nextPath);
+  primeProjectLoadFromRepoState(state);
+  setRepo(state.repoPath, state.repoName, branchFromStatus(state.status));
+  await loadProjectData();
 }
 
 export async function addRepository(path: string) {
