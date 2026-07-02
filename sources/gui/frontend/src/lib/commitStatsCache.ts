@@ -9,7 +9,7 @@ export interface CommitStat {
 const cache = new Map<string, CommitStat>();
 const inflight = new Map<string, Promise<CommitStat>>();
 
-const MAX_CONCURRENT = 4;
+const MAX_CONCURRENT = 1;
 let activeRequests = 0;
 const waitQueue: Array<() => void> = [];
 
@@ -36,6 +36,8 @@ function runWithConcurrencyLimit<T>(task: () => Promise<T>): Promise<T> {
 export function clearCommitStatsCache(): void {
   cache.clear();
   inflight.clear();
+  waitQueue.length = 0;
+  activeRequests = 0;
 }
 
 export async function loadCommitStat(commit: CommitLogEntry): Promise<CommitStat> {
@@ -45,22 +47,25 @@ export async function loadCommitStat(commit: CommitLogEntry): Promise<CommitStat
   const pending = inflight.get(commit.hash);
   if (pending) return pending;
 
-  const promise = runWithConcurrencyLimit(() =>
-    fetchDiffStat(commit.hash, commit).then((result) => {
-      const stat: CommitStat = {
-        files_changed: result.files_changed ?? 0,
-        insertions: result.insertions ?? 0,
-        deletions: result.deletions ?? 0,
-      };
-      cache.set(commit.hash, stat);
-      inflight.delete(commit.hash);
-      return stat;
-    }),
-  ).catch((err) => {
+  const promise = runWithConcurrencyLimit(async () => {
+    const result = await fetchDiffStat(commit.hash, commit);
+    const stat: CommitStat = {
+      files_changed: result.files_changed ?? 0,
+      insertions: result.insertions ?? 0,
+      deletions: result.deletions ?? 0,
+    };
+    cache.set(commit.hash, stat);
+    return stat;
+  }).catch((err) => {
     inflight.delete(commit.hash);
     throw err;
   });
 
   inflight.set(commit.hash, promise);
+  void promise.finally(() => {
+    if (inflight.get(commit.hash) === promise) {
+      inflight.delete(commit.hash);
+    }
+  });
   return promise;
 }

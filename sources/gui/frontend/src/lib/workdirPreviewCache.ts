@@ -8,7 +8,8 @@ export interface WorkdirPreviewState {
 }
 
 const MAX_CACHE_ENTRIES = 128;
-const MAX_CONCURRENT = 4;
+const MAX_CONCURRENT = 1;
+const THUMBNAIL_MIN_GAP_MS = 75;
 
 type CachedPreview = Omit<WorkdirPreviewState, "loading">;
 
@@ -16,6 +17,7 @@ const cache = new Map<string, CachedPreview>();
 const inflight = new Map<string, Promise<CachedPreview>>();
 
 let activeRequests = 0;
+let lastThumbnailStartMs = 0;
 const waitQueue: Array<() => void> = [];
 
 type PreviewListener = () => void;
@@ -66,6 +68,11 @@ function storeEntry(key: string, entry: CachedPreview): void {
   }
 }
 
+function drainWaitQueue(): void {
+  const next = waitQueue.shift();
+  if (next) next();
+}
+
 function runWithConcurrencyLimit<T>(task: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     const run = () => {
@@ -74,8 +81,7 @@ function runWithConcurrencyLimit<T>(task: () => Promise<T>): Promise<T> {
         .then(resolve, reject)
         .finally(() => {
           activeRequests -= 1;
-          const next = waitQueue.shift();
-          if (next) next();
+          drainWaitQueue();
         });
     };
     if (activeRequests < MAX_CONCURRENT) {
@@ -113,12 +119,19 @@ function toCachedPreview(
   };
 }
 
+export function pauseWorkdirPreviewLoads(): void {
+  waitQueue.length = 0;
+}
+
 export function clearWorkdirPreviewCache(): void {
   for (const entry of cache.values()) {
     revokePreviewUrl(entry.previewUrl);
   }
   cache.clear();
   inflight.clear();
+  waitQueue.length = 0;
+  activeRequests = 0;
+  lastThumbnailStartMs = 0;
   notifyWorkdirPreviewChange();
 }
 
@@ -158,6 +171,20 @@ export function isWorkdirPreviewLoading(repoPath: string, path: string): boolean
   return inflight.has(cacheKey(repoPath, path));
 }
 
+async function waitForThumbnailGap(): Promise<void> {
+  const elapsed = Date.now() - lastThumbnailStartMs;
+  if (elapsed >= THUMBNAIL_MIN_GAP_MS) {
+    lastThumbnailStartMs = Date.now();
+    return;
+  }
+  await new Promise<void>((resolve) => {
+    window.setTimeout(() => {
+      lastThumbnailStartMs = Date.now();
+      resolve();
+    }, THUMBNAIL_MIN_GAP_MS - elapsed);
+  });
+}
+
 export async function loadWorkdirPreview(
   repoPath: string,
   path: string,
@@ -191,6 +218,10 @@ export async function loadWorkdirPreview(
   }
 
   const promise = runWithConcurrencyLimit(async () => {
+    if (!document.hasFocus()) {
+      throw new Error("preview_paused");
+    }
+    await waitForThumbnailGap();
     const result = await fetchWorkdirThumbnail(path);
     return toCachedPreview(result, failOnPlaceholder);
   })
@@ -206,7 +237,6 @@ export async function loadWorkdirPreview(
     });
 
   inflight.set(key, promise);
-  // Notify only when a load completes — avoids grid-wide re-renders on inflight start.
 
   try {
     const entry = await promise;

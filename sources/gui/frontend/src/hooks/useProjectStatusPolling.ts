@@ -9,7 +9,8 @@ import { getRepositoryAddActions } from "@/lib/repositoryAddActions";
 import { fetchStatus, fetchLockList, foresterCall, locksByPath } from "@/wails/forester";
 
 const POLL_INTERVAL_MS = 5000;
-const WATCHER_DEBOUNCE_MS = 300;
+const HISTORY_POLL_INTERVAL_MS = 30000;
+const WATCHER_DEBOUNCE_MS = 1500;
 
 async function refreshStatus() {
   const status = await fetchStatus();
@@ -118,14 +119,15 @@ export function useProjectStatusPolling() {
   useEffect(() => {
     if (!repoPath) return;
 
+    const intervalMs = sidebarMode === "history" ? HISTORY_POLL_INTERVAL_MS : POLL_INTERVAL_MS;
     const id = window.setInterval(() => {
       if (document.hasFocus()) {
         void poll();
       }
-    }, POLL_INTERVAL_MS);
+    }, intervalMs);
 
     return () => window.clearInterval(id);
-  }, [poll, repoPath]);
+  }, [poll, repoPath, sidebarMode]);
 
   useEffect(() => {
     if (!repoPath) return;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { BranchSelector } from "@/components/sidebar/BranchSelector";
@@ -53,6 +53,7 @@ export function HistorySidebarPanel() {
   const selectCommit = useHistoryStore((s) => s.selectCommit);
   const setPendingBranchTarget = useHistoryStore((s) => s.setPendingBranchTarget);
   const restoreSelection = useHistoryStore((s) => s.restoreSelection);
+  const setBranchCommits = useHistoryStore((s) => s.setBranchCommits);
 
   const [branches, setBranches] = useState<string[]>([]);
   const [commits, setCommits] = useState<CommitLogEntry[]>([]);
@@ -81,6 +82,7 @@ export function HistorySidebarPanel() {
   const [abortingMerge, setAbortingMerge] = useState(false);
   const [returningToBranch, setReturningToBranch] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const prevLogBranchRef = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(searchQuery), 150);
@@ -98,11 +100,15 @@ export function HistorySidebarPanel() {
 
   const loadLog = useCallback(async () => {
     if (!currentBranch) return;
-    clearCommitStatsCache();
+    if (prevLogBranchRef.current !== currentBranch) {
+      clearCommitStatsCache();
+      prevLogBranchRef.current = currentBranch;
+    }
     setLoadingLog(true);
     try {
       const result = await fetchBranchLog(currentBranch);
       setCommits(result.commits ?? []);
+      setBranchCommits(currentBranch, result.commits ?? []);
       setLogCapped(result.capped);
       const status = await fetchStatus();
       useProjectStore.getState().setStatus(status);
@@ -118,7 +124,7 @@ export function HistorySidebarPanel() {
     } finally {
       setLoadingLog(false);
     }
-  }, [currentBranch, repoPath, restoreSelection, setError]);
+  }, [currentBranch, repoPath, restoreSelection, setBranchCommits, setError]);
 
   const loadMergeStatus = useCallback(async () => {
     try {

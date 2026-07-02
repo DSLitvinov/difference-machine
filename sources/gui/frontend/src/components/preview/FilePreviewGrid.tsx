@@ -144,13 +144,22 @@ export function FilePreviewGrid({
 
   const virtualRows = rowVirtualizer.getVirtualItems();
   const nearEndRequestedRef = useRef(false);
+  const [userScrolled, setUserScrolled] = useState(false);
 
   useEffect(() => {
     nearEndRequestedRef.current = false;
+    setUserScrolled(false);
   }, [files.length]);
 
   useEffect(() => {
-    if (!onNearEnd || files.length === 0) return;
+    if (!scrollElement) return;
+    const onScroll = () => setUserScrolled(true);
+    scrollElement.addEventListener("scroll", onScroll, { passive: true });
+    return () => scrollElement.removeEventListener("scroll", onScroll);
+  }, [scrollElement]);
+
+  useEffect(() => {
+    if (!onNearEnd || files.length === 0 || !userScrolled) return;
     const last = virtualRows[virtualRows.length - 1];
     if (last && last.index >= rowCount - 2) {
       if (!nearEndRequestedRef.current) {
@@ -158,7 +167,7 @@ export function FilePreviewGrid({
         onNearEnd();
       }
     }
-  }, [virtualRows, rowCount, onNearEnd, files.length]);
+  }, [virtualRows, rowCount, onNearEnd, files.length, userScrolled]);
 
   const handleFileSelect = (path: string, event: MouseEvent<HTMLButtonElement>) => {
     const additive = event.metaKey || event.ctrlKey;

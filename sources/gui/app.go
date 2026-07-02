@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/difference-machine/forester/pkg/author"
 	"github.com/difference-machine/forester/pkg/jsonapi"
@@ -24,6 +25,8 @@ type App struct {
 	cfg          *config.Store
 	client       *forester.Client
 	workdirWatch *workdirwatch.Watcher
+	openRepoPath string
+	openRepoMu   sync.Mutex
 }
 
 // RepoState is returned to the frontend after open/switch.
@@ -56,14 +59,6 @@ func (a *App) startup(ctx context.Context) {
 	}
 	install.EnsureFFmpegEnv()
 	install.RefreshToolchainFFmpegPath(store)
-
-	current := store.CurrentRepoPath()
-	if current == "" {
-		return
-	}
-	if _, err := a.openRepo(current, false); err != nil {
-		runtime.LogWarningf(ctx, "auto-open repo: %v", err)
-	}
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -250,12 +245,38 @@ func isForesterRepo(path string) bool {
 }
 
 func (a *App) openRepo(path string, persist bool) (*RepoState, error) {
+	a.openRepoMu.Lock()
+	defer a.openRepoMu.Unlock()
+
 	canonical, err := paths.CanonicalAbsPath(path)
 	if err != nil {
 		return nil, err
 	}
 	if _, err := os.Stat(canonical); err != nil {
 		return nil, fmt.Errorf("repository not found")
+	}
+
+	if a.client != nil && a.openRepoPath == canonical {
+		statusResp, err := a.client.Call("status.get", "{}")
+		if err != nil {
+			return nil, err
+		}
+		if !statusResp.OK {
+			if statusResp.Error != "" {
+				return nil, fmt.Errorf("%s", statusResp.Error)
+			}
+			return nil, fmt.Errorf("status.get failed")
+		}
+		if persist && a.cfg != nil {
+			if err := a.cfg.SetCurrentRepoPath(canonical); err != nil {
+				return nil, err
+			}
+		}
+		return &RepoState{
+			RepoPath: canonical,
+			RepoName: paths.Basename(canonical),
+			Status:   string(statusResp.Result),
+		}, nil
 	}
 
 	a.closeRepo()
@@ -265,6 +286,7 @@ func (a *App) openRepo(path string, persist bool) (*RepoState, error) {
 		return nil, err
 	}
 	a.client = client
+	a.openRepoPath = canonical
 
 	if a.workdirWatch != nil {
 		if err := a.workdirWatch.Start(canonical); err != nil {
@@ -301,6 +323,7 @@ func (a *App) closeRepo() {
 		a.client.Close()
 		a.client = nil
 	}
+	a.openRepoPath = ""
 	if a.workdirWatch != nil {
 		a.workdirWatch.Stop()
 	}

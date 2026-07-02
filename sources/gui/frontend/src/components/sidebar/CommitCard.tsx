@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { GitBranch, GitMerge } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ function commitCardStateClasses(selected: boolean, hovered: boolean, focused: bo
   return "border-border bg-background";
 }
 
-export function CommitCard({
+export const CommitCard = memo(function CommitCard({
   commit,
   selected,
   focused = false,
@@ -76,7 +76,7 @@ export function CommitCard({
             {t("commit.description")}: {description}
           </p>
         ) : null}
-        <CommitCardStats commit={commit} />
+        <CommitCardStats commit={commit} loadStats={selected || isHead} />
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="font-normal">
             {formatRelativeTime(commit.timestamp)}
@@ -94,7 +94,7 @@ export function CommitCard({
       </div>
     </div>
   );
-}
+});
 
 export function CommitCardSkeleton() {
   return <div className="h-28 animate-pulse rounded-md border border-border bg-muted/40" />;

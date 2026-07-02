@@ -58,6 +58,7 @@ function readPreviewSnapshot(
 
 export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "image"): WorkdirPreviewState {
   const repoPath = useAppStore((s) => s.repoPath);
+  const sidebarMode = useAppStore((s) => s.sidebarMode);
   const [preview, setPreview] = useState<WorkdirPreviewState>(() =>
     readPreviewSnapshot(repoPath, path, kind),
   );
@@ -94,12 +95,34 @@ export function useWorkdirPreview(path: string | null, kind: InfoPreviewKind | "
     applySnapshot();
     const unsubscribe = subscribeWorkdirPreview(applySnapshot);
 
-    if (!getWorkdirPreviewCached(repoPath, path)) {
-      void loadWorkdirPreview(repoPath, path, failOnPlaceholder(kind));
+    if (!getWorkdirPreviewCached(repoPath, path) && sidebarMode === "project") {
+      let cancelled = false;
+      const startLoad = () => {
+        if (!cancelled) {
+          void loadWorkdirPreview(repoPath, path, failOnPlaceholder(kind));
+        }
+      };
+      let idleId: number | undefined;
+      let timeoutId: number | undefined;
+      if (typeof requestIdleCallback !== "undefined") {
+        idleId = requestIdleCallback(startLoad, { timeout: 2500 });
+      } else {
+        timeoutId = window.setTimeout(startLoad, 50);
+      }
+      return () => {
+        cancelled = true;
+        if (idleId !== undefined && typeof cancelIdleCallback !== "undefined") {
+          cancelIdleCallback(idleId);
+        }
+        if (timeoutId !== undefined) {
+          window.clearTimeout(timeoutId);
+        }
+        unsubscribe();
+      };
     }
 
     return unsubscribe;
-  }, [path, kind, repoPath]);
+  }, [path, kind, repoPath, sidebarMode]);
 
   return preview;
 }

@@ -5,6 +5,7 @@ import { DiffView } from "@/components/preview/DiffView";
 import { PreviewCommitHeader } from "@/components/preview/PreviewCommitHeader";
 import { useResizableWidth } from "@/hooks/useResizableWidth";
 import { classifyHistoryDiff } from "@/lib/fileKinds";
+import { loadCommitStat } from "@/lib/commitStatsCache";
 import { useT } from "@/lib/i18n";
 import {
   loadHistoryFilesPanelWidth,
@@ -18,14 +19,13 @@ import {
 } from "@/lib/storage";
 import { useAppStore } from "@/stores/appStore";
 import { useHistoryStore } from "@/stores/historyStore";
+import { useProjectStore } from "@/stores/projectStore";
 import {
   base64ToObjectUrl,
   fetchBlob,
   fetchBranchLog,
   fetchDiffNameStatus,
-  fetchDiffStat,
   fetchDiffText,
-  fetchStatus,
   firstParentHash,
   openCommitFile,
   type CommitLogEntry,
@@ -46,9 +46,13 @@ export function HistoryPreviewPanel() {
   const selectedChangedFilePath = useHistoryStore((s) => s.selectedChangedFilePath);
   const setSelectedChangedFilePath = useHistoryStore((s) => s.setSelectedChangedFilePath);
   const restoreSelection = useHistoryStore((s) => s.restoreSelection);
+  const branchCommits = useHistoryStore((s) => s.branchCommits);
+  const branchLogBranch = useHistoryStore((s) => s.branchLogBranch);
+  const status = useProjectStore((s) => s.status);
+  const headHash =
+    typeof status?.head_commit === "string" ? status.head_commit : null;
 
   const [commit, setCommit] = useState<CommitLogEntry | null>(null);
-  const [headHash, setHeadHash] = useState<string | null>(null);
   const [files, setFiles] = useState<DiffFileEntry[]>([]);
   const [stats, setStats] = useState<{
     files_changed: number;
@@ -69,6 +73,7 @@ export function HistoryPreviewPanel() {
   const [imageError, setImageError] = useState<string | null>(null);
   const textDiffGeneration = useRef(0);
   const imageDiffGeneration = useRef(0);
+  const commitLoadGeneration = useRef(0);
 
   const savedWidth = repoPath ? loadHistoryFilesPanelWidth(repoPath) : null;
   const { width: filesPanelWidth, containerRef, startDrag, resetWidth } = useResizableWidth({
@@ -86,28 +91,19 @@ export function HistoryPreviewPanel() {
 
   useEffect(() => {
     if (!repoPath || !currentBranch || selectedCommitHash) return;
-
-    let cancelled = false;
-    const restoreCommitSelection = async () => {
-      try {
-        const log = await fetchBranchLog(currentBranch);
-        if (cancelled) return;
-        restoreSelection(
-          repoPath,
-          (log.commits ?? []).map((c) => c.hash),
-        );
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : String(err));
-        }
-      }
-    };
-
-    void restoreCommitSelection();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentBranch, repoPath, restoreSelection, selectedCommitHash, setError]);
+    if (branchLogBranch !== currentBranch || branchCommits.length === 0) return;
+    restoreSelection(
+      repoPath,
+      branchCommits.map((c) => c.hash),
+    );
+  }, [
+    branchCommits,
+    branchLogBranch,
+    currentBranch,
+    repoPath,
+    restoreSelection,
+    selectedCommitHash,
+  ]);
 
   const handleTextLayoutChange = (layout: HistoryTextLayout) => {
     setTextLayout(layout);
@@ -129,46 +125,69 @@ export function HistoryPreviewPanel() {
       return;
     }
 
+    const generation = ++commitLoadGeneration.current;
     let cancelled = false;
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
     const load = async () => {
       setLoadingCommit(true);
       setLoadingFiles(true);
       setStats(null);
       try {
         const branch = useAppStore.getState().currentBranch ?? "main";
-        const log = await fetchBranchLog(branch);
-        const found = (log.commits ?? []).find((c) => c.hash === selectedCommitHash) ?? null;
-        if (cancelled) return;
-        setCommit(found);
-        const status = await fetchStatus();
-        if (!cancelled) {
-          setHeadHash(typeof status.head_commit === "string" ? status.head_commit : null);
+        const { branchCommits, branchLogBranch } = useHistoryStore.getState();
+        let found =
+          branchLogBranch === branch
+            ? branchCommits.find((c) => c.hash === selectedCommitHash) ?? null
+            : null;
+        if (!found) {
+          const log = await fetchBranchLog(branch);
+          found = (log.commits ?? []).find((c) => c.hash === selectedCommitHash) ?? null;
         }
+        if (cancelled || generation !== commitLoadGeneration.current) return;
+        setCommit(found);
         if (!found) {
           setFiles([]);
           return;
         }
+        setLoadingCommit(false);
         const nameStatus = await fetchDiffNameStatus(selectedCommitHash, found);
-        if (cancelled) return;
+        if (cancelled || generation !== commitLoadGeneration.current) return;
         const sorted = sortFiles(nameStatus.files ?? []);
         setFiles(sorted);
         setLoadingFiles(false);
-        const stat = await fetchDiffStat(selectedCommitHash, found);
-        if (!cancelled) setStats(stat);
-        if (sorted.length > 0) {
+        const saved = useHistoryStore.getState().selectedChangedFilePath;
+        if (sorted.length > 0 && sorted.length <= 50) {
           const first = sorted[0]!.path;
-          const saved = useHistoryStore.getState().selectedChangedFilePath;
           const pick = saved && sorted.some((f) => f.path === saved) ? saved : first;
           setSelectedChangedFilePath(pick);
+        } else if (saved && sorted.some((f) => f.path === saved)) {
+          setSelectedChangedFilePath(saved);
         } else {
           setSelectedChangedFilePath(null);
+        }
+        const statGeneration = generation;
+        const loadStat = () => {
+          void loadCommitStat(found!)
+            .then((stat) => {
+              if (cancelled || statGeneration !== commitLoadGeneration.current) return;
+              setStats(stat);
+            })
+            .catch(() => {
+              if (cancelled || statGeneration !== commitLoadGeneration.current) return;
+            });
+        };
+        if (typeof requestIdleCallback !== "undefined") {
+          idleId = requestIdleCallback(loadStat, { timeout: 3000 });
+        } else {
+          timeoutId = window.setTimeout(loadStat, 0);
         }
       } catch (err) {
         if (!cancelled) {
           setDiffError(err instanceof Error ? err.message : String(err));
         }
       } finally {
-        if (!cancelled) {
+        if (!cancelled && generation === commitLoadGeneration.current) {
           setLoadingCommit(false);
           setLoadingFiles(false);
         }
@@ -177,6 +196,12 @@ export function HistoryPreviewPanel() {
     void load();
     return () => {
       cancelled = true;
+      if (idleId !== undefined && typeof cancelIdleCallback !== "undefined") {
+        cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [repoPath, selectedCommitHash, setSelectedChangedFilePath]);
 

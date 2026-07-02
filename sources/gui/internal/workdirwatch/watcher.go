@@ -9,7 +9,8 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-const debounceDelay = 300 * time.Millisecond
+const debounceDelay = 1500 * time.Millisecond
+const ignoreEventsAfterStart = 3 * time.Second
 
 // Watcher observes filesystem changes under a repository workdir and invokes onChange after debounce.
 type Watcher struct {
@@ -44,7 +45,7 @@ func (w *Watcher) Start(repoPath string) error {
 		return err
 	}
 
-	go w.loop(ctx, fs, repoPath)
+	go w.loop(ctx, fs, repoPath, time.Now().Add(ignoreEventsAfterStart))
 	return nil
 }
 
@@ -59,7 +60,7 @@ func (w *Watcher) Stop() {
 	}
 }
 
-func (w *Watcher) loop(ctx context.Context, fs *fsnotify.Watcher, repoPath string) {
+func (w *Watcher) loop(ctx context.Context, fs *fsnotify.Watcher, repoPath string, ignoreUntil time.Time) {
 	defer fs.Close()
 
 	var debounceMu sync.Mutex
@@ -69,9 +70,12 @@ func (w *Watcher) loop(ctx context.Context, fs *fsnotify.Watcher, repoPath strin
 		debounceMu.Lock()
 		defer debounceMu.Unlock()
 		if debounceTimer != nil {
-			debounceTimer.Stop()
+			return
 		}
 		debounceTimer = time.AfterFunc(debounceDelay, func() {
+			debounceMu.Lock()
+			debounceTimer = nil
+			debounceMu.Unlock()
 			select {
 			case <-ctx.Done():
 				return
@@ -93,6 +97,9 @@ func (w *Watcher) loop(ctx context.Context, fs *fsnotify.Watcher, repoPath strin
 		case event, ok := <-fs.Events:
 			if !ok {
 				return
+			}
+			if time.Now().Before(ignoreUntil) {
+				continue
 			}
 			if event.Op&fsnotify.Chmod == event.Op && event.Op&^(fsnotify.Chmod) == 0 {
 				continue

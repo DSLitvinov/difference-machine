@@ -3,10 +3,11 @@ import type { CommitLogEntry } from "@/wails/forester";
 
 interface CommitCardStatsProps {
   commit: CommitLogEntry;
+  loadStats: boolean;
 }
 
-export function CommitCardStats({ commit }: CommitCardStatsProps) {
-  const { setElement, state, stat } = useCommitCardStat(commit);
+export function CommitCardStats({ commit, loadStats }: CommitCardStatsProps) {
+  const { setElement, state, stat } = useCommitCardStat(commit, loadStats);
 
   if (state === "error") {
     return null;
