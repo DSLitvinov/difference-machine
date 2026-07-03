@@ -47,6 +47,12 @@ export async function fetchKnownRepos(): Promise<string[]> {
   return GetKnownRepos();
 }
 
+export async function syncKnownRepos(): Promise<string[]> {
+  const repos = await fetchKnownRepos();
+  useAppStore.getState().setKnownRepos(repos);
+  return repos;
+}
+
 export async function fetchCurrentRepoPath(): Promise<string> {
   return GetCurrentRepoPath();
 }
@@ -62,7 +68,8 @@ export async function closeRepository(): Promise<void> {
 
 /** Sync open repo after Settings → Save list (empty state or switch to first remaining). */
 export async function applyKnownReposAfterSave(savedRepos: string[]): Promise<void> {
-  const { repoPath, clearRepo, setRepo } = useAppStore.getState();
+  const { repoPath, clearRepo, setRepo, setKnownRepos } = useAppStore.getState();
+  setKnownRepos(savedRepos);
 
   if (savedRepos.length === 0) {
     await closeRepository();
@@ -87,6 +94,7 @@ export async function addRepository(path: string) {
   const raw = await AddKnownRepo(path);
   const state = parseRepoState(raw);
   switchSidebarMode("project");
+  await syncKnownRepos();
   return state;
 }
 

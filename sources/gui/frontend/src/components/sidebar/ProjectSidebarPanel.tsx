@@ -178,7 +178,8 @@ export async function bootstrapRepositories(
   try {
     setLoading(true);
     setError(null);
-    const { fetchCurrentRepoPath } = await import("@/wails/bridge");
+    const { fetchCurrentRepoPath, syncKnownRepos } = await import("@/wails/bridge");
+    await syncKnownRepos().catch(() => useAppStore.getState().setKnownRepos([]));
     const current = await fetchCurrentRepoPath();
     if (!current) return;
     const state = await openRepository(current);

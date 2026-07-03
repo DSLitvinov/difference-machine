@@ -11,9 +11,9 @@ import { loadProjectData } from "@/components/preview/ProjectPreviewPanel";
 import { useRepositoryAdd } from "@/components/shell/RepositoryAddProvider";
 import {
   addRepository,
-  fetchKnownRepos,
   openRepository,
   primeProjectLoadFromRepoState,
+  syncKnownRepos,
 } from "@/wails/bridge";
 
 interface RepoSelectorProps {
@@ -27,17 +27,20 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
   const setRepo = useAppStore((s) => s.setRepo);
   const setError = useAppStore((s) => s.setError);
   const setLoading = useAppStore((s) => s.setLoading);
+  const knownRepos = useAppStore((s) => s.knownRepos);
   const { pickRepositoryPath } = useRepositoryAdd();
   const [open, setOpen] = useState(false);
-  const [repos, setRepos] = useState<string[]>([]);
 
   useEffect(() => {
-    void fetchKnownRepos().then(setRepos).catch(() => setRepos([]));
+    void syncKnownRepos().catch(() => useAppStore.getState().setKnownRepos([]));
   }, [repoPath]);
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     onOpenChange?.(next);
+    if (next) {
+      void syncKnownRepos().catch(() => useAppStore.getState().setKnownRepos([]));
+    }
   };
 
   const switchRepo = async (path: string) => {
@@ -74,8 +77,6 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
         );
         await loadProjectData();
         handleOpenChange(false);
-        const list = await fetchKnownRepos();
-        setRepos(list);
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -107,10 +108,10 @@ export function RepoSelector({ onOpenChange }: RepoSelectorProps) {
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="max-h-56 overflow-auto">
-          {repos.length === 0 ? (
+          {knownRepos.length === 0 ? (
             <p className="px-3 py-2 text-xs text-muted-foreground">{t("repo.noRepositories")}</p>
           ) : (
-            repos.map((path) => (
+            knownRepos.map((path) => (
               <Button
                 key={path}
                 type="button"

@@ -26,6 +26,7 @@ interface AppState {
   foresterError: string | null;
   notice: string | null;
   externalEditorPaths: string[];
+  knownRepos: string[];
   setSidebarMode: (mode: SidebarMode) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setRepo: (repoPath: string | null, repoName: string | null, currentBranch?: string | null) => void;
@@ -36,6 +37,7 @@ interface AppState {
   setForesterError: (error: string | null) => void;
   setNotice: (notice: string | null) => void;
   setExternalEditorPaths: (paths: string[]) => void;
+  setKnownRepos: (repos: string[]) => void;
   clearRepo: () => void;
 }
 
@@ -52,6 +54,7 @@ export const useAppStore = create<AppState>((set) => ({
   foresterError: null,
   notice: null,
   externalEditorPaths: [],
+  knownRepos: [],
   setSidebarMode: (mode) => set({ sidebarMode: mode }),
   setSidebarCollapsed: (collapsed) => {
     saveSidebarCollapsed(collapsed);
@@ -90,6 +93,7 @@ export const useAppStore = create<AppState>((set) => ({
     if (notice) notifyNotice(notice);
   },
   setExternalEditorPaths: (externalEditorPaths) => set({ externalEditorPaths }),
+  setKnownRepos: (knownRepos) => set({ knownRepos }),
   clearRepo: () => {
     dismissPersistentToasts();
     set({
