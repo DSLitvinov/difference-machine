@@ -84,7 +84,7 @@
 | `lock.acquire` | `forester lock` | **Да** | File context menu (Project grid) |
 | `lock.release` | `forester lock unlock` | **Да** | File context menu |
 
-> В [decisions.md §8.5](./decisions.md) для v1.0 указано read-only locks; в коде acquire/release уже в `FilePreviewGrid`.
+> Locks: acquire/release в `FilePreviewGrid` context menu — [decisions.md §8.5](./decisions.md).
 
 ### 1.7 Objects (Blender manifest)
 

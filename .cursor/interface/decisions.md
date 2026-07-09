@@ -227,8 +227,8 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ### 8.5 Locks
 
-- v1.0: **read-only** badge из `lock.list`.
-- Acquire/release — Blender / CLI only.
+- **Shipped:** read-only badge из `lock.list` + acquire/release в context menu Project grid (`FilePreviewGrid` → `lock.acquire` / `lock.release`).
+- Blender addon — альтернативный entry point для тех же операций.
 
 ### 8.6 Конкурентность
 
@@ -251,7 +251,8 @@ Default `limit`: 200. Альтернатива virtual scroll в v1.1.
 
 ### 8.7 Язык UI
 
-- v1.0: **English** only (`[gui].language = en`).
+- **Shipped:** English default; Russian strings in `lib/i18n.ts` (no runtime locale switch in Settings v1).
+- Канон copy для новых строк: English в спеках; переводы — по мере необходимости в i18n.
 
 ---
 
