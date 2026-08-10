@@ -39,6 +39,5 @@ Release artifacts: `builder/dist/DifferenceMachine-*`
 
 ## Avoid
 
-- `~/dfm_distr` or home-directory build outputs
 - Monolithic multi-platform `build.sh` with all flags
 - OS install scripts in the build pipeline
