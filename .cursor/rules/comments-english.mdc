@@ -19,6 +19,11 @@ All code comments in this project must be written in English.
 # Bad: Загрузить конфигурацию репозитория при запуске
 ```
 
+```java script, React
+# Good: Load repository configuration on startup
+# Bad: Загрузить конфигурацию репозитория при запуске
+```
+
 ```go
 // Good: Load repository configuration on startup
 // Bad: Загрузить конфигурацию репозитория при запуске
