@@ -1,41 +1,77 @@
 import { HeaderSelectBranch } from "@/components/items/HeaderSelectBranch";
 import { HeaderSettings } from "@/components/items/HeaderSettings";
+import { SidebarCard } from "@/components/items/SidebarCard";
 import { SidebarCardDirectory } from "@/components/items/SidebarCardDirectory";
+import { CommitProjectCard } from "@/components/atoms/CommitProjectCard";
 import { UncommittedFilesCard } from "@/components/atoms/UncommittedFilesCard";
 import { NoHistoryProject } from "@/components/atoms/NoHistoryProject";
+import { NullRepositoryPlaceholder } from "@/components/placeholders/NullRepositoryPlaceholder";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
-import type { SidebarTab } from "@/lib/view";
+import { changeCounts, isDirty } from "@/lib/status";
+import type { DerivedView, SidebarTab } from "@/lib/view";
+import type { CommitSummary, StatusSnapshot } from "@/store/app-store";
 
 type ProjectViewPanelProps = {
   locale: Locale;
   userName: string;
+  view: DerivedView;
+  status: StatusSnapshot | null;
+  commits: CommitSummary[];
   branchName?: string;
   sidebarTab: SidebarTab;
   changedOnly: boolean;
+  busy?: boolean;
   onSidebarTab: (tab: SidebarTab) => void;
   onChangedOnly: (value: boolean) => void;
   onSettings: () => void;
+  onCreateRepository: () => void;
 };
+
+function splitMessage(message: string): { title: string; description: string } {
+  const trimmed = message.trim();
+  const nl = trimmed.indexOf("\n");
+  if (nl === -1) {
+    return { title: trimmed, description: "" };
+  }
+  return { title: trimmed.slice(0, nl).trim(), description: trimmed.slice(nl + 1).trim() };
+}
+
+function directoryState(view: DerivedView): "default" | "selected" | "disabled" {
+  if (view === "empty-dfm-project") {
+    return "selected";
+  }
+  if (view === "empty-dfm-folder") {
+    return "disabled";
+  }
+  return "default";
+}
 
 export function ProjectViewPanel({
   locale,
   userName,
+  view,
+  status,
+  commits,
   branchName,
   sidebarTab,
   changedOnly,
+  busy,
   onSidebarTab,
   onChangedOnly,
   onSettings,
+  onCreateRepository,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
+  const dirty = view === "empty-dfm-folder" ? false : isDirty(status);
+  const counts = changeCounts(status);
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
       <HeaderSelectBranch locale={locale} branchName={branchName} />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] flex-col gap-2 px-3">
-          <SidebarCardDirectory state="selected">
-            <UncommittedFilesCard locale={locale} dirty={false} changedOnly={changedOnly} onChangedOnly={onChangedOnly} />
+          <SidebarCardDirectory state={directoryState(view)}>
+            <UncommittedFilesCard locale={locale} dirty={dirty} counts={counts} changedOnly={changedOnly} onChangedOnly={onChangedOnly} />
           </SidebarCardDirectory>
         </div>
         <div className="flex w-full items-center p-3">
@@ -47,14 +83,61 @@ export function ProjectViewPanel({
           </Tabs>
         </div>
         <div className="flex min-h-0 w-[309px] flex-1 flex-col overflow-y-auto px-3">
-          {sidebarTab === "history" ? (
-            <div className="flex w-full rounded-md border border-border bg-background-muted p-3">
-              <NoHistoryProject locale={locale} />
-            </div>
-          ) : null}
+          {sidebarTab === "history" ? <CommitList locale={locale} view={view} status={status} commits={commits} busy={busy} onCreateRepository={onCreateRepository} /> : null}
         </div>
       </div>
       <HeaderSettings userName={userName} onSettings={onSettings} />
     </aside>
+  );
+}
+
+function CommitList({
+  locale,
+  view,
+  status,
+  commits,
+  busy,
+  onCreateRepository,
+}: {
+  locale: Locale;
+  view: DerivedView;
+  status: StatusSnapshot | null;
+  commits: CommitSummary[];
+  busy?: boolean;
+  onCreateRepository: () => void;
+}) {
+  if (view === "empty-dfm-folder") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+        <NullRepositoryPlaceholder locale={locale} busy={busy} onCreate={onCreateRepository} />
+      </div>
+    );
+  }
+  if (view === "empty-dfm-project" || commits.length === 0) {
+    return (
+      <SidebarCard state="disabled">
+        <NoHistoryProject locale={locale} />
+      </SidebarCard>
+    );
+  }
+  return (
+    <div className="flex w-full flex-col gap-2">
+      {commits.map((commit) => {
+        const { title, description } = splitMessage(commit.message ?? "");
+        return (
+          <SidebarCard key={commit.hash}>
+            <CommitProjectCard
+              title={title}
+              author={commit.author ?? ""}
+              description={description}
+              timestamp={commit.timestamp ?? 0}
+              head={Boolean(commit.hash && commit.hash === status?.head_commit)}
+              merge={(commit.parent_hashes?.length ?? 0) > 1}
+              tag={commit.tag}
+            />
+          </SidebarCard>
+        );
+      })}
+    </div>
   );
 }

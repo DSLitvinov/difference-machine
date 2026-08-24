@@ -15,6 +15,24 @@ export type StatusSnapshot = {
   renamed_files?: { old_path: string; path: string }[];
 };
 
+export type DirEntry = {
+  name: string;
+  path: string;
+  is_dir: boolean;
+  item_count?: number;
+  size?: number;
+  modified?: number;
+};
+
+export type CommitSummary = {
+  hash: string;
+  message?: string;
+  author?: string;
+  timestamp?: number;
+  parent_hashes?: string[];
+  tag?: string;
+};
+
 type AppState = {
   shell: Shell;
   locale: Locale;
@@ -31,13 +49,22 @@ type AppState = {
   folderEmpty: boolean;
   hasCommits: boolean;
   status: StatusSnapshot | null;
+  entries: DirEntry[];
+  commits: CommitSummary[];
   toast: string | null;
   applySession: (info: SessionInfo) => void;
   setLocale: (locale: Locale) => void;
   setSidebarTab: (tab: SidebarTab) => void;
   setChangedOnly: (value: boolean) => void;
+  setFolderPath: (path: string) => void;
   setToast: (message: string | null) => void;
-  setRepoMeta: (meta: { folderEmpty: boolean; hasCommits: boolean; status: StatusSnapshot | null }) => void;
+  setRepoMeta: (meta: {
+    folderEmpty: boolean;
+    hasCommits: boolean;
+    status: StatusSnapshot | null;
+    entries: DirEntry[];
+    commits: CommitSummary[];
+  }) => void;
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -56,6 +83,8 @@ export const useAppStore = create<AppState>((set) => ({
   folderEmpty: true,
   hasCommits: false,
   status: null,
+  entries: [],
+  commits: [],
   toast: null,
   applySession: (info) => {
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
@@ -70,12 +99,18 @@ export const useAppStore = create<AppState>((set) => ({
       contentContext: "folder",
       commitComposer: "closed",
       sidebarTab: "history",
+      folderEmpty: true,
+      hasCommits: false,
+      status: null,
+      entries: [],
+      commits: [],
       toast: info.error || null,
     });
   },
   setLocale: (locale) => set({ locale }),
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   setChangedOnly: (value) => set({ changedOnly: value }),
+  setFolderPath: (path) => set({ folderPath: path, selection: [] }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),
 }));

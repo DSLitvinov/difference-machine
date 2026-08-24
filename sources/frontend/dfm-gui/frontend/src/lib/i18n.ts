@@ -34,6 +34,13 @@ const en = {
   home: "Home",
   noFilesYet: "No files yet",
   noFilesYetBody: "Create or move your files to the repository",
+  createRepoHistoryHint: "Create a Forester repository to browse history of project",
+  nothingToShow: "Nothing to show",
+  selectFileToViewDetails: "Select a file to view details",
+  append: "append",
+  newFiles: "new",
+  modified: "modified",
+  deleted: "deleted",
 };
 
 const ru: typeof en = {
@@ -70,6 +77,13 @@ const ru: typeof en = {
   home: "Home",
   noFilesYet: "No files yet",
   noFilesYetBody: "Create or move your files to the repository",
+  createRepoHistoryHint: "Create a Forester repository to browse history of project",
+  nothingToShow: "Nothing to show",
+  selectFileToViewDetails: "Select a file to view details",
+  append: "append",
+  newFiles: "new",
+  modified: "modified",
+  deleted: "deleted",
 };
 
 const dictionaries = { en, ru };
