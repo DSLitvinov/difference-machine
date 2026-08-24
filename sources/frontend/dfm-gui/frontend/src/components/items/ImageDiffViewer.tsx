@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -69,20 +69,94 @@ function Frame({ src }: { src?: string }) {
   );
 }
 
+function SwipeCompare({ afterSrc, beforeSrc }: { afterSrc?: string; beforeSrc?: string }) {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [split, setSplit] = useState(0.5);
+  const [natural, setNatural] = useState({ w: 0, h: 0 });
+  const [viewport, setViewport] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    setNatural({ w: 0, h: 0 });
+  }, [afterSrc, beforeSrc]);
+
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) {
+      return;
+    }
+    const sync = () => setViewport({ w: el.clientWidth, h: el.clientHeight });
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    sync();
+    return () => observer.disconnect();
+  }, []);
+
+  const fit = natural.w > 0 && viewport.w > 0 ? Math.min(viewport.w / natural.w, viewport.h / natural.h) : 0;
+  const width = fit > 0 ? natural.w * fit : undefined;
+  const height = fit > 0 ? natural.h * fit : undefined;
+
+  function moveTo(clientX: number) {
+    const box = boxRef.current?.getBoundingClientRect();
+    if (!box || box.width <= 0) {
+      return;
+    }
+    setSplit(Math.min(1, Math.max(0, (clientX - box.left) / box.width)));
+  }
+
+  function rememberSize(event: { currentTarget: HTMLImageElement }) {
+    const img = event.currentTarget;
+    if (img.naturalWidth > 0) {
+      setNatural({ w: img.naturalWidth, h: img.naturalHeight });
+    }
+  }
+
+  return (
+    <div ref={viewportRef} className="flex min-h-0 flex-1 items-center justify-center overflow-hidden p-2">
+      <div
+        ref={boxRef}
+        className="relative cursor-ew-resize touch-none overflow-hidden rounded-sm"
+        style={width && height ? { width, height } : { width: "100%", height: "100%" }}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          moveTo(event.clientX);
+        }}
+        onPointerMove={(event) => {
+          if (event.buttons) {
+            moveTo(event.clientX);
+          }
+        }}
+      >
+        {beforeSrc ? (
+          <img
+            src={beforeSrc}
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute inset-0 size-full object-contain"
+            onLoad={afterSrc ? undefined : rememberSize}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-background-muted" />
+        )}
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${(1 - split) * 100}% 0 0)` }}>
+          {afterSrc ? (
+            <img src={afterSrc} alt="" draggable={false} className="pointer-events-none absolute inset-0 size-full object-contain" onLoad={rememberSize} />
+          ) : null}
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 h-full w-0.5 -translate-x-1/2 bg-[#4f46e5]" style={{ left: `${split * 100}%` }} />
+        <div className="pointer-events-none absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2" style={{ left: `${split * 100}%` }}>
+          <FigmaIcon src="icons/diff-swipe-thumb.svg" size={32} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ImageDiffViewer({ locale, afterSrc, beforeSrc, noCommits }: ImageDiffViewerProps) {
   const copy = t(locale);
   const [tab, setTab] = useState<ImageTab>("2-up");
-  const [split, setSplit] = useState(0.5);
   const [overlay, setOverlay] = useState(0.5);
-  const swipeRef = useRef<HTMLDivElement>(null);
-
-  function moveSplit(event: PointerEvent<HTMLDivElement>) {
-    const box = swipeRef.current?.getBoundingClientRect();
-    if (!box) {
-      return;
-    }
-    setSplit(Math.min(1, Math.max(0, (event.clientX - box.left) / box.width)));
-  }
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
@@ -128,37 +202,14 @@ export function ImageDiffViewer({ locale, afterSrc, beforeSrc, noCommits }: Imag
               <Frame src={beforeSrc} />
             </div>
           ) : null}
-          {tab === "swipe" ? (
-            <div
-              ref={swipeRef}
-              className="relative min-h-0 flex-1 cursor-ew-resize overflow-hidden p-2"
-              onPointerDown={(event) => {
-                event.currentTarget.setPointerCapture(event.pointerId);
-                moveSplit(event);
-              }}
-              onPointerMove={(event) => {
-                if (event.buttons) {
-                  moveSplit(event);
-                }
-              }}
-            >
-              <div className="absolute inset-2 overflow-hidden rounded-sm">
-                {beforeSrc ? <img src={beforeSrc} alt="" className="size-full object-cover" /> : <div className="size-full bg-background-muted" />}
-                <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${split * 100}%` }}>
-                  {afterSrc ? <img src={afterSrc} alt="" className="h-full max-w-none object-cover" style={{ width: swipeRef.current ? swipeRef.current.clientWidth - 16 : "100%" }} /> : null}
-                </div>
-                <div className="absolute inset-y-0 w-0.5 bg-[#4f46e5]" style={{ left: `${split * 100}%` }} />
-                <div className="absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2" style={{ left: `${split * 100}%` }}>
-                  <FigmaIcon src="icons/diff-swipe-thumb.svg" size={32} />
-                </div>
-              </div>
-            </div>
-          ) : null}
+          {tab === "swipe" ? <SwipeCompare afterSrc={afterSrc} beforeSrc={beforeSrc} /> : null}
           {tab === "overlay" ? (
             <div className="relative min-h-0 flex-1 p-2">
               <div className="relative size-full overflow-hidden rounded-sm">
-                {afterSrc ? <img src={afterSrc} alt="" className="size-full object-cover" /> : <div className="size-full bg-background-muted" />}
-                {beforeSrc ? <img src={beforeSrc} alt="" className="absolute inset-0 size-full object-cover" style={{ opacity: overlay }} /> : null}
+                {beforeSrc ? <img src={beforeSrc} alt="" className="size-full object-cover" /> : <div className="size-full bg-background-muted" />}
+                {afterSrc ? (
+                  <img src={afterSrc} alt="" className="absolute inset-0 size-full object-cover" style={{ opacity: 1 - overlay }} />
+                ) : null}
               </div>
             </div>
           ) : null}
