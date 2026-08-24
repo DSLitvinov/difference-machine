@@ -6,8 +6,8 @@ Difference Machine is a local, Git-like version control system for Blender proje
 
 ## Components
 
-- **Forester CLI and core** (`sources/forester`) manages repositories under `.DFM/`, with content-addressed objects, file-based metadata, branches, stash, reflog, locks, manifests, and review data.
-- **Difference Machine GUI** (`sources/gui`) is a Wails desktop app with a React frontend. It talks to Forester through the in-process JSON API.
+- **Forester CLI and core** (`sources/backend/forester`) manages repositories under `.DFM/`, with content-addressed objects, file-based metadata, branches, stash, reflog, locks, manifests, and review data.
+- **Difference Machine GUI** (`sources/frontend/dfm-gui`) is a Wails desktop app with a React frontend. It talks to Forester through the in-process JSON API.
 - **Blender addon** (`sources/addons/blender/difference_machine`) adds Difference Machine panels in Blender for init, commit, history, compare, asset saving, object tags, locks, and object-level merge.
 - **Builder** (`builder`) creates distribution payloads and optional release artifacts for macOS, Linux, and Windows.
 
@@ -24,8 +24,8 @@ Difference Machine is a local, Git-like version control system for Blender proje
 ```text
 difference-machine/
 ├── sources/
-│   ├── forester/                      # Go CLI, core, JSON API, native bindings
-│   ├── gui/                           # Wails + React desktop app
+│   ├── backend/forester/              # Go CLI, core, JSON API, native bindings
+│   ├── frontend/dfm-gui/              # Wails + React desktop app
 │   └── addons/blender/difference_machine/
 ├── builder/                           # Build, staging, packaging scripts
 ├── doc/                               # User-facing guides and CLI reference
@@ -43,7 +43,7 @@ difference-machine/
 | GUI | Go 1.22+, Node.js 20+, npm, Wails v2 |
 | Blender addon | Blender 4.5.0+ |
 
-Forester uses Go modules. In addition to the standard library, `sources/forester/go.mod` includes `github.com/klauspost/compress`.
+Forester uses Go modules. In addition to the standard library, `sources/backend/forester/go.mod` includes `github.com/klauspost/compress`.
 
 ## Quick Start
 
@@ -79,8 +79,8 @@ The global configuration file is `~/.dfm/setup.cfg`. Build scripts can write a d
 | Full CLI reference | `doc/forester_comand.md` |
 | Build and release payloads | `builder/README.md` |
 | Build script internals | `builder/scripts/README.md` |
-| GUI development | `sources/gui/README.md` |
-| Forester API | `sources/forester/api/README.md` |
+| GUI architecture | `.cursor/gui/architecture.md` |
+| Forester API | `sources/backend/forester/api/README.md` |
 | Blender addon API setup | `sources/addons/blender/difference_machine/API_SETUP.md` |
 
 ## Build

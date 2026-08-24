@@ -1,6 +1,6 @@
 ---
 description: setup.cfg must include [api] path for Blender addon; bootstrap and addon resolution rules
-globs: sources/gui/internal/config/**,sources/gui/internal/install/**,sources/addons/blender/difference_machine/**
+globs: sources/frontend/dfm-gui/**,sources/addons/blender/difference_machine/**
 alwaysApply: false
 ---
 

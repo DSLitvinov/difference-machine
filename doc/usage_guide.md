@@ -97,7 +97,7 @@ References:
 
 ## 3. Difference Machine GUI
 
-The GUI is a Wails desktop application in `sources/gui`.
+The GUI is a Wails desktop application in `sources/frontend/dfm-gui`. Architecture and API contract: `.cursor/gui/architecture.md`.
 
 Typical use:
 

@@ -3,7 +3,7 @@
 Системная документация аддона версии **0.8.0** для Blender **≥ 4.5.0**.
 
 **Исходники:** `sources/addons/blender/difference_machine/`  
-**Канон VCS API:** [api-contract.md](../../interface/api-contract.md) · пути [paths.md](../../interface/paths.md)  
+**Канон VCS API:** [jsonapi.md](../../gui/gui_backend/jsonapi.md) · пути [path-normalization](../../rules/path-normalization.mdc)  
 **Сборка API:** `sources/addons/blender/difference_machine/API_SETUP.md`
 
 ---

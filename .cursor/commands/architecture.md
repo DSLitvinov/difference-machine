@@ -6,8 +6,8 @@ Agent-facing overview of the current monorepo. Public user documentation starts 
 
 | Component | Path | Purpose |
 |-----------|------|---------|
-| Forester CLI/Core | `sources/forester` | Go VCS engine, CLI commands, `.DFM` storage, JSON API, native bindings |
-| Difference Machine GUI | `sources/gui` | Wails desktop app with Go backend and React frontend |
+| Forester CLI/Core | `sources/backend/forester` | Go VCS engine, CLI commands, `.DFM` storage, JSON API, native bindings |
+| Difference Machine GUI | `sources/frontend/dfm-gui` | Wails desktop app with Go backend and React frontend |
 | Blender addon | `sources/addons/blender/difference_machine` | Blender UI panels, object tags, compare/retrieve, asset and merge workflows |
 | Builder | `builder` | Platform build scripts, staging, payload assembly, release packaging |
 | User docs | `doc` | Usage guide and CLI references |
@@ -29,7 +29,7 @@ Agent-facing overview of the current monorepo. Public user documentation starts 
 ```text
 difference-machine/
 ├── sources/
-│   ├── forester/
+│   ├── backend/forester/
 │   │   ├── cmd/forester/              # CLI entrypoint
 │   │   ├── internal/commands/         # CLI command implementations
 │   │   ├── internal/core/             # Storage, refs, index, manifests, locks, gc
@@ -38,7 +38,7 @@ difference-machine/
 │   │   ├── internal/utils/            # Filesystem, config, diff, patterns
 │   │   ├── pkg/jsonapi/               # Public in-process JSON API package for GUI
 │   │   └── api/                       # Native C API and Python bindings
-│   ├── gui/
+│   ├── frontend/dfm-gui/
 │   │   ├── internal/                  # Wails backend packages
 │   │   └── frontend/src/              # React app
 │   └── addons/blender/difference_machine/
@@ -73,10 +73,9 @@ High-level categories:
 
 ```text
 GUI React UI
-  -> Wails Go backend
-  -> sources/gui/internal/forester
-  -> sources/forester/pkg/jsonapi
-  -> sources/forester/internal/jsonapi
+  -> Wails Go backend (sources/frontend/dfm-gui)
+  -> sources/backend/forester/pkg/jsonapi
+  -> sources/backend/forester/internal/jsonapi
   -> Forester core and .DFM
 
 Blender addon
@@ -86,7 +85,7 @@ Blender addon
   -> Forester core and .DFM
 
 CLI
-  -> sources/forester/internal/commands
+  -> sources/backend/forester/internal/commands
   -> Forester core and .DFM
 ```
 
@@ -137,5 +136,6 @@ Repository-local configuration is `.DFM/config` and is created by `forester init
 - `.cursor/commands/database.md`: canonical `.DFM` storage layout.
 - `.cursor/commands/business-rules.md`: VCS semantics and invariants.
 - `.cursor/commands/forester-arhitecture.md`: detailed Forester core and CLI notes.
-- `.cursor/interface/api-contract.md`: GUI/JSON API contract.
+- `.cursor/gui/architecture.md`: GUI architecture (Wails + Forester).
+- `.cursor/gui/gui_backend/jsonapi.md`: GUI/JSON API contract.
 - `builder/README.md`: canonical build and release documentation.

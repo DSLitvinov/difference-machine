@@ -1,0 +1,41 @@
+---
+description: Custom GUI bricks on shadcn/ui — Figma atoms/items/panels, not View screens
+globs: sources/frontend/dfm-gui/frontend/**/*.{ts,tsx},.cursor/gui/**/*.md
+alwaysApply: false
+---
+
+# Custom shadcn/ui bricks
+
+Visual canon: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772) (`4191:5772`). Specs: `.cursor/gui/components/`, `.cursor/gui/panels/`, `.cursor/gui/dialogs/`. Do not implement `View / …` from this rule.
+
+## Layers
+
+| Figma prefix | Code / spec | shadcn |
+|--------------|-------------|--------|
+| Primitive | `components/ui/` | Use as shipped. Theme tokens, do not fork Radix. |
+| `Atom /` | `components/<domain>/` | Own `cva` keys from Figma (`type`, `size`, `state`). |
+| `Item /` | same, composed of atoms | Do not copy atom hex into the item. |
+| `Panel /` `Dialog /` `Popover /` | panel / dialog / popover | Compose bricks. Empty = `Content / Placeholder /`. |
+
+## Figma fetch
+
+- One `get_design_context` per **variant set** (the frame with `type=` / `state=` / `size=`), never the whole canvas `4191:5772`.
+- Do not fetch each variant symbol separately.
+- Do not take colors from a `View /` screenshot if an Atom/Item set exists.
+
+## Do / don't
+
+```tsx
+// ❌ default Badge pill for File DFM Status
+<Badge variant="destructive">M</Badge>
+
+// ✅ atom spec: 20×20, own type map, CSS variables
+<FileStatusBadge type="modified" />
+```
+
+- No API calls inside an atom/item. Panels pass ready props.
+- No extra chrome (counters, tooltips) unless the brick spec shows it.
+- Two Figma atoms (file badge vs object badge) → two components, not `if`.
+- Placeholders and empty copy live on the panel spec, not as a new atom, unless named `Atom / Cards / No History …`.
+- `Atom / Swapper` is a Figma slot only: never ship the teal fill; put the real child (card atom, swipe bitmaps).
+- `Panel / Project view`: Uncommitted files sit in `Item / Card Directory`, not `Item / Card`. Commit list uses `Item / Card`.

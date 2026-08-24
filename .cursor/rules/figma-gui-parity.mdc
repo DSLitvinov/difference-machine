@@ -9,7 +9,7 @@ alwaysApply: true
 
 ## Before adding UI
 
-1. Check the linked Figma node and `.cursor/interface/*.md` atom specs.
+1. Check the linked Figma **variant-set** node (not canvas `4191:5772`) and `.cursor/gui/components/` brick specs. Do not take chrome from `View / …` when an `Atom /` or `Item /` exists.
 2. If it is not in the mockup or spec, **do not ship it** in the frontend (no “helpful” counters, hints, badges, or debug-style labels).
 
 ## Examples

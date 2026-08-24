@@ -132,7 +132,7 @@ Runtime (not a build dependency): **Blender 4.5.0+** to use the staged addon.
 
 ### GUI (`--gui`)
 
-Adds a Wails v2 desktop app (`sources/gui`). Checked by `scripts/lib/wails_toolchain.sh`.
+Adds a Wails v2 desktop app (`sources/frontend/dfm-gui`). Checked by `scripts/lib/wails_toolchain.sh`.
 
 | Tool | Used for |
 |------|----------|
@@ -223,7 +223,7 @@ wails doctor
 
 | App | Regenerate | Output |
 |-----|------------|--------|
-| GUI | `cd sources/gui/frontend && npm run icons:generate` | `sources/gui/build/appicon.png`, `build/windows/icon.ico` |
+| GUI | `cd sources/frontend/dfm-gui/frontend && npm run icons:generate` | `sources/frontend/dfm-gui/build/appicon.png`, `build/windows/icon.ico` |
 | Forester | `bash builder/scripts/generate_forester_icons.sh` | `sources/icons/logo/forester/build/` (PNG, `.ico`, `.icns`, Linux hicolor) |
 
 Both use squircle masking via `builder/scripts/lib/icon-squircle.mjs`. GUI icons run automatically in `build_gui.sh`; Forester icons run in `build_forester.sh`.

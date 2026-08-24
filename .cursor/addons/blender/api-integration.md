@@ -1,6 +1,6 @@
 # Forester API — интеграция в Blender Addon
 
-Канон методов: [api-contract.md](../../interface/api-contract.md), dispatch: `sources/forester/internal/jsonapi/dispatch.go`.
+Канон методов: [jsonapi.md](../../gui/gui_backend/jsonapi.md), dispatch: `sources/backend/forester/internal/jsonapi/dispatch.go`.
 
 Обёртка: `utils/forester_api.py` → singleton `get_api()` / `close_api()`.
 
