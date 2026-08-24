@@ -5,6 +5,7 @@ import { SidebarCard } from "@/components/items/SidebarCard";
 import { SidebarCardDirectory } from "@/components/items/SidebarCardDirectory";
 import { CommitProjectCard } from "@/components/atoms/CommitProjectCard";
 import { UncommittedFilesCard } from "@/components/atoms/UncommittedFilesCard";
+import { CreateCommitCard, type CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import { NoHistoryProject } from "@/components/atoms/NoHistoryProject";
 import { NullRepositoryPlaceholder } from "@/components/placeholders/NullRepositoryPlaceholder";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,12 +28,16 @@ type ProjectViewPanelProps = {
   busy?: boolean;
   repoPath: string;
   selectedCommit?: string | null;
+  commitComposer?: boolean;
   onSidebarTab: (tab: SidebarTab) => void;
   onChangedOnly: (value: boolean) => void;
   onSettings: () => void;
   onCreateRepository: () => void;
   onSelectCommit: (hash: string) => void;
   onLeaveCommit: () => void;
+  onCommitAll: () => void;
+  onCancelComposer: () => void;
+  onCreateCommit: (fields: CreateCommitFields) => void;
 };
 
 function splitMessage(message: string): { title: string; description: string } {
@@ -48,14 +53,19 @@ function directoryState(
   folderEmpty: boolean,
   hasCommits: boolean,
   commitOpen: boolean,
+  composerOpen: boolean,
+  dirty: boolean,
 ): "default" | "selected" | "disabled" {
+  if (composerOpen) {
+    return "selected";
+  }
   if (commitOpen) {
     return "default";
   }
   if (folderEmpty && !hasCommits) {
     return "selected";
   }
-  if (!hasCommits) {
+  if (!hasCommits && !dirty) {
     return "disabled";
   }
   return "default";
@@ -74,27 +84,43 @@ export function ProjectViewPanel({
   busy,
   repoPath,
   selectedCommit,
+  commitComposer,
   onSidebarTab,
   onChangedOnly,
   onSettings,
   onCreateRepository,
   onSelectCommit,
   onLeaveCommit,
+  onCommitAll,
+  onCancelComposer,
+  onCreateCommit,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
-  const dirty = hasCommits && isDirty(status);
+  const dirty = isDirty(status);
   const counts = changeCounts(status);
   const commitOpen = Boolean(selectedCommit);
+  const composerOpen = Boolean(commitComposer);
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
       <HeaderSelectBranch locale={locale} branchName={branchName} />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="flex w-[309px] flex-col gap-2 px-3">
+        <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
           <SidebarCardDirectory
-            state={directoryState(folderEmpty, hasCommits, commitOpen)}
-            onClick={commitOpen ? onLeaveCommit : undefined}
+            state={directoryState(folderEmpty, hasCommits, commitOpen, composerOpen, dirty)}
+            onClick={commitOpen && !composerOpen ? onLeaveCommit : undefined}
           >
-            <UncommittedFilesCard locale={locale} dirty={dirty} counts={counts} changedOnly={changedOnly} onChangedOnly={onChangedOnly} />
+            {composerOpen ? (
+              <CreateCommitCard locale={locale} busy={busy} onCancel={onCancelComposer} onCreate={onCreateCommit} />
+            ) : (
+              <UncommittedFilesCard
+                locale={locale}
+                dirty={dirty}
+                counts={counts}
+                changedOnly={changedOnly}
+                onChangedOnly={onChangedOnly}
+                onCommitAll={onCommitAll}
+              />
+            )}
           </SidebarCardDirectory>
         </div>
         <div className="flex w-full items-center p-3">

@@ -13,6 +13,7 @@ import {
 import type { Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
 import { useAppStore, type CommitSummary, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
+import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 
 type EntriesResult = {
   entries?: DirEntry[];
@@ -27,6 +28,22 @@ type LogResult = {
 type LocksResult = {
   locks?: FileLock[];
 };
+
+function commitMessage(title: string, description: string): string {
+  const head = title.trim();
+  const body = description.trim();
+  if (!head) {
+    return "";
+  }
+  if (!body) {
+    return head;
+  }
+  return `${head}\n\n${body}`;
+}
+
+function firstTag(raw: string): string {
+  return raw.split(",")[0]?.trim() ?? "";
+}
 
 export default function App() {
   const shell = useAppStore((s) => s.shell);
@@ -230,6 +247,53 @@ export default function App() {
     }
   }
 
+  async function onCommitAll() {
+    const paths = dirtyPaths(useAppStore.getState().status);
+    if (paths.length === 0) {
+      return;
+    }
+    setBusy(true);
+    try {
+      await foresterCall("index.add", { files: paths });
+      await refreshRepoMeta();
+      useAppStore.getState().openCommitComposer();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onCreateCommit(fields: CreateCommitFields) {
+    const message = commitMessage(fields.message, fields.description);
+    if (!message) {
+      return;
+    }
+    const tag = firstTag(fields.tag);
+    const author = useAppStore.getState().userName.trim();
+    setBusy(true);
+    try {
+      const paths = dirtyPaths(useAppStore.getState().status);
+      if (paths.length > 0) {
+        await foresterCall("index.add", { files: paths });
+      }
+      const args: Record<string, unknown> = { message };
+      if (author) {
+        args.author = author;
+      }
+      if (tag) {
+        args.tag = tag;
+      }
+      await foresterCall("commit.create", args);
+      useAppStore.getState().closeCommitComposer();
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onLocale(next: Locale) {
     setLocale(next);
     try {
@@ -248,6 +312,9 @@ export default function App() {
           onCreateRepository={() => void onCreateRepository()}
           onApplySelection={(paths) => void onApplySelection(paths)}
           onNeedMore={() => void loadMoreEntries()}
+          onCommitAll={() => void onCommitAll()}
+          onCancelComposer={() => useAppStore.getState().closeCommitComposer()}
+          onCreateCommit={(fields) => void onCreateCommit(fields)}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />

@@ -9,9 +9,17 @@ type UncommittedFilesCardProps = {
   changedOnly: boolean;
   counts?: ChangeCounts;
   onChangedOnly: (value: boolean) => void;
+  onCommitAll: () => void;
 };
 
-export function UncommittedFilesCard({ locale, dirty, changedOnly, counts, onChangedOnly }: UncommittedFilesCardProps) {
+export function UncommittedFilesCard({
+  locale,
+  dirty,
+  changedOnly,
+  counts,
+  onChangedOnly,
+  onCommitAll,
+}: UncommittedFilesCardProps) {
   const copy = t(locale);
   const stats = dirty && counts && counts.append + counts.new + counts.modified + counts.deleted > 0 ? counts : null;
   return (
@@ -42,7 +50,12 @@ export function UncommittedFilesCard({ locale, dirty, changedOnly, counts, onCha
           "flex h-10 w-full items-center justify-center rounded-md border border-border text-[14px] font-medium leading-5 text-foreground",
           dirty ? "bg-background shadow-sm" : "opacity-50",
         )}
-        onClick={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (dirty) {
+            onCommitAll();
+          }
+        }}
       >
         {copy.commitAllFiles}
       </button>

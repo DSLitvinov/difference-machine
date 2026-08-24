@@ -73,6 +73,8 @@ type AppState = {
   openFile: (path: string) => void;
   openCommit: (hash: string) => void;
   leaveCommit: () => void;
+  openCommitComposer: () => void;
+  closeCommitComposer: () => void;
   setToast: (message: string | null) => void;
   setRepoMeta: (meta: {
     folderEmpty: boolean;
@@ -142,10 +144,18 @@ export const useAppStore = create<AppState>((set) => ({
   setFolderPath: (path) => set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null }),
   setSelection: (paths) => set({ selection: paths, ...(paths.length > 0 ? { infoCollapsed: false } : {}) }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
-  setContentContext: (context) => set({ contentContext: context, ...(context === "folder" ? { selectedCommit: null } : {}) }),
-  openFile: (path) => set({ selection: [path], contentContext: "file", infoCollapsed: false, selectedCommit: null }),
-  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit" }),
+  setContentContext: (context) =>
+    set({
+      contentContext: context,
+      ...(context === "folder" ? { selectedCommit: null } : { commitComposer: "closed" }),
+    }),
+  openFile: (path) =>
+    set({ selection: [path], contentContext: "file", infoCollapsed: false, selectedCommit: null, commitComposer: "closed" }),
+  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit", commitComposer: "closed" }),
   leaveCommit: () => set({ selectedCommit: null, contentContext: "folder", selection: [] }),
+  openCommitComposer: () =>
+    set({ commitComposer: "open", contentContext: "folder", selectedCommit: null, infoCollapsed: false, sidebarTab: "history" }),
+  closeCommitComposer: () => set({ commitComposer: "closed" }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),
   appendEntries: (entries, hasMore) =>

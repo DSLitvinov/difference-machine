@@ -25,7 +25,7 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 7 | Folder grid + virtual scroll + thumbnails | done |
 | 8 | File View (image / text / binary / no history) | done |
 | 9 | History sidebar + View Commit | done |
-| 10 | Create Commit composer | pending |
+| 10 | Create Commit composer | done |
 | 11 | History of File (text / image) | pending |
 | 12 | Stages placeholder | pending |
 | 13 | Settings dialog | pending |

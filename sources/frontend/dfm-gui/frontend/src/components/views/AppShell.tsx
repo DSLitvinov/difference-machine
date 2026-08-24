@@ -8,6 +8,7 @@ import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
 import { foresterCall } from "@/lib/bridge";
 import { showRightColumn } from "@/lib/view";
 import { useAppStore, useDerivedView } from "@/store/app-store";
+import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 
 type AppShellProps = {
   busy?: boolean;
@@ -15,9 +16,21 @@ type AppShellProps = {
   onCreateRepository: () => void;
   onApplySelection: (paths: string[]) => void;
   onNeedMore: () => void;
+  onCommitAll: () => void;
+  onCancelComposer: () => void;
+  onCreateCommit: (fields: CreateCommitFields) => void;
 };
 
-export function AppShell({ busy, onSettings, onCreateRepository, onApplySelection, onNeedMore }: AppShellProps) {
+export function AppShell({
+  busy,
+  onSettings,
+  onCreateRepository,
+  onApplySelection,
+  onNeedMore,
+  onCommitAll,
+  onCancelComposer,
+  onCreateCommit,
+}: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
   const sidebarTab = useAppStore((s) => s.sidebarTab);
@@ -43,11 +56,13 @@ export function AppShell({ busy, onSettings, onCreateRepository, onApplySelectio
   const openCommit = useAppStore((s) => s.openCommit);
   const leaveCommit = useAppStore((s) => s.leaveCommit);
   const selectedCommit = useAppStore((s) => s.selectedCommit);
+  const commitComposer = useAppStore((s) => s.commitComposer);
   const view = useDerivedView();
   const showRight = showRightColumn(view) && !infoCollapsed;
   const filePath = selection[0] ?? "";
   const fileView = view === "file-view" && Boolean(filePath);
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
+  const moreFiles = view === "create-commit" || selection.length > 1;
 
   async function openExternal() {
     if (!filePath) {
@@ -86,12 +101,16 @@ export function AppShell({ busy, onSettings, onCreateRepository, onApplySelectio
             busy={busy}
             repoPath={repoPath}
             selectedCommit={selectedCommit}
+            commitComposer={commitComposer === "open"}
             onSidebarTab={setSidebarTab}
             onChangedOnly={setChangedOnly}
             onSettings={onSettings}
             onCreateRepository={onCreateRepository}
             onSelectCommit={openCommit}
             onLeaveCommit={leaveCommit}
+            onCommitAll={onCommitAll}
+            onCancelComposer={onCancelComposer}
+            onCreateCommit={onCreateCommit}
           />
         )}
         {fileView ? (
@@ -133,7 +152,7 @@ export function AppShell({ busy, onSettings, onCreateRepository, onApplySelectio
           />
         )}
         {showRight ? (
-          selection.length > 1 ? (
+          moreFiles ? (
             <SelectMoreFilesPanel
               locale={locale}
               paths={selection}
