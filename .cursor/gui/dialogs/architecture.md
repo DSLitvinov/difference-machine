@@ -61,7 +61,7 @@
 
 1. Пользователь выбирает абсолютный путь (пустая папка или проект без `.DFM/`).
 2. `CallStateless` / сессия на этот путь → `repo.init`.
-3. Запись `[current repo]` и `[repo] path_N`.
+3. Запись `~/.dfm/repos.cfg`: `[current repo]` и `[repo] path_N`.
 4. `Open` сессии, `status.get`, вход в Project.
 
 Автор из `[user]` передавать в `author`, если поле есть в мастере.

@@ -57,12 +57,17 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 	a.applyNativeTheme(cfg.Theme)
-	path := cfg.CurrentRepo
+	repos, err := loadRepoState()
+	if err != nil {
+		return
+	}
+	path := repos.Current
 	if path == "" || !isForesterRepo(path) {
 		return
 	}
 	a.openLocked(path)
 	applyAppWindowSize(ctx)
+	a.applyMenuLocale()
 }
 
 func (a *App) shutdown(_ context.Context) {
@@ -89,8 +94,10 @@ func (a *App) GetSession() SessionInfo {
 		}
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
-		info.RepoPath = cfg.CurrentRepo
 		a.applyNativeTheme(info.Theme)
+	}
+	if repos, err := loadRepoState(); err == nil {
+		info.RepoPath = repos.Current
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -146,6 +153,7 @@ func (a *App) InitRepository(absPath string) SessionInfo {
 	a.openLocked(absPath)
 	a.mu.Unlock()
 	applyAppWindowSize(a.ctx)
+	a.applyMenuLocale()
 	return a.GetSession()
 }
 
@@ -166,6 +174,7 @@ func (a *App) OpenRepository(absPath string) SessionInfo {
 	a.openLocked(absPath)
 	a.mu.Unlock()
 	applyAppWindowSize(a.ctx)
+	a.applyMenuLocale()
 	return a.GetSession()
 }
 
@@ -226,10 +235,10 @@ type SettingsInfo struct {
 	Editors      []string `json:"editors"`
 }
 
-func settingsFromCfg(cfg setupCfg) SettingsInfo {
-	repos := knownRepos(cfg)
-	if repos == nil {
-		repos = []string{}
+func settingsFromCfg(cfg setupCfg, repos repoState) SettingsInfo {
+	list := knownRepos(repos)
+	if list == nil {
+		list = []string{}
 	}
 	editors := cfg.Editors
 	if editors == nil {
@@ -248,7 +257,7 @@ func settingsFromCfg(cfg setupCfg) SettingsInfo {
 		UserEmail:    cfg.UserEmail,
 		Locale:       locale,
 		Theme:        theme,
-		Repos:        repos,
+		Repos:        list,
 		APIPath:      cfg.APIPath,
 		ForesterPath: cfg.ForesterPath,
 		BlenderPath:  cfg.BlenderPath,
@@ -257,13 +266,17 @@ func settingsFromCfg(cfg setupCfg) SettingsInfo {
 	}
 }
 
-// GetSettings returns author, repos, editors, and Forester paths from setup.cfg.
+// GetSettings returns author, repos, editors, and Forester paths from cfg files.
 func (a *App) GetSettings() (SettingsInfo, error) {
 	cfg, err := loadSetupCfg()
 	if err != nil {
 		return SettingsInfo{}, err
 	}
-	return settingsFromCfg(cfg), nil
+	repos, err := loadRepoState()
+	if err != nil {
+		return SettingsInfo{}, err
+	}
+	return settingsFromCfg(cfg, repos), nil
 }
 
 // SaveProfile writes [user] name/email and [ui] language.
@@ -297,11 +310,13 @@ func (a *App) SaveAppearance(theme string) error {
 	return nil
 }
 
-// SaveRepos writes [repo] path_N. Does not delete .DFM/ on disk.
+// SaveRepos writes ~/.dfm/repos.cfg. Does not delete .DFM/ on disk.
 func (a *App) SaveRepos(paths []string) error {
-	return updateSetupCfg(func(cfg *setupCfg) {
-		cfg.Repos = compactPaths(paths)
-	})
+	if err := saveRepoList(paths); err != nil {
+		return err
+	}
+	a.applyMenuLocale()
+	return nil
 }
 
 // SaveForester writes [api] path (native library) and [forester] path (CLI).

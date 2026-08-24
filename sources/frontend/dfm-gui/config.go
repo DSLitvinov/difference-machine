@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -12,8 +13,6 @@ import (
 type setupCfg struct {
 	UserName     string
 	UserEmail    string
-	CurrentRepo  string
-	Repos        []string
 	Locale       string
 	Theme        string
 	ForesterPath string
@@ -24,12 +23,33 @@ type setupCfg struct {
 	raw          map[string]map[string]string
 }
 
-func setupCfgPath() (string, error) {
+type repoState struct {
+	Current string
+	Repos   []string
+}
+
+func dfmDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".dfm", "setup.cfg"), nil
+	return filepath.Join(home, ".dfm"), nil
+}
+
+func setupCfgPath() (string, error) {
+	dir, err := dfmDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "setup.cfg"), nil
+}
+
+func reposCfgPath() (string, error) {
+	dir, err := dfmDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "repos.cfg"), nil
 }
 
 func loadSetupCfg() (setupCfg, error) {
@@ -42,53 +62,22 @@ func loadSetupCfg() (setupCfg, error) {
 	if err != nil {
 		return cfg, err
 	}
-	f, err := os.Open(path)
+	raw, err := parseIniFile(path)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return cfg, nil
-		}
 		return cfg, err
 	}
-	defer f.Close()
-
-	section := ""
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		line := strings.TrimSpace(sc.Text())
-		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
-			continue
-		}
-		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
-			section = strings.TrimSpace(line[1 : len(line)-1])
-			if _, ok := cfg.raw[section]; !ok {
-				cfg.raw[section] = map[string]string{}
-			}
-			continue
-		}
-		key, value, ok := strings.Cut(line, "=")
-		if !ok {
-			continue
-		}
-		key = strings.TrimSpace(key)
-		value = strings.Trim(strings.TrimSpace(value), `"`)
-		if section == "" {
-			continue
-		}
-		if cfg.raw[section] == nil {
-			cfg.raw[section] = map[string]string{}
-		}
-		cfg.raw[section][key] = value
+	if raw == nil {
+		return cfg, nil
 	}
-	if err := sc.Err(); err != nil {
-		return cfg, err
-	}
+	cfg.raw = raw
+	applySetupSections(&cfg)
+	return cfg, nil
+}
 
+func applySetupSections(cfg *setupCfg) {
 	if user := cfg.raw["user"]; user != nil {
 		cfg.UserName = user["name"]
 		cfg.UserEmail = user["email"]
-	}
-	if cur := cfg.raw["current repo"]; cur != nil {
-		cfg.CurrentRepo = cur["path"]
 	}
 	if ui := cfg.raw["ui"]; ui != nil {
 		if ui["language"] == "ru" {
@@ -97,9 +86,6 @@ func loadSetupCfg() (setupCfg, error) {
 		if ui["theme"] == "dark" {
 			cfg.Theme = "dark"
 		}
-	}
-	if repo := cfg.raw["repo"]; repo != nil {
-		cfg.Repos = loadPathList(repo)
 	}
 	if ed := cfg.raw["editors"]; ed != nil {
 		cfg.Editors = loadPathList(ed)
@@ -116,7 +102,48 @@ func loadSetupCfg() (setupCfg, error) {
 	if b := cfg.raw["blender"]; b != nil {
 		cfg.BlenderPath = b["path"]
 	}
-	return cfg, nil
+}
+
+func parseIniFile(path string) (map[string]map[string]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer f.Close()
+
+	raw := map[string]map[string]string{}
+	section := ""
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, ";") {
+			continue
+		}
+		if strings.HasPrefix(line, "[") && strings.HasSuffix(line, "]") {
+			section = strings.TrimSpace(line[1 : len(line)-1])
+			if _, ok := raw[section]; !ok {
+				raw[section] = map[string]string{}
+			}
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok || section == "" {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		value = strings.Trim(strings.TrimSpace(value), `"`)
+		if raw[section] == nil {
+			raw[section] = map[string]string{}
+		}
+		raw[section][key] = value
+	}
+	if err := sc.Err(); err != nil {
+		return nil, err
+	}
+	return raw, nil
 }
 
 func updateSetupCfg(mut func(*setupCfg)) error {
@@ -129,19 +156,94 @@ func updateSetupCfg(mut func(*setupCfg)) error {
 }
 
 func rememberRepo(absPath string) error {
-	return updateSetupCfg(func(cfg *setupCfg) {
-		cfg.CurrentRepo = absPath
-		found := false
-		for _, p := range cfg.Repos {
-			if samePath(p, absPath) {
-				found = true
-				break
+	state, err := loadRepoState()
+	if err != nil {
+		return err
+	}
+	state.Current = absPath
+	state.Repos = uniquePaths(append([]string{absPath}, state.Repos...))
+	return writeRepoState(state)
+}
+
+func saveRepoList(paths []string) error {
+	state, err := loadRepoState()
+	if err != nil {
+		return err
+	}
+	state.Repos = compactPaths(paths)
+	state.Repos = knownRepos(state)
+	return writeRepoState(state)
+}
+
+func loadRepoState() (repoState, error) {
+	path, err := reposCfgPath()
+	if err != nil {
+		return repoState{}, err
+	}
+	raw, err := parseIniFile(path)
+	if err != nil {
+		return repoState{}, err
+	}
+	if raw != nil {
+		return repoStateFromRaw(raw), nil
+	}
+	cfg, err := loadSetupCfg()
+	if err != nil {
+		return repoState{}, err
+	}
+	state := repoStateFromSetup(cfg)
+	if state.Current == "" && len(state.Repos) == 0 {
+		return state, nil
+	}
+	if err := writeRepoState(state); err != nil {
+		return state, err
+	}
+	if err := writeSetupCfg(cfg); err != nil {
+		return state, err
+	}
+	return state, nil
+}
+
+func repoStateFromRaw(raw map[string]map[string]string) repoState {
+	state := repoState{}
+	if cur := raw["current repo"]; cur != nil {
+		state.Current = strings.TrimSpace(cur["path"])
+	}
+	if repo := raw["repo"]; repo != nil {
+		state.Repos = loadPathList(repo)
+	}
+	state.Repos = knownRepos(state)
+	return state
+}
+
+func repoStateFromSetup(cfg setupCfg) repoState {
+	return repoStateFromRaw(cfg.raw)
+}
+
+func writeRepoState(state repoState) error {
+	path, err := reposCfgPath()
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	state.Repos = knownRepos(state)
+	var b strings.Builder
+	if state.Current != "" {
+		fmt.Fprintf(&b, "[current repo]\npath = %s\n\n", state.Current)
+	}
+	if len(state.Repos) > 0 {
+		fmt.Fprintf(&b, "[repo]\n")
+		for i, p := range state.Repos {
+			if p == "" {
+				continue
 			}
+			fmt.Fprintf(&b, "path_%d = %s\n", i+1, p)
 		}
-		if !found {
-			cfg.Repos = append(cfg.Repos, absPath)
-		}
-	})
+		b.WriteByte('\n')
+	}
+	return writeAtomic(path, []byte(b.String()))
 }
 
 func writeSetupCfg(cfg setupCfg) error {
@@ -155,9 +257,18 @@ func writeSetupCfg(cfg setupCfg) error {
 	if cfg.raw == nil {
 		cfg.raw = map[string]map[string]string{}
 	}
+	legacy := repoStateFromSetup(cfg)
+	delete(cfg.raw, "current repo")
+	delete(cfg.raw, "repo")
+	if reposPath, err := reposCfgPath(); err == nil {
+		if _, err := os.Stat(reposPath); os.IsNotExist(err) && (legacy.Current != "" || len(legacy.Repos) > 0) {
+			if err := writeRepoState(legacy); err != nil {
+				return err
+			}
+		}
+	}
 	setSection(cfg.raw, "user", "name", cfg.UserName)
 	setSection(cfg.raw, "user", "email", cfg.UserEmail)
-	setSection(cfg.raw, "current repo", "path", cfg.CurrentRepo)
 	setSection(cfg.raw, "ui", "language", cfg.Locale)
 	setSection(cfg.raw, "ui", "theme", cfg.Theme)
 	setSection(cfg.raw, "forester", "path", cfg.ForesterPath)
@@ -165,37 +276,26 @@ func writeSetupCfg(cfg setupCfg) error {
 	setSection(cfg.raw, "addons", "diffmachine_path", cfg.AddonPath)
 	setSection(cfg.raw, "blender", "path", cfg.BlenderPath)
 
-	repo := map[string]string{}
-	for i, p := range cfg.Repos {
-		repo["path_"+strconv.Itoa(i+1)] = p
-	}
-	cfg.raw["repo"] = repo
-
 	editors := map[string]string{}
 	for i, p := range cfg.Editors {
 		editors["path_"+strconv.Itoa(i+1)] = p
 	}
 	cfg.raw["editors"] = editors
 
-	order := []string{"user", "ui", "current repo", "repo", "forester", "api", "addons", "blender", "editors", "gc", "python_bindings", "plugins"}
+	order := []string{"user", "ui", "forester", "api", "addons", "blender", "editors", "gc", "python_bindings", "plugins"}
 	seen := map[string]bool{}
 	var b strings.Builder
 	writeSection := func(name string) {
+		if name == "current repo" || name == "repo" {
+			return
+		}
 		keys := cfg.raw[name]
 		if len(keys) == 0 {
 			return
 		}
 		seen[name] = true
 		fmt.Fprintf(&b, "[%s]\n", name)
-		if name == "repo" {
-			for i := 1; i <= len(cfg.Repos); i++ {
-				p := cfg.Repos[i-1]
-				if p == "" {
-					continue
-				}
-				fmt.Fprintf(&b, "path_%d = %s\n", i, p)
-			}
-		} else if name == "editors" {
+		if name == "editors" {
 			for i := 1; i <= len(cfg.Editors); i++ {
 				p := cfg.Editors[i-1]
 				if p == "" {
@@ -221,9 +321,12 @@ func writeSetupCfg(cfg setupCfg) error {
 			writeSection(name)
 		}
 	}
+	return writeAtomic(path, []byte(b.String()))
+}
 
+func writeAtomic(path string, data []byte) error {
 	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, []byte(b.String()), 0o644); err != nil {
+	if err := os.WriteFile(tmp, data, 0o644); err != nil {
 		return err
 	}
 	return os.Rename(tmp, path)
@@ -244,8 +347,8 @@ func loadPathList(section map[string]string) []string {
 	return uniquePaths(keys)
 }
 
-func knownRepos(cfg setupCfg) []string {
-	return uniquePaths(append([]string{cfg.CurrentRepo}, cfg.Repos...))
+func knownRepos(state repoState) []string {
+	return uniquePaths(append([]string{state.Current}, state.Repos...))
 }
 
 func uniquePaths(paths []string) []string {
@@ -257,6 +360,9 @@ func uniquePaths(paths []string) []string {
 			continue
 		}
 		key := filepath.Clean(p)
+		if runtime.GOOS == "windows" {
+			key = strings.ToLower(key)
+		}
 		if seen[key] {
 			continue
 		}
@@ -278,5 +384,10 @@ func setSection(raw map[string]map[string]string, section, key, value string) {
 }
 
 func samePath(a, b string) bool {
-	return filepath.Clean(a) == filepath.Clean(b)
+	a = filepath.Clean(a)
+	b = filepath.Clean(b)
+	if runtime.GOOS == "windows" {
+		return strings.EqualFold(a, b)
+	}
+	return a == b
 }

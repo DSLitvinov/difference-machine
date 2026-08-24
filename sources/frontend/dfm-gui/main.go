@@ -19,7 +19,7 @@ func main() {
 
 	width, height := firstStartWidth, firstStartHeight
 	minW, minH := firstStartWidth, firstStartHeight
-	if cfg, err := loadSetupCfg(); err == nil && cfg.CurrentRepo != "" && isForesterRepo(cfg.CurrentRepo) {
+	if repos, err := loadRepoState(); err == nil && repos.Current != "" && isForesterRepo(repos.Current) {
 		width, height = appWidth, appHeight
 		minW, minH = appMinWidth, appMinHeight
 	}

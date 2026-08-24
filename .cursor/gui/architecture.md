@@ -142,7 +142,7 @@ jsonapi.Close(h)
 
 **Wails backend**
 
-- Список репозиториев и текущий репо в `~/.dfm/setup.cfg`
+- Список репозиториев и текущий репо в `~/.dfm/repos.cfg`
 - Автор (`user.name` / `user.email`)
 - Пути CLI / native API / Blender addon (bootstrap для экосистемы)
 - Нативные диалоги выбора папки/файла
@@ -178,17 +178,17 @@ jsonapi.Close(h)
 
 ## Конфигурация
 
-Глобальный файл: `~/.dfm/setup.cfg`. GUI читает и пишет его на старте и из настроек.
+Глобальные файлы в `~/.dfm/`. GUI читает и пишет их на старте и из настроек.
 
-| Секция | Назначение |
-|--------|------------|
-| `[user] name`, `email` | Автор коммитов |
-| `[current repo] path` | Открытый репозиторий |
-| `[repo] path_N` | Список известных репозиториев |
-| `[forester] path` | CLI (экосистема / bootstrap) |
-| `[api] path` | Native library для Blender addon |
-| `[addons] diffmachine_path` | Путь аддона |
-| `[blender] path` | Исполняемый Blender |
+| Файл | Секция | Назначение |
+|------|--------|------------|
+| `setup.cfg` | `[user] name`, `email` | Автор коммитов |
+| `repos.cfg` | `[current repo] path` | Открытый репозиторий |
+| `repos.cfg` | `[repo] path_N` | Список известных репозиториев |
+| `setup.cfg` | `[forester] path` | CLI (экосистема / bootstrap) |
+| `setup.cfg` | `[api] path` | Native library для Blender addon |
+| `setup.cfg` | `[addons] diffmachine_path` | Путь аддона |
+| `setup.cfg` | `[blender] path` | Исполняемый Blender |
 
 Репозиторный `.DFM/config` создаёт `repo.init`, GUI его не подменяет.
 

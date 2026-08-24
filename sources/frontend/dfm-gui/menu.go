@@ -1,7 +1,9 @@
 package main
 
 import (
+	"path/filepath"
 	goruntime "runtime"
+	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/menu/keys"
@@ -85,9 +87,96 @@ func (a *App) applicationMenu() *menu.Menu {
 		}
 		runtime.EventsEmit(a.ctx, eventMenuMerge)
 	})
+	a.appendRepoSwitchMenu(repo)
 
 	appMenu.Append(menu.WindowMenu())
 	return appMenu
+}
+
+func (a *App) appendRepoSwitchMenu(repo *menu.Menu) {
+	state, err := loadRepoState()
+	if err != nil {
+		return
+	}
+	repos := knownRepos(state)
+	if len(repos) == 0 {
+		return
+	}
+	current := state.Current
+	a.mu.Lock()
+	if a.workPath != "" {
+		current = a.workPath
+	}
+	a.mu.Unlock()
+	repo.AddSeparator()
+	for _, entry := range repoMenuEntries(repos, current) {
+		path := entry.Path
+		item := repo.AddRadio(entry.Label, entry.Checked, nil, func(_ *menu.CallbackData) {
+			a.menuSwitchRepository(path)
+		})
+		if !isForesterRepo(path) {
+			item.Disabled = true
+		}
+	}
+}
+
+func (a *App) menuSwitchRepository(path string) {
+	if a.ctx == nil {
+		return
+	}
+	a.mu.Lock()
+	same := a.hasSession && samePath(a.workPath, path)
+	a.mu.Unlock()
+	if same {
+		return
+	}
+	info := a.OpenRepository(path)
+	runtime.EventsEmit(a.ctx, eventSessionChanged, info)
+}
+
+type repoMenuEntry struct {
+	Path    string
+	Label   string
+	Checked bool
+}
+
+func repoMenuEntries(repos []string, current string) []repoMenuEntry {
+	labels := repoMenuLabels(repos)
+	out := make([]repoMenuEntry, 0, len(repos))
+	for i, path := range repos {
+		path = strings.TrimSpace(path)
+		if path == "" {
+			continue
+		}
+		out = append(out, repoMenuEntry{
+			Path:    path,
+			Label:   labels[i],
+			Checked: samePath(path, current),
+		})
+	}
+	return out
+}
+
+func repoMenuLabels(paths []string) []string {
+	bases := make([]string, len(paths))
+	counts := map[string]int{}
+	for i, p := range paths {
+		base := filepath.Base(filepath.Clean(p))
+		if base == "" || base == "." || base == string(filepath.Separator) {
+			base = p
+		}
+		bases[i] = base
+		counts[base]++
+	}
+	out := make([]string, len(paths))
+	for i, p := range paths {
+		if counts[bases[i]] == 1 {
+			out[i] = bases[i]
+			continue
+		}
+		out[i] = filepath.Clean(p)
+	}
+	return out
 }
 
 func (a *App) applyMenuLocale() {

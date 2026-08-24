@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -51,16 +52,36 @@ func TestNativeMenuCopy(t *testing.T) {
 		t.Fatalf("english menu = %+v", en)
 	}
 	ru := nativeMenuCopyFor("ru")
-	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.merge != "Merge" {
+	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.merge != "Слияние" {
 		t.Fatalf("russian menu = %+v", ru)
 	}
 }
 
+func TestRepoMenuLabelsUsesFolderNameAndDisambiguates(t *testing.T) {
+	got := repoMenuLabels([]string{"/Users/me/film", "/Users/me/ads", "/tmp/film"})
+	want := []string{"/Users/me/film", "ads", "/tmp/film"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("labels = %v, want %v", got, want)
+	}
+}
+
+func TestRepoMenuEntriesChecksCurrent(t *testing.T) {
+	got := repoMenuEntries([]string{"/proj/a", "/proj/b"}, "/proj/b")
+	if len(got) != 2 {
+		t.Fatalf("len = %d", len(got))
+	}
+	if got[0].Label != "a" || got[0].Checked {
+		t.Fatalf("first = %+v", got[0])
+	}
+	if got[1].Label != "b" || !got[1].Checked {
+		t.Fatalf("second = %+v", got[1])
+	}
+}
+
 func TestSettingsFromCfgIncludesCurrentRepo(t *testing.T) {
-	info := settingsFromCfg(setupCfg{
-		CurrentRepo: "/tmp/project",
-		Repos:       []string{"/tmp/other"},
-		Theme:       "dark",
+	info := settingsFromCfg(setupCfg{Theme: "dark"}, repoState{
+		Current: "/tmp/project",
+		Repos:   []string{"/tmp/other"},
 	})
 	if info.Theme != "dark" {
 		t.Fatalf("theme = %q", info.Theme)

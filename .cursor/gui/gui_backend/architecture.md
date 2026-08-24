@@ -17,7 +17,7 @@ Wails backend:
 
 1. Поднимает окно и отдаёт frontend методы через Wails bindings.
 2. Держит сессию `pkg/jsonapi` на выбранном `workPath`.
-3. Читает/пишет `~/.dfm/setup.cfg`.
+3. Читает/пишет `~/.dfm/setup.cfg` и `~/.dfm/repos.cfg`.
 4. Вызывает нативные диалоги ОС (выбор папки).
 5. При необходимости следит за изменениями файлов в workdir и сигналит frontend.
 
@@ -73,7 +73,7 @@ Frontend не должен знать про `Handle`. Handle живёт тол�
 | Задача | Где |
 |--------|-----|
 | `status.get`, `commit.create`, `workdir.thumbnail`, … | Только `jsonapi.Call` |
-| Список репозиториев | `setup.cfg` `[repo]` / `[current repo]` |
+| Список репозиториев | `~/.dfm/repos.cfg` `[repo]` / `[current repo]` |
 | Автор по умолчанию | `setup.cfg` `[user]`; в `commit.create` передавать `author` |
 | Выбор папки на диске | Wails/OS dialog → абсолютный путь |
 | Open Folder / Create repository | picker + `Open` / `repo.init` — [Header Window](../components/items/header-window.md) |
