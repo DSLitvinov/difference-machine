@@ -3,7 +3,7 @@
 Figma: [Item / Panel / Header / Select Branch](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-5686) (`4309:5686`).  
 Код: `HeaderSelectBranch`.
 
-309×64. Padding 12. Слот `.Sidebar Item` 285×40 — dropdown **веток**. Данные: `branch.list`, текущая из `status.get`. Не ходить в API из хедера: колбэки панели.
+309×64. Padding 12. Слот `.Sidebar Item` 285×40 — dropdown **веток**: border `#e4e4e7`, radius 4 (`rounded-sm`), **shadow-sm**, иконки 20×20 `square-terminal` + `chevrons-up-down`, copy ветки Inter Regular 16/24 `#3f3f46`. Данные: `branch.list`, текущая из `status.get`. Не ходить в API из хедера: колбэки панели.
 
 ---
 

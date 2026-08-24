@@ -11,7 +11,7 @@
 ## Когда
 
 Пользователь открыл файл из сетки (open / double-click по макету хедера).  
-`contentContext = file`. Left больше не Project view: слот [Back to file](../components/atoms/card-back-to-file.md), список [CommitFileCard](../components/atoms/card-commit-file.md), заголовок секции `History of file`.
+`contentContext = file`. Left больше не Project view: [Panel / File view](../panels/file-view.md) (`4309:7530` или History Null `4309:9019`). Слоты left — в спеке панели, не дублировать геометрию здесь.
 
 Kind центральной области — по типу файла, не по расширению «на глаз», если API/превью уже классифицировали text / image / binary.
 

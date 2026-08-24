@@ -12,7 +12,7 @@ Figma: [Atom / Cards / No History File](https://www.figma.com/design/qlwKiMPZblz
 | Title | `No history of changes` | Inter Medium 16/24 `#09090b` |
 | Body | `The file is not added to any commit` | Inter Regular 14/20 `#71717a` |
 
-Нет кнопки, иконки, hover.
+Нет кнопки, иконки, hover. Живёт **сверху** Commit List ([file-view](../../panels/file-view.md) History Null), не по вертикальному центру колонки. Оболочка — SidebarCard Disable, **solid** (пунктир только у Current preview).
 
 ---
 

@@ -22,4 +22,4 @@ Figma: [Atom / Cards / Commit File](https://www.figma.com/design/qlwKiMPZblz96VS
 
 ## Запрещено
 
-- Строка «1 file changed» на file-карточке, если её нет в макете.
+- Строка «N files changed» на file-карточке. Атом `4306:3082` её не содержит. Инстансы [Panel / File view](../../panels/file-view.md) `4309:7530` сейчас подставляют Commit Project в Swapper — не брать stats со скрина панели.

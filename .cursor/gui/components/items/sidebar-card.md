@@ -30,14 +30,16 @@ Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for
 
 | `state` | Фон | Border | Тень |
 |---------|-----|--------|------|
-| Default | `Background/card` white | `#e4e4e7` | shadow-sm |
-| Hover | white | `#60a5fa` accent | shadow-sm |
-| Selected | `#eff6ff` | `#60a5fa` | нет в кадре |
-| Disable | `Background/muted` `#f4f4f5` | `#e4e4e7` | нет |
+| Default | `Background/card` white | `#e4e4e7` solid | shadow-sm |
+| Hover | white | `#60a5fa` accent solid | shadow-sm |
+| Selected | `#eff6ff` | `#60a5fa` solid | нет в кадре |
+| Disable | `Background/muted` `#f4f4f5` | `#e4e4e7` solid | нет |
 
-Disable — не кликабелен. Не снижать opacity контента сверх макета.
+Disable в наборе — не кликабелен. Не снижать opacity контента сверх макета.
 
 Hover сетки (`#eff6ff` без обязательного border на Hover) — другой item.
+
+**Исключение — Current preview** в [File view](../../panels/file-view.md): инстансы `4309:7530` / `4309:9019` рисуют Selected и Disable с **dashed** border. Карточки коммитов и No History File остаются solid. Клик Current preview (возврат к папке) допустим и при Disable-заливке.
 
 ---
 

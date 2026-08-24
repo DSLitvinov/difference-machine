@@ -3,7 +3,7 @@
 Figma: [Panel / Select More Files](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4383-9620) (`4383:9620`).  
 Код: `SelectMoreFilesPanel`. 332×720.
 
-Info при мультивыборе. Превью: [preview-file-info-more](../components/items/preview-file-info-more.md). Не список имён «file1, file2» под заголовком, если макета этого нет.
+Info при мультивыборе. Превью 308×308 — файл иллюстрации [preview-file-info-more](../components/items/preview-file-info-more.md), не коллаж type-иконок и не список имён «file1, file2» под заголовком.
 
 ---
 
