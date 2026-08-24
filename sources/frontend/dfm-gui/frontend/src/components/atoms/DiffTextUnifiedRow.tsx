@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 
-type DiffTextSplitRowProps = {
-  line: number;
-  text: string;
+type DiffTextUnifiedRowProps = {
   type?: "added" | "deleted" | "default";
+  oldNo?: number | null;
+  newNo?: number | null;
+  text: string;
 };
 
 const tone = {
@@ -24,12 +25,15 @@ const tone = {
   },
 } as const;
 
-export function DiffTextSplitRow({ line, text, type = "default" }: DiffTextSplitRowProps) {
+export function DiffTextUnifiedRow({ type = "default", oldNo, newNo, text }: DiffTextUnifiedRowProps) {
   const spec = tone[type];
   return (
     <div className={cn("flex w-full items-center text-[16px] leading-6", spec.row)}>
       <div className={cn("flex w-10 shrink-0 flex-col items-center justify-center border-r px-4", spec.meta)}>
-        <span className="min-w-3 text-center">{line || ""}</span>
+        <span className="min-w-3 text-center">{oldNo ?? ""}</span>
+      </div>
+      <div className={cn("flex w-10 shrink-0 flex-col items-center justify-center border-r px-4", spec.meta)}>
+        <span className="min-w-3 text-center">{newNo ?? ""}</span>
       </div>
       <div className="flex min-w-0 items-center pl-1 font-normal">
         <span className={cn("w-3 shrink-0", spec.meta)}>{spec.prefix}</span>

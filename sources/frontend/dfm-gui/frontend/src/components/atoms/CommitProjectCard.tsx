@@ -11,9 +11,23 @@ type CommitProjectCardProps = {
   head?: boolean;
   merge?: boolean;
   tag?: string;
+  filesChanged?: number;
+  insertions?: number;
+  deletions?: number;
 };
 
-export function CommitProjectCard({ title, author, description, timestamp, head, merge, tag }: CommitProjectCardProps) {
+export function CommitProjectCard({
+  title,
+  author,
+  description,
+  timestamp,
+  head,
+  merge,
+  tag,
+  filesChanged,
+  insertions,
+  deletions,
+}: CommitProjectCardProps) {
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="flex w-full flex-col gap-1">
@@ -25,7 +39,7 @@ export function CommitProjectCard({ title, author, description, timestamp, head,
             </span>
           ) : null}
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
-          <button type="button" className="size-4 shrink-0" aria-label="More">
+          <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
             <FigmaIcon src={ellipsisVertical} size={16} />
           </button>
         </div>
@@ -33,6 +47,13 @@ export function CommitProjectCard({ title, author, description, timestamp, head,
       </div>
       {description ? (
         <p className="line-clamp-2 h-8 overflow-hidden text-ellipsis text-[12px] leading-4 text-foreground-muted">{description}</p>
+      ) : null}
+      {filesChanged != null ? (
+        <p className="flex gap-1 text-[12px] leading-4">
+          <span className="text-foreground-muted">{filesChanged} files changed</span>
+          {insertions != null ? <span className="text-[#047857]">+ {insertions}</span> : null}
+          {deletions != null ? <span className="text-[#ef4444]">- {deletions}</span> : null}
+        </p>
       ) : null}
       <div className="flex items-center gap-2">
         <span className="inline-flex h-[22px] items-center rounded-full bg-background-muted px-3 text-[12px] font-semibold leading-4 text-foreground-secondary">

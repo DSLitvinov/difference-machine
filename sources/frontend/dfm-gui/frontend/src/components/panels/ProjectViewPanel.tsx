@@ -1,3 +1,4 @@
+import { useEffect, useRef, type ReactNode } from "react";
 import { HeaderSelectBranch } from "@/components/items/HeaderSelectBranch";
 import { HeaderSettings } from "@/components/items/HeaderSettings";
 import { SidebarCard } from "@/components/items/SidebarCard";
@@ -9,6 +10,7 @@ import { NullRepositoryPlaceholder } from "@/components/placeholders/NullReposit
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
 import { changeCounts, isDirty } from "@/lib/status";
+import { peekStat, requestStat, useRevisionEpoch } from "@/lib/revision-cache";
 import type { SidebarTab } from "@/lib/view";
 import type { CommitSummary, StatusSnapshot } from "@/store/app-store";
 
@@ -23,10 +25,14 @@ type ProjectViewPanelProps = {
   sidebarTab: SidebarTab;
   changedOnly: boolean;
   busy?: boolean;
+  repoPath: string;
+  selectedCommit?: string | null;
   onSidebarTab: (tab: SidebarTab) => void;
   onChangedOnly: (value: boolean) => void;
   onSettings: () => void;
   onCreateRepository: () => void;
+  onSelectCommit: (hash: string) => void;
+  onLeaveCommit: () => void;
 };
 
 function splitMessage(message: string): { title: string; description: string } {
@@ -38,7 +44,14 @@ function splitMessage(message: string): { title: string; description: string } {
   return { title: trimmed.slice(0, nl).trim(), description: trimmed.slice(nl + 1).trim() };
 }
 
-function directoryState(folderEmpty: boolean, hasCommits: boolean): "default" | "selected" | "disabled" {
+function directoryState(
+  folderEmpty: boolean,
+  hasCommits: boolean,
+  commitOpen: boolean,
+): "default" | "selected" | "disabled" {
+  if (commitOpen) {
+    return "default";
+  }
   if (folderEmpty && !hasCommits) {
     return "selected";
   }
@@ -59,20 +72,28 @@ export function ProjectViewPanel({
   sidebarTab,
   changedOnly,
   busy,
+  repoPath,
+  selectedCommit,
   onSidebarTab,
   onChangedOnly,
   onSettings,
   onCreateRepository,
+  onSelectCommit,
+  onLeaveCommit,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
   const dirty = hasCommits && isDirty(status);
   const counts = changeCounts(status);
+  const commitOpen = Boolean(selectedCommit);
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
       <HeaderSelectBranch locale={locale} branchName={branchName} />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] flex-col gap-2 px-3">
-          <SidebarCardDirectory state={directoryState(folderEmpty, hasCommits)}>
+          <SidebarCardDirectory
+            state={directoryState(folderEmpty, hasCommits, commitOpen)}
+            onClick={commitOpen ? onLeaveCommit : undefined}
+          >
             <UncommittedFilesCard locale={locale} dirty={dirty} counts={counts} changedOnly={changedOnly} onChangedOnly={onChangedOnly} />
           </SidebarCardDirectory>
         </div>
@@ -93,13 +114,55 @@ export function ProjectViewPanel({
               status={status}
               commits={commits}
               busy={busy}
+              repoPath={repoPath}
+              selectedCommit={selectedCommit}
               onCreateRepository={onCreateRepository}
+              onSelectCommit={onSelectCommit}
             />
           ) : null}
         </div>
       </div>
       <HeaderSettings userName={userName} onSettings={onSettings} />
     </aside>
+  );
+}
+
+function VisibleCommitCard({
+  hash,
+  repoPath,
+  selected,
+  children,
+  onSelect,
+}: {
+  hash: string;
+  repoPath: string;
+  selected?: boolean;
+  children: ReactNode;
+  onSelect: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) {
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          requestStat(repoPath, hash);
+        }
+      },
+      { rootMargin: "160px" },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [repoPath, hash]);
+  return (
+    <div ref={ref}>
+      <SidebarCard state={selected ? "selected" : "default"} onClick={onSelect}>
+        {children}
+      </SidebarCard>
+    </div>
   );
 }
 
@@ -110,7 +173,10 @@ function CommitList({
   status,
   commits,
   busy,
+  repoPath,
+  selectedCommit,
   onCreateRepository,
+  onSelectCommit,
 }: {
   locale: Locale;
   folderEmpty: boolean;
@@ -118,8 +184,12 @@ function CommitList({
   status: StatusSnapshot | null;
   commits: CommitSummary[];
   busy?: boolean;
+  repoPath: string;
+  selectedCommit?: string | null;
   onCreateRepository: () => void;
+  onSelectCommit: (hash: string) => void;
 }) {
+  useRevisionEpoch();
   if (!hasCommits && !folderEmpty) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
@@ -138,8 +208,15 @@ function CommitList({
     <div className="flex w-full flex-col gap-2">
       {commits.map((commit) => {
         const { title, description } = splitMessage(commit.message ?? "");
+        const stat = peekStat(repoPath, commit.hash);
         return (
-          <SidebarCard key={commit.hash}>
+          <VisibleCommitCard
+            key={commit.hash}
+            hash={commit.hash}
+            repoPath={repoPath}
+            selected={commit.hash === selectedCommit}
+            onSelect={() => onSelectCommit(commit.hash)}
+          >
             <CommitProjectCard
               title={title}
               author={commit.author ?? ""}
@@ -148,8 +225,11 @@ function CommitList({
               head={Boolean(commit.hash && commit.hash === status?.head_commit)}
               merge={(commit.parent_hashes?.length ?? 0) > 1}
               tag={commit.tag}
+              filesChanged={stat?.files_changed}
+              insertions={stat?.insertions}
+              deletions={stat?.deletions}
             />
-          </SidebarCard>
+          </VisibleCommitCard>
         );
       })}
     </div>

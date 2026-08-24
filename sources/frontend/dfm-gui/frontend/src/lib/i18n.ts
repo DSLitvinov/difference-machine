@@ -61,6 +61,15 @@ const en = {
   noHistoryFileBody: "The file is not added to any commit",
   binaryCannotDisplay: "This binary file cannot be displayed",
   openInExternalApplication: "Open in external application",
+  filesChangedLabel: "Files changed:",
+  noFilesChangedInCommit: "No files changed in this commit.",
+  tabUnified: "Unified",
+  tabSplit: "Split",
+  tab2Up: "2-up",
+  tabSwipe: "Swipe",
+  tabOverlay: "Оverlay",
+  after: "After",
+  before: "Before",
 };
 
 const ru: typeof en = {
@@ -124,6 +133,15 @@ const ru: typeof en = {
   noHistoryFileBody: "The file is not added to any commit",
   binaryCannotDisplay: "This binary file cannot be displayed",
   openInExternalApplication: "Open in external application",
+  filesChangedLabel: "Files changed:",
+  noFilesChangedInCommit: "No files changed in this commit.",
+  tabUnified: "Unified",
+  tabSplit: "Split",
+  tab2Up: "2-up",
+  tabSwipe: "Swipe",
+  tabOverlay: "Оverlay",
+  after: "After",
+  before: "Before",
 };
 
 const dictionaries = { en, ru };

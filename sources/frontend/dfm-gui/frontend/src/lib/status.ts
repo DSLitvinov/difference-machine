@@ -42,6 +42,19 @@ export function dirtyPaths(status: StatusSnapshot | null): string[] {
 
 export type LetterStatus = "appended" | "modified" | "new" | "delete";
 
+export function letterFromDiffStatus(status: string): LetterStatus | null {
+  if (status === "A") {
+    return "appended";
+  }
+  if (status === "M") {
+    return "modified";
+  }
+  if (status === "D") {
+    return "delete";
+  }
+  return null;
+}
+
 export function letterStatus(path: string, status: StatusSnapshot | null): LetterStatus | null {
   if (!status) {
     return null;

@@ -2,6 +2,7 @@ import { ProjectViewPanel } from "@/components/panels/ProjectViewPanel";
 import { FileViewPanel } from "@/components/panels/FileViewPanel";
 import { ContentViewPanel } from "@/components/panels/ContentViewPanel";
 import { ContentFilePanel } from "@/components/panels/ContentFilePanel";
+import { ContentCommitPanel } from "@/components/panels/ContentCommitPanel";
 import { FileInfoPanel } from "@/components/panels/FileInfoPanel";
 import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
 import { foresterCall } from "@/lib/bridge";
@@ -39,10 +40,14 @@ export function AppShell({ busy, onSettings, onCreateRepository, onApplySelectio
   const setInfoCollapsed = useAppStore((s) => s.setInfoCollapsed);
   const setContentContext = useAppStore((s) => s.setContentContext);
   const openFile = useAppStore((s) => s.openFile);
+  const openCommit = useAppStore((s) => s.openCommit);
+  const leaveCommit = useAppStore((s) => s.leaveCommit);
+  const selectedCommit = useAppStore((s) => s.selectedCommit);
   const view = useDerivedView();
   const showRight = showRightColumn(view) && !infoCollapsed;
   const filePath = selection[0] ?? "";
   const fileView = view === "file-view" && Boolean(filePath);
+  const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
 
   async function openExternal() {
     if (!filePath) {
@@ -79,10 +84,14 @@ export function AppShell({ busy, onSettings, onCreateRepository, onApplySelectio
             sidebarTab={sidebarTab}
             changedOnly={changedOnly}
             busy={busy}
+            repoPath={repoPath}
+            selectedCommit={selectedCommit}
             onSidebarTab={setSidebarTab}
             onChangedOnly={setChangedOnly}
             onSettings={onSettings}
             onCreateRepository={onCreateRepository}
+            onSelectCommit={openCommit}
+            onLeaveCommit={leaveCommit}
           />
         )}
         {fileView ? (
@@ -96,6 +105,13 @@ export function AppShell({ busy, onSettings, onCreateRepository, onApplySelectio
             onApply={() => onApplySelection([filePath])}
             onExpandInfo={() => setInfoCollapsed(false)}
             onOpenExternal={() => void openExternal()}
+          />
+        ) : commitInspect ? (
+          <ContentCommitPanel
+            locale={locale}
+            repoPath={repoPath}
+            commit={commitInspect}
+            head={Boolean(commitInspect.hash && commitInspect.hash === status?.head_commit)}
           />
         ) : (
           <ContentViewPanel

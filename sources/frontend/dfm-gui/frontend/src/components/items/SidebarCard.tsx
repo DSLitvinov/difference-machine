@@ -17,12 +17,24 @@ export function SidebarCard({ state = "default", className, children, onClick }:
     onClick && "cursor-pointer text-left",
     className,
   );
-  if (onClick) {
-    return (
-      <button type="button" className={classes} onClick={onClick}>
-        {children}
-      </button>
-    );
-  }
-  return <div className={classes}>{children}</div>;
+  return (
+    <div
+      className={classes}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={
+        onClick
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
+      {children}
+    </div>
+  );
 }

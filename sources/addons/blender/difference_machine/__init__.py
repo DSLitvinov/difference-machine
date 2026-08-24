@@ -15,12 +15,10 @@ bl_info = {
 
 import bpy
 import logging
-from pathlib import Path
 
 from .utils.logging_config import setup_logging, get_logger
 
-log_file = Path.home() / "blender_addon.log"
-setup_logging(log_level=logging.DEBUG, log_file=log_file)
+setup_logging(log_level=logging.DEBUG)
 logger = get_logger(__name__)
 
 from . import preferences

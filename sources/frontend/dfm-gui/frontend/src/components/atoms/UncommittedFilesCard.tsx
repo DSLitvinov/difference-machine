@@ -20,7 +20,7 @@ export function UncommittedFilesCard({ locale, dirty, changedOnly, counts, onCha
         <p className={cn("min-w-0 flex-1 text-[14px] font-semibold leading-5", dirty ? "text-foreground" : "text-foreground-muted")}>
           {copy.uncommittedFiles}
         </p>
-        <label className={cn("flex items-center gap-2", dirty ? "opacity-100" : "opacity-50")}>
+        <label className={cn("flex items-center gap-2", dirty ? "opacity-100" : "opacity-50")} onClick={(event) => event.stopPropagation()}>
           <Switch checked={changedOnly} onCheckedChange={onChangedOnly} disabled={!dirty} />
           <span className="text-[14px] leading-5 text-foreground">{copy.changed}</span>
         </label>
@@ -42,6 +42,7 @@ export function UncommittedFilesCard({ locale, dirty, changedOnly, counts, onCha
           "flex h-10 w-full items-center justify-center rounded-md border border-border text-[14px] font-medium leading-5 text-foreground",
           dirty ? "bg-background shadow-sm" : "opacity-50",
         )}
+        onClick={(event) => event.stopPropagation()}
       >
         {copy.commitAllFiles}
       </button>

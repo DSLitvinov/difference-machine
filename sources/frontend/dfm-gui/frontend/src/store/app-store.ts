@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Locale } from "@/lib/i18n";
 import { resetThumbCache } from "@/lib/thumb-cache";
+import { resetRevisionCache } from "@/lib/revision-cache";
 import { deriveView, type ContentContext, type DerivedView, type Shell, type SidebarTab } from "@/lib/view";
 
 export type StatusSnapshot = {
@@ -48,6 +49,7 @@ type AppState = {
   folderPath: string;
   selection: string[];
   contentContext: ContentContext;
+  selectedCommit: string | null;
   infoCollapsed: boolean;
   changedOnly: boolean;
   sidebarTab: SidebarTab;
@@ -69,6 +71,8 @@ type AppState = {
   setInfoCollapsed: (value: boolean) => void;
   setContentContext: (context: ContentContext) => void;
   openFile: (path: string) => void;
+  openCommit: (hash: string) => void;
+  leaveCommit: () => void;
   setToast: (message: string | null) => void;
   setRepoMeta: (meta: {
     folderEmpty: boolean;
@@ -91,6 +95,7 @@ export const useAppStore = create<AppState>((set) => ({
   folderPath: "",
   selection: [],
   contentContext: "folder",
+  selectedCommit: null,
   infoCollapsed: false,
   changedOnly: false,
   sidebarTab: "history",
@@ -105,6 +110,7 @@ export const useAppStore = create<AppState>((set) => ({
   toast: null,
   applySession: (info) => {
     resetThumbCache();
+    resetRevisionCache();
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
     set({
       shell: info.shell === "app" ? "app" : "first-start",
@@ -115,6 +121,7 @@ export const useAppStore = create<AppState>((set) => ({
       folderPath: "",
       selection: [],
       contentContext: "folder",
+      selectedCommit: null,
       infoCollapsed: false,
       changedOnly: false,
       commitComposer: "closed",
@@ -132,11 +139,13 @@ export const useAppStore = create<AppState>((set) => ({
   setLocale: (locale) => set({ locale }),
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   setChangedOnly: (value) => set({ changedOnly: value }),
-  setFolderPath: (path) => set({ folderPath: path, selection: [], contentContext: "folder" }),
+  setFolderPath: (path) => set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null }),
   setSelection: (paths) => set({ selection: paths, ...(paths.length > 0 ? { infoCollapsed: false } : {}) }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
-  setContentContext: (context) => set({ contentContext: context }),
-  openFile: (path) => set({ selection: [path], contentContext: "file", infoCollapsed: false }),
+  setContentContext: (context) => set({ contentContext: context, ...(context === "folder" ? { selectedCommit: null } : {}) }),
+  openFile: (path) => set({ selection: [path], contentContext: "file", infoCollapsed: false, selectedCommit: null }),
+  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit" }),
+  leaveCommit: () => set({ selectedCommit: null, contentContext: "folder", selection: [] }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),
   appendEntries: (entries, hasMore) =>
