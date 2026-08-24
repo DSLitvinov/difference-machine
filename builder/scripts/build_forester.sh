@@ -15,10 +15,7 @@ detect_platform
 
 BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
-FORESTER_DIR="${PROJECT_ROOT}/sources/forester"
-if [ ! -d "${FORESTER_DIR}" ]; then
-    FORESTER_DIR="${PROJECT_ROOT}/forester"
-fi
+FORESTER_DIR="${PROJECT_ROOT}/sources/backend/forester"
 
 STAGING_DIR="${BUILDER_DIR}/.staging/forester"
 VERSION="${VERSION:-0.8}"
@@ -61,7 +58,7 @@ LDFLAGS="-X main.Version=${VERSION} -X main.BuildTime=${BUILD_TIME} -X main.GitC
 CLI_OUT="${STAGING_DIR}/bin/${FORESTER_CLI_NAME}"
 echo "=== Building CLI ==="
 
-FORESTER_ICO="${PROJECT_ROOT}/sources/icons/logo/forester/build/forester.ico"
+FORESTER_ICO="${PROJECT_ROOT}/sources/backend/forester/icons/build/forester.ico"
 # shellcheck source=lib/embed_windows_icon_syso.sh
 . "${SCRIPT_DIR}/lib/embed_windows_icon_syso.sh"
 if [ "${CURRENT_OS}" = "windows" ] && [ -f "${FORESTER_ICO}" ]; then
@@ -111,8 +108,8 @@ else
     bash "${SCRIPT_DIR}/fetch_ffmpeg.sh"
 fi
 
-if [ -d "${PROJECT_ROOT}/sources/icons/logo/forester/build" ]; then
+if [ -d "${PROJECT_ROOT}/sources/backend/forester/icons/build" ]; then
     mkdir -p "${STAGING_DIR}/icons"
-    cp -R "${PROJECT_ROOT}/sources/icons/logo/forester/build/." "${STAGING_DIR}/icons/"
+    cp -R "${PROJECT_ROOT}/sources/backend/forester/icons/build/." "${STAGING_DIR}/icons/"
     echo -e "${GREEN}✓ Forester icons staged${NC}"
 fi

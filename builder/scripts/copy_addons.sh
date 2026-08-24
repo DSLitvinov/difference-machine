@@ -10,9 +10,6 @@ BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
 SOURCES_DIR="${PROJECT_ROOT}/sources"
 ADDONS_SOURCE="${SOURCES_DIR}/addons"
-if [ ! -d "${ADDONS_SOURCE}" ]; then
-    ADDONS_SOURCE="${PROJECT_ROOT}/addons"
-fi
 
 if [ -n "${1:-}" ]; then
     TARGET_DIR="$1"

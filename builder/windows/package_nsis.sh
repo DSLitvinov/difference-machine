@@ -87,7 +87,7 @@ rm -f "${SETUP_PATH}"
 PAYLOAD_NSIS="$(cd "${INSTALL_DIR}" && pwd -W 2>/dev/null || pwd)"
 OUTFILE_NSIS="$(cd "${DIST_DIR}" && pwd -W 2>/dev/null || pwd)/${SETUP_BASENAME}.exe"
 
-GUI_ICON="${PROJECT_ROOT}/sources/gui/build/windows/icon.ico"
+GUI_ICON="${PROJECT_ROOT}/sources/frontend/dfm-gui/build/windows/icon.ico"
 NSIS_ICON_ARGS=()
 if [ -f "${GUI_ICON}" ]; then
     GUI_ICON_NSIS="$(cd "$(dirname "${GUI_ICON}")" && pwd -W 2>/dev/null || dirname "${GUI_ICON}")/$(basename "${GUI_ICON}")"
@@ -95,7 +95,7 @@ if [ -f "${GUI_ICON}" ]; then
     echo -e "${GREEN}✓ Installer icon: ${GUI_ICON}${NC}"
 else
     echo -e "${YELLOW}⚠ GUI icon.ico not found — installer uses default NSIS icons${NC}"
-    echo "  Run: cd sources/gui/frontend && npm run icons:generate" >&2
+    echo "  Run: cd sources/frontend/dfm-gui/frontend && npm run icons:generate" >&2
 fi
 
 # Git Bash mangles /D and absolute /d/.../script.nsi paths — use -D and run from script dir.

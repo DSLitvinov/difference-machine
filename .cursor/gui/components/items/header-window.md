@@ -1,31 +1,38 @@
 # Header Window
 
 Figma: [Item / Panel / Header / Window](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4423-10574) (`4423:10574`).  
-Код: `HeaderWindow`.
+Menu Bar: [4423:11737](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4423-11737).
 
-Набор символа может быть 640×48; **на экранах приложения** инстанс **1429×48**. Канон окон: [../../views/architecture.md](../../views/architecture.md).
+Код: native window chrome + Wails application menu (`menu.go`). **Не** React-кирпич и **не** второй title bar поверх ОС.
 
-[View / First Start](../../views/first-start.md) этот кирпич **не** использует.
-
----
-
-## Window controls (справа)
-
-Три кнопки 24×24 — те же команды, что меню **Window**:
-
-| Порядок в макете | Иконка | Действие |
-|------------------|--------|----------|
-| 1 | `arrow-down` | скрыть / свернуть (hide / minimize) |
-| 2 | `maximize-2` | свернуть-развернуть (maximize / restore) |
-| 3 | `x` | закрыть окно |
-
-Проводник — Wails / native. Не дублировать второй title bar ОС.
+Набор символа в Figma — схема команд. Отрисовка рамки, скруглений и кнопок окна — **геометрия ОС**.
 
 ---
 
-## Menu Bar (слева)
+## Window controls
 
-Только эти пункты. Не добавлять Save, Clone, Quit как отдельные команды, если их нет ниже.
+Кнопки из макета (`arrow-down` / `maximize-2` / `x`) **не рисуем**. Их заменяют системные контролы:
+
+| ОС | Контролы |
+|----|----------|
+| macOS | traffic lights (закрыть / свернуть / zoom) слева в title bar |
+| Windows | caption buttons справа |
+| Linux | кнопки окна WM |
+
+`Frameless` выключен. На macOS — `TitleBarDefault()`, чтобы окно скруглялось так же, как другие приложения.
+
+---
+
+## Menu Bar (`4423:11737`)
+
+Пункты те же: **File**, **Edit**, **Repository**, **Window**.
+
+| ОС | Где меню |
+|----|----------|
+| macOS | глобальный menu bar экрана (как Obsidian). В webview меню **нет** |
+| Windows / Linux | системный menu bar окна Wails, не кастомный ряд в React |
+
+macOS дополнительно получает стандартные **App** (About, Hide, Quit) и **Window** (Minimize, Zoom) роли Wails — это chrome ОС, не новые продуктовые команды.
 
 ### File
 
@@ -54,10 +61,4 @@ Clean — destructive: подтверждение по шаблону destructiv
 
 ### Window
 
-| Пункт | Поведение |
-|-------|-----------|
-| hide | как кнопка 1 справа |
-| min/max | как кнопка 2 |
-| close | как кнопка 3 |
-
-Не третий набор команд окна — те же native-операции.
+Системное меню окна (hide / minimize / zoom / close), не третий набор иконок в контенте.

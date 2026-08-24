@@ -34,12 +34,12 @@ Shell читает **производный** экран из store. Панел�
 
 ## Каркас окна приложения
 
-Все экраны кроме First Start: **1429×768**.
+Все экраны кроме First Start: внешнее окно **1429×768**, включая системный title bar.
 
 | Слот | Кирпич | Размер |
 |------|--------|--------|
-| Шапка | [Header Window](../components/items/header-window.md) | 1429×48 |
-| Тело | горизонтальный ряд панелей | 1429×720 |
+| Шапка | [Header Window](../components/items/header-window.md) | native OS title bar + application menu (не 48px в webview) |
+| Тело | горизонтальный ряд панелей | остаток высоты окна |
 
 Колонки тела:
 

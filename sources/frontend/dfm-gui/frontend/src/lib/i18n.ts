@@ -1,0 +1,81 @@
+export type Locale = "en" | "ru";
+
+const en = {
+  appName: "Difference Machine",
+  prototype: "Prototype 0.8.1",
+  createRepo: "Create repository",
+  createRepoHint: "Create a new Difference Machine repository inside the specified folder",
+  create: "Create",
+  openRepo: "Open repository",
+  openRepoHint: "Select the folder containing the repository",
+  open: "Open",
+  language: "Language",
+  languageHint: "This is the language that will be used in the application",
+  file: "File",
+  edit: "Edit",
+  repository: "Repository",
+  window: "Window",
+  openFolder: "Open Folder",
+  settings: "Settings",
+  createRepository: "Create repository",
+  cleanRepository: "Clean repository",
+  hide: "hide",
+  minMax: "min/max",
+  close: "close",
+  branchName: "Branch name",
+  uncommittedFiles: "Uncommitted files",
+  changed: "Changed",
+  noChangedFiles: "No changed files",
+  commitAllFiles: "Сommit All Files",
+  history: "History",
+  stages: "Stages",
+  noHistoryProject: "No history of project",
+  noHistoryProjectBody: "The project is not added to any commit",
+  home: "Home",
+  noFilesYet: "No files yet",
+  noFilesYetBody: "Create or move your files to the repository",
+};
+
+const ru: typeof en = {
+  appName: "Difference Machine",
+  prototype: "Prototype 0.8.1",
+  createRepo: "Создать репозиторий",
+  createRepoHint: "Создать новый репозиторий Difference Machine в выбранной папке",
+  create: "Создать",
+  openRepo: "Открыть репозиторий",
+  openRepoHint: "Выберите папку, содержащую репозиторий",
+  open: "Открыть",
+  language: "Язык",
+  languageHint: "Это язык, который будет использоваться в приложении",
+  file: "Файл",
+  edit: "Правка",
+  repository: "Репозиторий",
+  window: "Окно",
+  openFolder: "Открыть папку",
+  settings: "Настройки",
+  createRepository: "Создать репозиторий",
+  cleanRepository: "Очистить репозиторий",
+  hide: "скрыть",
+  minMax: "свернуть/развернуть",
+  close: "закрыть",
+  branchName: "Имя ветки",
+  uncommittedFiles: "Uncommitted files",
+  changed: "Changed",
+  noChangedFiles: "No changed files",
+  commitAllFiles: "Сommit All Files",
+  history: "History",
+  stages: "Stages",
+  noHistoryProject: "No history of project",
+  noHistoryProjectBody: "The project is not added to any commit",
+  home: "Home",
+  noFilesYet: "No files yet",
+  noFilesYetBody: "Create or move your files to the repository",
+};
+
+const dictionaries = { en, ru };
+
+export type Copy = typeof en;
+
+export function t(locale: Locale): Copy {
+  return dictionaries[locale] ?? dictionaries.en;
+}

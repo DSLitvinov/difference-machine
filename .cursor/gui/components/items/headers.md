@@ -13,7 +13,7 @@
 | File Action | `4318:3832` | `HeaderFileAction` | back, combobox действий, **Apply** |
 | File Commit Action | `4318:4095` | `HeaderFileCommitAction` | Compare / Revert **файла** |
 | Commit Info | `4322:4537` | `HeaderCommitInfo` | 355×90, без кнопок мутаций |
-| Window | `4423:10574` | `HeaderWindow` | File / Edit / Repository / Window + кнопки ОС |
+| Window | `4423:10574` | native chrome + application menu | File / Edit / Repository / Window; кнопки окна — ОС |
 
 Спеки по файлам ниже — один набор = один `get_design_context` при вёрстке. Не добавлять title колонки, которого нет в хедере.
 

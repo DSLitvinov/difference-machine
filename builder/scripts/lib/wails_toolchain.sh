@@ -213,7 +213,7 @@ verify_gui_wails_binary() {
     embedded_hits="$(strings "${bin_path}" 2>/dev/null | grep -c 'index.html' || true)"
     if [ "${embedded_hits}" -eq 0 ]; then
         echo -e "${RED:-}GUI binary is missing embedded frontend assets (index.html)${NC:-}" >&2
-        echo "Check sources/gui/wails.json frontend:build — do not use shell operators like &&." >&2
+        echo "Check sources/frontend/dfm-gui/wails.json frontend:build — do not use shell operators like &&." >&2
         return 1
     fi
 

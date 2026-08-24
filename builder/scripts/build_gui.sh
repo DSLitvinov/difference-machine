@@ -20,7 +20,7 @@ setup_dev_path
 
 BUILDER_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROJECT_ROOT="$(cd "${BUILDER_DIR}/.." && pwd)"
-GUI_DIR="${PROJECT_ROOT}/sources/gui"
+GUI_DIR="${PROJECT_ROOT}/sources/frontend/dfm-gui"
 STAGING_GUI="${BUILDER_DIR}/.staging/gui"
 
 if [ "${CURRENT_OS}" = "unknown" ]; then

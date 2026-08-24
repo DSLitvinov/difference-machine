@@ -23,10 +23,7 @@ BUILD_GUI="${BUILD_GUI:-false}"
 STAGING_GUI="${BUILDER_DIR}/.staging/gui"
 
 SOURCES_DIR="${PROJECT_ROOT}/sources"
-FORESTER_API_SRC="${SOURCES_DIR}/forester/api"
-if [ ! -d "${FORESTER_API_SRC}" ]; then
-    FORESTER_API_SRC="${PROJECT_ROOT}/forester/api"
-fi
+FORESTER_API_SRC="${SOURCES_DIR}/backend/forester/api"
 
 ADDON_REL="addons/blender/difference_machine"
 
@@ -68,7 +65,7 @@ echo -e "${GREEN}✓ bin/ and lib/${NC}"
 
 echo ""
 echo "=== Copy Forester scripts ==="
-FORESTER_SCRIPTS="${SOURCES_DIR}/forester/scripts"
+FORESTER_SCRIPTS="${SOURCES_DIR}/backend/forester/scripts"
 if [ -d "${FORESTER_SCRIPTS}" ]; then
     mkdir -p "${DFM_DIST}/share/scripts"
     cp -R "${FORESTER_SCRIPTS}/." "${DFM_DIST}/share/scripts/"
@@ -126,7 +123,7 @@ if [ "${BUILD_GUI}" = true ] && [ -d "${STAGING_GUI}" ]; then
                 cp "${STAGING_GUI}/${GUI_STAGE_NAME}" "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
                 if [ "${CURRENT_OS}" = "linux" ]; then
                     chmod +x "${DFM_DIST}/apps/${GUI_STAGE_NAME}"
-                    GUI_ICONS="${PROJECT_ROOT}/sources/gui/build/share/icons"
+                    GUI_ICONS="${PROJECT_ROOT}/sources/frontend/dfm-gui/build/share/icons"
                     if [ -d "${GUI_ICONS}" ]; then
                         mkdir -p "${DFM_DIST}/share/icons"
                         cp -R "${GUI_ICONS}/." "${DFM_DIST}/share/icons/"

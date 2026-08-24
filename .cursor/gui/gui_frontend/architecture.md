@@ -37,7 +37,7 @@ Frontend не импортирует Go и не читает диск. Нет `f
 
 Главное окно — shell из панелей по [views](../views/architecture.md), не роутер страниц:
 
-- **Header Window** — шапка 1429×48 на всех app-экранах.
+- **Header Window** — native OS title bar + application menu (File / Edit / Repository / Window). Not a React row.
 - **Left** — Project view или File view (контекст, не «вторая страница»).
 - **Center** — сетка папки, превью файла, diff ревизии или состав коммита.
 - **Right** — File Info / Select More Files, либо скрыта (center 1120).

@@ -1,8 +1,8 @@
 # Forester app icons
 
-Source artwork lives in `sources/icons/logo/forester/source.svg` (256×256 design grid).
+Source artwork lives in `sources/backend/forester/icons/source.svg` (256×256 design grid).
 
-Generated outputs: `sources/icons/logo/forester/build/`.
+Generated outputs: `sources/backend/forester/icons/build/`.
 
 ```bash
 bash builder/scripts/generate_forester_icons.sh

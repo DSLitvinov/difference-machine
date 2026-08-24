@@ -15,9 +15,8 @@ rm -rf "${BUILDER_DIR}/forester"
 rm -rf "${PROJECT_ROOT}/sources/installer/forester"
 rm -rf "${PROJECT_ROOT}/installer/forester"
 rm -rf "${PROJECT_ROOT}/dist"
-rm -rf "${PROJECT_ROOT}/sources/forester/build"
-rm -rf "${PROJECT_ROOT}/forester/build" 2>/dev/null || true
-rm -rf "${PROJECT_ROOT}/sources/gui/build"
-rm -rf "${PROJECT_ROOT}/sources/gui/frontend/node_modules/.vite"
+rm -rf "${PROJECT_ROOT}/sources/backend/forester/build"
+rm -rf "${PROJECT_ROOT}/sources/frontend/dfm-gui/build"
+rm -rf "${PROJECT_ROOT}/sources/frontend/dfm-gui/frontend/node_modules/.vite"
 
 echo "Done."

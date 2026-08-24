@@ -73,6 +73,7 @@ Forester core  →  .DFM/
 | Экраны | [views](./views/architecture.md) | Сборка окна `View / …` из панелей |
 | Диалоги | [dialogs](./dialogs/architecture.md) | Модалки `Dialog / …` |
 | Состояния | [states](./states/architecture.md) | Режимы репозитория и UI; экран вычисляется, не хранится |
+| Дорожная карта | [roadmap.md](./roadmap.md) | Фазы от пустого окна до полного GUI |
 
 Контракт методов: [gui_backend/jsonapi.md](./gui_backend/jsonapi.md).
 

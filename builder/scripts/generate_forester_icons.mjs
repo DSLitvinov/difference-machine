@@ -1,6 +1,6 @@
 /**
  * Generate Forester icons for macOS (.icns), Windows (.ico), and Linux (hicolor PNGs).
- * Uses @resvg/resvg-js from sources/gui/frontend (shared build dependency).
+ * Rasterization deps live in builder/.staging/icon-tools (see generate_forester_icons.sh).
  */
 import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -10,14 +10,14 @@ import {
   buildForesterIconSvg,
   FORESTER_BUILD_DIR,
   FORESTER_ICONS_DIR,
-} from "../../sources/icons/forester-icon-assets.mjs";
+} from "../../sources/backend/forester/icons/icon-assets.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, "../..");
-const guiFrontend = join(projectRoot, "sources/gui/frontend");
+const iconNodeRoot = process.env.ICON_NODE_ROOT || join(projectRoot, "builder/.staging/icon-tools");
 const buildDir = FORESTER_BUILD_DIR;
 
-const require = createRequire(join(guiFrontend, "package.json"));
+const require = createRequire(join(iconNodeRoot, "package.json"));
 const { Resvg } = require("@resvg/resvg-js");
 const pngToIco = require("png-to-ico");
 

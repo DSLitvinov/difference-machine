@@ -19,7 +19,7 @@ Figma: [View / First Start](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/
 
 ## Слоты
 
-Не `Item / Panel / Header / Window`. Шапка — тот же визуальный ряд, что [Header Right Side](../components/items/header-right-side.md), ширина 640×44, справа Close.
+Не `Item / Panel / Header / Window` в webview. Close — системная кнопка окна ОС (traffic lights / caption), не иконка `x` в вёрстке.
 
 | Зона | Содержание |
 |------|------------|
@@ -39,7 +39,7 @@ Copy — только из этого node (`get_design_context` на `4382:9252
 | Create | OS folder picker → `repo.init` (`CallStateless` / сессия на путь) → запись cfg → app shell |
 | Open | OS folder picker → `Open` сессии, если это репозиторий; иначе сценарий not-a-repository из [states](../states/architecture.md) |
 | Language | локаль UI; persist в cfg/local, если так сделают настройки. Не трогает Forester |
-| Close | закрыть окно / выйти из визарда по поведению оболочки Wails |
+| Close | системная кнопка закрытия окна ОС |
 
 Пути — абсолютные native. После init — [Empty DFM Project](./project-browse.md) если папка пустая, [Empty DFM Folder](./project-browse.md) / [Root Folder](./project-browse.md) если в workdir уже есть файлы (уточнение: открытый вопрос 1–2 в [architecture.md](./architecture.md)).
 
