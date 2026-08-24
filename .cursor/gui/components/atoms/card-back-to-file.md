@@ -9,7 +9,7 @@ Figma: [Atom / Cards / Back to file](https://www.figma.com/design/qlwKiMPZblz96V
 
 Рамка / заливка — у родителя [SidebarCard](../items/sidebar-card.md), не у атома. Состояния оболочки — [file-view](../../panels/file-view.md): Selected dashed (есть история, смотрим workdir) или Disable dashed (History Null). Не рисовать вторую подложку внутри атома.
 
-Нет hover-набора у строки. Клик — колбэк панели: из File View → [project-browse](../../views/project-browse.md) текущей папки; из History of File — сброс выбранного коммита.
+Нет hover-набора у строки. Клик — колбэк панели: показать превью текущего файла workdir ([file-preview](../../views/file-preview.md)). Из History of File — сброс выбранного коммита. Не сетка папки: в список файлов ведёт Back `<` в хедере центра.
 
 Не вызывать API.
 

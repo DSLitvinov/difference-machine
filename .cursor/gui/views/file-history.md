@@ -44,5 +44,6 @@ Binary-ревизии файла отдельным View нет. Пока нет
 
 | Действие | Куда |
 |----------|------|
-| Back to file / снять выбор коммита | [file-preview](./file-preview.md) |
+| Current preview | [file-preview](./file-preview.md) |
+| Back `<` в Header File Commit Action | [file-preview](./file-preview.md) |
 | Другой коммит в left | тот же семейство, другой hash |

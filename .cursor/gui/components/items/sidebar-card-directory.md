@@ -17,9 +17,11 @@ Figma: [Item / Card Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2F3D
 
 | Панель | Node | Оболочка Card Directory | Атом Directory |
 |--------|------|-------------------------|----------------|
-| канон | `4246:5052` | Default (или по данным dirty) | Un Changed / Changed по `status.get` |
-| History Null | `4309:6979` | Selected (`#eff6ff`, border `#60a5fa`) | `Un Changed` |
-| Folder DFM Null | `4385:8756` | Disable (`#f4f4f5`, border `#e4e4e7`) | `Un Changed` |
+| канон | `4246:5052` | **Selected**, dashed `#60a5fa` / `#eff6ff` | Un Changed / Changed по `status.get` |
+| History Null | `4309:6979` | Selected, dashed | `Un Changed` |
+| Folder DFM Null | `4385:8756` | Selected, dashed | `Un Changed` |
+
+Пока пользователь смотрит сетку папки (не inspect коммита проекта), Card Directory **Selected**. Inspect коммита снимает Selected (клик по карточке возвращает в обзор). Create Commit держит Selected.
 
 Не класть Uncommitted files в `SidebarCard` (`4191:5809`). Не класть Commit Project / No History / Null Repository внутрь Card Directory.
 

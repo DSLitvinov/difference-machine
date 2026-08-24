@@ -15,8 +15,10 @@ type FileViewPanelProps = {
   userName: string;
   path: string;
   status: StatusSnapshot | null;
+  selectedHash?: string | null;
   onSettings: () => void;
-  onBack: () => void;
+  onCurrentPreview: () => void;
+  onSelectCommit: (commit: CommitSummary) => void;
 };
 
 type LogResult = {
@@ -32,7 +34,16 @@ function splitMessage(message: string): { title: string; description: string } {
   return { title: trimmed.slice(0, nl).trim(), description: trimmed.slice(nl + 1).trim() };
 }
 
-export function FileViewPanel({ locale, userName, path, status, onSettings, onBack }: FileViewPanelProps) {
+export function FileViewPanel({
+  locale,
+  userName,
+  path,
+  status,
+  selectedHash,
+  onSettings,
+  onCurrentPreview,
+  onSelectCommit,
+}: FileViewPanelProps) {
   const copy = t(locale);
   const [commits, setCommits] = useState<CommitSummary[]>([]);
 
@@ -56,13 +67,18 @@ export function FileViewPanel({ locale, userName, path, status, onSettings, onBa
   }, [path]);
 
   const empty = commits.length === 0;
+  const revisionOpen = Boolean(selectedHash);
 
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
       <HeaderSelectBranch locale={locale} branchName={status?.current_branch} />
       <div className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", empty && "gap-2")}>
         <div className="flex w-[309px] shrink-0 flex-col gap-2 px-3">
-          <SidebarCard state={empty ? "disabled" : "selected"} className="border-dashed" onClick={onBack}>
+          <SidebarCard
+            state={empty ? "disabled" : revisionOpen ? "default" : "selected"}
+            className={revisionOpen ? undefined : "border-dashed"}
+            onClick={onCurrentPreview}
+          >
             <BackToFileRow locale={locale} />
           </SidebarCard>
         </div>
@@ -78,7 +94,11 @@ export function FileViewPanel({ locale, userName, path, status, onSettings, onBa
             commits.map((commit) => {
               const { title, description } = splitMessage(commit.message ?? "");
               return (
-                <SidebarCard key={commit.hash}>
+                <SidebarCard
+                  key={commit.hash}
+                  state={commit.hash === selectedHash ? "selected" : "default"}
+                  onClick={() => onSelectCommit(commit)}
+                >
                   <CommitFileCard
                     title={title}
                     author={commit.author ?? ""}

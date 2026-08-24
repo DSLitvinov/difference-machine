@@ -50,6 +50,7 @@ type AppState = {
   selection: string[];
   contentContext: ContentContext;
   selectedCommit: string | null;
+  fileRevision: CommitSummary | null;
   infoCollapsed: boolean;
   changedOnly: boolean;
   sidebarTab: SidebarTab;
@@ -73,6 +74,8 @@ type AppState = {
   openFile: (path: string) => void;
   openCommit: (hash: string) => void;
   leaveCommit: () => void;
+  openFileRevision: (commit: CommitSummary) => void;
+  leaveFileRevision: () => void;
   openCommitComposer: () => void;
   closeCommitComposer: () => void;
   setToast: (message: string | null) => void;
@@ -98,6 +101,7 @@ export const useAppStore = create<AppState>((set) => ({
   selection: [],
   contentContext: "folder",
   selectedCommit: null,
+  fileRevision: null,
   infoCollapsed: false,
   changedOnly: false,
   sidebarTab: "history",
@@ -124,6 +128,7 @@ export const useAppStore = create<AppState>((set) => ({
       selection: [],
       contentContext: "folder",
       selectedCommit: null,
+      fileRevision: null,
       infoCollapsed: false,
       changedOnly: false,
       commitComposer: "closed",
@@ -141,20 +146,31 @@ export const useAppStore = create<AppState>((set) => ({
   setLocale: (locale) => set({ locale }),
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   setChangedOnly: (value) => set({ changedOnly: value }),
-  setFolderPath: (path) => set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null }),
+  setFolderPath: (path) =>
+    set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null, fileRevision: null }),
   setSelection: (paths) => set({ selection: paths, ...(paths.length > 0 ? { infoCollapsed: false } : {}) }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
   setContentContext: (context) =>
     set({
       contentContext: context,
-      ...(context === "folder" ? { selectedCommit: null } : { commitComposer: "closed" }),
+      ...(context === "folder" ? { selectedCommit: null, fileRevision: null } : { commitComposer: "closed" }),
     }),
   openFile: (path) =>
-    set({ selection: [path], contentContext: "file", infoCollapsed: false, selectedCommit: null, commitComposer: "closed" }),
-  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit", commitComposer: "closed" }),
+    set({
+      selection: [path],
+      contentContext: "file",
+      infoCollapsed: false,
+      selectedCommit: null,
+      fileRevision: null,
+      commitComposer: "closed",
+    }),
+  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit", commitComposer: "closed", fileRevision: null }),
   leaveCommit: () => set({ selectedCommit: null, contentContext: "folder", selection: [] }),
+  openFileRevision: (commit) =>
+    set({ fileRevision: commit, selectedCommit: commit.hash, contentContext: "file-revision", commitComposer: "closed" }),
+  leaveFileRevision: () => set({ fileRevision: null, selectedCommit: null, contentContext: "file" }),
   openCommitComposer: () =>
-    set({ commitComposer: "open", contentContext: "folder", selectedCommit: null, infoCollapsed: false, sidebarTab: "history" }),
+    set({ commitComposer: "open", contentContext: "folder", selectedCommit: null, fileRevision: null, infoCollapsed: false, sidebarTab: "history" }),
   closeCommitComposer: () => set({ commitComposer: "closed" }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),

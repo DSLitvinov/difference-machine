@@ -9,7 +9,7 @@ Figma: [Item / Commit / Diff / Text Diff](https://www.figma.com/design/qlwKiMPZb
 |-----|--------|
 | `1) Unified` | стек [DiffTextUnifiedRow](../atoms/diff-text-unified.md) |
 | `2) Split` | две колонки [DiffTextSplitRow](../atoms/diff-text-split.md) |
-| `4) No Changed` | empty вкладки, не «файлы идентичны» свой copy |
+| `4) No commits` | нет родителя: табы Unified / Split **disabled**; тело — стек Split `default` (один номер, без `+`/`-`), не выдумывать copy «файлы идентичны» |
 
 Ширина ~759. Не рисовать minimap, не нумеровать hunks, если нет в макете.
 

@@ -27,9 +27,9 @@ Padding колонки: 12 px горизонталь.
 
 | Figma | Node | Card Directory (под веткой) | Commit List |
 |-------|------|------------------------------|-------------|
-| Project view | [`4246:5052`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4246-5052) | есть, 285×116 | стек **Item / Card** + [CommitProjectCard](../components/atoms/card-commit-project.md) |
-| Project view - History Null | [`4309:6979`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-6979) | есть; атом `Un Changed`; оболочка Selected (`#eff6ff`, border accent) | один **Item / Card** 285×72, Disable + [NoHistoryProject](../components/atoms/card-no-history-project.md) |
-| Project view - Folder DFM Null | [`4385:8756`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-8756) | есть; атом `Un Changed`; оболочка Disable (`#f4f4f5`) | **не** Card: [NullRepositoryPlaceholder](../components/items/placeholder-null-repository.md) 269×124 |
+| Project view | [`4246:5052`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4246-5052) | Selected, dashed `#60a5fa` / `#eff6ff` | стек **Item / Card** + [CommitProjectCard](../components/atoms/card-commit-project.md) |
+| Project view - History Null | [`4309:6979`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-6979) | Selected, dashed `#60a5fa` / `#eff6ff`; атом `Un Changed` | один **Item / Card** 285×72, Disable + [NoHistoryProject](../components/atoms/card-no-history-project.md) |
+| Project view - Folder DFM Null | [`4385:8756`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-8756) | Selected, dashed `#60a5fa` / `#eff6ff`; атом `Un Changed` | **не** Card: [NullRepositoryPlaceholder](../components/items/placeholder-null-repository.md) 269×124 |
 
 Empty истории и empty репозитория **не** заменяют Card Directory. No History и Null Repository живут только в Commit List.
 

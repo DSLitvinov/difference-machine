@@ -134,8 +134,9 @@ Root / SubFolder --select file--> File Info
 File Info --multi-select--> File More Info
 * --collapse info--> Root Folder Collapse (и аналоги)
 сетка --open file--> File View (kind)
-File View --Back to file--> обзор папки
+File View --Back `<`--> обзор папки
 File View --select commit--> History of File
+History of File --Current preview--> File View
 Project History --select commit--> View Commit
 Uncommitted --Commit All / composer--> Create Commit
 вкладка Stages --> Stages

@@ -45,6 +45,10 @@ function firstTag(raw: string): string {
   return raw.split(",")[0]?.trim() ?? "";
 }
 
+function tmpReviewRel(path: string): string {
+  return `.DFM/tmp_review/${path.replace(/^\/+/, "")}`;
+}
+
 export default function App() {
   const shell = useAppStore((s) => s.shell);
   const locale = useAppStore((s) => s.locale);
@@ -294,6 +298,44 @@ export default function App() {
     }
   }
 
+  async function onCompareFile() {
+    const state = useAppStore.getState();
+    const path = state.selection[0];
+    const commit = state.fileRevision;
+    if (!path || !commit) {
+      return;
+    }
+    setBusy(true);
+    try {
+      await foresterCall("compare.extract", { commit_hash: commit.hash });
+      await foresterCall("workdir.open", { path: tmpReviewRel(path) });
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onRestoreFile(): Promise<boolean> {
+    const state = useAppStore.getState();
+    const path = state.selection[0];
+    const commit = state.fileRevision;
+    if (!path || !commit) {
+      return false;
+    }
+    setBusy(true);
+    try {
+      await foresterCall("restore.file", { commit_hash: commit.hash, paths: [path] });
+      await refreshRepoMeta();
+      return true;
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onLocale(next: Locale) {
     setLocale(next);
     try {
@@ -315,6 +357,8 @@ export default function App() {
           onCommitAll={() => void onCommitAll()}
           onCancelComposer={() => useAppStore.getState().closeCommitComposer()}
           onCreateCommit={(fields) => void onCreateCommit(fields)}
+          onCompareFile={() => void onCompareFile()}
+          onRestoreFile={onRestoreFile}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />

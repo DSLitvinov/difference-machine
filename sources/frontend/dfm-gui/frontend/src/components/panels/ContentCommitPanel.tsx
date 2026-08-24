@@ -75,6 +75,7 @@ export function ContentCommitPanel({ locale, repoPath, commit, head }: ContentCo
 
   const { title } = splitTitle(commit.message ?? "");
   const showBinary = kind === "binary" || kind === "blend" || text?.isBinary;
+  const noCommits = !commit.parent_hashes?.length;
 
   async function openExternal() {
     if (!path) {
@@ -101,8 +102,12 @@ export function ContentCommitPanel({ locale, repoPath, commit, head }: ContentCo
       <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         <CommitFileList locale={locale} files={files} selectedPath={path} onSelect={setPath} />
         {path && showBinary ? <BinaryDiffStub locale={locale} onOpen={() => void openExternal()} /> : null}
-        {path && kind === "text" && text && !text.isBinary ? <TextDiffViewer locale={locale} unified={text.content} /> : null}
-        {path && kind === "image" ? <ImageDiffViewer locale={locale} afterSrc={afterBlob} beforeSrc={beforeBlob} /> : null}
+        {path && kind === "text" && text && !text.isBinary ? (
+          <TextDiffViewer locale={locale} unified={text.content} noCommits={noCommits} />
+        ) : null}
+        {path && kind === "image" ? (
+          <ImageDiffViewer locale={locale} afterSrc={afterBlob} beforeSrc={beforeBlob} noCommits={noCommits} />
+        ) : null}
       </div>
     </section>
   );

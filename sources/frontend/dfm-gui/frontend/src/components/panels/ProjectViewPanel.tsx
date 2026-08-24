@@ -49,26 +49,11 @@ function splitMessage(message: string): { title: string; description: string } {
   return { title: trimmed.slice(0, nl).trim(), description: trimmed.slice(nl + 1).trim() };
 }
 
-function directoryState(
-  folderEmpty: boolean,
-  hasCommits: boolean,
-  commitOpen: boolean,
-  composerOpen: boolean,
-  dirty: boolean,
-): "default" | "selected" | "disabled" {
-  if (composerOpen) {
-    return "selected";
-  }
-  if (commitOpen) {
+function directoryState(commitOpen: boolean, composerOpen: boolean): "default" | "selected" {
+  if (commitOpen && !composerOpen) {
     return "default";
   }
-  if (folderEmpty && !hasCommits) {
-    return "selected";
-  }
-  if (!hasCommits && !dirty) {
-    return "disabled";
-  }
-  return "default";
+  return "selected";
 }
 
 export function ProjectViewPanel({
@@ -106,7 +91,7 @@ export function ProjectViewPanel({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
           <SidebarCardDirectory
-            state={directoryState(folderEmpty, hasCommits, commitOpen, composerOpen, dirty)}
+            state={directoryState(commitOpen, composerOpen)}
             onClick={commitOpen && !composerOpen ? onLeaveCommit : undefined}
           >
             {composerOpen ? (

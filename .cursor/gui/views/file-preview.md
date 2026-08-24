@@ -48,6 +48,7 @@ Kind центральной области — по типу файла, не п
 
 | Действие | Куда |
 |----------|------|
-| Back to file / Current preview | [project-browse](./project-browse.md) текущей папки |
+| Back `<` в Header File Action | [project-browse](./project-browse.md) текущей папки |
+| Current preview | остаёмся на [file-preview](./file-preview.md) (уже Selected) |
 | Клик коммита в History of file | [file-history.md](./file-history.md) |
 | Collapse / expand info | Collapse-вариант того же kind |

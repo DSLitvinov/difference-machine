@@ -38,5 +38,5 @@ Padding колонки: 12 px горизонталь. Content: `gap` **0** пр�
 
 - `log.get` с `path`. Не дерево workdir.
 - Список виртуализировать; `diff.stat` карточки — visible + overscan ([revision-cache.md](../gui_frontend/revision-cache.md)).
-- Клик Current preview → [project-browse](../views/project-browse.md) текущей папки (даже если оболочка Disable на History Null).
-- Клик коммита → [file-history](../views/file-history.md) (фаза 11). Пока `contentContext = file`, Current preview остаётся Selected.
+- Клик Current preview → [file-preview](../views/file-preview.md) текущего файла (`leaveFileRevision`). Не сетка папки. Возврат к списку файлов — Back `<` в [Header File Action](../components/items/header-file-action.md).
+- Клик коммита → [file-history](../views/file-history.md). Пока `contentContext = file`, Current preview остаётся Selected.

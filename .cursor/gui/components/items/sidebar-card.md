@@ -39,7 +39,7 @@ Disable в наборе — не кликабелен. Не снижать opaci
 
 Hover сетки (`#eff6ff` без обязательного border на Hover) — другой item.
 
-**Исключение — Current preview** в [File view](../../panels/file-view.md): инстансы `4309:7530` / `4309:9019` рисуют Selected и Disable с **dashed** border. Карточки коммитов и No History File остаются solid. Клик Current preview (возврат к папке) допустим и при Disable-заливке.
+**Исключение — Current preview** в [File view](../../panels/file-view.md): инстансы `4309:7530` / `4309:9019` рисуют Selected и Disable с **dashed** border. Карточки коммитов и No History File остаются solid. Клик Current preview (превью файла, не сетка) допустим и при Disable-заливке.
 
 ---
 

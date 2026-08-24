@@ -2,6 +2,7 @@ import { ProjectViewPanel } from "@/components/panels/ProjectViewPanel";
 import { FileViewPanel } from "@/components/panels/FileViewPanel";
 import { ContentViewPanel } from "@/components/panels/ContentViewPanel";
 import { ContentFilePanel } from "@/components/panels/ContentFilePanel";
+import { ContentFileHistoryPanel } from "@/components/panels/ContentFileHistoryPanel";
 import { ContentCommitPanel } from "@/components/panels/ContentCommitPanel";
 import { FileInfoPanel } from "@/components/panels/FileInfoPanel";
 import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
@@ -19,6 +20,8 @@ type AppShellProps = {
   onCommitAll: () => void;
   onCancelComposer: () => void;
   onCreateCommit: (fields: CreateCommitFields) => void;
+  onCompareFile: () => void;
+  onRestoreFile: () => Promise<boolean>;
 };
 
 export function AppShell({
@@ -30,6 +33,8 @@ export function AppShell({
   onCommitAll,
   onCancelComposer,
   onCreateCommit,
+  onCompareFile,
+  onRestoreFile,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
@@ -54,13 +59,16 @@ export function AppShell({
   const setContentContext = useAppStore((s) => s.setContentContext);
   const openFile = useAppStore((s) => s.openFile);
   const openCommit = useAppStore((s) => s.openCommit);
+  const openFileRevision = useAppStore((s) => s.openFileRevision);
+  const leaveFileRevision = useAppStore((s) => s.leaveFileRevision);
   const leaveCommit = useAppStore((s) => s.leaveCommit);
   const selectedCommit = useAppStore((s) => s.selectedCommit);
+  const fileRevision = useAppStore((s) => s.fileRevision);
   const commitComposer = useAppStore((s) => s.commitComposer);
   const view = useDerivedView();
   const showRight = showRightColumn(view) && !infoCollapsed;
   const filePath = selection[0] ?? "";
-  const fileView = view === "file-view" && Boolean(filePath);
+  const fileLeft = (view === "file-view" || view === "file-history") && Boolean(filePath);
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
   const moreFiles = view === "create-commit" || selection.length > 1;
 
@@ -78,14 +86,16 @@ export function AppShell({
   return (
     <div className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-background-light">
       <div className="flex min-h-0 w-full flex-1 items-stretch">
-        {fileView ? (
+        {fileLeft ? (
           <FileViewPanel
             locale={locale}
             userName={userName}
             path={filePath}
             status={status}
+            selectedHash={fileRevision?.hash ?? null}
             onSettings={onSettings}
-            onBack={() => setContentContext("folder")}
+            onCurrentPreview={leaveFileRevision}
+            onSelectCommit={openFileRevision}
           />
         ) : (
           <ProjectViewPanel
@@ -113,7 +123,19 @@ export function AppShell({
             onCreateCommit={onCreateCommit}
           />
         )}
-        {fileView ? (
+        {view === "file-history" && fileRevision ? (
+          <ContentFileHistoryPanel
+            locale={locale}
+            repoPath={repoPath}
+            path={filePath}
+            commit={fileRevision}
+            busy={busy}
+            onBack={leaveFileRevision}
+            onCompare={onCompareFile}
+            onRevert={onRestoreFile}
+            onOpenExternal={() => void openExternal()}
+          />
+        ) : view === "file-view" && filePath ? (
           <ContentFilePanel
             locale={locale}
             repoPath={repoPath}

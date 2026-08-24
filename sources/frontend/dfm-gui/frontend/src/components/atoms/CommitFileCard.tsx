@@ -38,7 +38,7 @@ export function CommitFileCard({
             </span>
           ) : null}
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
-          <button type="button" className="size-4 shrink-0" aria-label="More">
+          <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
             <FigmaIcon src={ellipsisVertical} size={16} />
           </button>
         </div>
