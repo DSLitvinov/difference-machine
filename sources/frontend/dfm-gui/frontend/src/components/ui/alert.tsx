@@ -1,5 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import xIcon from "@/assets/icons/x.svg";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
@@ -58,24 +60,41 @@ type AlertBannerProps = {
   description?: string;
   className?: string;
   onClick?: () => void;
+  onClose?: () => void;
+  closeLabel?: string;
 };
 
-export function AlertBanner({ variant, title, description, className, onClick }: AlertBannerProps) {
+export function AlertBanner({ variant, title, description, className, onClick, onClose, closeLabel }: AlertBannerProps) {
   return (
     <Alert
       variant={variant}
       className={cn(onClick && "cursor-pointer text-left", className)}
       onClick={onClick}
     >
-      <div className="flex w-full flex-col gap-1">
-        <div className="flex w-full items-center gap-3">
-          <CircleAlertIcon />
-          <AlertTitle>{title}</AlertTitle>
-        </div>
-        {description ? (
-          <div className="flex w-full items-center pl-7">
-            <AlertDescription>{description}</AlertDescription>
+      <div className="flex w-full items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex w-full items-center gap-3">
+            <CircleAlertIcon />
+            <AlertTitle>{title}</AlertTitle>
           </div>
+          {description ? (
+            <div className="flex w-full items-center pl-8">
+              <AlertDescription>{description}</AlertDescription>
+            </div>
+          ) : null}
+        </div>
+        {onClose ? (
+          <button
+            type="button"
+            className="flex size-6 shrink-0 items-center justify-center text-inherit"
+            aria-label={closeLabel}
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+            }}
+          >
+            <FigmaIcon src={xIcon} size={16} />
+          </button>
         ) : null}
       </div>
     </Alert>

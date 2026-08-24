@@ -15,6 +15,7 @@ import {
   setLocale as persistLocale,
   onWailsEvent,
 } from "@/lib/bridge";
+import { AlertBanner } from "@/components/ui/alert";
 import { t, type Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
 import { parentRel } from "@/lib/folder-query";
@@ -130,14 +131,6 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = locale === "ru" ? "ru" : "en";
   }, [locale]);
-
-  useEffect(() => {
-    if (!toast) {
-      return;
-    }
-    const id = window.setTimeout(() => setToast(null), 4000);
-    return () => window.clearTimeout(id);
-  }, [toast, setToast]);
 
   useEffect(() => {
     void (async () => {
@@ -902,11 +895,16 @@ export default function App() {
         />
       ) : null}
       {toast ? (
-        <div
-          role="status"
-          className="fixed bottom-4 right-4 z-50 max-w-sm rounded-md border border-border bg-background px-3 py-2 text-[14px] leading-5 text-foreground shadow-sm"
-        >
-          {toast}
+        <div className="pointer-events-none fixed inset-x-0 top-4 z-[200] flex justify-center px-4">
+          <div className="pointer-events-auto w-full max-w-lg shadow-md">
+            <AlertBanner
+              variant="destructive"
+              title={t(locale).error}
+              description={toast}
+              closeLabel={t(locale).close}
+              onClose={() => setToast(null)}
+            />
+          </div>
         </div>
       ) : null}
     </>

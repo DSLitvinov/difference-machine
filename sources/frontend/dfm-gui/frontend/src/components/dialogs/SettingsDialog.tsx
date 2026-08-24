@@ -133,14 +133,14 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="relative flex h-[min(1000px,calc(100vh-24px))] w-[min(1113px,calc(100vw-24px))] shrink-0 flex-col gap-6 overflow-hidden rounded-xl border border-border bg-background px-10 pb-16 pt-10 shadow-md"
+        className="relative flex max-h-[min(1000px,calc(100vh-24px))] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-[16px] border border-border bg-background px-10 pb-16 pt-10 shadow-md"
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" className="absolute right-[13px] top-[11px] flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>
+        <button type="button" className="absolute right-3 top-3 flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>
           <FigmaIcon src={xIcon} size={16} />
         </button>
-        <div className="flex w-full shrink-0 flex-col gap-6 pl-4">
-          <div className="flex flex-col gap-1">
+        <div className="flex w-full shrink-0 flex-col gap-6">
+          <div className="flex flex-col gap-1 pl-4">
             <p id="settings-title" className="text-[24px] font-semibold leading-8 tracking-[-0.144px] text-foreground">
               {copy.settings}
             </p>
@@ -304,7 +304,7 @@ function ProfileFields({
     onLocale(next);
   }
   return (
-    <>
+    <div className="flex w-full flex-col gap-8">
       <Field label={copy.username}>
         <Input value={draft.userName} disabled={busy} onChange={(event) => onChange({ ...draft, userName: event.target.value })} />
       </Field>
@@ -323,7 +323,7 @@ function ProfileFields({
         </div>
         <p className="text-[14px] leading-5 text-foreground-muted">{copy.languageHintSettings}</p>
       </div>
-    </>
+    </div>
   );
 }
 
