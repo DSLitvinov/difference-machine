@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FolderGridTile } from "@/components/items/FolderGridTile";
 import { FileGridTile } from "@/components/items/FileGridTile";
-import { columnCount, fileRowHeight, FOLDER_ROW_HEIGHT, GRID_GAP, GRID_PAD, trackWidth } from "@/lib/grid";
+import { columnCount, tileRowHeight, GRID_GAP, GRID_PAD, trackWidth } from "@/lib/grid";
 import { letterStatus } from "@/lib/status";
 import { peekThumb, scheduleVisibleThumbs, setThumbLruLimit, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
 import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
@@ -41,28 +41,21 @@ export function FolderEntryGrid({
   onNeedMore,
 }: FolderEntryGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const nColsRef = useRef(1);
   const trackRef = useRef(200);
   const [innerWidth, setInnerWidth] = useState(200);
   useThumbEpoch();
 
   const nCols = columnCount(innerWidth);
   const track = trackWidth(innerWidth, nCols);
-  nColsRef.current = nCols;
   trackRef.current = track;
 
   const rowCount = Math.ceil(entries.length / nCols) || 0;
-  const fileH = fileRowHeight(track);
+  const rowH = tileRowHeight(track);
 
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => scrollRef.current,
-    estimateSize: (index) => {
-      const cols = nColsRef.current;
-      const slice = entries.slice(index * cols, index * cols + cols);
-      const height = slice.some((entry) => !entry.is_dir) ? fileRowHeight(trackRef.current) : FOLDER_ROW_HEIGHT;
-      return height + GRID_GAP;
-    },
+    estimateSize: () => tileRowHeight(trackRef.current) + GRID_GAP,
     overscan: 2,
     paddingStart: GRID_PAD,
     paddingEnd: GRID_PAD,
@@ -85,7 +78,7 @@ export function FolderEntryGrid({
 
   useEffect(() => {
     virtualizer.measure();
-  }, [nCols, fileH, entries.length, virtualizer]);
+  }, [nCols, rowH, entries.length, virtualizer]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const startRow = virtualRows[0]?.index ?? 0;
@@ -119,7 +112,7 @@ export function FolderEntryGrid({
           return (
             <div
               key={row.key}
-              className="absolute left-0 right-0 grid items-start gap-2"
+              className="absolute left-0 right-0 grid items-stretch gap-2"
               style={{
                 transform: `translateY(${row.start}px)`,
                 gridTemplateColumns: `repeat(${nCols}, minmax(0, 1fr))`,

@@ -49,7 +49,9 @@ export function FileGridTile({ name, selected, letter, locked, src, text, stub, 
         {letter ? <FileStatusBadge type={letter} className="absolute bottom-1 left-1" /> : null}
         {locked ? <FileStatusBadge type="lock" className="absolute bottom-1 right-1" /> : null}
       </div>
-      <p className="w-full truncate text-center text-[12px] leading-4 text-foreground">{name}</p>
+      <div className="flex h-[34px] w-full flex-col justify-start">
+        <p className="w-full truncate text-center text-[12px] leading-4 text-foreground">{name}</p>
+      </div>
     </button>
   );
 }
