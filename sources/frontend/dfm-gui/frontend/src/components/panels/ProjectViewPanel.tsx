@@ -46,6 +46,7 @@ type ProjectViewPanelProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  switchLocked?: boolean;
 };
 
 function splitMessage(message: string): { title: string; description: string } {
@@ -134,6 +135,7 @@ export function ProjectViewPanel({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  switchLocked,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
   const dirty = isDirty(status);
@@ -146,6 +148,7 @@ export function ProjectViewPanel({
         locale={locale}
         branchName={branchName}
         branches={branches}
+        switchLocked={switchLocked}
         onSwitch={onSwitchBranch}
         onCreate={onCreateBranch}
         onRename={onRenameBranch}

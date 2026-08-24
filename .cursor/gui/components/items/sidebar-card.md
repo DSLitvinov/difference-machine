@@ -2,7 +2,7 @@
 
 Оболочка карточки в **списке** (коммиты, стейджи, empty history, back to file). Рамка + слот. В Figma слот — [Swapper](../atoms/swapper.md); в коде — атом из таблицы ниже.
 
-**Не** для блока Uncommitted files: там [Item / Card Directory](./sidebar-card-directory.md).
+**Не** для блока Uncommitted files: там [Item / Card Directory](./sidebar-card-directory.md) — у той оболочки border **всегда dashed**.
 
 Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5809) (`4191:5809`).  
 Код: `SidebarCard`. Property: `state` (Default \| Hover \| Selected \| Disable).

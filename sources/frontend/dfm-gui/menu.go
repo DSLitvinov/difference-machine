@@ -11,6 +11,7 @@ import (
 const (
 	eventSessionChanged = "session:changed"
 	eventMenuSettings   = "menu:settings"
+	eventMenuMerge      = "menu:merge"
 )
 
 func (a *App) applicationMenu() *menu.Menu {
@@ -35,6 +36,12 @@ func (a *App) applicationMenu() *menu.Menu {
 	repo := appMenu.AddSubmenu("Repository")
 	repo.AddText("Create repository", nil, func(_ *menu.CallbackData) {
 		a.menuCreateRepository()
+	})
+	repo.AddText("Merge", nil, func(_ *menu.CallbackData) {
+		if a.ctx == nil {
+			return
+		}
+		runtime.EventsEmit(a.ctx, eventMenuMerge)
 	})
 
 	appMenu.Append(menu.WindowMenu())

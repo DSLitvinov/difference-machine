@@ -5,7 +5,16 @@
 Figma: [Item / Card Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6004-10960) (`6004:10960`).  
 Код: `SidebarCardDirectory`. Property: `state` (Default \| Hover \| Selected \| Disable).
 
-Те же четыре state, что у Card (фон / border / тень — как в [sidebar-card](./sidebar-card.md)). Ширина оболочки 269 px; в панели слот **285** px (padding колонки 12).
+Ширина оболочки 269 px; в панели слот **285** px (padding колонки 12). Padding 12, radius 8 (`rounded-md`), gap 8.
+
+**Border всегда dashed** на всех четырёх state — это отличие от [Item / Card](./sidebar-card.md) (там solid, кроме Current preview). Не брать `border-solid` из Card.
+
+| `state` | Фон | Border | Тень |
+|---------|-----|--------|------|
+| Default | `Background/card` white | `#e4e4e7` **dashed** | shadow-sm |
+| Hover | white | `#60a5fa` **dashed** | shadow-sm |
+| Selected | `#eff6ff` | `#60a5fa` **dashed** | нет |
+| Disable | `Background/muted` `#f4f4f5` | `#e4e4e7` **dashed** | нет |
 
 В Figma слот — [Swapper](../atoms/swapper.md). В коде всегда [UncommittedFilesCard](../atoms/card-directory.md) (`Atom / Cards / Directory`).
 
@@ -32,4 +41,5 @@ No History и Null Repository — только Commit List, см. [project-view]
 ## Запрещено
 
 - Слить с `SidebarCard` «геометрия почти та же».
+- Solid border на любом state (в том числе Default и Disable).
 - Оставить Swapper / teal в UI.

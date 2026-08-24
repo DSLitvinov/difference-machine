@@ -25,6 +25,7 @@ type FileViewPanelProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  switchLocked?: boolean;
 };
 
 type LogResult = {
@@ -54,6 +55,7 @@ export function FileViewPanel({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  switchLocked,
 }: FileViewPanelProps) {
   const copy = t(locale);
   const [commits, setCommits] = useState<CommitSummary[]>([]);
@@ -94,6 +96,7 @@ export function FileViewPanel({
         locale={locale}
         branchName={status?.current_branch}
         branches={branches}
+        switchLocked={switchLocked}
         onSwitch={onSwitchBranch}
         onCreate={onCreateBranch}
         onRename={onRenameBranch}

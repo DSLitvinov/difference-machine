@@ -8,6 +8,7 @@ export type StatusSnapshot = {
   current_branch?: string;
   head_commit?: string;
   is_detached?: boolean;
+  detached_commit?: string;
   staged_new_files?: string[];
   staged_modified_files?: string[];
   staged_deleted_files?: string[];
@@ -46,6 +47,25 @@ export type BranchSummary = {
   is_current?: boolean;
 };
 
+export type MergeConflict = {
+  path: string;
+  kind?: string;
+  base_hash?: string;
+  our_hash?: string;
+  their_hash?: string;
+};
+
+export type MergeStatus = {
+  in_progress?: boolean;
+  branch?: string;
+  current_head?: string;
+  target_head?: string;
+  from?: string;
+  to?: string;
+  has_conflicts?: boolean;
+  conflicts?: MergeConflict[];
+};
+
 type AppState = {
   shell: Shell;
   locale: Locale;
@@ -68,6 +88,7 @@ type AppState = {
   entriesHasMore: boolean;
   commits: CommitSummary[];
   branches: BranchSummary[];
+  mergeStatus: MergeStatus;
   locks: FileLock[];
   toast: string | null;
   applySession: (info: SessionInfo) => void;
@@ -95,6 +116,7 @@ type AppState = {
     entriesHasMore: boolean;
     commits: CommitSummary[];
     branches: BranchSummary[];
+    mergeStatus: MergeStatus;
     locks: FileLock[];
   }) => void;
   appendEntries: (entries: DirEntry[], hasMore: boolean) => void;
@@ -122,6 +144,7 @@ export const useAppStore = create<AppState>((set) => ({
   entriesHasMore: false,
   commits: [],
   branches: [],
+  mergeStatus: { in_progress: false, conflicts: [] },
   locks: [],
   toast: null,
   applySession: (info) => {
@@ -150,6 +173,7 @@ export const useAppStore = create<AppState>((set) => ({
       entriesHasMore: false,
       commits: [],
       branches: [],
+      mergeStatus: { in_progress: false, conflicts: [] },
       locks: [],
       toast: info.error || null,
     });

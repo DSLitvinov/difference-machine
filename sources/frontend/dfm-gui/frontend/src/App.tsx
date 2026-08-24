@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FirstStartView } from "@/components/views/FirstStartView";
 import { AppShell } from "@/components/views/AppShell";
 import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
+import { MergeDialog } from "@/components/dialogs/MergeDialog";
 import { CreateBranchDialog, DeleteBranchDialog, RenameBranchDialog, SwitchBranchDialog } from "@/components/dialogs/BranchDialogs";
 import {
   foresterCall,
@@ -15,7 +16,7 @@ import {
 import type { Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
 import { resetRevisionCache } from "@/lib/revision-cache";
-import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
+import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type MergeStatus, type StatusSnapshot } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 
 type EntriesResult = {
@@ -35,6 +36,23 @@ type LocksResult = {
 type BranchListResult = {
   branches?: BranchSummary[];
 };
+
+function asMergeStatus(raw: unknown): MergeStatus {
+  const value = (raw && typeof raw === "object" ? raw : {}) as MergeStatus;
+  const conflicts = Array.isArray(value.conflicts)
+    ? value.conflicts.filter((item) => item && typeof item.path === "string" && item.path)
+    : [];
+  return {
+    in_progress: Boolean(value.in_progress),
+    branch: value.branch,
+    current_head: value.current_head,
+    target_head: value.target_head,
+    from: value.from,
+    to: value.to,
+    has_conflicts: Boolean(value.has_conflicts) || conflicts.length > 0,
+    conflicts,
+  };
+}
 
 type BranchDialog =
   | { kind: "create" }
@@ -70,12 +88,17 @@ export default function App() {
   const folderPath = useAppStore((s) => s.folderPath);
   const changedOnly = useAppStore((s) => s.changedOnly);
   const status = useAppStore((s) => s.status);
+  const userName = useAppStore((s) => s.userName);
+  const branches = useAppStore((s) => s.branches);
+  const mergeStatus = useAppStore((s) => s.mergeStatus);
   const applySession = useAppStore((s) => s.applySession);
   const setLocale = useAppStore((s) => s.setLocale);
   const setToast = useAppStore((s) => s.setToast);
   const setRepoMeta = useAppStore((s) => s.setRepoMeta);
   const [busy, setBusy] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeError, setMergeError] = useState<string | null>(null);
   const [branchDialog, setBranchDialog] = useState<BranchDialog | null>(null);
   const loadingMore = useRef(false);
 
@@ -109,11 +132,24 @@ export default function App() {
     const offSettings = onWailsEvent("menu:settings", () => {
       setSettingsOpen(true);
     });
+    const offMerge = onWailsEvent("menu:merge", () => {
+      if (useAppStore.getState().shell !== "app") {
+        return;
+      }
+      setMergeError(null);
+      setMergeOpen(true);
+    });
     return () => {
       offSession();
       offSettings();
+      offMerge();
     };
   }, [applySession]);
+
+  useEffect(() => {
+    setMergeOpen(false);
+    setMergeError(null);
+  }, [repoPath, shell]);
 
   useEffect(() => {
     if (shell !== "app") {
@@ -124,11 +160,12 @@ export default function App() {
 
   async function refreshRepoMeta() {
     try {
-      const [status, log, locksResult, branchList] = await Promise.all([
+      const [status, log, locksResult, branchList, mergeRaw] = await Promise.all([
         foresterCall("status.get") as Promise<StatusSnapshot>,
         foresterCall("log.get") as Promise<LogResult>,
         foresterCall("lock.list") as Promise<LocksResult>,
         foresterCall("branch.list") as Promise<BranchListResult>,
+        foresterCall("merge.status"),
       ]);
       const commits = log.commits ?? [];
       let showChanged = useAppStore.getState().changedOnly;
@@ -158,6 +195,7 @@ export default function App() {
         entriesHasMore,
         commits,
         branches: branchList.branches ?? [],
+        mergeStatus: asMergeStatus(mergeRaw),
         locks: locksResult.locks ?? [],
         folderEmpty,
         hasCommits: commits.length > 0,
@@ -171,6 +209,7 @@ export default function App() {
         entriesHasMore: false,
         commits: [],
         branches: [],
+        mergeStatus: { in_progress: false, conflicts: [] },
         locks: [],
       });
     }
@@ -390,6 +429,9 @@ export default function App() {
 
   function onSwitchBranch(name: string) {
     const state = useAppStore.getState();
+    if (state.mergeStatus.in_progress) {
+      return;
+    }
     if (!name || name === state.status?.current_branch) {
       return;
     }
@@ -443,6 +485,64 @@ export default function App() {
     }
   }
 
+  async function onMergeStart(branch: string) {
+    if (!branch || useAppStore.getState().mergeStatus.in_progress) {
+      return;
+    }
+    setBusy(true);
+    setMergeError(null);
+    try {
+      const result = asMergeStatus(await foresterCall("merge.start", { branch }));
+      afterBranchChange();
+      await refreshRepoMeta();
+      const latest = asMergeStatus(useAppStore.getState().mergeStatus);
+      if (!result.in_progress && !latest.in_progress) {
+        setMergeOpen(false);
+      }
+    } catch (err) {
+      setMergeError(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onMergeContinue() {
+    if (useAppStore.getState().mergeStatus.has_conflicts) {
+      return;
+    }
+    setBusy(true);
+    setMergeError(null);
+    try {
+      const result = asMergeStatus(await foresterCall("merge.continue"));
+      afterBranchChange();
+      await refreshRepoMeta();
+      const latest = asMergeStatus(useAppStore.getState().mergeStatus);
+      if (!result.in_progress && !latest.in_progress) {
+        setMergeOpen(false);
+      }
+    } catch (err) {
+      setMergeError(err instanceof Error ? err.message : "request failed");
+      await refreshRepoMeta();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onMergeAbort() {
+    setBusy(true);
+    setMergeError(null);
+    try {
+      await foresterCall("merge.abort");
+      afterBranchChange();
+      setMergeOpen(false);
+      await refreshRepoMeta();
+    } catch (err) {
+      setMergeError(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onLocale(next: Locale) {
     setLocale(next);
     try {
@@ -470,6 +570,10 @@ export default function App() {
           onCreateBranch={() => setBranchDialog({ kind: "create" })}
           onRenameBranch={() => setBranchDialog({ kind: "rename" })}
           onDeleteBranch={(name) => setBranchDialog({ kind: "delete", name })}
+          onOpenMerge={() => {
+            setMergeError(null);
+            setMergeOpen(true);
+          }}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />
@@ -483,6 +587,21 @@ export default function App() {
             setLocale(nextLocale);
           }}
           onError={(message) => setToast(message)}
+        />
+      ) : null}
+      {mergeOpen && shell === "app" ? (
+        <MergeDialog
+          locale={locale}
+          busy={busy}
+          author={userName}
+          currentBranch={status?.current_branch ?? ""}
+          branches={branches}
+          merge={mergeStatus}
+          error={mergeError}
+          onClose={() => setMergeOpen(false)}
+          onStart={(branch) => void onMergeStart(branch)}
+          onContinue={() => void onMergeContinue()}
+          onAbort={() => void onMergeAbort()}
         />
       ) : null}
       {branchDialog?.kind === "switch" ? (

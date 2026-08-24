@@ -1,3 +1,4 @@
+import { RepoStateBanners } from "@/components/items/RepoStateBanners";
 import { ProjectViewPanel } from "@/components/panels/ProjectViewPanel";
 import { FileViewPanel } from "@/components/panels/FileViewPanel";
 import { ContentViewPanel } from "@/components/panels/ContentViewPanel";
@@ -26,6 +27,7 @@ type AppShellProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  onOpenMerge: () => void;
 };
 
 export function AppShell({
@@ -43,6 +45,7 @@ export function AppShell({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  onOpenMerge,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
@@ -51,6 +54,7 @@ export function AppShell({
   const status = useAppStore((s) => s.status);
   const commits = useAppStore((s) => s.commits);
   const branches = useAppStore((s) => s.branches);
+  const mergeStatus = useAppStore((s) => s.mergeStatus);
   const entries = useAppStore((s) => s.entries);
   const entriesHasMore = useAppStore((s) => s.entriesHasMore);
   const repoPath = useAppStore((s) => s.repoPath);
@@ -80,6 +84,7 @@ export function AppShell({
   const fileLeft = (view === "file-view" || view === "file-history") && Boolean(filePath);
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
   const moreFiles = view === "create-commit" || (view !== "stages" && selection.length > 1);
+  const mergeLocked = Boolean(mergeStatus.in_progress);
 
   async function openExternal() {
     if (!filePath) {
@@ -94,6 +99,7 @@ export function AppShell({
 
   return (
     <div className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-background-light">
+      <RepoStateBanners status={status} merge={mergeStatus} onOpenMerge={onOpenMerge} />
       <div className="flex min-h-0 w-full flex-1 items-stretch">
         {fileLeft ? (
           <FileViewPanel
@@ -103,6 +109,7 @@ export function AppShell({
             status={status}
             branches={branches}
             selectedHash={fileRevision?.hash ?? null}
+            switchLocked={mergeLocked}
             onSettings={onSettings}
             onCurrentPreview={leaveFileRevision}
             onSelectCommit={openFileRevision}
@@ -127,6 +134,7 @@ export function AppShell({
             repoPath={repoPath}
             selectedCommit={selectedCommit}
             commitComposer={commitComposer === "open"}
+            switchLocked={mergeLocked}
             onSidebarTab={setSidebarTab}
             onChangedOnly={setChangedOnly}
             onSettings={onSettings}

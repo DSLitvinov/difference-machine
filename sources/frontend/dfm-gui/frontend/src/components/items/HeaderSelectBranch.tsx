@@ -18,6 +18,7 @@ type HeaderSelectBranchProps = {
   locale: Locale;
   branchName?: string;
   branches: BranchSummary[];
+  switchLocked?: boolean;
   onSwitch: (name: string) => void;
   onCreate: () => void;
   onRename: () => void;
@@ -28,6 +29,7 @@ export function HeaderSelectBranch({
   locale,
   branchName,
   branches,
+  switchLocked,
   onSwitch,
   onCreate,
   onRename,
@@ -58,7 +60,7 @@ export function HeaderSelectBranch({
           {branches.map((branch) => (
             <DropdownMenuItem
               key={branch.name}
-              disabled={branch.name === current}
+              disabled={switchLocked || branch.name === current}
               onSelect={() => {
                 window.setTimeout(() => onSwitch(branch.name), 0);
               }}
