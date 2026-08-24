@@ -9,8 +9,9 @@ import { FileInfoPanel } from "@/components/panels/FileInfoPanel";
 import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
 import { foresterCall } from "@/lib/bridge";
 import { showRightColumn } from "@/lib/view";
-import { useAppStore, useDerivedView } from "@/store/app-store";
+import { useAppStore, useDerivedView, type CommitSummary } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
+import type { CommitCardAction } from "@/components/items/CommitCardMenu";
 
 type AppShellProps = {
   busy?: boolean;
@@ -34,6 +35,8 @@ type AppShellProps = {
   onOpenInFolder: (path: string) => void;
   onEditIn: (path: string, editor: string) => void;
   onToggleLock: (path: string) => void;
+  onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
+  onRefresh: () => Promise<void>;
 };
 
 export function AppShell({
@@ -58,6 +61,8 @@ export function AppShell({
   onOpenInFolder,
   onEditIn,
   onToggleLock,
+  onCommitAction,
+  onRefresh,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
@@ -129,6 +134,7 @@ export function AppShell({
             onCreateBranch={onCreateBranch}
             onRenameBranch={onRenameBranch}
             onDeleteBranch={onDeleteBranch}
+            onCommitAction={onCommitAction}
           />
         ) : (
           <ProjectViewPanel
@@ -160,6 +166,7 @@ export function AppShell({
             onCreateBranch={onCreateBranch}
             onRenameBranch={onRenameBranch}
             onDeleteBranch={onDeleteBranch}
+            onCommitAction={onCommitAction}
           />
         )}
         {view === "file-history" && fileRevision ? (
@@ -192,6 +199,8 @@ export function AppShell({
             repoPath={repoPath}
             commit={commitInspect}
             head={Boolean(commitInspect.hash && commitInspect.hash === status?.head_commit)}
+            busy={busy}
+            onRefresh={onRefresh}
           />
         ) : (
           <ContentViewPanel

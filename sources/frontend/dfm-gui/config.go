@@ -230,12 +230,37 @@ func writeSetupCfg(cfg setupCfg) error {
 }
 
 func loadPathList(section map[string]string) []string {
-	var out []string
+	var keys []string
+	if p := strings.TrimSpace(section["path"]); p != "" {
+		keys = append(keys, p)
+	}
 	for i := 1; i < 1024; i++ {
-		p := section["path_"+strconv.Itoa(i)]
+		p := strings.TrimSpace(section["path_"+strconv.Itoa(i)])
 		if p == "" {
-			break
+			continue
 		}
+		keys = append(keys, p)
+	}
+	return uniquePaths(keys)
+}
+
+func knownRepos(cfg setupCfg) []string {
+	return uniquePaths(append([]string{cfg.CurrentRepo}, cfg.Repos...))
+}
+
+func uniquePaths(paths []string) []string {
+	seen := map[string]bool{}
+	var out []string
+	for _, p := range paths {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		key := filepath.Clean(p)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
 		out = append(out, p)
 	}
 	return out

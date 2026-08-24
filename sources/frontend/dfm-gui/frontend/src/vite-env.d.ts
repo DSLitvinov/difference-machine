@@ -10,6 +10,7 @@ interface SessionInfo {
   shell: "first-start" | "app";
   repoPath: string;
   locale: string;
+  theme: string;
   userName: string;
   userEmail: string;
   isRepository: boolean;

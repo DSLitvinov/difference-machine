@@ -45,6 +45,31 @@ func TestWatchIgnored(t *testing.T) {
 	}
 }
 
+func TestNativeMenuCopy(t *testing.T) {
+	en := nativeMenuCopyFor("en")
+	if en.file != "File" || en.openFolder != "Open Folder" || en.merge != "Merge" {
+		t.Fatalf("english menu = %+v", en)
+	}
+	ru := nativeMenuCopyFor("ru")
+	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.merge != "Merge" {
+		t.Fatalf("russian menu = %+v", ru)
+	}
+}
+
+func TestSettingsFromCfgIncludesCurrentRepo(t *testing.T) {
+	info := settingsFromCfg(setupCfg{
+		CurrentRepo: "/tmp/project",
+		Repos:       []string{"/tmp/other"},
+		Theme:       "dark",
+	})
+	if info.Theme != "dark" {
+		t.Fatalf("theme = %q", info.Theme)
+	}
+	if len(info.Repos) != 2 || info.Repos[0] != "/tmp/project" || info.Repos[1] != "/tmp/other" {
+		t.Fatalf("repos = %v", info.Repos)
+	}
+}
+
 func TestThumbCacheRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, ".DFM"), 0o755); err != nil {

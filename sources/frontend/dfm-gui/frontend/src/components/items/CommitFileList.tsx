@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type MouseEvent } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CommitFileItem } from "@/components/atoms/CommitFileItem";
 import { DiffFileListPlaceholder } from "@/components/placeholders/DiffFileListPlaceholder";
@@ -11,11 +11,12 @@ type CommitFileListProps = {
   files?: NameStatusFile[];
   selectedPath?: string;
   onSelect: (path: string) => void;
+  onFileMenu?: (file: NameStatusFile, event: MouseEvent) => void;
 };
 
 const ROW_H = 40;
 
-export function CommitFileList({ locale, files, selectedPath, onSelect }: CommitFileListProps) {
+export function CommitFileList({ locale, files, selectedPath, onSelect, onFileMenu }: CommitFileListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rows = files ?? [];
   const virtualizer = useVirtualizer({
@@ -54,6 +55,7 @@ export function CommitFileList({ locale, files, selectedPath, onSelect }: Commit
                 letter={letterFromDiffStatus(file.status)}
                 selected={file.path === selectedPath}
                 onSelect={() => onSelect(file.path)}
+                onMenu={(event) => onFileMenu?.(file, event)}
               />
             </div>
           );

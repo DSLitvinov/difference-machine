@@ -5,16 +5,20 @@ import xIcon from "@/assets/icons/x.svg";
 
 type RestoreFileDialogProps = {
   locale: Locale;
+  title?: string;
   fileName: string;
+  confirmLabel?: string;
   busy?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 };
 
-export function RestoreFileDialog({ locale, fileName, busy, onCancel, onConfirm }: RestoreFileDialogProps) {
+export function RestoreFileDialog({ locale, title, fileName, confirmLabel, busy, onCancel, onConfirm }: RestoreFileDialogProps) {
   const copy = t(locale);
+  const heading = title ?? copy.revert;
+  const confirm = confirmLabel ?? copy.revert;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40" role="presentation" onClick={busy ? undefined : onCancel}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="presentation" onClick={busy ? undefined : onCancel}>
       <div
         role="dialog"
         aria-modal="true"
@@ -26,7 +30,7 @@ export function RestoreFileDialog({ locale, fileName, busy, onCancel, onConfirm 
           <FigmaIcon src={xIcon} size={16} />
         </button>
         <p id="restore-file-title" className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
-          {copy.revert}
+          {heading}
         </p>
         <p className="mt-4 truncate text-[13px] leading-normal text-foreground-muted">{fileName}</p>
         <div className="mt-4 flex w-full items-center justify-end gap-2">
@@ -34,7 +38,7 @@ export function RestoreFileDialog({ locale, fileName, busy, onCancel, onConfirm 
             {copy.cancel}
           </Button>
           <Button type="button" disabled={busy} onClick={onConfirm}>
-            {copy.revert}
+            {confirm}
           </Button>
         </div>
       </div>

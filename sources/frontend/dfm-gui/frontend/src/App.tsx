@@ -5,6 +5,7 @@ import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
 import { MergeDialog } from "@/components/dialogs/MergeDialog";
 import { FileDeleteDialog, FileRenameDialog } from "@/components/dialogs/FileDialogs";
 import { CreateBranchDialog, DeleteBranchDialog, RenameBranchDialog, SwitchBranchDialog } from "@/components/dialogs/BranchDialogs";
+import { RestoreFileDialog } from "@/components/dialogs/RestoreFileDialog";
 import {
   foresterCall,
   getSession,
@@ -20,6 +21,7 @@ import { parentRel } from "@/lib/folder-query";
 import { resetRevisionCache } from "@/lib/revision-cache";
 import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type MergeStatus, type StatusSnapshot } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
+import type { CommitCardAction } from "@/components/items/CommitCardMenu";
 
 type EntriesResult = {
   entries?: DirEntry[];
@@ -84,6 +86,18 @@ function tmpReviewRel(path: string): string {
   return `.DFM/tmp_review/${path.replace(/^\/+/, "")}`;
 }
 
+function commitTitle(message: string): string {
+  const trimmed = message.trim();
+  const nl = trimmed.indexOf("\n");
+  return nl === -1 ? trimmed : trimmed.slice(0, nl).trim();
+}
+
+const commitConfirmCopy: Record<Exclude<CommitCardAction, "compare">, string> = {
+  "restore-version": "Restore this version",
+  "revert-commit": "Revert commit",
+  reset: "Reset branch to commit",
+};
+
 export default function App() {
   const shell = useAppStore((s) => s.shell);
   const locale = useAppStore((s) => s.locale);
@@ -105,6 +119,12 @@ export default function App() {
   const [mergeError, setMergeError] = useState<string | null>(null);
   const [branchDialog, setBranchDialog] = useState<BranchDialog | null>(null);
   const [fileDialog, setFileDialog] = useState<FileDialog | null>(null);
+  const [historyConfirm, setHistoryConfirm] = useState<{
+    title: string;
+    detail: string;
+    action: CommitCardAction;
+    commit: CommitSummary;
+  } | null>(null);
   const loadingMore = useRef(false);
 
   useEffect(() => {
@@ -409,6 +429,49 @@ export default function App() {
     }
   }
 
+  async function runCommitAction(action: CommitCardAction, commit: CommitSummary): Promise<boolean> {
+    setBusy(true);
+    try {
+      if (action === "compare") {
+        await foresterCall("compare.extract", { commit_hash: commit.hash });
+        await foresterCall("workdir.open", { path: ".DFM/tmp_review" });
+        return true;
+      }
+      if (action === "restore-version") {
+        await foresterCall("restore.version", { commit_hash: commit.hash });
+        await refreshRepoMeta();
+        return true;
+      }
+      if (action === "revert-commit") {
+        await foresterCall("commit.revert", { commit_hash: commit.hash });
+        await refreshRepoMeta();
+        return true;
+      }
+      await foresterCall("commit.reset", { commit_hash: commit.hash, mode: "mixed" });
+      afterBranchChange();
+      await refreshRepoMeta();
+      return true;
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function onCommitAction(action: CommitCardAction, commit: CommitSummary) {
+    if (action === "compare") {
+      void runCommitAction(action, commit);
+      return;
+    }
+    setHistoryConfirm({
+      title: commitConfirmCopy[action],
+      detail: commitTitle(commit.message ?? ""),
+      action,
+      commit,
+    });
+  }
+
   function afterBranchChange() {
     resetRevisionCache();
     const state = useAppStore.getState();
@@ -678,6 +741,8 @@ export default function App() {
           onOpenInFolder={(path) => void onOpenInFolder(path)}
           onEditIn={(path, editor) => void onEditIn(path, editor)}
           onToggleLock={(path) => void onToggleLock(path)}
+          onCommitAction={onCommitAction}
+          onRefresh={() => refreshRepoMeta()}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />
@@ -758,6 +823,23 @@ export default function App() {
           busy={busy}
           onCancel={() => setFileDialog(null)}
           onDelete={() => void onDeleteFile()}
+        />
+      ) : null}
+      {historyConfirm ? (
+        <RestoreFileDialog
+          locale={locale}
+          title={historyConfirm.title}
+          fileName={historyConfirm.detail}
+          confirmLabel={historyConfirm.title}
+          busy={busy}
+          onCancel={() => setHistoryConfirm(null)}
+          onConfirm={() => {
+            void (async () => {
+              if (await runCommitAction(historyConfirm.action, historyConfirm.commit)) {
+                setHistoryConfirm(null);
+              }
+            })();
+          }}
         />
       ) : null}
       {toast ? (

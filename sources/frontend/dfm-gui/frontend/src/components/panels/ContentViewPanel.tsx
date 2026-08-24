@@ -216,6 +216,7 @@ export function ContentViewPanel({
           </DropdownMenuTrigger>
           <FilePreviewItemMenu
             locale={locale}
+            locked={locks.some((item) => item.file_path === menu.path)}
             onAddInCommit={() => onAddInCommit?.(menu.path)}
             onRename={() => onRenameFile?.(menu.path)}
             onOpenInFolder={() => onOpenInFolder?.(menu.path)}

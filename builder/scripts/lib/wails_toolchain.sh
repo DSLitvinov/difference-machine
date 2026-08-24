@@ -155,14 +155,19 @@ build_gui_frontend() {
     (
         cd "${gui_dir}/frontend"
         npm install
+        npm run icons:generate
         npm run build
     )
 
+    if [ ! -f "${gui_dir}/build/appicon.png" ]; then
+        echo -e "${RED:-}build/appicon.png missing after npm run icons:generate${NC:-}" >&2
+        return 1
+    fi
     if [ ! -f "${gui_dir}/frontend/dist/index.html" ]; then
         echo -e "${RED:-}frontend/dist/index.html missing after npm run build${NC:-}" >&2
         return 1
     fi
-    echo -e "${GREEN:-}✓ frontend/dist ready${NC:-}"
+    echo -e "${GREEN:-}✓ GUI icons and frontend/dist ready${NC:-}"
 }
 
 resolve_gui_wails_binary_path() {

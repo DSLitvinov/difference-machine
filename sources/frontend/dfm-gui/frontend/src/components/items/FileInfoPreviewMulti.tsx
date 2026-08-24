@@ -8,7 +8,7 @@ export function FileInfoPreviewMulti({ className }: { className?: string }) {
       alt=""
       width={308}
       height={308}
-      className={cn("size-[308px] shrink-0", className)}
+      className={cn("theme-asset size-[308px] shrink-0", className)}
     />
   );
 }

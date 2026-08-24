@@ -48,7 +48,7 @@ export function FileGridTile({ name, selected, letter, locked, src, text, stub, 
             </pre>
           </div>
         ) : (
-          <FilePreview src={src ?? (stub ? stubs[fileKind(name)] : undefined)} className="aspect-square size-auto w-full" />
+          <FilePreview src={src ?? (stub ? stubs[fileKind(name)] : undefined)} themed={!src && stub} className="aspect-square size-auto w-full" />
         )}
         {letter ? <FileStatusBadge type={letter} className="absolute bottom-1 left-1" /> : null}
         {locked ? <FileStatusBadge type="lock" className="absolute bottom-1 right-1" /> : null}

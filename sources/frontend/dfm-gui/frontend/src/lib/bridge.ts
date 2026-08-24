@@ -64,8 +64,27 @@ export type SettingsInfo = {
   editors: string[];
 };
 
+function stringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+  if (typeof value === "string" && value) {
+    return [value];
+  }
+  if (value && typeof value === "object") {
+    return Object.values(value).filter((item): item is string => typeof item === "string");
+  }
+  return [];
+}
+
 export async function getSettings(): Promise<SettingsInfo> {
-  return app().GetSettings();
+  const info = await app().GetSettings();
+  return {
+    ...info,
+    repos: stringList(info?.repos),
+    editors: stringList(info?.editors),
+    theme: info?.theme === "dark" ? "dark" : "light",
+  };
 }
 
 export async function saveProfile(name: string, email: string, locale: string): Promise<void> {

@@ -14,6 +14,7 @@ import {
   selectFile,
   type SettingsInfo,
 } from "@/lib/bridge";
+import { applyTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import xIcon from "@/assets/icons/x.svg";
 import trash2 from "@/assets/icons/trash-2.svg";
@@ -67,8 +68,8 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
         if (!cancelled) {
           setDraft({
             ...info,
-            repos: info.repos?.length ? info.repos : [],
-            editors: info.editors?.length ? info.editors : [],
+            repos: info.repos,
+            editors: info.editors,
           });
         }
       } catch (err) {
@@ -127,12 +128,12 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
             : { title: "Profile", body: "This is how others will see you on the site." };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40" role="presentation" onClick={busy ? undefined : onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="presentation" onClick={busy ? undefined : onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="relative flex max-h-[min(1000px,calc(100vh-24px))] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-xl border border-border bg-background px-10 pb-16 pt-10 shadow-md"
+        className="relative flex h-[min(1000px,calc(100vh-24px))] w-[min(1113px,calc(100vw-24px))] shrink-0 flex-col gap-6 overflow-hidden rounded-xl border border-border bg-background px-10 pb-16 pt-10 shadow-md"
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-[13px] top-[11px] flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>
@@ -210,7 +211,7 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
               ) : null}
             </div>
             {tab === "profile" ? (
-              <div className="flex justify-end">
+              <div className="flex shrink-0 justify-end">
                 <Button
                   type="button"
                   disabled={busy}
@@ -227,21 +228,31 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
               </div>
             ) : null}
             {tab === "appearance" ? (
-              <div className="flex justify-end">
-                <Button type="button" disabled={busy} onClick={() => void run(() => saveAppearance(draft.theme === "dark" ? "dark" : "light"))}>
+              <div className="flex shrink-0 justify-end">
+                <Button
+                  type="button"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      const theme = draft.theme === "dark" ? "dark" : "light";
+                      await saveAppearance(theme);
+                      applyTheme(theme);
+                    })
+                  }
+                >
                   Save Appearance
                 </Button>
               </div>
             ) : null}
             {tab === "forester" ? (
-              <div className="flex justify-end">
+              <div className="flex shrink-0 justify-end">
                 <Button type="button" disabled={busy} onClick={() => void run(() => saveForester(draft.apiPath, draft.foresterPath))}>
                   Upgrade Forester
                 </Button>
               </div>
             ) : null}
             {tab === "repositories" ? (
-              <div className="flex w-full items-center justify-between">
+              <div className="flex w-full shrink-0 items-center justify-between">
                 <Button type="button" variant="secondary" disabled={busy} onClick={() => setDraft({ ...draft, repos: [...draft.repos, ""] })}>
                   Add repository
                 </Button>
@@ -251,7 +262,7 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
               </div>
             ) : null}
             {tab === "editors" ? (
-              <div className="flex w-full items-center justify-between">
+              <div className="flex w-full shrink-0 items-center justify-between">
                 <Button type="button" variant="secondary" disabled={busy} onClick={() => setDraft({ ...draft, editors: [...draft.editors, ""] })}>
                   Add application
                 </Button>
@@ -330,20 +341,20 @@ function ThemeCard({
   return (
     <button type="button" className="flex flex-col items-center gap-2" onClick={onSelect}>
       <div className={cn("rounded-lg border-2 p-1", selected ? "border-[#a1a1aa]" : "border-[#d4d4d8]")}>
-        <div className={cn("flex flex-col gap-2.5 overflow-hidden rounded-lg p-2", dark ? "bg-foreground" : "bg-border")}>
-          <div className={cn("flex w-full items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-background")}>
+        <div className={cn("flex flex-col gap-2.5 overflow-hidden rounded-lg p-2", dark ? "bg-[#09090b]" : "bg-[#e4e4e7]")}>
+          <div className={cn("flex w-full items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-white")}>
             <div className="flex flex-col gap-2">
-              <div className={cn("h-4 w-[112px] rounded-full", dark ? "bg-[#52525b]" : "bg-background-light")} />
-              <div className={cn("h-4 w-[140px] rounded-full", dark ? "bg-[#52525b]" : "bg-background-light")} />
+              <div className={cn("h-4 w-[112px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
+              <div className={cn("h-4 w-[140px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
             </div>
           </div>
-          <div className={cn("flex items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-background")}>
-            <div className={cn("size-6 rounded-full", dark ? "bg-[#52525b]" : "bg-background-light")} />
-            <div className={cn("h-4 w-[200px] rounded-full", dark ? "bg-[#52525b]" : "bg-background-light")} />
+          <div className={cn("flex items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-white")}>
+            <div className={cn("size-6 rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
+            <div className={cn("h-4 w-[200px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
           </div>
-          <div className={cn("flex items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-background")}>
-            <div className={cn("size-6 rounded-full", dark ? "bg-[#52525b]" : "bg-background-light")} />
-            <div className={cn("h-4 w-[200px] rounded-full", dark ? "bg-[#52525b]" : "bg-background-light")} />
+          <div className={cn("flex items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-white")}>
+            <div className={cn("size-6 rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
+            <div className={cn("h-4 w-[200px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
           </div>
         </div>
       </div>

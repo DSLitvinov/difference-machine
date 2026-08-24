@@ -24,7 +24,7 @@ function DialogShell({ locale, title, titleId, busy, onClose, children }: Dialog
   }, []);
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/40"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
       role="presentation"
       onClick={busy || !backdropArmed ? undefined : onClose}
     >

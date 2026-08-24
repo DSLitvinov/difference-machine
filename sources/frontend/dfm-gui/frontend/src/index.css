@@ -23,7 +23,25 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-full: 400px;
+  --theme-asset-invert: 0;
   color-scheme: light;
+}
+
+html.dark {
+  --background-primary-light: #09090b;
+  --background-default: #18181b;
+  --background-primary-default: #fafafa;
+  --background-muted: #27272a;
+  --foreground-default: #fafafa;
+  --foreground-muted: #a1a1aa;
+  --foreground-secondary: #d4d4d8;
+  --foreground-primary-default: #18181b;
+  --foreground-disabled: #71717a;
+  --foreground-accent-light: #27272a;
+  --border-default: #3f3f46;
+  --border-accent: #60a5fa;
+  --theme-asset-invert: 1;
+  color-scheme: dark;
 }
 
 html,
@@ -44,6 +62,22 @@ body,
 
 .no-drag {
   --wails-draggable: no-drag;
+}
+
+.theme-asset {
+  filter: invert(var(--theme-asset-invert)) hue-rotate(calc(var(--theme-asset-invert) * 180deg));
+}
+
+.theme-contrast {
+  --theme-asset-invert: 1;
+}
+
+html.dark .theme-contrast {
+  --theme-asset-invert: 0;
+}
+
+.theme-invert {
+  --theme-asset-invert: 1;
 }
 
 .sr-only {

@@ -22,6 +22,7 @@ import lockIcon from "@/assets/icons/lock.svg";
 
 type FilePreviewItemMenuProps = {
   locale: Locale;
+  locked?: boolean;
   onAddInCommit: () => void;
   onRename: () => void;
   onOpenInFolder: () => void;
@@ -32,6 +33,7 @@ type FilePreviewItemMenuProps = {
 
 export function FilePreviewItemMenu({
   locale,
+  locked,
   onAddInCommit,
   onRename,
   onOpenInFolder,
@@ -50,7 +52,7 @@ export function FilePreviewItemMenu({
     <DropdownMenuContent align="start" className="w-[200px] shadow-md">
       <DropdownMenuLabel>Commit</DropdownMenuLabel>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onAddInCommit, 0)}>
-        <FigmaIcon src={plusIcon} size={16} className="[&_img]:brightness-0" />
+        <FigmaIcon src={plusIcon} size={16} />
         {copy.addInCommit}
       </DropdownMenuItem>
       <DropdownMenuItem disabled className="gap-2">
@@ -62,7 +64,7 @@ export function FilePreviewItemMenu({
         Rename
       </DropdownMenuItem>
       <DropdownMenuItem disabled className="gap-2">
-        <FigmaIcon src={trashIcon} size={16} className="[&_img]:brightness-0" />
+        <FigmaIcon src={trashIcon} size={16} />
         Delete in history
       </DropdownMenuItem>
       <DropdownMenuLabel>Action </DropdownMenuLabel>
@@ -86,14 +88,14 @@ export function FilePreviewItemMenu({
       </DropdownMenuSub>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onToggleLock, 0)}>
         <FigmaIcon src={lockIcon} size={16} />
-        Lock
+        {locked ? "Unlock" : "Lock"}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
         className="gap-2 text-[#ef4444] focus:text-[#ef4444]"
         onSelect={() => window.setTimeout(onDeleteInProject, 0)}
       >
-        <FigmaIcon src={trashIcon} size={16} className="[&_img]:brightness-0" />
+        <FigmaIcon src={trashIcon} size={16} />
         Delete in project
       </DropdownMenuItem>
     </DropdownMenuContent>

@@ -63,7 +63,7 @@ export function FiltersMenu({ value, extensions, onChange }: FiltersMenuProps) {
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2 text-[#ef4444] focus:text-[#ef4444]" onSelect={() => onChange([])}>
-          <FigmaIcon src={trashIcon} size={16} className="[&_img]:brightness-0" />
+          <FigmaIcon src={trashIcon} size={16} />
           Clean filters
         </DropdownMenuItem>
       </DropdownMenuContent>

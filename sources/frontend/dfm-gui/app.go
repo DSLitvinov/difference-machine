@@ -38,6 +38,7 @@ type SessionInfo struct {
 	Shell        string `json:"shell"`
 	RepoPath     string `json:"repoPath"`
 	Locale       string `json:"locale"`
+	Theme        string `json:"theme"`
 	UserName     string `json:"userName"`
 	UserEmail    string `json:"userEmail"`
 	IsRepository bool   `json:"isRepository"`
@@ -50,10 +51,12 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.applyMenuLocale()
 	cfg, err := loadSetupCfg()
 	if err != nil {
 		return
 	}
+	a.applyNativeTheme(cfg.Theme)
 	path := cfg.CurrentRepo
 	if path == "" || !isForesterRepo(path) {
 		return
@@ -74,14 +77,20 @@ func (a *App) GetSession() SessionInfo {
 	info := SessionInfo{
 		Shell:     "first-start",
 		Locale:    "en",
+		Theme:     "light",
 		UserName:  "",
 		UserEmail: "",
 	}
 	if err == nil {
 		info.Locale = cfg.Locale
+		info.Theme = cfg.Theme
+		if info.Theme != "dark" {
+			info.Theme = "light"
+		}
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
 		info.RepoPath = cfg.CurrentRepo
+		a.applyNativeTheme(info.Theme)
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -178,9 +187,14 @@ func (a *App) SetLocale(locale string) error {
 	if locale != "en" && locale != "ru" {
 		locale = "en"
 	}
-	return updateSetupCfg(func(cfg *setupCfg) {
+	err := updateSetupCfg(func(cfg *setupCfg) {
 		cfg.Locale = locale
 	})
+	if err != nil {
+		return err
+	}
+	a.applyMenuLocale()
+	return nil
 }
 
 // WindowMinimise hides the window (same as Window menu hide).
@@ -213,7 +227,7 @@ type SettingsInfo struct {
 }
 
 func settingsFromCfg(cfg setupCfg) SettingsInfo {
-	repos := cfg.Repos
+	repos := knownRepos(cfg)
 	if repos == nil {
 		repos = []string{}
 	}
@@ -257,21 +271,30 @@ func (a *App) SaveProfile(name, email, locale string) error {
 	if locale != "en" && locale != "ru" {
 		locale = "en"
 	}
-	return updateSetupCfg(func(cfg *setupCfg) {
+	err := updateSetupCfg(func(cfg *setupCfg) {
 		cfg.UserName = strings.TrimSpace(name)
 		cfg.UserEmail = strings.TrimSpace(email)
 		cfg.Locale = locale
 	})
+	if err != nil {
+		return err
+	}
+	a.applyMenuLocale()
+	return nil
 }
 
-// SaveAppearance writes [ui] theme. Dark tokens are not applied until a Figma dark set exists.
+// SaveAppearance writes [ui] theme and updates the native window chrome.
 func (a *App) SaveAppearance(theme string) error {
 	if theme != "dark" {
 		theme = "light"
 	}
-	return updateSetupCfg(func(cfg *setupCfg) {
+	if err := updateSetupCfg(func(cfg *setupCfg) {
 		cfg.Theme = theme
-	})
+	}); err != nil {
+		return err
+	}
+	a.applyNativeTheme(theme)
+	return nil
 }
 
 // SaveRepos writes [repo] path_N. Does not delete .DFM/ on disk.
@@ -348,10 +371,25 @@ func isForesterRepo(absPath string) bool {
 	return err == nil && info.IsDir()
 }
 
+func (a *App) applyNativeTheme(theme string) {
+	if a.ctx == nil {
+		return
+	}
+	if theme == "dark" {
+		runtime.WindowSetDarkTheme(a.ctx)
+	} else {
+		runtime.WindowSetLightTheme(a.ctx)
+	}
+}
+
 func sessionError(msg string) SessionInfo {
-	info := SessionInfo{Shell: "first-start", Locale: "en", Error: msg}
+	info := SessionInfo{Shell: "first-start", Locale: "en", Theme: "light", Error: msg}
 	if cfg, err := loadSetupCfg(); err == nil {
 		info.Locale = cfg.Locale
+		info.Theme = cfg.Theme
+		if info.Theme != "dark" {
+			info.Theme = "light"
+		}
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
 	}

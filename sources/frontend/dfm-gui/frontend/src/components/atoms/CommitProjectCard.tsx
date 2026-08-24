@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { relativeTime } from "@/lib/relative-time";
 import gitMerge from "@/assets/icons/git-merge.svg";
@@ -14,6 +15,7 @@ type CommitProjectCardProps = {
   filesChanged?: number;
   insertions?: number;
   deletions?: number;
+  more?: ReactNode;
 };
 
 export function CommitProjectCard({
@@ -27,6 +29,7 @@ export function CommitProjectCard({
   filesChanged,
   insertions,
   deletions,
+  more,
 }: CommitProjectCardProps) {
   return (
     <div className="flex w-full flex-col gap-2">
@@ -39,9 +42,11 @@ export function CommitProjectCard({
             </span>
           ) : null}
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
-          <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
-            <FigmaIcon src={ellipsisVertical} size={16} />
-          </button>
+          {more ?? (
+            <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
+              <FigmaIcon src={ellipsisVertical} size={16} />
+            </button>
+          )}
         </div>
         <p className="w-full text-[12px] leading-4 text-foreground">{author}</p>
       </div>

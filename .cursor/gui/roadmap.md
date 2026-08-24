@@ -32,7 +32,7 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 14 | Branches dialogs | done |
 | 15 | Merge + detached HEAD banners | done |
 | 16 | Search, sort, filter, locks, watcher | done |
-| 17 | Polish, i18n, packaging | pending |
+| 17 | Polish, i18n, packaging | done |
 
 ---
 

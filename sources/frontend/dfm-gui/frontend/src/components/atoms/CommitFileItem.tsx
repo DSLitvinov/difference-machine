@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
 import { cn } from "@/lib/utils";
 import type { LetterStatus } from "@/lib/status";
@@ -7,13 +8,14 @@ type CommitFileItemProps = {
   letter?: LetterStatus | null;
   selected?: boolean;
   onSelect?: () => void;
+  onMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export function displayCommitPath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
 }
 
-export function CommitFileItem({ path, letter, selected, onSelect }: CommitFileItemProps) {
+export function CommitFileItem({ path, letter, selected, onSelect, onMenu }: CommitFileItemProps) {
   const className = cn(
     "flex w-full flex-col items-start overflow-clip rounded-sm px-4 py-2 text-left",
     selected ? "bg-background-muted" : "hover:bg-background-muted",
@@ -26,7 +28,20 @@ export function CommitFileItem({ path, letter, selected, onSelect }: CommitFileI
   );
   if (onSelect) {
     return (
-      <button type="button" className={className} onClick={onSelect}>
+      <button
+        type="button"
+        className={className}
+        onClick={onSelect}
+        onContextMenu={
+          onMenu
+            ? (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                onMenu(event);
+              }
+            : undefined
+        }
+      >
         {body}
       </button>
     );

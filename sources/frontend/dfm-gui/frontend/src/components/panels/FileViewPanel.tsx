@@ -6,6 +6,7 @@ import { SidebarCard } from "@/components/items/SidebarCard";
 import { BackToFileRow } from "@/components/atoms/BackToFileRow";
 import { CommitFileCard } from "@/components/atoms/CommitFileCard";
 import { NoHistoryFile } from "@/components/atoms/NoHistoryFile";
+import { CommitCardMoreButton, type CommitCardAction } from "@/components/items/CommitCardMenu";
 import { t, type Locale } from "@/lib/i18n";
 import { foresterCall } from "@/lib/bridge";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ type FileViewPanelProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
   switchLocked?: boolean;
 };
 
@@ -55,6 +57,7 @@ export function FileViewPanel({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  onCommitAction,
   switchLocked,
 }: FileViewPanelProps) {
   const copy = t(locale);
@@ -147,6 +150,13 @@ export function FileViewPanel({
                         head={Boolean(commit.hash && commit.hash === status?.head_commit)}
                         merge={(commit.parent_hashes?.length ?? 0) > 1}
                         tag={commit.tag}
+                        more={
+                          <CommitCardMoreButton
+                            hash={commit.hash}
+                            message={commit.message ?? ""}
+                            onAction={(action) => onCommitAction(action, commit)}
+                          />
+                        }
                       />
                     </SidebarCard>
                   </div>

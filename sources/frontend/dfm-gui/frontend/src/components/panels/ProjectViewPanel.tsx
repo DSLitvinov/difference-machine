@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
 import { changeCounts, isDirty } from "@/lib/status";
 import { requestVisibleStats, useStat } from "@/lib/revision-cache";
+import { CommitCardMoreButton, type CommitCardAction } from "@/components/items/CommitCardMenu";
 import type { SidebarTab } from "@/lib/view";
 import type { BranchSummary, CommitSummary, StatusSnapshot } from "@/store/app-store";
 
@@ -46,6 +47,7 @@ type ProjectViewPanelProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
   switchLocked?: boolean;
 };
 
@@ -135,6 +137,7 @@ export function ProjectViewPanel({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  onCommitAction,
   switchLocked,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
@@ -195,6 +198,7 @@ export function ProjectViewPanel({
               selectedCommit={selectedCommit}
               onCreateRepository={onCreateRepository}
               onSelectCommit={onSelectCommit}
+              onCommitAction={onCommitAction}
             />
           ) : (
             <StageList locale={locale} />
@@ -238,6 +242,7 @@ function CommitList({
   selectedCommit,
   onCreateRepository,
   onSelectCommit,
+  onCommitAction,
 }: {
   locale: Locale;
   folderEmpty: boolean;
@@ -249,6 +254,7 @@ function CommitList({
   selectedCommit?: string | null;
   onCreateRepository: () => void;
   onSelectCommit: (hash: string) => void;
+  onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
@@ -314,6 +320,13 @@ function CommitList({
                     filesChanged={stat?.files_changed}
                     insertions={stat?.insertions}
                     deletions={stat?.deletions}
+                    more={
+                      <CommitCardMoreButton
+                        hash={commit.hash}
+                        message={commit.message ?? ""}
+                        onAction={(action) => onCommitAction(action, commit)}
+                      />
+                    }
                   />
                 )}
               </VirtualCommitCard>

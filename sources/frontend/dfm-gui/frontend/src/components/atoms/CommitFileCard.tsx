@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { relativeTime } from "@/lib/relative-time";
 import gitMerge from "@/assets/icons/git-merge.svg";
@@ -13,6 +14,7 @@ type CommitFileCardProps = {
   tag?: string;
   insertions?: number;
   deletions?: number;
+  more?: ReactNode;
 };
 
 export function CommitFileCard({
@@ -25,6 +27,7 @@ export function CommitFileCard({
   tag,
   insertions,
   deletions,
+  more,
 }: CommitFileCardProps) {
   const hasStats = insertions != null || deletions != null;
   return (
@@ -38,9 +41,11 @@ export function CommitFileCard({
             </span>
           ) : null}
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
-          <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
-            <FigmaIcon src={ellipsisVertical} size={16} />
-          </button>
+          {more ?? (
+            <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
+              <FigmaIcon src={ellipsisVertical} size={16} />
+            </button>
+          )}
         </div>
         <p className="w-full text-[12px] leading-4 text-foreground">{author}</p>
       </div>

@@ -14,30 +14,72 @@ const (
 	eventMenuMerge      = "menu:merge"
 )
 
+type nativeMenuCopy struct {
+	file             string
+	openFolder       string
+	edit             string
+	settings         string
+	repository       string
+	createRepository string
+	merge            string
+}
+
+func nativeMenuCopyFor(locale string) nativeMenuCopy {
+	if locale == "ru" {
+		return nativeMenuCopy{
+			file:             "Файл",
+			openFolder:       "Открыть папку",
+			edit:             "Правка",
+			settings:         "Настройки",
+			repository:       "Репозиторий",
+			createRepository: "Создать репозиторий",
+			merge:            "Merge",
+		}
+	}
+	return nativeMenuCopy{
+		file:             "File",
+		openFolder:       "Open Folder",
+		edit:             "Edit",
+		settings:         "Settings",
+		repository:       "Repository",
+		createRepository: "Create repository",
+		merge:            "Merge",
+	}
+}
+
+func cfgLocale() string {
+	cfg, err := loadSetupCfg()
+	if err == nil && cfg.Locale == "ru" {
+		return "ru"
+	}
+	return "en"
+}
+
 func (a *App) applicationMenu() *menu.Menu {
+	copy := nativeMenuCopyFor(cfgLocale())
 	appMenu := menu.NewMenu()
 	if goruntime.GOOS == "darwin" {
 		appMenu.Append(menu.AppMenu())
 	}
 
-	file := appMenu.AddSubmenu("File")
-	file.AddText("Open Folder", keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
+	file := appMenu.AddSubmenu(copy.file)
+	file.AddText(copy.openFolder, keys.CmdOrCtrl("o"), func(_ *menu.CallbackData) {
 		a.menuOpenFolder()
 	})
 
-	edit := appMenu.AddSubmenu("Edit")
-	edit.AddText("Settings", keys.CmdOrCtrl(","), func(_ *menu.CallbackData) {
+	edit := appMenu.AddSubmenu(copy.edit)
+	edit.AddText(copy.settings, keys.CmdOrCtrl(","), func(_ *menu.CallbackData) {
 		if a.ctx == nil {
 			return
 		}
 		runtime.EventsEmit(a.ctx, eventMenuSettings)
 	})
 
-	repo := appMenu.AddSubmenu("Repository")
-	repo.AddText("Create repository", nil, func(_ *menu.CallbackData) {
+	repo := appMenu.AddSubmenu(copy.repository)
+	repo.AddText(copy.createRepository, nil, func(_ *menu.CallbackData) {
 		a.menuCreateRepository()
 	})
-	repo.AddText("Merge", nil, func(_ *menu.CallbackData) {
+	repo.AddText(copy.merge, nil, func(_ *menu.CallbackData) {
 		if a.ctx == nil {
 			return
 		}
@@ -46,6 +88,13 @@ func (a *App) applicationMenu() *menu.Menu {
 
 	appMenu.Append(menu.WindowMenu())
 	return appMenu
+}
+
+func (a *App) applyMenuLocale() {
+	if a.ctx == nil {
+		return
+	}
+	runtime.MenuSetApplicationMenu(a.ctx, a.applicationMenu())
 }
 
 func (a *App) menuOpenFolder() {
