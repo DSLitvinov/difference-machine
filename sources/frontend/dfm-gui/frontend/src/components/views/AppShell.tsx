@@ -116,7 +116,7 @@ export function AppShell({
 
   return (
     <div className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-background-light">
-      <RepoStateBanners status={status} merge={mergeStatus} onOpenMerge={onOpenMerge} />
+      <RepoStateBanners locale={locale} status={status} merge={mergeStatus} onOpenMerge={onOpenMerge} />
       <div className="flex min-h-0 w-full flex-1 items-stretch">
         {fileLeft ? (
           <FileViewPanel

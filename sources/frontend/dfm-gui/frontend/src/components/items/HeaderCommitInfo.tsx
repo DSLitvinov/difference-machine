@@ -24,7 +24,7 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
           {merge ? <FigmaIcon src={gitMerge} size={16} /> : null}
           {head ? (
             <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-background-primary px-3 text-[12px] font-semibold leading-4 text-foreground-primary">
-              Head
+              {copy.head}
             </span>
           ) : null}
           <p className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-5 text-foreground">{title}</p>
@@ -36,7 +36,7 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
             <button
               type="button"
               className="size-4 shrink-0"
-              aria-label="Copy"
+              aria-label={copy.copy}
               onClick={() => void navigator.clipboard.writeText(hash)}
             >
               <FigmaIcon src={copyIcon} size={16} />

@@ -73,6 +73,7 @@ export function HeaderFolderAction({
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <FolderActionBar
+          locale={locale}
           collapsed={collapsed}
           searchOpen={searchOpen}
           query={query}
@@ -88,7 +89,7 @@ export function HeaderFolderAction({
         {collapsed ? (
           <>
             <div className="h-5 w-px bg-border" />
-            <Button type="button" variant="secondary" size="icon" aria-label="Expand" onClick={onExpandInfo}>
+            <Button type="button" variant="secondary" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
               <FigmaIcon src={panelRightOpen} size={16} />
             </Button>
           </>

@@ -48,15 +48,16 @@ function DialogShell({ locale, title, titleId, busy, onClose, children }: Dialog
   );
 }
 
-function DirtyBranchSwitch({ status }: { status: StatusSnapshot | null }) {
+function DirtyBranchSwitch({ locale, status }: { locale: Locale; status: StatusSnapshot | null }) {
+  const copy = t(locale);
   const counts = changeCounts(status);
   const modified = counts.append + counts.modified + counts.deleted + (status?.renamed_files?.length ?? 0);
   const untracked = counts.new;
   return (
     <div className="w-full text-[13px] leading-normal text-foreground-muted">
-      <p>You have uncommitted changes:</p>
-      {modified > 0 ? <p>• {modified} modified</p> : null}
-      {untracked > 0 ? <p>• {untracked} untracked</p> : null}
+      <p>{copy.uncommittedChanges}</p>
+      {modified > 0 ? <p>{copy.modifiedCount(modified)}</p> : null}
+      {untracked > 0 ? <p>{copy.untrackedCount(untracked)}</p> : null}
     </div>
   );
 }
@@ -73,14 +74,14 @@ type SwitchBranchDialogProps = {
 export function SwitchBranchDialog({ locale, target, status, busy, onCancel, onConfirm }: SwitchBranchDialogProps) {
   const copy = t(locale);
   return (
-    <DialogShell locale={locale} title={`Switch branch to "${target}"?`} titleId="switch-branch-title" busy={busy} onClose={onCancel}>
-      <DirtyBranchSwitch status={status} />
+    <DialogShell locale={locale} title={copy.switchBranchTitle(target)} titleId="switch-branch-title" busy={busy} onClose={onCancel}>
+      <DirtyBranchSwitch locale={locale} status={status} />
       <div className="flex w-full items-start justify-end gap-2">
         <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
           {copy.cancel}
         </Button>
         <Button type="button" disabled={busy} onClick={onConfirm}>
-          Stash & switch
+          {copy.stashAndSwitch}
         </Button>
       </div>
     </DialogShell>
@@ -99,7 +100,7 @@ export function CreateBranchDialog({ locale, busy, onCancel, onCreate }: CreateB
   const [name, setName] = useState("");
   const trimmed = name.trim();
   return (
-    <DialogShell locale={locale} title="Do you really want to create the branch?" titleId="create-branch-title" busy={busy} onClose={onCancel}>
+    <DialogShell locale={locale} title={copy.createBranchTitle} titleId="create-branch-title" busy={busy} onClose={onCancel}>
       <Input
         value={name}
         placeholder="feature/my-branch"
@@ -117,7 +118,7 @@ export function CreateBranchDialog({ locale, busy, onCancel, onCreate }: CreateB
           {copy.cancel}
         </Button>
         <Button type="button" disabled={busy || !trimmed} onClick={() => onCreate(trimmed)}>
-          Create
+          {copy.create}
         </Button>
       </div>
     </DialogShell>
@@ -138,7 +139,7 @@ export function RenameBranchDialog({ locale, oldName, busy, onCancel, onRename }
   const trimmed = name.trim();
   const canRename = Boolean(trimmed) && trimmed !== oldName;
   return (
-    <DialogShell locale={locale} title="Do you really want to rename the branch?" titleId="rename-branch-title" busy={busy} onClose={onCancel}>
+    <DialogShell locale={locale} title={copy.renameBranchTitle} titleId="rename-branch-title" busy={busy} onClose={onCancel}>
       <Input
         value={name}
         disabled={busy}
@@ -155,7 +156,7 @@ export function RenameBranchDialog({ locale, oldName, busy, onCancel, onRename }
           {copy.cancel}
         </Button>
         <Button type="button" disabled={busy || !canRename} onClick={() => onRename(trimmed)}>
-          Rename
+          {copy.rename}
         </Button>
       </div>
     </DialogShell>
@@ -172,14 +173,14 @@ type DeleteBranchDialogProps = {
 export function DeleteBranchDialog({ locale, busy, onCancel, onDelete }: DeleteBranchDialogProps) {
   const copy = t(locale);
   return (
-    <DialogShell locale={locale} title="Do you really want to delete the branch?" titleId="delete-branch-title" busy={busy} onClose={onCancel}>
-      <p className="text-[13px] leading-normal text-foreground-muted">The branch ref will be removed from the repository. This cannot be undone.</p>
+    <DialogShell locale={locale} title={copy.deleteBranchTitle} titleId="delete-branch-title" busy={busy} onClose={onCancel}>
+      <p className="text-[13px] leading-normal text-foreground-muted">{copy.deleteBranchBody}</p>
       <div className="flex w-full items-start justify-end gap-2">
         <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
           {copy.cancel}
         </Button>
         <Button type="button" variant="destructive" disabled={busy} onClick={onDelete}>
-          Delete branch
+          {copy.deleteBranch}
         </Button>
       </div>
     </DialogShell>

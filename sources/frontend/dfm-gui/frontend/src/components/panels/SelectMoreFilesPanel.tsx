@@ -33,7 +33,7 @@ export function SelectMoreFilesPanel({ locale, paths, entries, onCollapse, onApp
   const types = [...new Set(selected.map((entry) => typeLabel(entry.name)).filter(Boolean))];
   return (
     <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
-      <HeaderRightSide onCollapse={onCollapse} />
+      <HeaderRightSide locale={locale} onCollapse={onCollapse} />
       <div className="flex min-h-0 flex-1 flex-col justify-between px-3 pb-3">
         <div className="flex min-h-0 flex-col gap-4">
           <FileInfoPreviewMulti />

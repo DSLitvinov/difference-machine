@@ -1,4 +1,6 @@
-export function relativeTime(unixSeconds: number, nowMs = Date.now()): string {
+import type { Locale } from "@/lib/i18n";
+
+export function relativeTime(unixSeconds: number, locale: Locale = "en", nowMs = Date.now()): string {
   const delta = Math.max(0, nowMs - unixSeconds * 1000);
   const minute = 60_000;
   const hour = 60 * minute;
@@ -6,24 +8,21 @@ export function relativeTime(unixSeconds: number, nowMs = Date.now()): string {
   const week = 7 * day;
   const month = 30 * day;
   const year = 365 * day;
+  const rtf = new Intl.RelativeTimeFormat(locale === "ru" ? "ru" : "en", { numeric: "always" });
   if (delta < hour) {
-    return formatAgo(Math.max(1, Math.floor(delta / minute)), "minute");
+    return rtf.format(-Math.max(1, Math.floor(delta / minute)), "minute");
   }
   if (delta < day) {
-    return formatAgo(Math.floor(delta / hour), "hour");
+    return rtf.format(-Math.floor(delta / hour), "hour");
   }
   if (delta < week) {
-    return formatAgo(Math.floor(delta / day), "day");
+    return rtf.format(-Math.floor(delta / day), "day");
   }
   if (delta < month) {
-    return formatAgo(Math.floor(delta / week), "week");
+    return rtf.format(-Math.floor(delta / week), "week");
   }
   if (delta < year) {
-    return formatAgo(Math.floor(delta / month), "month");
+    return rtf.format(-Math.floor(delta / month), "month");
   }
-  return formatAgo(Math.floor(delta / year), "year");
-}
-
-function formatAgo(count: number, unit: string): string {
-  return count === 1 ? `1 ${unit} ago` : `${count} ${unit}s ago`;
+  return rtf.format(-Math.floor(delta / year), "year");
 }

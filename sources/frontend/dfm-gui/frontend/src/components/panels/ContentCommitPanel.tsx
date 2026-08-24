@@ -163,6 +163,7 @@ export function ContentCommitPanel({ locale, repoPath, commit, head, busy, onRef
             <span className="fixed z-50 size-0" style={{ left: menu.x, top: menu.y }} />
           </DropdownMenuTrigger>
           <FileInCommitMenu
+            locale={locale}
             path={menu.path}
             status={menu.status}
             onOpen={() => void openFromCommit(menu.path)}

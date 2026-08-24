@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { t, type Locale } from "@/lib/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import gitMerge from "@/assets/icons/git-merge.svg";
 import ellipsisVertical from "@/assets/icons/ellipsis-vertical.svg";
 
 type CommitFileCardProps = {
+  locale: Locale;
   title: string;
   author: string;
   description?: string;
@@ -18,6 +20,7 @@ type CommitFileCardProps = {
 };
 
 export function CommitFileCard({
+  locale,
   title,
   author,
   description,
@@ -29,6 +32,7 @@ export function CommitFileCard({
   deletions,
   more,
 }: CommitFileCardProps) {
+  const copy = t(locale);
   const hasStats = insertions != null || deletions != null;
   return (
     <div className="flex w-full flex-col gap-2">
@@ -37,12 +41,12 @@ export function CommitFileCard({
           {merge ? <FigmaIcon src={gitMerge} size={16} /> : null}
           {head ? (
             <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-background-primary px-3 text-[12px] font-semibold leading-4 text-foreground-primary">
-              Head
+              {copy.head}
             </span>
           ) : null}
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
           {more ?? (
-            <button type="button" className="size-4 shrink-0" aria-label="More" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={(event) => event.stopPropagation()}>
               <FigmaIcon src={ellipsisVertical} size={16} />
             </button>
           )}
@@ -60,7 +64,7 @@ export function CommitFileCard({
       ) : null}
       <div className="flex items-center gap-2">
         <span className="inline-flex h-[22px] items-center rounded-full bg-background-muted px-3 text-[12px] font-semibold leading-4 text-foreground-secondary">
-          {relativeTime(timestamp)}
+          {relativeTime(timestamp, locale)}
         </span>
         {tag ? (
           <span className="inline-flex h-[22px] items-center rounded-full border border-border px-3 text-[12px] font-semibold leading-4 text-foreground">

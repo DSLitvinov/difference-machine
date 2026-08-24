@@ -5,9 +5,11 @@ import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { SortMenu } from "@/components/items/SortMenu";
 import { FiltersMenu } from "@/components/items/FiltersMenu";
 import type { GridFilter, GridSort } from "@/lib/folder-query";
+import { t, type Locale } from "@/lib/i18n";
 import searchIcon from "@/assets/icons/search.svg";
 
 type FolderActionBarProps = {
+  locale: Locale;
   collapsed?: boolean;
   searchOpen: boolean;
   query: string;
@@ -22,6 +24,7 @@ type FolderActionBarProps = {
 };
 
 export function FolderActionBar({
+  locale,
   collapsed,
   searchOpen,
   query,
@@ -34,6 +37,7 @@ export function FolderActionBar({
   onSort,
   onFilter,
 }: FolderActionBarProps) {
+  const copy = t(locale);
   const inputRef = useRef<HTMLInputElement>(null);
   const showSearch = searchOpen && !collapsed;
 
@@ -51,7 +55,7 @@ export function FolderActionBar({
           <Input
             ref={inputRef}
             value={query}
-            placeholder="Search "
+            placeholder={copy.searchPlaceholder}
             className="pl-10"
             onChange={(event) => onQuery(event.target.value)}
             onKeyDown={(event) => {
@@ -63,12 +67,12 @@ export function FolderActionBar({
           />
         </div>
       ) : (
-        <Button type="button" variant="secondary" size="icon" aria-label="Search" onClick={onSearchOpen}>
+        <Button type="button" variant="secondary" size="icon" aria-label={copy.search} onClick={onSearchOpen}>
           <FigmaIcon src={searchIcon} size={16} />
         </Button>
       )}
-      <SortMenu value={sort} onChange={onSort} />
-      <FiltersMenu value={filter} extensions={extensions} onChange={onFilter} />
+      <SortMenu locale={locale} value={sort} onChange={onSort} />
+      <FiltersMenu locale={locale} value={filter} extensions={extensions} onChange={onFilter} />
     </div>
   );
 }

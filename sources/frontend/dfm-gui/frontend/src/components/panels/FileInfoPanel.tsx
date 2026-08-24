@@ -95,7 +95,7 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
   if (!path) {
     return (
       <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
-        <HeaderRightSide onCollapse={onCollapse} />
+        <HeaderRightSide locale={locale} onCollapse={onCollapse} />
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-3">
           <NoFileSelectedPlaceholder locale={locale} />
         </div>
@@ -113,7 +113,7 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
 
   return (
     <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
-      <HeaderRightSide onCollapse={onCollapse} />
+      <HeaderRightSide locale={locale} onCollapse={onCollapse} />
       <div className="flex min-h-0 flex-1 flex-col justify-between px-3 pb-3">
         <div className="flex min-h-0 flex-col gap-4">
           <FileInfoPreview name={name} src={thumb?.kind === "image" ? thumb.blobUrl : undefined} letter={letterStatus(path, status)} locked={Boolean(lock)} />

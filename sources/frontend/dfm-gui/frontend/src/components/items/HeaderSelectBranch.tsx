@@ -74,12 +74,12 @@ export function HeaderSelectBranch({
             </DropdownMenuRadioGroup>
           ) : null}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => window.setTimeout(onCreate, 0)}>Create</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => window.setTimeout(onCreate, 0)}>{copy.create}</DropdownMenuItem>
           <DropdownMenuItem disabled={!current} onSelect={() => window.setTimeout(onRename, 0)}>
-            Rename
+            {copy.rename}
           </DropdownMenuItem>
           {others.length === 0 ? (
-            <DropdownMenuItem disabled>Delete</DropdownMenuItem>
+            <DropdownMenuItem disabled>{copy.delete}</DropdownMenuItem>
           ) : others.length === 1 ? (
             <DropdownMenuItem
               onSelect={() => {
@@ -89,11 +89,11 @@ export function HeaderSelectBranch({
                 }
               }}
             >
-              Delete
+              {copy.delete}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Delete</DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger>{copy.delete}</DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-[220px]">
                 {others.map((branch) => (
                   <DropdownMenuItem key={branch.name} onSelect={() => window.setTimeout(() => onDelete(branch.name), 0)}>

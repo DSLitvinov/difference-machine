@@ -33,7 +33,7 @@ func nativeMenuCopyFor(locale string) nativeMenuCopy {
 			settings:         "Настройки",
 			repository:       "Репозиторий",
 			createRepository: "Создать репозиторий",
-			merge:            "Merge",
+			merge:            "Слияние",
 		}
 	}
 	return nativeMenuCopy{

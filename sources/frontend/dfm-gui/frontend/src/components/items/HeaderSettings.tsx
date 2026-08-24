@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { authorInitials } from "@/lib/initials";
+import { t, type Locale } from "@/lib/i18n";
 import userIcon from "@/assets/icons/user.svg";
 import circleHelp from "@/assets/icons/circle-help.svg";
 import settingsIcon from "@/assets/icons/settings.svg";
 
 type HeaderSettingsProps = {
+  locale: Locale;
   userName: string;
   onSettings: () => void;
 };
 
-export function HeaderSettings({ userName, onSettings }: HeaderSettingsProps) {
+export function HeaderSettings({ locale, userName, onSettings }: HeaderSettingsProps) {
+  const copy = t(locale);
   const initials = authorInitials(userName);
   return (
     <div className="flex w-full shrink-0 items-center justify-between px-3 pb-3 pt-2">
@@ -20,10 +23,10 @@ export function HeaderSettings({ userName, onSettings }: HeaderSettingsProps) {
         </div>
       </div>
       <div className="flex items-center gap-0.5">
-        <Button type="button" variant="ghost" size="icon" aria-label="Help">
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.help}>
           <FigmaIcon src={circleHelp} size={16} />
         </Button>
-        <Button type="button" variant="ghost" size="icon" aria-label="Settings" onClick={onSettings}>
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.settings} onClick={onSettings}>
           <FigmaIcon src={settingsIcon} size={16} />
         </Button>
       </div>

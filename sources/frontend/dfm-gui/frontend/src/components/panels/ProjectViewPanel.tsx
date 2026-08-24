@@ -94,6 +94,7 @@ function StageList({ locale }: { locale: Locale }) {
         {stages.map((stage) => (
           <SidebarCard key={stage.id}>
             <StageCard
+              locale={locale}
               title={stage.title}
               author={stage.author}
               description={stage.description}
@@ -205,7 +206,7 @@ export function ProjectViewPanel({
           )}
         </div>
       </div>
-      <HeaderSettings userName={userName} onSettings={onSettings} />
+      <HeaderSettings locale={locale} userName={userName} onSettings={onSettings} />
     </aside>
   );
 }
@@ -310,6 +311,7 @@ function CommitList({
               >
                 {(stat) => (
                   <CommitProjectCard
+                    locale={locale}
                     title={title}
                     author={commit.author ?? ""}
                     description={description}
@@ -322,6 +324,7 @@ function CommitList({
                     deletions={stat?.deletions}
                     more={
                       <CommitCardMoreButton
+                        locale={locale}
                         hash={commit.hash}
                         message={commit.message ?? ""}
                         onAction={(action) => onCommitAction(action, commit)}

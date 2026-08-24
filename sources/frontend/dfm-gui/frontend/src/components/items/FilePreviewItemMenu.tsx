@@ -50,27 +50,27 @@ export function FilePreviewItemMenu({
 
   return (
     <DropdownMenuContent align="start" className="w-[200px] shadow-md">
-      <DropdownMenuLabel>Commit</DropdownMenuLabel>
+      <DropdownMenuLabel>{copy.commitSection}</DropdownMenuLabel>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onAddInCommit, 0)}>
         <FigmaIcon src={plusIcon} size={16} />
         {copy.addInCommit}
       </DropdownMenuItem>
       <DropdownMenuItem disabled className="gap-2">
         <FigmaIcon src={eyeOffIcon} size={16} />
-        Ignored
+        {copy.ignored}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onRename, 0)}>
         <FigmaIcon src={pencilIcon} size={16} />
-        Rename
+        {copy.rename}
       </DropdownMenuItem>
       <DropdownMenuItem disabled className="gap-2">
         <FigmaIcon src={trashIcon} size={16} />
-        Delete in history
+        {copy.deleteInHistory}
       </DropdownMenuItem>
-      <DropdownMenuLabel>Action </DropdownMenuLabel>
+      <DropdownMenuLabel>{copy.action}</DropdownMenuLabel>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onOpenInFolder, 0)}>
         <FigmaIcon src={externalLinkIcon} size={16} />
-        Open in folder
+        {copy.openInFolder}
       </DropdownMenuItem>
       <DropdownMenuSub>
         <DropdownMenuSubTrigger className="gap-2">
@@ -88,7 +88,7 @@ export function FilePreviewItemMenu({
       </DropdownMenuSub>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onToggleLock, 0)}>
         <FigmaIcon src={lockIcon} size={16} />
-        {locked ? "Unlock" : "Lock"}
+        {locked ? copy.unlock : copy.lock}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
@@ -96,7 +96,7 @@ export function FilePreviewItemMenu({
         onSelect={() => window.setTimeout(onDeleteInProject, 0)}
       >
         <FigmaIcon src={trashIcon} size={16} />
-        Delete in project
+        {copy.deleteInProject}
       </DropdownMenuItem>
     </DropdownMenuContent>
   );

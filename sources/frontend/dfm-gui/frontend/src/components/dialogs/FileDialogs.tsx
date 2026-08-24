@@ -61,7 +61,7 @@ export function FileRenameDialog({ locale, path, busy, onCancel, onRename }: Fil
   const trimmed = name.trim();
   const canRename = Boolean(trimmed) && trimmed !== basenameRel(path) && !trimmed.includes("/") && !trimmed.includes("\\");
   return (
-    <DialogShell locale={locale} title="Rename" titleId="rename-file-title" busy={busy} onClose={onCancel}>
+    <DialogShell locale={locale} title={copy.rename} titleId="rename-file-title" busy={busy} onClose={onCancel}>
       <Input
         value={name}
         disabled={busy}
@@ -78,7 +78,7 @@ export function FileRenameDialog({ locale, path, busy, onCancel, onRename }: Fil
           {copy.cancel}
         </Button>
         <Button type="button" disabled={busy || !canRename} onClick={() => onRename(trimmed)}>
-          Rename
+          {copy.rename}
         </Button>
       </div>
     </DialogShell>
@@ -95,13 +95,13 @@ type FileDeleteDialogProps = {
 export function FileDeleteDialog({ locale, busy, onCancel, onDelete }: FileDeleteDialogProps) {
   const copy = t(locale);
   return (
-    <DialogShell locale={locale} title="Delete in project" titleId="delete-file-title" busy={busy} onClose={onCancel}>
+    <DialogShell locale={locale} title={copy.deleteInProject} titleId="delete-file-title" busy={busy} onClose={onCancel}>
       <div className="flex w-full items-start justify-end gap-2">
         <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
           {copy.cancel}
         </Button>
         <Button type="button" variant="destructive" disabled={busy} onClick={onDelete}>
-          Delete in project
+          {copy.deleteInProject}
         </Button>
       </div>
     </DialogShell>

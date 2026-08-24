@@ -143,6 +143,7 @@ export function FileViewPanel({
                       onClick={() => onSelectCommit(commit)}
                     >
                       <CommitFileCard
+                        locale={locale}
                         title={title}
                         author={commit.author ?? ""}
                         description={description}
@@ -152,6 +153,7 @@ export function FileViewPanel({
                         tag={commit.tag}
                         more={
                           <CommitCardMoreButton
+                            locale={locale}
                             hash={commit.hash}
                             message={commit.message ?? ""}
                             onAction={(action) => onCommitAction(action, commit)}
@@ -166,7 +168,7 @@ export function FileViewPanel({
           </div>
         )}
       </div>
-      <HeaderSettings userName={userName} onSettings={onSettings} />
+      <HeaderSettings locale={locale} userName={userName} onSettings={onSettings} />
     </aside>
   );
 }

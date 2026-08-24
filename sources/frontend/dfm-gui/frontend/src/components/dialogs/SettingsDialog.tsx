@@ -24,17 +24,10 @@ type SettingsTab = "profile" | "appearance" | "repositories" | "editors" | "fore
 type SettingsDialogProps = {
   locale: Locale;
   onClose: () => void;
+  onLocale: (locale: Locale) => void;
   onProfileSaved: (name: string, email: string, locale: Locale) => void;
   onError: (message: string) => void;
 };
-
-const TABS: { id: SettingsTab; label: string }[] = [
-  { id: "profile", label: "Profile" },
-  { id: "appearance", label: "Appearance" },
-  { id: "repositories", label: "Repositories" },
-  { id: "editors", label: "External editors" },
-  { id: "forester", label: "Backed (Forester)" },
-];
 
 function emptySettings(): SettingsInfo {
   return {
@@ -51,8 +44,15 @@ function emptySettings(): SettingsInfo {
   };
 }
 
-export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: SettingsDialogProps) {
+export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onError }: SettingsDialogProps) {
   const copy = t(locale);
+  const tabs: { id: SettingsTab; label: string }[] = [
+    { id: "profile", label: copy.tabProfile },
+    { id: "appearance", label: copy.tabAppearance },
+    { id: "repositories", label: copy.tabRepositories },
+    { id: "editors", label: copy.tabEditors },
+    { id: "forester", label: copy.tabForester },
+  ];
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState<SettingsInfo>(emptySettings);
@@ -118,14 +118,14 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
 
   const heading =
     tab === "appearance"
-      ? { title: "Appearance", body: "Customize the appearance of the app. Automatically switch between day and night themes." }
+      ? { title: copy.appearanceTitle, body: copy.appearanceBody }
       : tab === "repositories"
-        ? { title: "Repositories", body: "Manage you repository list" }
+        ? { title: copy.repositoriesTitle, body: copy.repositoriesBody }
         : tab === "editors"
-          ? { title: "External editors", body: "Manage you editors" }
+          ? { title: copy.editorsTitle, body: copy.editorsBody }
           : tab === "forester"
-            ? { title: "Forester", body: "Manage you repository backend" }
-            : { title: "Profile", body: "This is how others will see you on the site." };
+            ? { title: copy.foresterTitle, body: copy.foresterBody }
+            : { title: copy.profileTitle, body: copy.profileBody };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="presentation" onClick={busy ? undefined : onClose}>
@@ -142,15 +142,15 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
         <div className="flex w-full shrink-0 flex-col gap-6 pl-4">
           <div className="flex flex-col gap-1">
             <p id="settings-title" className="text-[24px] font-semibold leading-8 tracking-[-0.144px] text-foreground">
-              Settings
+              {copy.settings}
             </p>
-            <p className="text-[16px] leading-6 text-foreground-muted">Manage repository and your account settings</p>
+            <p className="text-[16px] leading-6 text-foreground-muted">{copy.settingsManage}</p>
           </div>
           <div className="h-px w-full bg-border" />
         </div>
         <div className="flex min-h-0 w-full flex-1 gap-10">
           <nav className="flex w-[184px] shrink-0 flex-col gap-1">
-            {TABS.map((item) => (
+            {tabs.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -172,13 +172,14 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
                 <div className="h-px w-full bg-border" />
               </div>
               {tab === "profile" ? (
-                <ProfileFields draft={draft} busy={busy} onChange={setDraft} />
+                <ProfileFields locale={locale} draft={draft} busy={busy} onChange={setDraft} onLocale={onLocale} />
               ) : null}
               {tab === "appearance" ? (
-                <AppearanceFields theme={draft.theme === "dark" ? "dark" : "light"} onChange={(theme) => setDraft({ ...draft, theme })} />
+                <AppearanceFields locale={locale} theme={draft.theme === "dark" ? "dark" : "light"} onChange={(theme) => setDraft({ ...draft, theme })} />
               ) : null}
               {tab === "repositories" ? (
                 <RepositoryFields
+                  locale={locale}
                   repos={draft.repos}
                   busy={busy}
                   onChange={(repos) => setDraft({ ...draft, repos })}
@@ -194,6 +195,7 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
               ) : null}
               {tab === "editors" ? (
                 <EditorFields
+                  locale={locale}
                   draft={draft}
                   busy={busy}
                   onChange={setDraft}
@@ -203,6 +205,7 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
               ) : null}
               {tab === "forester" ? (
                 <ForesterFields
+                  locale={locale}
                   draft={draft}
                   busy={busy}
                   onChange={setDraft}
@@ -223,7 +226,7 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
                     })
                   }
                 >
-                  Save Profile
+                  {copy.saveProfile}
                 </Button>
               </div>
             ) : null}
@@ -240,38 +243,38 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
                     })
                   }
                 >
-                  Save Appearance
+                  {copy.saveAppearance}
                 </Button>
               </div>
             ) : null}
             {tab === "forester" ? (
               <div className="flex shrink-0 justify-end">
                 <Button type="button" disabled={busy} onClick={() => void run(() => saveForester(draft.apiPath, draft.foresterPath))}>
-                  Upgrade Forester
+                  {copy.upgradeForester}
                 </Button>
               </div>
             ) : null}
             {tab === "repositories" ? (
               <div className="flex w-full shrink-0 items-center justify-between">
                 <Button type="button" variant="secondary" disabled={busy} onClick={() => setDraft({ ...draft, repos: [...draft.repos, ""] })}>
-                  Add repository
+                  {copy.addRepository}
                 </Button>
                 <Button type="button" disabled={busy} onClick={() => void run(() => saveRepos(draft.repos))}>
-                  Upgrade List
+                  {copy.upgradeList}
                 </Button>
               </div>
             ) : null}
             {tab === "editors" ? (
               <div className="flex w-full shrink-0 items-center justify-between">
                 <Button type="button" variant="secondary" disabled={busy} onClick={() => setDraft({ ...draft, editors: [...draft.editors, ""] })}>
-                  Add application
+                  {copy.addApplication}
                 </Button>
                 <Button
                   type="button"
                   disabled={busy}
                   onClick={() => void run(() => saveEditors(draft.blenderPath, draft.addonPath, draft.editors))}
                 >
-                  Upgrade list
+                  {copy.upgradeListEditors}
                 </Button>
               </div>
             ) : null}
@@ -283,45 +286,63 @@ export function SettingsDialog({ locale, onClose, onProfileSaved, onError }: Set
 }
 
 function ProfileFields({
+  locale,
   draft,
   busy,
   onChange,
+  onLocale,
 }: {
+  locale: Locale;
   draft: SettingsInfo;
   busy: boolean;
   onChange: (next: SettingsInfo) => void;
+  onLocale: (locale: Locale) => void;
 }) {
+  const copy = t(locale);
+  function pickLocale(next: Locale) {
+    onChange({ ...draft, locale: next });
+    onLocale(next);
+  }
   return (
     <>
-      <Field label="Username">
+      <Field label={copy.username}>
         <Input value={draft.userName} disabled={busy} onChange={(event) => onChange({ ...draft, userName: event.target.value })} />
       </Field>
-      <Field label="Email" hint="Used for commits and locks, like git user.email. ">
+      <Field label={copy.email} hint={copy.emailHint}>
         <Input value={draft.userEmail} disabled={busy} onChange={(event) => onChange({ ...draft, userEmail: event.target.value })} />
       </Field>
       <div className="flex w-full flex-col gap-2">
-        <p className="text-[14px] font-medium leading-5 text-foreground">Language</p>
+        <p className="text-[14px] font-medium leading-5 text-foreground">{copy.language}</p>
         <div className="flex gap-2">
-          <Button type="button" variant={draft.locale === "en" ? "primary" : "outline"} disabled={busy} onClick={() => onChange({ ...draft, locale: "en" })}>
+          <Button type="button" variant={draft.locale === "en" ? "primary" : "outline"} disabled={busy} onClick={() => pickLocale("en")}>
             English
           </Button>
-          <Button type="button" variant={draft.locale === "ru" ? "primary" : "outline"} disabled={busy} onClick={() => onChange({ ...draft, locale: "ru" })}>
+          <Button type="button" variant={draft.locale === "ru" ? "primary" : "outline"} disabled={busy} onClick={() => pickLocale("ru")}>
             Русский
           </Button>
         </div>
-        <p className="text-[14px] leading-5 text-foreground-muted">This is the language that will be used in the dashboard. </p>
+        <p className="text-[14px] leading-5 text-foreground-muted">{copy.languageHintSettings}</p>
       </div>
     </>
   );
 }
 
-function AppearanceFields({ theme, onChange }: { theme: "light" | "dark"; onChange: (theme: "light" | "dark") => void }) {
+function AppearanceFields({
+  locale,
+  theme,
+  onChange,
+}: {
+  locale: Locale;
+  theme: "light" | "dark";
+  onChange: (theme: "light" | "dark") => void;
+}) {
+  const copy = t(locale);
   return (
     <div className="flex w-full flex-col gap-1">
-      <p className="text-[14px] leading-5 text-foreground-muted">Select the theme for the dashboard</p>
+      <p className="text-[14px] leading-5 text-foreground-muted">{copy.themeHint}</p>
       <div className="flex flex-wrap items-start gap-6 pt-2">
-        <ThemeCard label="Light" selected={theme === "light"} dark={false} onSelect={() => onChange("light")} />
-        <ThemeCard label="Dark" selected={theme === "dark"} dark onSelect={() => onChange("dark")} />
+        <ThemeCard label={copy.themeLight} selected={theme === "light"} dark={false} onSelect={() => onChange("light")} />
+        <ThemeCard label={copy.themeDark} selected={theme === "dark"} dark onSelect={() => onChange("dark")} />
       </div>
     </div>
   );
@@ -364,11 +385,13 @@ function ThemeCard({
 }
 
 function RepositoryFields({
+  locale,
   repos,
   busy,
   onChange,
   onPick,
 }: {
+  locale: Locale;
   repos: string[];
   busy: boolean;
   onChange: (repos: string[]) => void;
@@ -380,6 +403,7 @@ function RepositoryFields({
       {rows.map((path, index) => (
         <PathRow
           key={index}
+          locale={locale}
           value={path}
           busy={busy}
           onChange={(value) => {
@@ -395,23 +419,27 @@ function RepositoryFields({
 }
 
 function EditorFields({
+  locale,
   draft,
   busy,
   onChange,
   onPickFile,
   onPickDir,
 }: {
+  locale: Locale;
   draft: SettingsInfo;
   busy: boolean;
   onChange: (next: SettingsInfo) => void;
   onPickFile: (apply: (path: string) => void) => void;
   onPickDir: (apply: (path: string) => void) => void;
 }) {
+  const copy = t(locale);
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex w-full flex-col gap-3">
         <PathRow
-          label="Blender"
+          locale={locale}
+          label={copy.blender}
           value={draft.blenderPath}
           busy={busy}
           onChange={(value) => onChange({ ...draft, blenderPath: value })}
@@ -419,7 +447,8 @@ function EditorFields({
           onRemove={() => onChange({ ...draft, blenderPath: "" })}
         />
         <PathRow
-          label="Blender addon Difference Machine"
+          locale={locale}
+          label={copy.blenderAddon}
           value={draft.addonPath}
           busy={busy}
           onChange={(value) => onChange({ ...draft, addonPath: value })}
@@ -428,12 +457,13 @@ function EditorFields({
         />
         <div className="h-px w-full bg-border" />
       </div>
-      <p className="text-[18px] font-semibold leading-7 text-foreground">Other editors</p>
+      <p className="text-[18px] font-semibold leading-7 text-foreground">{copy.otherEditors}</p>
       {(draft.editors.length > 0 ? draft.editors : [""]).map((path, index) => {
         const rows = draft.editors.length > 0 ? draft.editors : [""];
         return (
           <PathRow
             key={index}
+            locale={locale}
             value={path}
             busy={busy}
             onChange={(value) => onChange({ ...draft, editors: rows.map((item, i) => (i === index ? value : item)) })}
@@ -447,23 +477,27 @@ function EditorFields({
 }
 
 function ForesterFields({
+  locale,
   draft,
   busy,
   onChange,
   onPickCli,
 }: {
+  locale: Locale;
   draft: SettingsInfo;
   busy: boolean;
   onChange: (next: SettingsInfo) => void;
   onPickCli: () => void;
 }) {
+  const copy = t(locale);
   return (
     <div className="flex w-full flex-col gap-3">
-      <Field label="Config File">
+      <Field label={copy.configFile}>
         <Input value={draft.apiPath} disabled={busy} onChange={(event) => onChange({ ...draft, apiPath: event.target.value })} />
       </Field>
       <PathRow
-        label="Forester CLI App"
+        locale={locale}
+        label={copy.foresterCli}
         value={draft.foresterPath}
         busy={busy}
         showRemove={false}
@@ -485,6 +519,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 function PathRow({
+  locale,
   label,
   value,
   busy,
@@ -493,6 +528,7 @@ function PathRow({
   onRemove,
   showRemove = true,
 }: {
+  locale: Locale;
   label?: string;
   value: string;
   busy: boolean;
@@ -501,6 +537,7 @@ function PathRow({
   onRemove?: () => void;
   showRemove?: boolean;
 }) {
+  const copy = t(locale);
   return (
     <div className="flex w-full items-end gap-2">
       <div className="flex min-w-0 max-w-[672px] flex-1 flex-col gap-1">
@@ -508,10 +545,10 @@ function PathRow({
         <Input value={value} disabled={busy} onChange={(event) => onChange(event.target.value)} />
       </div>
       <Button type="button" variant="outline" disabled={busy} onClick={onSelect}>
-        Select
+        {copy.select}
       </Button>
       {showRemove && onRemove ? (
-        <Button type="button" variant="destructive" size="icon" disabled={busy} aria-label="Remove" onClick={onRemove}>
+        <Button type="button" variant="destructive" size="icon" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
           <FigmaIcon src={trash2} size={16} />
         </Button>
       ) : null}

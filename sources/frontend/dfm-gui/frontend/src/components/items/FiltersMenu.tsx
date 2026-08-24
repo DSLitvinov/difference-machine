@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { fileKind } from "@/lib/file-kind";
+import { t, type Locale } from "@/lib/i18n";
 import type { GridFilter } from "@/lib/folder-query";
 import filterIcon from "@/assets/icons/filter.svg";
 import imageIcon from "@/assets/icons/image.svg";
@@ -25,12 +26,14 @@ const kindIcon = {
 } as const;
 
 type FiltersMenuProps = {
+  locale: Locale;
   value: GridFilter;
   extensions: string[];
   onChange: (value: GridFilter) => void;
 };
 
-export function FiltersMenu({ value, extensions, onChange }: FiltersMenuProps) {
+export function FiltersMenu({ locale, value, extensions, onChange }: FiltersMenuProps) {
+  const copy = t(locale);
   function toggle(ext: string, checked: boolean) {
     if (checked) {
       onChange(value.includes(ext) ? value : [...value, ext]);
@@ -42,12 +45,12 @@ export function FiltersMenu({ value, extensions, onChange }: FiltersMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="secondary" size="icon" aria-label="Filter">
+        <Button type="button" variant="secondary" size="icon" aria-label={copy.filter}>
           <FigmaIcon src={filterIcon} size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px] shadow-md">
-        <DropdownMenuLabel>Filter by type</DropdownMenuLabel>
+        <DropdownMenuLabel>{copy.filterByType}</DropdownMenuLabel>
         <div className="max-h-72 overflow-y-auto">
           {extensions.map((ext) => (
             <DropdownMenuCheckboxItem
@@ -64,7 +67,7 @@ export function FiltersMenu({ value, extensions, onChange }: FiltersMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2 text-[#ef4444] focus:text-[#ef4444]" onSelect={() => onChange([])}>
           <FigmaIcon src={trashIcon} size={16} />
-          Clean filters
+          {copy.cleanFilters}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

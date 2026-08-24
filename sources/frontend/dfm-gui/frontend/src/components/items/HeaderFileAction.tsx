@@ -20,7 +20,7 @@ export function HeaderFileAction({ locale, fileName, collapsed, onBack, onApply,
   return (
     <div className="flex w-full items-center justify-between pb-2 pt-3">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <Button type="button" variant="outline" size="icon" aria-label="Back" onClick={onBack}>
+        <Button type="button" variant="outline" size="icon" aria-label={copy.back} onClick={onBack}>
           <FigmaIcon src={chevronRight} size={16} className="-scale-x-100" />
         </Button>
         <p className="min-w-0 flex-1 truncate text-center text-[14px] font-medium leading-5 text-foreground">{fileName}</p>
@@ -46,7 +46,7 @@ export function HeaderFileAction({ locale, fileName, collapsed, onBack, onApply,
         {collapsed ? (
           <>
             <div className="h-5 w-px bg-border" />
-            <Button type="button" variant="secondary" size="icon" aria-label="Expand" onClick={onExpandInfo}>
+            <Button type="button" variant="secondary" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
               <FigmaIcon src={panelRightOpen} size={16} />
             </Button>
           </>

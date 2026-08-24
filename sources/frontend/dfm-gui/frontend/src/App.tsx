@@ -15,7 +15,7 @@ import {
   setLocale as persistLocale,
   onWailsEvent,
 } from "@/lib/bridge";
-import type { Locale } from "@/lib/i18n";
+import { t, type Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
 import { parentRel } from "@/lib/folder-query";
 import { resetRevisionCache } from "@/lib/revision-cache";
@@ -92,12 +92,6 @@ function commitTitle(message: string): string {
   return nl === -1 ? trimmed : trimmed.slice(0, nl).trim();
 }
 
-const commitConfirmCopy: Record<Exclude<CommitCardAction, "compare">, string> = {
-  "restore-version": "Restore this version",
-  "revert-commit": "Revert commit",
-  reset: "Reset branch to commit",
-};
-
 export default function App() {
   const shell = useAppStore((s) => s.shell);
   const locale = useAppStore((s) => s.locale);
@@ -126,6 +120,10 @@ export default function App() {
     commit: CommitSummary;
   } | null>(null);
   const loadingMore = useRef(false);
+
+  useEffect(() => {
+    document.documentElement.lang = locale === "ru" ? "ru" : "en";
+  }, [locale]);
 
   useEffect(() => {
     if (!toast) {
@@ -464,8 +462,14 @@ export default function App() {
       void runCommitAction(action, commit);
       return;
     }
+    const copy = t(locale);
+    const titles = {
+      "restore-version": copy.restoreThisVersion,
+      "revert-commit": copy.revertCommit,
+      reset: copy.resetBranchToCommit,
+    } as const;
     setHistoryConfirm({
-      title: commitConfirmCopy[action],
+      title: titles[action],
       detail: commitTitle(commit.message ?? ""),
       action,
       commit,
@@ -751,6 +755,7 @@ export default function App() {
         <SettingsDialog
           locale={locale}
           onClose={() => setSettingsOpen(false)}
+          onLocale={onLocale}
           onProfileSaved={(name, email, nextLocale) => {
             useAppStore.getState().setProfile(name, email);
             setLocale(nextLocale);

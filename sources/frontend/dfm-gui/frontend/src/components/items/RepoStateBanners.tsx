@@ -1,14 +1,17 @@
 import { AlertBanner } from "@/components/ui/alert";
 import { mergeHeading } from "@/components/dialogs/MergeDialog";
+import { t, type Locale } from "@/lib/i18n";
 import type { MergeStatus, StatusSnapshot } from "@/store/app-store";
 
 type RepoStateBannersProps = {
+  locale: Locale;
   status: StatusSnapshot | null;
   merge: MergeStatus;
   onOpenMerge: () => void;
 };
 
-export function RepoStateBanners({ status, merge, onOpenMerge }: RepoStateBannersProps) {
+export function RepoStateBanners({ locale, status, merge, onOpenMerge }: RepoStateBannersProps) {
+  const copy = t(locale);
   const mergeOpen = Boolean(merge.in_progress);
   const detached = Boolean(status?.is_detached);
   if (!mergeOpen && !detached) {
@@ -22,13 +25,13 @@ export function RepoStateBanners({ status, merge, onOpenMerge }: RepoStateBanner
       {mergeOpen ? (
         <AlertBanner
           variant={merge.has_conflicts ? "destructive" : "warning"}
-          title={mergeHeading(current, incoming)}
+          title={mergeHeading(current, incoming, locale)}
           description={incoming}
           onClick={onOpenMerge}
         />
       ) : null}
       {detached ? (
-        <AlertBanner variant="warning" title="Detached HEAD" description={detachedHash} />
+        <AlertBanner variant="warning" title={copy.detachedHead} description={detachedHash} />
       ) : null}
     </div>
   );

@@ -39,10 +39,11 @@ type MergeDialogProps = {
   onAbort: () => void;
 };
 
-export function mergeHeading(current: string, incoming: string): string {
-  const from = incoming.trim() || "commit A";
-  const to = current.trim() || "commit B";
-  return `Merge: ${from} into ${to}`;
+export function mergeHeading(current: string, incoming: string, locale: Locale = "en"): string {
+  const copy = t(locale);
+  const from = incoming.trim() || copy.commitPlaceholderA;
+  const to = current.trim() || copy.commitPlaceholderB;
+  return copy.mergeHeading(from, to);
 }
 
 export function MergeDialog({
@@ -128,7 +129,7 @@ export function MergeDialog({
     onClose();
   }
 
-  const objectHeader = blend && objects.length > 0 ? `${objects.length} object in .blend` : "Objects not detected";
+  const objectHeader = blend && objects.length > 0 ? copy.objectsInBlend(objects.length) : copy.objectsNotDetected;
 
   return (
     <div
@@ -154,15 +155,15 @@ export function MergeDialog({
         </button>
         <div className="flex w-full flex-col">
           <p id="merge-dialog-title" className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
-            {mergeHeading(currentBranch, incoming)}
+            {mergeHeading(currentBranch, incoming, locale)}
           </p>
-          <p className="w-full text-[14px] leading-5 text-foreground-muted">{author || "Author"}</p>
+          <p className="w-full text-[14px] leading-5 text-foreground-muted">{author || copy.author}</p>
         </div>
-        {error && step === "select branch" ? <AlertBanner variant="destructive" title="Error" description={error} /> : null}
+        {error && step === "select branch" ? <AlertBanner variant="destructive" title={copy.error} description={error} /> : null}
 
         {step === "select branch" ? (
           <div className="flex w-full flex-col gap-1">
-            <p className="text-[14px] font-medium leading-5 text-foreground">Branch name</p>
+            <p className="text-[14px] font-medium leading-5 text-foreground">{copy.branchName}</p>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild disabled={busy || others.length === 0}>
                 <button
@@ -188,22 +189,22 @@ export function MergeDialog({
           </div>
         ) : (
           <div className="flex w-full flex-col gap-2">
-            {showAlert ? <AlertBanner variant="destructive" title="Error" description={alertText} /> : null}
+            {showAlert ? <AlertBanner variant="destructive" title={copy.error} description={alertText} /> : null}
             <div className="flex w-full items-center gap-2">
               <Input
                 value={search}
-                placeholder="Type to search..."
+                placeholder={copy.typeToSearch}
                 disabled={busy}
                 onChange={(event) => setSearch(event.target.value)}
               />
-              <Button type="button" variant="outline" size="icon" aria-label="Filter">
+              <Button type="button" variant="outline" size="icon" aria-label={copy.filter}>
                 <FigmaIcon src={filterIcon} size={16} />
               </Button>
             </div>
             <div className="flex h-[206px] w-full overflow-clip rounded-md border border-border">
               <div className="flex h-full w-1/2 min-w-0 flex-col overflow-clip border-r border-border">
                 <div className="flex h-[38px] shrink-0 items-center bg-background-muted px-2 py-1.5">
-                  <p className="truncate text-[12px] leading-4 text-foreground">{conflicts.length} files changed</p>
+                  <p className="truncate text-[12px] leading-4 text-foreground">{copy.filesChangedCount(conflicts.length)}</p>
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto">
                   {files.map((item) => (
@@ -246,11 +247,11 @@ export function MergeDialog({
           </Button>
           {step === "select branch" ? (
             <Button type="button" disabled={busy || !selectedBranch} onClick={() => onStart(selectedBranch)}>
-              Next
+              {copy.next}
             </Button>
           ) : (
             <Button type="button" disabled={busy || hasConflicts} onClick={onContinue}>
-              Merge
+              {copy.merge}
             </Button>
           )}
         </div>
