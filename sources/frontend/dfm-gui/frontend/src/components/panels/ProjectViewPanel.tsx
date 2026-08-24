@@ -5,6 +5,7 @@ import { HeaderSettings } from "@/components/items/HeaderSettings";
 import { SidebarCard } from "@/components/items/SidebarCard";
 import { SidebarCardDirectory } from "@/components/items/SidebarCardDirectory";
 import { CommitProjectCard } from "@/components/atoms/CommitProjectCard";
+import { StageCard } from "@/components/atoms/StageCard";
 import { UncommittedFilesCard } from "@/components/atoms/UncommittedFilesCard";
 import { CreateCommitCard, type CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import { NoHistoryProject } from "@/components/atoms/NoHistoryProject";
@@ -55,6 +56,41 @@ function directoryState(commitOpen: boolean, composerOpen: boolean): "default" |
     return "default";
   }
   return "selected";
+}
+
+type StageSummary = {
+  id: string;
+  title: string;
+  author: string;
+  description?: string;
+  timestamp: number;
+  filesChanged?: number;
+  insertions?: number;
+  deletions?: number;
+};
+
+function StageList() {
+  // No stage entity in JSON API 0.8.1 — do not invent rows.
+  const stages: StageSummary[] = [];
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex w-full flex-col gap-2">
+        {stages.map((stage) => (
+          <SidebarCard key={stage.id}>
+            <StageCard
+              title={stage.title}
+              author={stage.author}
+              description={stage.description}
+              timestamp={stage.timestamp}
+              filesChanged={stage.filesChanged}
+              insertions={stage.insertions}
+              deletions={stage.deletions}
+            />
+          </SidebarCard>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function ProjectViewPanel({
@@ -131,7 +167,9 @@ export function ProjectViewPanel({
               onCreateRepository={onCreateRepository}
               onSelectCommit={onSelectCommit}
             />
-          ) : null}
+          ) : (
+            <StageList />
+          )}
         </div>
       </div>
       <HeaderSettings userName={userName} onSettings={onSettings} />

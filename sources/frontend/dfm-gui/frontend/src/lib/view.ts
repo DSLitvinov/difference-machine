@@ -45,11 +45,11 @@ export function deriveView(input: ViewInput): DerivedView {
   if (input.commitComposer === "open") {
     return "create-commit";
   }
-  if (input.sidebarTab === "stages") {
-    return "stages";
-  }
   if (input.folderEmpty && !input.hasCommits && input.selectionCount === 0) {
     return "empty-dfm-project";
+  }
+  if (input.sidebarTab === "stages") {
+    return "stages";
   }
   if (input.selectionCount > 1) {
     return "file-more-info";

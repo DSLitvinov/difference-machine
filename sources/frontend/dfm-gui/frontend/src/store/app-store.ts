@@ -144,7 +144,13 @@ export const useAppStore = create<AppState>((set) => ({
     });
   },
   setLocale: (locale) => set({ locale }),
-  setSidebarTab: (tab) => set({ sidebarTab: tab }),
+  setSidebarTab: (tab) =>
+    set((s) => ({
+      sidebarTab: tab,
+      ...(tab === "stages" && s.contentContext === "commit"
+        ? { selectedCommit: null, contentContext: "folder" as const }
+        : {}),
+    })),
   setChangedOnly: (value) => set({ changedOnly: value }),
   setFolderPath: (path) =>
     set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null, fileRevision: null }),

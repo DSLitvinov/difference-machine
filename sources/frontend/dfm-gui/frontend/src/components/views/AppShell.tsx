@@ -70,7 +70,7 @@ export function AppShell({
   const filePath = selection[0] ?? "";
   const fileLeft = (view === "file-view" || view === "file-history") && Boolean(filePath);
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
-  const moreFiles = view === "create-commit" || selection.length > 1;
+  const moreFiles = view === "create-commit" || (view !== "stages" && selection.length > 1);
 
   async function openExternal() {
     if (!filePath) {
@@ -185,7 +185,7 @@ export function AppShell({
           ) : (
             <FileInfoPanel
               locale={locale}
-              path={selection[0] ?? null}
+              path={view === "stages" ? null : selection[0] ?? null}
               status={status}
               locks={locks}
               onCollapse={() => setInfoCollapsed(true)}

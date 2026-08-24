@@ -27,7 +27,7 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 9 | History sidebar + View Commit | done |
 | 10 | Create Commit composer | done |
 | 11 | History of File (text / image) | done |
-| 12 | Stages placeholder | pending |
+| 12 | Stages placeholder | done |
 | 13 | Settings dialog | pending |
 | 14 | Branches dialogs | pending |
 | 15 | Merge + detached HEAD banners | pending |
