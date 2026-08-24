@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Locale } from "@/lib/i18n";
+import { resetThumbCache } from "@/lib/thumb-cache";
 import { deriveView, type ContentContext, type DerivedView, type Shell, type SidebarTab } from "@/lib/view";
 
 export type StatusSnapshot = {
@@ -55,6 +56,7 @@ type AppState = {
   hasCommits: boolean;
   status: StatusSnapshot | null;
   entries: DirEntry[];
+  entriesHasMore: boolean;
   commits: CommitSummary[];
   locks: FileLock[];
   toast: string | null;
@@ -71,9 +73,11 @@ type AppState = {
     hasCommits: boolean;
     status: StatusSnapshot | null;
     entries: DirEntry[];
+    entriesHasMore: boolean;
     commits: CommitSummary[];
     locks: FileLock[];
   }) => void;
+  appendEntries: (entries: DirEntry[], hasMore: boolean) => void;
 };
 
 export const useAppStore = create<AppState>((set) => ({
@@ -93,10 +97,12 @@ export const useAppStore = create<AppState>((set) => ({
   hasCommits: false,
   status: null,
   entries: [],
+  entriesHasMore: false,
   commits: [],
   locks: [],
   toast: null,
   applySession: (info) => {
+    resetThumbCache();
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
     set({
       shell: info.shell === "app" ? "app" : "first-start",
@@ -108,12 +114,14 @@ export const useAppStore = create<AppState>((set) => ({
       selection: [],
       contentContext: "folder",
       infoCollapsed: false,
+      changedOnly: false,
       commitComposer: "closed",
       sidebarTab: "history",
       folderEmpty: true,
       hasCommits: false,
       status: null,
       entries: [],
+      entriesHasMore: false,
       commits: [],
       locks: [],
       toast: info.error || null,
@@ -127,6 +135,14 @@ export const useAppStore = create<AppState>((set) => ({
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),
+  appendEntries: (entries, hasMore) =>
+    set((state) => {
+      const seen = new Set(state.entries.map((entry) => entry.path));
+      return {
+        entries: [...state.entries, ...entries.filter((entry) => !seen.has(entry.path))],
+        entriesHasMore: hasMore,
+      };
+    }),
 }));
 
 export function useDerivedView(): DerivedView {

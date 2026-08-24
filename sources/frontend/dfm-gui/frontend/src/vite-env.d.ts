@@ -22,6 +22,8 @@ interface GoApp {
   InitRepository: (absPath: string) => Promise<SessionInfo>;
   OpenRepository: (absPath: string) => Promise<SessionInfo>;
   ForesterCall: (method: string, argsJSON: string) => Promise<string>;
+  ReadThumbCache: (relPath: string, size: number, mtime: number) => Promise<string>;
+  WriteThumbCache: (relPath: string, size: number, mtime: number, pngBase64: string) => Promise<void>;
   SetLocale: (locale: string) => Promise<void>;
   WindowMinimise: () => Promise<void>;
   WindowToggleMaximise: () => Promise<void>;

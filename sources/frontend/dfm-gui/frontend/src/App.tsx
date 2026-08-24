@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FirstStartView } from "@/components/views/FirstStartView";
 import { AppShell } from "@/components/views/AppShell";
 import {
@@ -11,11 +11,13 @@ import {
   onWailsEvent,
 } from "@/lib/bridge";
 import type { Locale } from "@/lib/i18n";
+import { dirtyPaths, isDirty } from "@/lib/status";
 import { useAppStore, type CommitSummary, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
 
 type EntriesResult = {
   entries?: DirEntry[];
   total?: number;
+  has_more?: boolean;
 };
 
 type LogResult = {
@@ -32,11 +34,13 @@ export default function App() {
   const toast = useAppStore((s) => s.toast);
   const repoPath = useAppStore((s) => s.repoPath);
   const folderPath = useAppStore((s) => s.folderPath);
+  const changedOnly = useAppStore((s) => s.changedOnly);
   const applySession = useAppStore((s) => s.applySession);
   const setLocale = useAppStore((s) => s.setLocale);
   const setToast = useAppStore((s) => s.setToast);
   const setRepoMeta = useAppStore((s) => s.setRepoMeta);
   const [busy, setBusy] = useState(false);
+  const loadingMore = useRef(false);
 
   useEffect(() => {
     if (!toast) {
@@ -79,29 +83,78 @@ export default function App() {
       return;
     }
     void refreshRepoMeta();
-  }, [shell, repoPath, folderPath]);
+  }, [shell, repoPath, folderPath, changedOnly]);
 
   async function refreshRepoMeta() {
-    const path = useAppStore.getState().folderPath;
     try {
-      const [status, entriesResult, log, locksResult] = await Promise.all([
+      const [status, log, locksResult] = await Promise.all([
         foresterCall("status.get") as Promise<StatusSnapshot>,
-        foresterCall("workdir.entries", { path, offset: 0, limit: 200 }) as Promise<EntriesResult>,
         foresterCall("log.get") as Promise<LogResult>,
         foresterCall("lock.list") as Promise<LocksResult>,
       ]);
-      const entries = entriesResult.entries ?? [];
       const commits = log.commits ?? [];
+      let showChanged = useAppStore.getState().changedOnly;
+      if (showChanged && !isDirty(status)) {
+        useAppStore.getState().setChangedOnly(false);
+        showChanged = false;
+      }
+      let entries: DirEntry[] = [];
+      let entriesHasMore = false;
+      let folderEmpty = useAppStore.getState().folderEmpty;
+      if (showChanged) {
+        const paths = dirtyPaths(status);
+        if (paths.length > 0) {
+          const byPaths = (await foresterCall("workdir.entries_by_paths", { paths })) as { entries?: DirEntry[] };
+          entries = byPaths.entries ?? [];
+        }
+      } else {
+        const path = useAppStore.getState().folderPath;
+        const entriesResult = (await foresterCall("workdir.entries", { path, offset: 0, limit: 200 })) as EntriesResult;
+        entries = entriesResult.entries ?? [];
+        entriesHasMore = Boolean(entriesResult.has_more);
+        folderEmpty = !(entriesResult.total ?? entries.length);
+      }
       setRepoMeta({
         status,
         entries,
+        entriesHasMore,
         commits,
         locks: locksResult.locks ?? [],
-        folderEmpty: !(entriesResult.total ?? entries.length),
+        folderEmpty,
         hasCommits: commits.length > 0,
       });
     } catch {
-      setRepoMeta({ status: null, folderEmpty: true, hasCommits: false, entries: [], commits: [], locks: [] });
+      setRepoMeta({
+        status: null,
+        folderEmpty: true,
+        hasCommits: false,
+        entries: [],
+        entriesHasMore: false,
+        commits: [],
+        locks: [],
+      });
+    }
+  }
+
+  async function loadMoreEntries() {
+    const state = useAppStore.getState();
+    if (loadingMore.current || state.changedOnly || !state.entriesHasMore) {
+      return;
+    }
+    loadingMore.current = true;
+    const folder = state.folderPath;
+    const offset = state.entries.length;
+    try {
+      const result = (await foresterCall("workdir.entries", { path: folder, offset, limit: 200 })) as EntriesResult;
+      const latest = useAppStore.getState();
+      if (latest.folderPath !== folder || latest.changedOnly) {
+        return;
+      }
+      useAppStore.getState().appendEntries(result.entries ?? [], Boolean(result.has_more));
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      loadingMore.current = false;
     }
   }
 
@@ -194,6 +247,7 @@ export default function App() {
           onSettings={() => undefined}
           onCreateRepository={() => void onCreateRepository()}
           onApplySelection={(paths) => void onApplySelection(paths)}
+          onNeedMore={() => void loadMoreEntries()}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />

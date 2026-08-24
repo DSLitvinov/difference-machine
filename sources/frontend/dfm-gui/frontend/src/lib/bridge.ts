@@ -31,6 +31,22 @@ export async function foresterCall(method: string, args: Record<string, unknown>
   return env.result;
 }
 
+export async function readThumbCache(relPath: string, size: number, mtime: number): Promise<string> {
+  try {
+    return (await app().ReadThumbCache(relPath, size, mtime)) || "";
+  } catch {
+    return "";
+  }
+}
+
+export async function writeThumbCache(relPath: string, size: number, mtime: number, pngBase64: string): Promise<void> {
+  try {
+    await app().WriteThumbCache(relPath, size, mtime, pngBase64);
+  } catch {
+    // Disk cache is best-effort; memory still holds the blob.
+  }
+}
+
 export async function setLocale(locale: string): Promise<void> {
   await app().SetLocale(locale);
 }

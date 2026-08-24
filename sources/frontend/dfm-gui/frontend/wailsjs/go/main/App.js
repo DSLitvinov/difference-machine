@@ -18,6 +18,10 @@ export function OpenRepository(arg1) {
   return window['go']['main']['App']['OpenRepository'](arg1);
 }
 
+export function ReadThumbCache(arg1, arg2, arg3) {
+  return window['go']['main']['App']['ReadThumbCache'](arg1, arg2, arg3);
+}
+
 export function SelectDirectory() {
   return window['go']['main']['App']['SelectDirectory']();
 }
@@ -36,4 +40,8 @@ export function WindowMinimise() {
 
 export function WindowToggleMaximise() {
   return window['go']['main']['App']['WindowToggleMaximise']();
+}
+
+export function WriteThumbCache(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['WriteThumbCache'](arg1, arg2, arg3, arg4);
 }

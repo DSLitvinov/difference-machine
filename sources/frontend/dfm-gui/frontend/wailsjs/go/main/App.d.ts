@@ -10,6 +10,8 @@ export function InitRepository(arg1:string):Promise<main.SessionInfo>;
 
 export function OpenRepository(arg1:string):Promise<main.SessionInfo>;
 
+export function ReadThumbCache(arg1:string,arg2:number,arg3:number):Promise<string>;
+
 export function SelectDirectory():Promise<string>;
 
 export function SetLocale(arg1:string):Promise<void>;
@@ -19,3 +21,5 @@ export function WindowClose():Promise<void>;
 export function WindowMinimise():Promise<void>;
 
 export function WindowToggleMaximise():Promise<void>;
+
+export function WriteThumbCache(arg1:string,arg2:number,arg3:number,arg4:string):Promise<void>;

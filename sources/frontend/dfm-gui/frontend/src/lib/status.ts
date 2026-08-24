@@ -24,6 +24,22 @@ export function isDirty(status: StatusSnapshot | null): boolean {
   return counts.append + counts.new + counts.modified + counts.deleted > 0 || (status?.renamed_files?.length ?? 0) > 0;
 }
 
+export function dirtyPaths(status: StatusSnapshot | null): string[] {
+  if (!status) {
+    return [];
+  }
+  const paths = [
+    ...(status.staged_new_files ?? []),
+    ...(status.staged_modified_files ?? []),
+    ...(status.unstaged_modified_files ?? []),
+    ...(status.untracked_files ?? []),
+    ...(status.staged_deleted_files ?? []),
+    ...(status.unstaged_deleted_files ?? []),
+    ...(status.renamed_files ?? []).map((item) => item.path),
+  ];
+  return [...new Set(paths)];
+}
+
 export type LetterStatus = "appended" | "modified" | "new" | "delete";
 
 export function letterStatus(path: string, status: StatusSnapshot | null): LetterStatus | null {

@@ -1,6 +1,6 @@
 export type FileKind = "image" | "text" | "blend" | "binary";
 
-const IMAGE_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "tif", "tiff", "ico", "avif"]);
+const IMAGE_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "tif", "tiff", "ico", "avif", "exr"]);
 const TEXT_EXT = new Set([
   "txt",
   "md",

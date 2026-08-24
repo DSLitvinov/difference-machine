@@ -10,7 +10,8 @@ import { formatDateTime, formatSize } from "@/lib/format";
 import { letterStatus } from "@/lib/status";
 import { typeLabel } from "@/lib/file-kind";
 import { foresterCall } from "@/lib/bridge";
-import type { FileLock, StatusSnapshot } from "@/store/app-store";
+import { peekThumb, releaseThumb, requestThumb, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
+import { useAppStore, type FileLock, type StatusSnapshot } from "@/store/app-store";
 import chevronDown from "@/assets/icons/chevron-down.svg";
 
 type FileMetadata = {
@@ -47,7 +48,9 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 
 export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileInfoPanelProps) {
   const copy = t(locale);
+  const repoPath = useAppStore((s) => s.repoPath);
   const [meta, setMeta] = useState<FileMetadata | null>(null);
+  useThumbEpoch();
 
   useEffect(() => {
     if (!path) {
@@ -72,6 +75,17 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
     };
   }, [path]);
 
+  useEffect(() => {
+    if (!path || !meta) {
+      return;
+    }
+    const file: ThumbRequest = { path, name: basename(path), size: meta.size ?? 0, mtime: meta.modified ?? 0 };
+    requestThumb(repoPath, file);
+    return () => {
+      releaseThumb(repoPath, file);
+    };
+  }, [path, meta, repoPath]);
+
   if (!path) {
     return (
       <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
@@ -86,13 +100,17 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
   const name = basename(path);
   const lock = locks.find((item) => item.file_path === path);
   const dimensions = meta?.width && meta?.height ? `${meta.width}x${meta.height}` : "";
+  const thumb =
+    meta && path
+      ? peekThumb(repoPath, { path, name, size: meta.size ?? 0, mtime: meta.modified ?? 0 })
+      : undefined;
 
   return (
     <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
       <HeaderRightSide onCollapse={onCollapse} />
       <div className="flex min-h-0 flex-1 flex-col justify-between px-3 pb-3">
         <div className="flex min-h-0 flex-col gap-4">
-          <FileInfoPreview name={name} letter={letterStatus(path, status)} locked={Boolean(lock)} />
+          <FileInfoPreview name={name} src={thumb?.kind === "image" ? thumb.blobUrl : undefined} letter={letterStatus(path, status)} locked={Boolean(lock)} />
           <div className="flex min-h-0 flex-col gap-3">
             <p className="text-[14px] font-semibold leading-5 text-foreground">{copy.metadata}</p>
             <div className="flex flex-col gap-1 overflow-y-auto">
