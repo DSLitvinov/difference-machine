@@ -20,6 +20,7 @@ type ContentViewPanelProps = {
   onSelect: (paths: string[]) => void;
   onExpandInfo?: () => void;
   onNeedMore?: () => void;
+  onOpenFile?: (path: string) => void;
 };
 
 export function ContentViewPanel({
@@ -37,6 +38,7 @@ export function ContentViewPanel({
   onSelect,
   onExpandInfo,
   onNeedMore,
+  onOpenFile,
 }: ContentViewPanelProps) {
   const folders = entries.filter((entry) => entry.is_dir);
   const files = entries.filter((entry) => !entry.is_dir);
@@ -93,6 +95,7 @@ export function ContentViewPanel({
             hasMore={hasMore}
             onSelectFile={selectFile}
             onOpenFolder={onNavigate}
+            onOpenFile={onOpenFile}
             onNeedMore={onNeedMore}
           />
         )}

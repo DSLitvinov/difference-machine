@@ -17,6 +17,7 @@ type FolderEntryGridProps = {
   hasMore?: boolean;
   onSelectFile: (path: string, event: MouseEvent) => void;
   onOpenFolder: (path: string) => void;
+  onOpenFile?: (path: string) => void;
   onNeedMore?: () => void;
 };
 
@@ -38,6 +39,7 @@ export function FolderEntryGrid({
   hasMore,
   onSelectFile,
   onOpenFolder,
+  onOpenFile,
   onNeedMore,
 }: FolderEntryGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -137,6 +139,7 @@ export function FolderEntryGrid({
                     text={thumb?.kind === "text" ? thumb.text : undefined}
                     stub={thumb?.kind === "placeholder"}
                     onSelect={(event) => onSelectFile(entry.path, event)}
+                    onOpen={() => onOpenFile?.(entry.path)}
                   />
                 );
               })}

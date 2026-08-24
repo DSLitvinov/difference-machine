@@ -55,6 +55,12 @@ const en = {
   sumSizes: "Sum Sizes",
   addInCommit: "Add in commit",
   apply: "Apply",
+  currentPreview: "Current preview",
+  historyOfFile: "History of file",
+  noHistoryOfChanges: "No history of changes",
+  noHistoryFileBody: "The file is not added to any commit",
+  binaryCannotDisplay: "This binary file cannot be displayed",
+  openInExternalApplication: "Open in external application",
 };
 
 const ru: typeof en = {
@@ -112,6 +118,12 @@ const ru: typeof en = {
   sumSizes: "Sum Sizes",
   addInCommit: "Add in commit",
   apply: "Apply",
+  currentPreview: "Current preview",
+  historyOfFile: "History of file",
+  noHistoryOfChanges: "No history of changes",
+  noHistoryFileBody: "The file is not added to any commit",
+  binaryCannotDisplay: "This binary file cannot be displayed",
+  openInExternalApplication: "Open in external application",
 };
 
 const dictionaries = { en, ru };

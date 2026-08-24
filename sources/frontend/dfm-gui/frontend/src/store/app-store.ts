@@ -67,6 +67,8 @@ type AppState = {
   setFolderPath: (path: string) => void;
   setSelection: (paths: string[]) => void;
   setInfoCollapsed: (value: boolean) => void;
+  setContentContext: (context: ContentContext) => void;
+  openFile: (path: string) => void;
   setToast: (message: string | null) => void;
   setRepoMeta: (meta: {
     folderEmpty: boolean;
@@ -130,9 +132,11 @@ export const useAppStore = create<AppState>((set) => ({
   setLocale: (locale) => set({ locale }),
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   setChangedOnly: (value) => set({ changedOnly: value }),
-  setFolderPath: (path) => set({ folderPath: path, selection: [] }),
+  setFolderPath: (path) => set({ folderPath: path, selection: [], contentContext: "folder" }),
   setSelection: (paths) => set({ selection: paths, ...(paths.length > 0 ? { infoCollapsed: false } : {}) }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
+  setContentContext: (context) => set({ contentContext: context }),
+  openFile: (path) => set({ selection: [path], contentContext: "file", infoCollapsed: false }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),
   appendEntries: (entries, hasMore) =>

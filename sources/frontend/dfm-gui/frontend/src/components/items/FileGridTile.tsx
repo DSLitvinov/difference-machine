@@ -17,6 +17,7 @@ type FileGridTileProps = {
   text?: string;
   stub?: boolean;
   onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
+  onOpen?: () => void;
 };
 
 const stubs = {
@@ -26,11 +27,12 @@ const stubs = {
   binary: fileBinary,
 } as const;
 
-export function FileGridTile({ name, selected, letter, locked, src, text, stub, onSelect }: FileGridTileProps) {
+export function FileGridTile({ name, selected, letter, locked, src, text, stub, onSelect, onOpen }: FileGridTileProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
+      onDoubleClick={() => onOpen?.()}
       className={cn(
         "flex w-full min-w-0 flex-col items-center gap-2 rounded-md border p-2",
         selected ? "border-border-accent bg-foreground-accent" : "border-transparent hover:bg-foreground-accent",

@@ -23,7 +23,7 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 5 | Empty DFM Folder + Root Folder (no thumbs) | done |
 | 6 | Selection, File Info, collapse, File More Info | done |
 | 7 | Folder grid + virtual scroll + thumbnails | done |
-| 8 | File View (image / text / binary / no history) | pending |
+| 8 | File View (image / text / binary / no history) | done |
 | 9 | History sidebar + View Commit | pending |
 | 10 | Create Commit composer | pending |
 | 11 | History of File (text / image) | pending |

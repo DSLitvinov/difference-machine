@@ -12,7 +12,7 @@ export function HeaderSelectBranch({ locale, branchName }: HeaderSelectBranchPro
   const copy = t(locale);
   return (
     <div className="flex w-[309px] shrink-0 flex-col items-start p-3">
-      <div className="flex w-full items-center gap-1 rounded-sm border border-border bg-background px-3 py-2">
+      <div className="flex w-full items-center gap-1 rounded-sm border border-border bg-background px-3 py-2 shadow-sm">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <FigmaIcon src={squareTerminal} size={20} />
           <p className="min-w-0 truncate text-[16px] leading-6 text-foreground-secondary">{branchName || copy.branchName}</p>
