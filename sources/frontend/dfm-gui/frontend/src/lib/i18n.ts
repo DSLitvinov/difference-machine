@@ -41,6 +41,20 @@ const en = {
   newFiles: "new",
   modified: "modified",
   deleted: "deleted",
+  metadata: "Metadata",
+  name: "Name",
+  dimensions: "Dimensions",
+  size: "Size",
+  type: "Type",
+  locked: "Locked",
+  editor: "Editor",
+  creator: "Creator",
+  created: "Created",
+  modifiedAt: "Modified",
+  editIn: "Edit in",
+  sumSizes: "Sum Sizes",
+  addInCommit: "Add in commit",
+  apply: "Apply",
 };
 
 const ru: typeof en = {
@@ -84,6 +98,20 @@ const ru: typeof en = {
   newFiles: "new",
   modified: "modified",
   deleted: "deleted",
+  metadata: "Metadata",
+  name: "Name",
+  dimensions: "Dimensions",
+  size: "Size",
+  type: "Type",
+  locked: "Locked",
+  editor: "Editor",
+  creator: "Creator",
+  created: "Created",
+  modifiedAt: "Modified",
+  editIn: "Edit in",
+  sumSizes: "Sum Sizes",
+  addInCommit: "Add in commit",
+  apply: "Apply",
 };
 
 const dictionaries = { en, ru };

@@ -1,13 +1,122 @@
+import { useEffect, useState } from "react";
 import { HeaderRightSide } from "@/components/items/HeaderRightSide";
+import { FileInfoPreview } from "@/components/items/FileInfoPreview";
 import { NoFileSelectedPlaceholder } from "@/components/placeholders/NoFileSelectedPlaceholder";
-import type { Locale } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { t, type Locale } from "@/lib/i18n";
+import { formatDateTime, formatSize } from "@/lib/format";
+import { letterStatus } from "@/lib/status";
+import { typeLabel } from "@/lib/file-kind";
+import { foresterCall } from "@/lib/bridge";
+import type { FileLock, StatusSnapshot } from "@/store/app-store";
+import chevronDown from "@/assets/icons/chevron-down.svg";
 
-export function FileInfoPanel({ locale }: { locale: Locale }) {
+type FileMetadata = {
+  path: string;
+  size?: number;
+  modified?: number;
+  created?: number;
+  mime?: string;
+  width?: number;
+  height?: number;
+};
+
+type FileInfoPanelProps = {
+  locale: Locale;
+  path: string | null;
+  status: StatusSnapshot | null;
+  locks: FileLock[];
+  onCollapse: () => void;
+};
+
+function basename(path: string): string {
+  const parts = path.split("/").filter(Boolean);
+  return parts[parts.length - 1] ?? path;
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex w-full items-center text-[14px] leading-5 text-foreground">
+      <p className="w-[120px] shrink-0">{label}</p>
+      <p className="min-w-0 flex-1 truncate">{value}</p>
+    </div>
+  );
+}
+
+export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileInfoPanelProps) {
+  const copy = t(locale);
+  const [meta, setMeta] = useState<FileMetadata | null>(null);
+
+  useEffect(() => {
+    if (!path) {
+      setMeta(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = (await foresterCall("workdir.metadata", { path })) as FileMetadata;
+        if (!cancelled) {
+          setMeta(result);
+        }
+      } catch {
+        if (!cancelled) {
+          setMeta(null);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [path]);
+
+  if (!path) {
+    return (
+      <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
+        <HeaderRightSide onCollapse={onCollapse} />
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-3">
+          <NoFileSelectedPlaceholder locale={locale} />
+        </div>
+      </aside>
+    );
+  }
+
+  const name = basename(path);
+  const lock = locks.find((item) => item.file_path === path);
+  const dimensions = meta?.width && meta?.height ? `${meta.width}x${meta.height}` : "";
+
   return (
     <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
-      <HeaderRightSide />
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-3">
-        <NoFileSelectedPlaceholder locale={locale} />
+      <HeaderRightSide onCollapse={onCollapse} />
+      <div className="flex min-h-0 flex-1 flex-col justify-between px-3 pb-3">
+        <div className="flex min-h-0 flex-col gap-4">
+          <FileInfoPreview name={name} letter={letterStatus(path, status)} locked={Boolean(lock)} />
+          <div className="flex min-h-0 flex-col gap-3">
+            <p className="text-[14px] font-semibold leading-5 text-foreground">{copy.metadata}</p>
+            <div className="flex flex-col gap-1 overflow-y-auto">
+              <MetaRow label={copy.name} value={name} />
+              <MetaRow label={copy.dimensions} value={dimensions} />
+              <MetaRow label={copy.size} value={meta?.size != null ? formatSize(meta.size) : ""} />
+              <MetaRow label={copy.type} value={typeLabel(name)} />
+              <MetaRow label={copy.locked} value={lock?.user ?? ""} />
+              <MetaRow label={copy.editor} value="" />
+              <MetaRow label={copy.creator} value="" />
+              <MetaRow label={copy.created} value={meta?.created ? formatDateTime(meta.created) : ""} />
+              <MetaRow label={copy.modifiedAt} value={meta?.modified ? formatDateTime(meta.modified) : ""} />
+            </div>
+          </div>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button type="button" variant="outline" className="w-full">
+              {copy.editIn}
+              <FigmaIcon src={chevronDown} size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="w-[308px]" />
+        </DropdownMenu>
       </div>
     </aside>
   );

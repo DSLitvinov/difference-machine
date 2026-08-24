@@ -1,4 +1,4 @@
-export type FileKind = "image" | "text" | "binary";
+export type FileKind = "image" | "text" | "blend" | "binary";
 
 const IMAGE_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "tif", "tiff", "ico", "avif"]);
 const TEXT_EXT = new Set([
@@ -30,9 +30,16 @@ const TEXT_EXT = new Set([
   "ini",
 ]);
 
-export function fileKind(name: string): FileKind {
+export function fileExtension(name: string): string {
   const dot = name.lastIndexOf(".");
-  const ext = dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
+  return dot >= 0 ? name.slice(dot + 1).toLowerCase() : "";
+}
+
+export function fileKind(name: string): FileKind {
+  const ext = fileExtension(name);
+  if (ext === "blend") {
+    return "blend";
+  }
   if (IMAGE_EXT.has(ext)) {
     return "image";
   }
@@ -40,4 +47,9 @@ export function fileKind(name: string): FileKind {
     return "text";
   }
   return "binary";
+}
+
+export function typeLabel(name: string): string {
+  const ext = fileExtension(name);
+  return ext ? ext.toUpperCase() : "";
 }

@@ -11,7 +11,7 @@ import {
   onWailsEvent,
 } from "@/lib/bridge";
 import type { Locale } from "@/lib/i18n";
-import { useAppStore, type CommitSummary, type DirEntry, type StatusSnapshot } from "@/store/app-store";
+import { useAppStore, type CommitSummary, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
 
 type EntriesResult = {
   entries?: DirEntry[];
@@ -20,6 +20,10 @@ type EntriesResult = {
 
 type LogResult = {
   commits?: CommitSummary[];
+};
+
+type LocksResult = {
+  locks?: FileLock[];
 };
 
 export default function App() {
@@ -80,10 +84,11 @@ export default function App() {
   async function refreshRepoMeta() {
     const path = useAppStore.getState().folderPath;
     try {
-      const [status, entriesResult, log] = await Promise.all([
+      const [status, entriesResult, log, locksResult] = await Promise.all([
         foresterCall("status.get") as Promise<StatusSnapshot>,
         foresterCall("workdir.entries", { path, offset: 0, limit: 200 }) as Promise<EntriesResult>,
         foresterCall("log.get") as Promise<LogResult>,
+        foresterCall("lock.list") as Promise<LocksResult>,
       ]);
       const entries = entriesResult.entries ?? [];
       const commits = log.commits ?? [];
@@ -91,11 +96,12 @@ export default function App() {
         status,
         entries,
         commits,
+        locks: locksResult.locks ?? [],
         folderEmpty: !(entriesResult.total ?? entries.length),
         hasCommits: commits.length > 0,
       });
     } catch {
-      setRepoMeta({ status: null, folderEmpty: true, hasCommits: false, entries: [], commits: [] });
+      setRepoMeta({ status: null, folderEmpty: true, hasCommits: false, entries: [], commits: [], locks: [] });
     }
   }
 
@@ -159,6 +165,18 @@ export default function App() {
     }
   }
 
+  async function onApplySelection(paths: string[]) {
+    if (paths.length === 0) {
+      return;
+    }
+    try {
+      await foresterCall("index.add", { files: paths });
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    }
+  }
+
   async function onLocale(next: Locale) {
     setLocale(next);
     try {
@@ -171,7 +189,12 @@ export default function App() {
   return (
     <>
       {shell === "app" ? (
-        <AppShell busy={busy} onSettings={() => undefined} onCreateRepository={() => void onCreateRepository()} />
+        <AppShell
+          busy={busy}
+          onSettings={() => undefined}
+          onCreateRepository={() => void onCreateRepository()}
+          onApplySelection={(paths) => void onApplySelection(paths)}
+        />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />
       )}

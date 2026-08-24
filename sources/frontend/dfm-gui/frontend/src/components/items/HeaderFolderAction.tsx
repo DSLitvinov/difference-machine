@@ -5,14 +5,17 @@ import chevronRight from "@/assets/icons/chevron-right.svg";
 import searchIcon from "@/assets/icons/search.svg";
 import sortIcon from "@/assets/icons/arrow-up-a-z.svg";
 import filterIcon from "@/assets/icons/filter.svg";
+import panelRightOpen from "@/assets/icons/panel-right-open.svg";
 
 type HeaderFolderActionProps = {
   locale: Locale;
   folderPath: string;
+  collapsed?: boolean;
   onNavigate: (path: string) => void;
+  onExpandInfo?: () => void;
 };
 
-export function HeaderFolderAction({ locale, folderPath, onNavigate }: HeaderFolderActionProps) {
+export function HeaderFolderAction({ locale, folderPath, collapsed, onNavigate, onExpandInfo }: HeaderFolderActionProps) {
   const copy = t(locale);
   const parts = folderPath.split("/").filter(Boolean);
   return (
@@ -43,16 +46,26 @@ export function HeaderFolderAction({ locale, folderPath, onNavigate }: HeaderFol
           );
         })}
       </div>
-      <div className="flex shrink-0 items-center gap-1">
-        <Button type="button" variant="secondary" size="icon" aria-label="Search">
-          <FigmaIcon src={searchIcon} size={16} />
-        </Button>
-        <Button type="button" variant="secondary" size="icon" aria-label="Sort">
-          <FigmaIcon src={sortIcon} size={16} />
-        </Button>
-        <Button type="button" variant="secondary" size="icon" aria-label="Filter">
-          <FigmaIcon src={filterIcon} size={16} />
-        </Button>
+      <div className="flex shrink-0 items-center gap-2">
+        <div className="flex items-center gap-1">
+          <Button type="button" variant="secondary" size="icon" aria-label="Search">
+            <FigmaIcon src={searchIcon} size={16} />
+          </Button>
+          <Button type="button" variant="secondary" size="icon" aria-label="Sort">
+            <FigmaIcon src={sortIcon} size={16} />
+          </Button>
+          <Button type="button" variant="secondary" size="icon" aria-label="Filter">
+            <FigmaIcon src={filterIcon} size={16} />
+          </Button>
+        </div>
+        {collapsed ? (
+          <>
+            <div className="h-5 w-px bg-border" />
+            <Button type="button" variant="secondary" size="icon" aria-label="Expand" onClick={onExpandInfo}>
+              <FigmaIcon src={panelRightOpen} size={16} />
+            </Button>
+          </>
+        ) : null}
       </div>
     </div>
   );

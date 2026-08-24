@@ -48,17 +48,17 @@ export function deriveView(input: ViewInput): DerivedView {
   if (input.sidebarTab === "stages") {
     return "stages";
   }
-  if (input.folderEmpty && !input.hasCommits) {
+  if (input.folderEmpty && !input.hasCommits && input.selectionCount === 0) {
     return "empty-dfm-project";
-  }
-  if (!input.hasCommits) {
-    return "empty-dfm-folder";
   }
   if (input.selectionCount > 1) {
     return "file-more-info";
   }
   if (input.selectionCount === 1) {
     return input.folderPath ? "subfolder" : "file-info";
+  }
+  if (!input.hasCommits) {
+    return "empty-dfm-folder";
   }
   if (input.infoCollapsed) {
     return "root-folder-collapse";

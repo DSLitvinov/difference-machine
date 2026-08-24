@@ -21,7 +21,7 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 3 | App shell + Empty DFM Project | done |
 | 4 | `setup.cfg`, folder picker, Create / Open | done |
 | 5 | Empty DFM Folder + Root Folder (no thumbs) | done |
-| 6 | Selection, File Info, collapse, File More Info | pending |
+| 6 | Selection, File Info, collapse, File More Info | done |
 | 7 | Folder grid + virtual scroll + thumbnails | pending |
 | 8 | File View (image / text / binary / no history) | pending |
 | 9 | History sidebar + View Commit | pending |

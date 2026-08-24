@@ -23,3 +23,24 @@ export function isDirty(status: StatusSnapshot | null): boolean {
   const counts = changeCounts(status);
   return counts.append + counts.new + counts.modified + counts.deleted > 0 || (status?.renamed_files?.length ?? 0) > 0;
 }
+
+export type LetterStatus = "appended" | "modified" | "new" | "delete";
+
+export function letterStatus(path: string, status: StatusSnapshot | null): LetterStatus | null {
+  if (!status) {
+    return null;
+  }
+  if (status.staged_new_files?.includes(path)) {
+    return "appended";
+  }
+  if (status.untracked_files?.includes(path)) {
+    return "new";
+  }
+  if (status.staged_modified_files?.includes(path) || status.unstaged_modified_files?.includes(path)) {
+    return "modified";
+  }
+  if (status.staged_deleted_files?.includes(path) || status.unstaged_deleted_files?.includes(path)) {
+    return "delete";
+  }
+  return null;
+}

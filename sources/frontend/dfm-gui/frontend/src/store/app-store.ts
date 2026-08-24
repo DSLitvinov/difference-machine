@@ -33,6 +33,11 @@ export type CommitSummary = {
   tag?: string;
 };
 
+export type FileLock = {
+  file_path: string;
+  user?: string;
+};
+
 type AppState = {
   shell: Shell;
   locale: Locale;
@@ -51,12 +56,15 @@ type AppState = {
   status: StatusSnapshot | null;
   entries: DirEntry[];
   commits: CommitSummary[];
+  locks: FileLock[];
   toast: string | null;
   applySession: (info: SessionInfo) => void;
   setLocale: (locale: Locale) => void;
   setSidebarTab: (tab: SidebarTab) => void;
   setChangedOnly: (value: boolean) => void;
   setFolderPath: (path: string) => void;
+  setSelection: (paths: string[]) => void;
+  setInfoCollapsed: (value: boolean) => void;
   setToast: (message: string | null) => void;
   setRepoMeta: (meta: {
     folderEmpty: boolean;
@@ -64,6 +72,7 @@ type AppState = {
     status: StatusSnapshot | null;
     entries: DirEntry[];
     commits: CommitSummary[];
+    locks: FileLock[];
   }) => void;
 };
 
@@ -85,6 +94,7 @@ export const useAppStore = create<AppState>((set) => ({
   status: null,
   entries: [],
   commits: [],
+  locks: [],
   toast: null,
   applySession: (info) => {
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
@@ -97,6 +107,7 @@ export const useAppStore = create<AppState>((set) => ({
       folderPath: "",
       selection: [],
       contentContext: "folder",
+      infoCollapsed: false,
       commitComposer: "closed",
       sidebarTab: "history",
       folderEmpty: true,
@@ -104,6 +115,7 @@ export const useAppStore = create<AppState>((set) => ({
       status: null,
       entries: [],
       commits: [],
+      locks: [],
       toast: info.error || null,
     });
   },
@@ -111,6 +123,8 @@ export const useAppStore = create<AppState>((set) => ({
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   setChangedOnly: (value) => set({ changedOnly: value }),
   setFolderPath: (path) => set({ folderPath: path, selection: [] }),
+  setSelection: (paths) => set({ selection: paths, ...(paths.length > 0 ? { infoCollapsed: false } : {}) }),
+  setInfoCollapsed: (value) => set({ infoCollapsed: value }),
   setToast: (message) => set({ toast: message }),
   setRepoMeta: (meta) => set(meta),
 }));

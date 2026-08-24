@@ -9,13 +9,14 @@ import { NullRepositoryPlaceholder } from "@/components/placeholders/NullReposit
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
 import { changeCounts, isDirty } from "@/lib/status";
-import type { DerivedView, SidebarTab } from "@/lib/view";
+import type { SidebarTab } from "@/lib/view";
 import type { CommitSummary, StatusSnapshot } from "@/store/app-store";
 
 type ProjectViewPanelProps = {
   locale: Locale;
   userName: string;
-  view: DerivedView;
+  folderEmpty: boolean;
+  hasCommits: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
   branchName?: string;
@@ -37,11 +38,11 @@ function splitMessage(message: string): { title: string; description: string } {
   return { title: trimmed.slice(0, nl).trim(), description: trimmed.slice(nl + 1).trim() };
 }
 
-function directoryState(view: DerivedView): "default" | "selected" | "disabled" {
-  if (view === "empty-dfm-project") {
+function directoryState(folderEmpty: boolean, hasCommits: boolean): "default" | "selected" | "disabled" {
+  if (folderEmpty && !hasCommits) {
     return "selected";
   }
-  if (view === "empty-dfm-folder") {
+  if (!hasCommits) {
     return "disabled";
   }
   return "default";
@@ -50,7 +51,8 @@ function directoryState(view: DerivedView): "default" | "selected" | "disabled" 
 export function ProjectViewPanel({
   locale,
   userName,
-  view,
+  folderEmpty,
+  hasCommits,
   status,
   commits,
   branchName,
@@ -63,14 +65,14 @@ export function ProjectViewPanel({
   onCreateRepository,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
-  const dirty = view === "empty-dfm-folder" ? false : isDirty(status);
+  const dirty = hasCommits && isDirty(status);
   const counts = changeCounts(status);
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
       <HeaderSelectBranch locale={locale} branchName={branchName} />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] flex-col gap-2 px-3">
-          <SidebarCardDirectory state={directoryState(view)}>
+          <SidebarCardDirectory state={directoryState(folderEmpty, hasCommits)}>
             <UncommittedFilesCard locale={locale} dirty={dirty} counts={counts} changedOnly={changedOnly} onChangedOnly={onChangedOnly} />
           </SidebarCardDirectory>
         </div>
@@ -83,7 +85,17 @@ export function ProjectViewPanel({
           </Tabs>
         </div>
         <div className="flex min-h-0 w-[309px] flex-1 flex-col overflow-y-auto px-3">
-          {sidebarTab === "history" ? <CommitList locale={locale} view={view} status={status} commits={commits} busy={busy} onCreateRepository={onCreateRepository} /> : null}
+          {sidebarTab === "history" ? (
+            <CommitList
+              locale={locale}
+              folderEmpty={folderEmpty}
+              hasCommits={hasCommits}
+              status={status}
+              commits={commits}
+              busy={busy}
+              onCreateRepository={onCreateRepository}
+            />
+          ) : null}
         </div>
       </div>
       <HeaderSettings userName={userName} onSettings={onSettings} />
@@ -93,27 +105,29 @@ export function ProjectViewPanel({
 
 function CommitList({
   locale,
-  view,
+  folderEmpty,
+  hasCommits,
   status,
   commits,
   busy,
   onCreateRepository,
 }: {
   locale: Locale;
-  view: DerivedView;
+  folderEmpty: boolean;
+  hasCommits: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
   busy?: boolean;
   onCreateRepository: () => void;
 }) {
-  if (view === "empty-dfm-folder") {
+  if (!hasCommits && !folderEmpty) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
         <NullRepositoryPlaceholder locale={locale} busy={busy} onCreate={onCreateRepository} />
       </div>
     );
   }
-  if (view === "empty-dfm-project" || commits.length === 0) {
+  if (!hasCommits || commits.length === 0) {
     return (
       <SidebarCard state="disabled">
         <NoHistoryProject locale={locale} />
