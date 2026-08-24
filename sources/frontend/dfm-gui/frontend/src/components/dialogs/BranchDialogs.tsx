@@ -5,7 +5,6 @@ import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import { changeCounts } from "@/lib/status";
 import type { StatusSnapshot } from "@/store/app-store";
-import xIcon from "@/assets/icons/x.svg";
 
 type DialogShellProps = {
   locale: Locale;
@@ -37,7 +36,7 @@ function DialogShell({ locale, title, titleId, busy, onClose, children }: Dialog
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-[11px] top-[11px] flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose} disabled={busy}>
-          <FigmaIcon src={xIcon} size={16} />
+          <FigmaIcon src="icons/x.svg" size={16} />
         </button>
         <p id={titleId} className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
           {title}

@@ -1,7 +1,6 @@
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
-import gitMerge from "@/assets/icons/git-merge.svg";
-import copyIcon from "@/assets/icons/copy.svg";
+
 import type { DiffStat } from "@/lib/revision-cache";
 
 type HeaderCommitInfoProps = {
@@ -21,7 +20,7 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
     <div className="flex w-full items-center justify-center pb-2 pt-3">
       <div className="flex min-w-0 flex-1 flex-col gap-2 px-2">
         <div className="flex w-full items-center gap-1">
-          {merge ? <FigmaIcon src={gitMerge} size={16} /> : null}
+          {merge ? <FigmaIcon src="icons/git-merge.svg" size={16} /> : null}
           {head ? (
             <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-background-primary px-3 text-[12px] font-semibold leading-4 text-foreground-primary">
               {copy.head}
@@ -39,7 +38,7 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
               aria-label={copy.copy}
               onClick={() => void navigator.clipboard.writeText(hash)}
             >
-              <FigmaIcon src={copyIcon} size={16} />
+              <FigmaIcon src="icons/copy.svg" size={16} />
             </button>
           </div>
           {stat ? (

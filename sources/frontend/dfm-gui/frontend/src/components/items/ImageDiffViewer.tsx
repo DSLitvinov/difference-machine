@@ -2,8 +2,6 @@ import { useRef, useState, type PointerEvent } from "react";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import swipeThumb from "@/assets/icons/diff-swipe-thumb.svg";
-import overlayThumb from "@/assets/icons/diff-overlay-thumb.svg";
 
 type ImageTab = "2-up" | "swipe" | "overlay";
 
@@ -113,7 +111,7 @@ export function ImageDiffViewer({ locale, afterSrc, beforeSrc, noCommits }: Imag
                 />
                 <div className="pointer-events-none absolute left-0 top-0 h-full rounded-md bg-background-primary" style={{ width: `${overlay * 100}%` }} />
                 <div className="pointer-events-none absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2" style={{ left: `${overlay * 100}%` }}>
-                  <FigmaIcon src={overlayThumb} size={20} />
+                  <FigmaIcon src="icons/diff-overlay-thumb.svg" size={20} />
                 </div>
               </div>
               <Badge label={copy.before} />
@@ -151,7 +149,7 @@ export function ImageDiffViewer({ locale, afterSrc, beforeSrc, noCommits }: Imag
                 </div>
                 <div className="absolute inset-y-0 w-0.5 bg-[#4f46e5]" style={{ left: `${split * 100}%` }} />
                 <div className="absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2" style={{ left: `${split * 100}%` }}>
-                  <FigmaIcon src={swipeThumb} size={32} />
+                  <FigmaIcon src="icons/diff-swipe-thumb.svg" size={32} />
                 </div>
               </div>
             </div>

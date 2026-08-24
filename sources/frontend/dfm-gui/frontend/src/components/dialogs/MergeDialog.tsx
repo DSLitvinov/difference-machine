@@ -16,9 +16,6 @@ import { foresterCall } from "@/lib/bridge";
 import { fileKind } from "@/lib/file-kind";
 import { t, type Locale } from "@/lib/i18n";
 import type { BranchSummary, MergeStatus } from "@/store/app-store";
-import chevronDown from "@/assets/icons/chevron-down.svg";
-import filterIcon from "@/assets/icons/filter.svg";
-import xIcon from "@/assets/icons/x.svg";
 
 type BlendObject = {
   object_name?: string;
@@ -151,7 +148,7 @@ export function MergeDialog({
           onClick={onClose}
           disabled={busy}
         >
-          <FigmaIcon src={xIcon} size={16} />
+          <FigmaIcon src="icons/x.svg" size={16} />
         </button>
         <div className="flex w-full flex-col">
           <p id="merge-dialog-title" className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
@@ -173,7 +170,7 @@ export function MergeDialog({
                   <span className="min-w-0 flex-1 truncate text-left text-[14px] leading-5 text-foreground">
                     {selectedBranch || copy.branchName}
                   </span>
-                  <FigmaIcon src={chevronDown} size={20} />
+                  <FigmaIcon src="icons/chevron-down.svg" size={20} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-[748px]">
@@ -198,7 +195,7 @@ export function MergeDialog({
                 onChange={(event) => setSearch(event.target.value)}
               />
               <Button type="button" variant="outline" size="icon" aria-label={copy.filter}>
-                <FigmaIcon src={filterIcon} size={16} />
+                <FigmaIcon src="icons/filter.svg" size={16} />
               </Button>
             </div>
             <div className="flex h-[206px] w-full overflow-clip rounded-md border border-border">

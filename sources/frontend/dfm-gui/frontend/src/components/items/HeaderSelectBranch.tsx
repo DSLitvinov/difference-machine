@@ -13,8 +13,6 @@ import {
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import type { BranchSummary } from "@/store/app-store";
-import squareTerminal from "@/assets/icons/square-terminal.svg";
-import chevronsUpDown from "@/assets/icons/chevrons-up-down.svg";
 
 type HeaderSelectBranchProps = {
   locale: Locale;
@@ -46,12 +44,12 @@ export function HeaderSelectBranch({
         <DropdownMenuTrigger asChild>
           <button type="button" className="flex w-full items-center gap-1 rounded-sm border border-border bg-background px-3 py-2 shadow-sm">
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <FigmaIcon src={squareTerminal} size={20} />
+              <FigmaIcon src="icons/square-terminal.svg" size={20} />
               <span className="min-w-0 truncate text-left text-[16px] font-normal leading-6 text-foreground-secondary">
                 {current || copy.branchName}
               </span>
             </span>
-            <FigmaIcon src={chevronsUpDown} size={20} />
+            <FigmaIcon src="icons/chevrons-up-down.svg" size={20} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

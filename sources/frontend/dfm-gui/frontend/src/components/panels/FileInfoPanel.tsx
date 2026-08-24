@@ -13,7 +13,6 @@ import { foresterCall } from "@/lib/bridge";
 import { loadExternalEditors, type ExternalEditor } from "@/lib/editors";
 import { peekThumb, releaseThumb, requestThumb, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
 import { useAppStore, type FileLock, type StatusSnapshot } from "@/store/app-store";
-import chevronDown from "@/assets/icons/chevron-down.svg";
 
 type FileMetadata = {
   path: string;
@@ -136,7 +135,7 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
           <DropdownMenuTrigger asChild>
             <Button type="button" variant="outline" className="w-full">
               {copy.editIn}
-              <FigmaIcon src={chevronDown} size={16} />
+              <FigmaIcon src="icons/chevron-down.svg" size={16} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="center" className="w-[308px]">

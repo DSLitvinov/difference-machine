@@ -23,7 +23,6 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-full: 400px;
-  --theme-asset-invert: 0;
   color-scheme: light;
 }
 
@@ -40,7 +39,6 @@ html.dark {
   --foreground-accent-light: #27272a;
   --border-default: #3f3f46;
   --border-accent: #60a5fa;
-  --theme-asset-invert: 1;
   color-scheme: dark;
 }
 
@@ -64,20 +62,32 @@ body,
   --wails-draggable: no-drag;
 }
 
-.theme-asset {
-  filter: invert(var(--theme-asset-invert)) hue-rotate(calc(var(--theme-asset-invert) * 180deg));
+.asset-light {
+  display: block;
 }
 
-.theme-contrast {
-  --theme-asset-invert: 1;
+.asset-dark {
+  display: none;
 }
 
-html.dark .theme-contrast {
-  --theme-asset-invert: 0;
+html.dark .asset-light,
+.theme-contrast .asset-light,
+.theme-invert .asset-light {
+  display: none;
 }
 
-.theme-invert {
-  --theme-asset-invert: 1;
+html.dark .asset-dark,
+.theme-contrast .asset-dark,
+.theme-invert .asset-dark {
+  display: block;
+}
+
+html.dark .theme-contrast .asset-light {
+  display: block;
+}
+
+html.dark .theme-contrast .asset-dark {
+  display: none;
 }
 
 .sr-only {

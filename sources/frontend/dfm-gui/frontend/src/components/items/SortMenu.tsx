@@ -10,7 +10,6 @@ import {
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridSort } from "@/lib/folder-query";
-import sortIcon from "@/assets/icons/arrow-up-a-z.svg";
 
 type SortMenuProps = {
   locale: Locale;
@@ -24,7 +23,7 @@ export function SortMenu({ locale, value, onChange }: SortMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="secondary" size="icon" aria-label={copy.sort}>
-          <FigmaIcon src={sortIcon} size={16} />
+          <FigmaIcon src="icons/arrow-up-a-z.svg" size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px] shadow-md">

@@ -1,11 +1,9 @@
 import { FilePreview } from "@/components/atoms/FilePreview";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
+import { asset } from "@/assets/themed";
 import { fileKind } from "@/lib/file-kind";
 import type { LetterStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
-import fileImg from "@icons/256/File-IMG.svg";
-import fileText from "@icons/256/File-TEXT.svg";
-import fileBinary from "@icons/256/File-Binary.svg";
 import type { MouseEvent } from "react";
 
 type FileGridTileProps = {
@@ -22,10 +20,10 @@ type FileGridTileProps = {
 };
 
 const stubs = {
-  image: fileImg,
-  text: fileText,
-  blend: fileBinary,
-  binary: fileBinary,
+  image: asset("illustrations/file-img.svg"),
+  text: asset("illustrations/file-text.svg"),
+  blend: asset("illustrations/file-binary.svg"),
+  binary: asset("illustrations/file-binary.svg"),
 } as const;
 
 export function FileGridTile({ name, selected, letter, locked, src, text, stub, onSelect, onOpen, onMenu }: FileGridTileProps) {
@@ -48,7 +46,7 @@ export function FileGridTile({ name, selected, letter, locked, src, text, stub, 
             </pre>
           </div>
         ) : (
-          <FilePreview src={src ?? (stub ? stubs[fileKind(name)] : undefined)} themed={!src && stub} className="aspect-square size-auto w-full" />
+          <FilePreview src={src ?? (stub ? stubs[fileKind(name)] : undefined)} className="aspect-square size-auto w-full" />
         )}
         {letter ? <FileStatusBadge type={letter} className="absolute bottom-1 left-1" /> : null}
         {locked ? <FileStatusBadge type="lock" className="absolute bottom-1 right-1" /> : null}

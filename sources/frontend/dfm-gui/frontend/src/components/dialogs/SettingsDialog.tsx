@@ -16,8 +16,6 @@ import {
 } from "@/lib/bridge";
 import { applyTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
-import xIcon from "@/assets/icons/x.svg";
-import trash2 from "@/assets/icons/trash-2.svg";
 
 type SettingsTab = "profile" | "appearance" | "repositories" | "editors" | "forester";
 
@@ -137,7 +135,7 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-3 top-3 flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>
-          <FigmaIcon src={xIcon} size={16} />
+          <FigmaIcon src="icons/x.svg" size={16} />
         </button>
         <div className="flex w-full shrink-0 flex-col gap-6">
           <div className="flex flex-col gap-1 pl-4">
@@ -549,7 +547,7 @@ function PathRow({
       </Button>
       {showRemove && onRemove ? (
         <Button type="button" variant="destructive" size="icon" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
-          <FigmaIcon src={trash2} size={16} />
+          <FigmaIcon src="icons/trash-2.svg" size={16} />
         </Button>
       ) : null}
     </div>

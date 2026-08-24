@@ -6,7 +6,6 @@ import { SortMenu } from "@/components/items/SortMenu";
 import { FiltersMenu } from "@/components/items/FiltersMenu";
 import type { GridFilter, GridSort } from "@/lib/folder-query";
 import { t, type Locale } from "@/lib/i18n";
-import searchIcon from "@/assets/icons/search.svg";
 
 type FolderActionBarProps = {
   locale: Locale;
@@ -51,7 +50,7 @@ export function FolderActionBar({
     <div className="flex items-center gap-1">
       {showSearch ? (
         <div className="relative w-[300px]">
-          <FigmaIcon src={searchIcon} size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" />
+          <FigmaIcon src="icons/search.svg" size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             ref={inputRef}
             value={query}
@@ -68,7 +67,7 @@ export function FolderActionBar({
         </div>
       ) : (
         <Button type="button" variant="secondary" size="icon" aria-label={copy.search} onClick={onSearchOpen}>
-          <FigmaIcon src={searchIcon} size={16} />
+          <FigmaIcon src="icons/search.svg" size={16} />
         </Button>
       )}
       <SortMenu locale={locale} value={sort} onChange={onSort} />

@@ -1,14 +1,15 @@
-import fileInfoMoreFiles from "@/assets/illustrations/file-info-more-files.svg";
+import { asset } from "@/assets/themed";
+import { ThemeImg } from "@/components/chrome/ThemeImg";
 import { cn } from "@/lib/utils";
 
 export function FileInfoPreviewMulti({ className }: { className?: string }) {
   return (
-    <img
-      src={fileInfoMoreFiles}
+    <ThemeImg
+      src={asset("illustrations/file-info-more-files.svg")}
       alt=""
       width={308}
       height={308}
-      className={cn("theme-asset size-[308px] shrink-0", className)}
+      className={cn("size-[308px] shrink-0 object-contain", className)}
     />
   );
 }

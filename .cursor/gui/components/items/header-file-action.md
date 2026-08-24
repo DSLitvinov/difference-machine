@@ -23,16 +23,20 @@ Figma: [Item / Panel / Header / File Action](https://www.figma.com/design/qlwKiM
 
 Combobox **не** выполняет операцию сам. Apply вызывает выбранное действие для **текущего** path.
 
-Минимум (смысл, copy — из combobox в Figma при вёрстке):
+Закрытый combobox в кадре показывает `Add in commit`. Открытый список **идентичен** [Popover (File Preview Item)](../popovers/file-preview-item.md) (`4272:6726`): те же секции, copy, иконки и disabled. Не урезать до одного пункта.
 
-| Смысл | API |
+| Выбор | API |
 |-------|-----|
-| Добавить в index | `index.add` с этим path |
-| Убрать из index | метода `index.drop` в JSON API **нет** — пункт не выдумывать и не слать `index.add` «наоборот», пока нет метода |
+| Add in commit | `index.add` с этим path |
+| Ignored | disabled, как в popover |
+| Rename | диалог rename → `workdir.rename` |
+| Delete in history | disabled, как в popover |
+| Open in folder | `workdir.open` родителя |
+| Edit in | submenu редакторов → `workdir.open` с `editor` |
+| Lock | `lock.*` |
+| Delete in project | диалог → `workdir.delete` (корзина ОС) |
 
-Прочие пункты (lock, ignore, delete…) — только если они есть в этом combobox, не копировать всё [file-preview-item](../popovers/file-preview-item.md) без макета.
-
-Пустой выбор + Apply — no-op (валидация до API).
+Default при открытии файла — `Add in commit`. Пустой выбор + Apply — no-op.
 
 ---
 

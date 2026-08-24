@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n";
 import { resetThumbCache } from "@/lib/thumb-cache";
 import { resetRevisionCache } from "@/lib/revision-cache";
 import { applyTheme } from "@/lib/theme";
+import { clampGridTrack, GRID_TRACK_DEFAULT } from "@/lib/grid";
 import { deriveView, type ContentContext, type DerivedView, type Shell, type SidebarTab } from "@/lib/view";
 
 export type StatusSnapshot = {
@@ -88,6 +89,7 @@ type AppState = {
   selectedCommit: string | null;
   fileRevision: CommitSummary | null;
   infoCollapsed: boolean;
+  gridTrack: number;
   changedOnly: boolean;
   sidebarTab: SidebarTab;
   commitComposer: "closed" | "open";
@@ -109,6 +111,7 @@ type AppState = {
   setFolderPath: (path: string) => void;
   setSelection: (paths: string[]) => void;
   setInfoCollapsed: (value: boolean) => void;
+  setGridTrack: (value: number) => void;
   setContentContext: (context: ContentContext) => void;
   openFile: (path: string) => void;
   openCommit: (hash: string) => void;
@@ -146,6 +149,7 @@ export const useAppStore = create<AppState>((set) => ({
   selectedCommit: null,
   fileRevision: null,
   infoCollapsed: false,
+  gridTrack: GRID_TRACK_DEFAULT,
   changedOnly: false,
   sidebarTab: "history",
   commitComposer: "closed",
@@ -206,6 +210,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null, fileRevision: null }),
   setSelection: (paths) => set({ selection: paths, ...(paths.length > 0 ? { infoCollapsed: false } : {}) }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
+  setGridTrack: (value) => set({ gridTrack: clampGridTrack(value) }),
   setContentContext: (context) =>
     set({
       contentContext: context,

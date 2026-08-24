@@ -7,7 +7,6 @@ import { t, type Locale } from "@/lib/i18n";
 import { formatSize } from "@/lib/format";
 import { typeLabel } from "@/lib/file-kind";
 import type { DirEntry } from "@/store/app-store";
-import chevronsUpDown from "@/assets/icons/chevrons-up-down.svg";
 
 type SelectMoreFilesPanelProps = {
   locale: Locale;
@@ -53,7 +52,7 @@ export function SelectMoreFilesPanel({ locale, paths, entries, onCollapse, onApp
                 className="flex min-h-9 w-full items-center gap-2 rounded-[6px] border border-border bg-background px-4 py-2.5 text-left shadow-sm"
               >
                 <span className="min-w-0 flex-1 text-[14px] font-medium leading-5 text-foreground">{copy.addInCommit}</span>
-                <FigmaIcon src={chevronsUpDown} size={20} />
+                <FigmaIcon src="icons/chevrons-up-down.svg" size={20} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[308px]">

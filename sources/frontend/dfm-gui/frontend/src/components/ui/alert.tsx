@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
-import xIcon from "@/assets/icons/x.svg";
+
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
@@ -93,7 +93,7 @@ export function AlertBanner({ variant, title, description, className, onClick, o
               onClose();
             }}
           >
-            <FigmaIcon src={xIcon} size={16} />
+            <FigmaIcon src="icons/x.svg" size={16} />
           </button>
         ) : null}
       </div>

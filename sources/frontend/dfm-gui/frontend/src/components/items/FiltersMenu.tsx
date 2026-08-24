@@ -12,17 +12,12 @@ import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { fileKind } from "@/lib/file-kind";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridFilter } from "@/lib/folder-query";
-import filterIcon from "@/assets/icons/filter.svg";
-import imageIcon from "@/assets/icons/image.svg";
-import fileTextIcon from "@/assets/icons/file-text.svg";
-import blendIcon from "@/assets/icons/binary.svg";
-import trashIcon from "@/assets/icons/trash-2.svg";
 
 const kindIcon = {
-  image: imageIcon,
-  text: fileTextIcon,
-  blend: blendIcon,
-  binary: blendIcon,
+  image: "icons/image.svg",
+  text: "icons/file-text.svg",
+  blend: "icons/binary.svg",
+  binary: "icons/binary.svg",
 } as const;
 
 type FiltersMenuProps = {
@@ -46,7 +41,7 @@ export function FiltersMenu({ locale, value, extensions, onChange }: FiltersMenu
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="secondary" size="icon" aria-label={copy.filter}>
-          <FigmaIcon src={filterIcon} size={16} />
+          <FigmaIcon src="icons/filter.svg" size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px] shadow-md">
@@ -66,7 +61,7 @@ export function FiltersMenu({ locale, value, extensions, onChange }: FiltersMenu
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="gap-2 text-[#ef4444] focus:text-[#ef4444]" onSelect={() => onChange([])}>
-          <FigmaIcon src={trashIcon} size={16} />
+          <FigmaIcon src="icons/trash-2.svg" size={16} />
           {copy.cleanFilters}
         </DropdownMenuItem>
       </DropdownMenuContent>

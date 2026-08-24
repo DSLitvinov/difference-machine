@@ -2,9 +2,6 @@ import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { fileKind, type FileKind } from "@/lib/file-kind";
 import type { LetterStatus } from "@/lib/status";
-import imageIcon from "@/assets/icons/image.svg";
-import fileTextIcon from "@/assets/icons/file-text.svg";
-import binaryIcon from "@/assets/icons/binary.svg";
 
 type FileInfoPreviewProps = {
   name: string;
@@ -14,10 +11,10 @@ type FileInfoPreviewProps = {
 };
 
 const kindIcon: Record<FileKind, string> = {
-  image: imageIcon,
-  blend: imageIcon,
-  text: fileTextIcon,
-  binary: binaryIcon,
+  image: "icons/image.svg",
+  blend: "icons/image.svg",
+  text: "icons/file-text.svg",
+  binary: "icons/binary.svg",
 };
 
 export function FileInfoPreview({ name, src, letter, locked }: FileInfoPreviewProps) {

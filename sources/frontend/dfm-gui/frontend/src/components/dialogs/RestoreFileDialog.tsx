@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
-import xIcon from "@/assets/icons/x.svg";
 
 type RestoreFileDialogProps = {
   locale: Locale;
@@ -27,7 +26,7 @@ export function RestoreFileDialog({ locale, title, fileName, confirmLabel, busy,
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-[11px] top-[11px] flex size-6 items-center justify-center" aria-label={copy.close} onClick={onCancel}>
-          <FigmaIcon src={xIcon} size={16} />
+          <FigmaIcon src="icons/x.svg" size={16} />
         </button>
         <p id="restore-file-title" className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
           {heading}

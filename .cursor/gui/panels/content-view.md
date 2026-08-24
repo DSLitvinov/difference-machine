@@ -38,10 +38,10 @@ gap: 8px;
 
 Не задавать `grid-template-columns: repeat(7, 106px)` и не копировать число колонок со скрина 1429×768.
 
-Число колонок (для virtualizer, та же формула что у `auto-fill`):
+Число колонок (для virtualizer, та же формула что у `auto-fill`; `minTrack` по умолчанию 200, после Ctrl/Cmd+wheel — 106…360):
 
 ```text
-nCols = max(1, floor((innerWidth + gap) / (200 + gap)))
+nCols = max(1, floor((innerWidth + gap) / (minTrack + gap)))
 ```
 
 `innerWidth` — ширина **content box** сетки (уже без padding 16). ResizeObserver на этот box; при resize пересчитать `nCols`, не сбрасывать папку и не перезапрашивать весь каталог.
@@ -51,6 +51,8 @@ nCols = max(1, floor((innerWidth + gap) / (200 + gap)))
 Тайл **заполняет** трек (`width: 100%`, `min-width: 0`). Кирпич Size=Min (ширина 106) в этой панели **не** фиксирует колонку. Визуальный канон тайла — Size=Max ([grid-file](../components/items/grid-file.md)): превью квадрат на ширину ячейки минус padding 8, `aspect-ratio: 1` / `object-cover`, радиус 4 px (не Size L). Иконка папки остаётся **48×48**, по центру трека.
 
 Не писать в UI «3 columns» / «N per row».
+
+Масштаб сетки — **без chrome** (нет подписи «zoom»). **Ctrl** или **Cmd** + колесо мыши / жест тачпада вверх-вниз меняет `minmax` трека: меньше колонок — крупнее тайлы, больше — мельче. Диапазон **106…360** px (пол Figma Size=Min, потолок без атома L). Default **200**. Скролл без модификатора — обычная прокрутка. Не зумить окно WebView.
 
 ---
 

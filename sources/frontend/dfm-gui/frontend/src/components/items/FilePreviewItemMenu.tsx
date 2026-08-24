@@ -11,18 +11,19 @@ import {
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { loadExternalEditors, type ExternalEditor } from "@/lib/editors";
 import { t, type Locale } from "@/lib/i18n";
-import plusIcon from "@/assets/icons/plus.svg";
-import eyeOffIcon from "@/assets/icons/eye-off.svg";
-import pencilIcon from "@/assets/icons/pencil-line.svg";
-import trashIcon from "@/assets/icons/trash-2.svg";
-import externalLinkIcon from "@/assets/icons/external-link.svg";
-import settingsIcon from "@/assets/icons/settings.svg";
-import chevronRight from "@/assets/icons/chevron-right.svg";
-import lockIcon from "@/assets/icons/lock.svg";
+
+export type FileWorkdirAction =
+  | { kind: "addInCommit" }
+  | { kind: "rename" }
+  | { kind: "openInFolder" }
+  | { kind: "editIn"; editor: string }
+  | { kind: "toggleLock" }
+  | { kind: "deleteInProject" };
 
 type FilePreviewItemMenuProps = {
   locale: Locale;
   locked?: boolean;
+  align?: "start" | "end";
   onAddInCommit: () => void;
   onRename: () => void;
   onOpenInFolder: () => void;
@@ -34,6 +35,7 @@ type FilePreviewItemMenuProps = {
 export function FilePreviewItemMenu({
   locale,
   locked,
+  align = "start",
   onAddInCommit,
   onRename,
   onOpenInFolder,
@@ -49,34 +51,34 @@ export function FilePreviewItemMenu({
   }, []);
 
   return (
-    <DropdownMenuContent align="start" className="w-[200px] shadow-md">
+    <DropdownMenuContent align={align} className="w-[200px] shadow-md">
       <DropdownMenuLabel>{copy.commitSection}</DropdownMenuLabel>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onAddInCommit, 0)}>
-        <FigmaIcon src={plusIcon} size={16} />
+        <FigmaIcon src="icons/plus.svg" size={16} />
         {copy.addInCommit}
       </DropdownMenuItem>
       <DropdownMenuItem disabled className="gap-2">
-        <FigmaIcon src={eyeOffIcon} size={16} />
+        <FigmaIcon src="icons/eye-off.svg" size={16} />
         {copy.ignored}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onRename, 0)}>
-        <FigmaIcon src={pencilIcon} size={16} />
+        <FigmaIcon src="icons/pencil-line.svg" size={16} />
         {copy.rename}
       </DropdownMenuItem>
       <DropdownMenuItem disabled className="gap-2">
-        <FigmaIcon src={trashIcon} size={16} />
+        <FigmaIcon src="icons/trash-2.svg" size={16} />
         {copy.deleteInHistory}
       </DropdownMenuItem>
       <DropdownMenuLabel>{copy.action}</DropdownMenuLabel>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onOpenInFolder, 0)}>
-        <FigmaIcon src={externalLinkIcon} size={16} />
+        <FigmaIcon src="icons/external-link.svg" size={16} />
         {copy.openInFolder}
       </DropdownMenuItem>
       <DropdownMenuSub>
         <DropdownMenuSubTrigger className="gap-2">
-          <FigmaIcon src={settingsIcon} size={16} />
+          <FigmaIcon src="icons/settings.svg" size={16} />
           <span className="min-w-0 flex-1">{copy.editIn}</span>
-          <FigmaIcon src={chevronRight} size={16} />
+          <FigmaIcon src="icons/chevron-right.svg" size={16} />
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent className="w-[200px] shadow-md">
           {editors.map((editor) => (
@@ -87,7 +89,7 @@ export function FilePreviewItemMenu({
         </DropdownMenuSubContent>
       </DropdownMenuSub>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onToggleLock, 0)}>
-        <FigmaIcon src={lockIcon} size={16} />
+        <FigmaIcon src="icons/lock.svg" size={16} />
         {locked ? copy.unlock : copy.lock}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
@@ -95,7 +97,7 @@ export function FilePreviewItemMenu({
         className="gap-2 text-[#ef4444] focus:text-[#ef4444]"
         onSelect={() => window.setTimeout(onDeleteInProject, 0)}
       >
-        <FigmaIcon src={trashIcon} size={16} />
+        <FigmaIcon src="icons/trash-2.svg" size={16} />
         {copy.deleteInProject}
       </DropdownMenuItem>
     </DropdownMenuContent>

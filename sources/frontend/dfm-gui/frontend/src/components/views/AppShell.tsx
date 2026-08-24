@@ -194,8 +194,30 @@ export function AppShell({
             path={filePath}
             entries={entries}
             collapsed={infoCollapsed}
+            locked={locks.some((item) => item.file_path === filePath)}
             onBack={() => setContentContext("folder")}
-            onApply={() => onApplySelection([filePath])}
+            onApply={(action) => {
+              switch (action.kind) {
+                case "addInCommit":
+                  onAddInCommit(filePath);
+                  break;
+                case "rename":
+                  onRenameFile(filePath);
+                  break;
+                case "openInFolder":
+                  onOpenInFolder(filePath);
+                  break;
+                case "editIn":
+                  onEditIn(filePath, action.editor);
+                  break;
+                case "toggleLock":
+                  onToggleLock(filePath);
+                  break;
+                case "deleteInProject":
+                  onDeleteFile(filePath);
+                  break;
+              }
+            }}
             onExpandInfo={() => setInfoCollapsed(false)}
             onOpenExternal={() => void openExternal()}
           />

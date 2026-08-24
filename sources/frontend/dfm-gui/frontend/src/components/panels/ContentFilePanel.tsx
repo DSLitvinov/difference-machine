@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { HeaderFileAction } from "@/components/items/HeaderFileAction";
+import { HeaderFileAction, type FileWorkdirAction } from "@/components/items/HeaderFileAction";
 import { ContentViewImg } from "@/components/items/ContentViewImg";
 import { ContentViewText } from "@/components/items/ContentViewText";
 import { ContentViewBinary } from "@/components/items/ContentViewBinary";
@@ -14,8 +14,9 @@ type ContentFilePanelProps = {
   path: string;
   entries: DirEntry[];
   collapsed?: boolean;
+  locked?: boolean;
   onBack: () => void;
-  onApply: () => void;
+  onApply: (action: FileWorkdirAction) => void;
   onExpandInfo?: () => void;
   onOpenExternal: () => void;
 };
@@ -58,6 +59,7 @@ export function ContentFilePanel({
   path,
   entries,
   collapsed,
+  locked,
   onBack,
   onApply,
   onExpandInfo,
@@ -79,9 +81,11 @@ export function ContentFilePanel({
   return (
     <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden pb-3 pl-2 pr-3">
       <HeaderFileAction
+        key={path}
         locale={locale}
         fileName={file.name}
         collapsed={collapsed}
+        locked={locked}
         onBack={onBack}
         onApply={onApply}
         onExpandInfo={onExpandInfo}

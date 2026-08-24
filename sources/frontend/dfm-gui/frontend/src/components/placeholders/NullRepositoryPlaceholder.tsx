@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
-import plusIcon from "@/assets/icons/plus.svg";
 
 type NullRepositoryPlaceholderProps = {
   locale: Locale;
@@ -18,7 +17,7 @@ export function NullRepositoryPlaceholder({ locale, busy, onCreate }: NullReposi
         <p className="w-full text-[14px] leading-5">{copy.createRepoHistoryHint}</p>
       </div>
       <Button type="button" disabled={busy} onClick={onCreate}>
-        <FigmaIcon src={plusIcon} size={16} />
+        <FigmaIcon src="icons/plus.svg" size={16} />
         {copy.createRepository}
       </Button>
     </div>

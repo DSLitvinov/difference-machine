@@ -3,7 +3,6 @@ import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { LetterStatus } from "@/lib/status";
 import { useAppStore } from "@/store/app-store";
-import lockIcon from "@/assets/icons/lock.svg";
 
 type FileStatusBadgeProps = {
   type: LetterStatus | "lock";
@@ -26,7 +25,7 @@ export function FileStatusBadge({ type, className }: FileStatusBadgeProps) {
         aria-label={copy.locked}
         className={cn("inline-flex size-5 items-center justify-center rounded-sm border border-border bg-background", className)}
       >
-        <FigmaIcon src={lockIcon} size={16} />
+        <FigmaIcon src="icons/lock.svg" size={16} />
       </span>
     );
   }

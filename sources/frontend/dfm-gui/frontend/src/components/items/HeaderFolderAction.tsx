@@ -3,8 +3,6 @@ import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { FolderActionBar } from "@/components/items/FolderActionBar";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridFilter, GridSort } from "@/lib/folder-query";
-import chevronRight from "@/assets/icons/chevron-right.svg";
-import panelRightOpen from "@/assets/icons/panel-right-open.svg";
 
 type HeaderFolderActionProps = {
   locale: Locale;
@@ -53,7 +51,7 @@ export function HeaderFolderAction({
             {copy.home}
           </button>
         )}
-        <FigmaIcon src={chevronRight} size={24} />
+        <FigmaIcon src="icons/chevron-right.svg" size={24} />
         {parts.map((part, index) => {
           const path = parts.slice(0, index + 1).join("/");
           const last = index === parts.length - 1;
@@ -66,7 +64,7 @@ export function HeaderFolderAction({
                   {part}
                 </button>
               )}
-              {last ? null : <FigmaIcon src={chevronRight} size={24} />}
+              {last ? null : <FigmaIcon src="icons/chevron-right.svg" size={24} />}
             </div>
           );
         })}
@@ -90,7 +88,7 @@ export function HeaderFolderAction({
           <>
             <div className="h-5 w-px bg-border" />
             <Button type="button" variant="secondary" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
-              <FigmaIcon src={panelRightOpen} size={16} />
+              <FigmaIcon src="icons/panel-right-open.svg" size={16} />
             </Button>
           </>
         ) : null}

@@ -2,10 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FolderGridTile } from "@/components/items/FolderGridTile";
 import { FileGridTile } from "@/components/items/FileGridTile";
-import { columnCount, tileRowHeight, GRID_GAP, GRID_PAD, trackWidth } from "@/lib/grid";
+import { columnCount, tileRowHeight, wheelZoomDelta, GRID_GAP, GRID_PAD, trackWidth } from "@/lib/grid";
 import { letterStatus } from "@/lib/status";
 import { peekThumb, scheduleVisibleThumbs, setThumbLruLimit, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
-import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
+import { useAppStore, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
 import type { MouseEvent } from "react";
 
 type FolderEntryGridProps = {
@@ -47,9 +47,11 @@ export function FolderEntryGrid({
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef(200);
   const [innerWidth, setInnerWidth] = useState(200);
+  const minTrack = useAppStore((s) => s.gridTrack);
+  const setGridTrack = useAppStore((s) => s.setGridTrack);
   useThumbEpoch();
 
-  const nCols = columnCount(innerWidth);
+  const nCols = columnCount(innerWidth, minTrack);
   const track = trackWidth(innerWidth, nCols);
   trackRef.current = track;
 
@@ -83,6 +85,22 @@ export function FolderEntryGrid({
   useEffect(() => {
     virtualizer.measure();
   }, [nCols, rowH, entries.length, virtualizer]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      setGridTrack(useAppStore.getState().gridTrack - wheelZoomDelta(event) * 0.35);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [setGridTrack]);
 
   const virtualRows = virtualizer.getVirtualItems();
   const startRow = virtualRows[0]?.index ?? 0;
