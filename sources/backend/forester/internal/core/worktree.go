@@ -199,9 +199,21 @@ func CreateStashFromWorkingTree(repo *Repository, message string) (*models.Stash
 		return nil, err
 	}
 	stash := models.NewStash(message, treeHash)
+	stash.Branch = currentStashBranch(repo)
 	stash.Hash = HashStash(stash.Message, stash.TreeHash)
 	if _, err := repo.Stash.CreateStash(stash); err != nil {
 		return nil, err
 	}
 	return stash, nil
+}
+
+func currentStashBranch(repo *Repository) string {
+	if detached, state, err := ReadDetachedHead(repo.Path); err == nil && detached && state.Branch != "" {
+		return state.Branch
+	}
+	branch, err := repo.Refs.GetCurrentBranch()
+	if err != nil || branch == "" {
+		return "main"
+	}
+	return branch
 }

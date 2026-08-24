@@ -19,9 +19,10 @@ import { t, type Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
 import { parentRel } from "@/lib/folder-query";
 import { resetRevisionCache } from "@/lib/revision-cache";
-import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type MergeStatus, type StatusSnapshot } from "@/store/app-store";
+import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type MergeStatus, type StashSummary, type StatusSnapshot } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import type { CommitCardAction } from "@/components/items/CommitCardMenu";
+import type { StashCardAction } from "@/components/items/StashCardMenu";
 
 type EntriesResult = {
   entries?: DirEntry[];
@@ -39,6 +40,10 @@ type LocksResult = {
 
 type BranchListResult = {
   branches?: BranchSummary[];
+};
+
+type StashListResult = {
+  stashes?: StashSummary[];
 };
 
 function asMergeStatus(raw: unknown): MergeStatus {
@@ -119,6 +124,7 @@ export default function App() {
     action: CommitCardAction;
     commit: CommitSummary;
   } | null>(null);
+  const [stashConfirm, setStashConfirm] = useState<StashSummary | null>(null);
   const loadingMore = useRef(false);
 
   useEffect(() => {
@@ -193,14 +199,16 @@ export default function App() {
 
   async function refreshRepoMeta() {
     try {
-      const [status, log, locksResult, branchList, mergeRaw] = await Promise.all([
+      const [status, log, locksResult, branchList, stashList, mergeRaw] = await Promise.all([
         foresterCall("status.get") as Promise<StatusSnapshot>,
         foresterCall("log.get") as Promise<LogResult>,
         foresterCall("lock.list") as Promise<LocksResult>,
         foresterCall("branch.list") as Promise<BranchListResult>,
+        foresterCall("stash.list") as Promise<StashListResult>,
         foresterCall("merge.status"),
       ]);
       const commits = log.commits ?? [];
+      const stashes = stashList.stashes ?? [];
       let showChanged = useAppStore.getState().changedOnly;
       if (showChanged && !isDirty(status)) {
         useAppStore.getState().setChangedOnly(false);
@@ -227,6 +235,7 @@ export default function App() {
         entries,
         entriesHasMore,
         commits,
+        stashes,
         branches: branchList.branches ?? [],
         mergeStatus: asMergeStatus(mergeRaw),
         locks: locksResult.locks ?? [],
@@ -241,6 +250,7 @@ export default function App() {
         entries: [],
         entriesHasMore: false,
         commits: [],
+        stashes: [],
         branches: [],
         mergeStatus: { in_progress: false, conflicts: [] },
         locks: [],
@@ -474,6 +484,32 @@ export default function App() {
       action,
       commit,
     });
+  }
+
+  async function runStashAction(action: StashCardAction, stash: StashSummary): Promise<boolean> {
+    setBusy(true);
+    try {
+      if (action === "apply") {
+        await foresterCall("stash.apply", { hash: stash.hash });
+      } else {
+        await foresterCall("stash.drop", { hash: stash.hash });
+      }
+      await refreshRepoMeta();
+      return true;
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function onStashAction(action: StashCardAction, stash: StashSummary) {
+    if (action === "apply") {
+      void runStashAction(action, stash);
+      return;
+    }
+    setStashConfirm(stash);
   }
 
   function afterBranchChange() {
@@ -746,6 +782,7 @@ export default function App() {
           onEditIn={(path, editor) => void onEditIn(path, editor)}
           onToggleLock={(path) => void onToggleLock(path)}
           onCommitAction={onCommitAction}
+          onStashAction={onStashAction}
           onRefresh={() => refreshRepoMeta()}
         />
       ) : (
@@ -842,6 +879,23 @@ export default function App() {
             void (async () => {
               if (await runCommitAction(historyConfirm.action, historyConfirm.commit)) {
                 setHistoryConfirm(null);
+              }
+            })();
+          }}
+        />
+      ) : null}
+      {stashConfirm ? (
+        <RestoreFileDialog
+          locale={locale}
+          title={t(locale).delete}
+          fileName={stashConfirm.message || t(locale).stages}
+          confirmLabel={t(locale).delete}
+          busy={busy}
+          onCancel={() => setStashConfirm(null)}
+          onConfirm={() => {
+            void (async () => {
+              if (await runStashAction("drop", stashConfirm)) {
+                setStashConfirm(null);
               }
             })();
           }}

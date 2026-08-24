@@ -190,11 +190,11 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 ## Phase 12 — Stash
 
-**Spec:** Stash view (Figma Stages). No JSON stash-list entity in 0.8.1.
+**Spec:** Stash view (Figma Stages). Catalog: `stash.list`.
 
 - Tab label **Stash**. Empty: [NoStagesProject](./components/atoms/card-no-stages-project.md) `6020:12733`. Do not fake a list from `status.get.staged_*`.
 
-**Verify:** Stash tab has no invented rows.
+**Verify:** Stash tab shows Forester stashes from `.DFM/stash/`; empty repo stays empty.
 
 ---
 

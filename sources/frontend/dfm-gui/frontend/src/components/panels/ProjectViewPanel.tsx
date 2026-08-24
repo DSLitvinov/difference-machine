@@ -16,8 +16,9 @@ import { t, type Locale } from "@/lib/i18n";
 import { changeCounts, isDirty } from "@/lib/status";
 import { requestVisibleStats, useStat } from "@/lib/revision-cache";
 import { CommitCardMoreButton, type CommitCardAction } from "@/components/items/CommitCardMenu";
+import { StashCardMoreButton, type StashCardAction } from "@/components/items/StashCardMenu";
 import type { SidebarTab } from "@/lib/view";
-import type { BranchSummary, CommitSummary, StatusSnapshot } from "@/store/app-store";
+import type { BranchSummary, CommitSummary, StashSummary, StatusSnapshot } from "@/store/app-store";
 
 type ProjectViewPanelProps = {
   locale: Locale;
@@ -26,6 +27,7 @@ type ProjectViewPanelProps = {
   hasCommits: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
+  stashes: StashSummary[];
   branches: BranchSummary[];
   branchName?: string;
   sidebarTab: SidebarTab;
@@ -48,6 +50,7 @@ type ProjectViewPanelProps = {
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
   onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
+  onStashAction: (action: StashCardAction, stash: StashSummary) => void;
   switchLocked?: boolean;
 };
 
@@ -67,21 +70,29 @@ function directoryState(commitOpen: boolean, composerOpen: boolean): "default" |
   return "selected";
 }
 
-type StageSummary = {
-  id: string;
-  title: string;
-  author: string;
-  description?: string;
-  timestamp: number;
-  filesChanged?: number;
-  insertions?: number;
-  deletions?: number;
-};
+function StageList({
+  locale,
+  userName,
+  stashes,
+  onStashAction,
+}: {
+  locale: Locale;
+  userName: string;
+  stashes: StashSummary[];
+  onStashAction: (action: StashCardAction, stash: StashSummary) => void;
+}) {
+  const copy = t(locale);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: stashes.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 140,
+    overscan: 2,
+    gap: 8,
+  });
+  const items = virtualizer.getVirtualItems();
 
-function StageList({ locale }: { locale: Locale }) {
-  // No stash list in JSON API 0.8.1 — do not invent rows.
-  const stages: StageSummary[] = [];
-  if (stages.length === 0) {
+  if (stashes.length === 0) {
     return (
       <SidebarCard state="disabled">
         <NoStagesProject locale={locale} />
@@ -89,22 +100,31 @@ function StageList({ locale }: { locale: Locale }) {
     );
   }
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="flex w-full flex-col gap-2">
-        {stages.map((stage) => (
-          <SidebarCard key={stage.id}>
-            <StageCard
-              locale={locale}
-              title={stage.title}
-              author={stage.author}
-              description={stage.description}
-              timestamp={stage.timestamp}
-              filesChanged={stage.filesChanged}
-              insertions={stage.insertions}
-              deletions={stage.deletions}
-            />
-          </SidebarCard>
-        ))}
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {items.map((row) => {
+          const stash = stashes[row.index];
+          return (
+            <div
+              key={stash.hash}
+              data-index={row.index}
+              ref={virtualizer.measureElement}
+              className="absolute left-0 right-0"
+              style={{ transform: `translateY(${row.start}px)` }}
+            >
+              <SidebarCard>
+                <StageCard
+                  locale={locale}
+                  title={copy.stashNumber(row.index + 1)}
+                  author={userName}
+                  description={stash.message}
+                  timestamp={stash.created_at ?? 0}
+                  more={<StashCardMoreButton locale={locale} onAction={(action) => onStashAction(action, stash)} />}
+                />
+              </SidebarCard>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -117,6 +137,7 @@ export function ProjectViewPanel({
   hasCommits,
   status,
   commits,
+  stashes,
   branches,
   branchName,
   sidebarTab,
@@ -139,6 +160,7 @@ export function ProjectViewPanel({
   onRenameBranch,
   onDeleteBranch,
   onCommitAction,
+  onStashAction,
   switchLocked,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
@@ -202,7 +224,7 @@ export function ProjectViewPanel({
               onCommitAction={onCommitAction}
             />
           ) : (
-            <StageList locale={locale} />
+            <StageList locale={locale} userName={userName} stashes={stashes} onStashAction={onStashAction} />
           )}
         </div>
       </div>

@@ -63,7 +63,7 @@ GUI вызывает **только** методы из этой таблицы.
 | `target` | string, обязательно: имя ветки, хеш, `HEAD`, `HEAD~n` |
 | `auto_stash` | bool: сохранить грязную копию (`-a`) |
 
-Грязный worktree без `auto_stash` — ошибка. UI: диалог «stash and switch» → повтор с `auto_stash: true`.
+Грязный worktree без `auto_stash` — ошибка. UI: диалог «stash and switch» → повтор с `auto_stash: true`. GUI не восстанавливает auto-stash при возврате на ветку (`--keep-stash`): список остаётся на **исходной** ветке до `stash.apply` / `stash.drop`.
 
 ### `repo.rebuild`
 
@@ -147,6 +147,41 @@ GUI вызывает **только** методы из этой таблицы.
 `capped: true` — есть ещё записи; GUI не показывает «showing N of M». Догрузка — повтор с большим `max_count` (отдельного `offset` нет). Каталог ≠ payload: `diff.stat` / `blob.get` не вызывать на всю страницу. [revision-cache.md](../gui_frontend/revision-cache.md).
 
 Файлового метода `commit.files` в диспетчере нет: список файлов ревизии — `diff.name_status` с `to` = хеш коммита.
+
+---
+
+## Stash
+
+### `stash.list`
+
+| Args | Default |
+|------|---------|
+| `branch` | текущая ветка |
+
+Каталог stash из `.DFM/stash/` (не `status.get.staged_*`). Auto-stash при dirty switch принадлежит **исходной** ветке, не целевой. Записи без `branch` показываются на любой вкладке.
+
+Результат: `{stashes: [{hash, message, tree_hash, branch, created_at}]}`.  
+`created_at` — Unix seconds. Сортировка — `created_at` по убыванию.
+
+GUI рисует [StageCard](../components/atoms/card-stage.md): заголовок `Stash №N` на текущей ветке, описание = `message`. `diff.stat` на hash stash не вызывать.
+
+JSON `repo.switch` не восстанавливает auto-stash при возврате на ветку — список остаётся, apply/drop из меню карточки.
+
+### `stash.apply`
+
+| Args | |
+|------|--|
+| `hash` | обязательно |
+
+Восстанавливает дерево stash в workdir. Запись остаётся в списке.
+
+### `stash.drop`
+
+| Args | |
+|------|--|
+| `hash` | обязательно |
+
+Удаляет stash. Destructive в GUI — подтверждение.
 
 ---
 
@@ -311,6 +346,6 @@ GC в GUI не обязателен (в аддоне есть scheduled GC). Е�
 Не вызывать и не эмулировать CLI:
 
 - `index.drop`, `commit.files`
-- stash / reflog / tag CRUD / hook / cherry-pick / move-to / clean как отдельные JSON-методы
+- stash save / pop, reflog / tag CRUD / hook / cherry-pick / move-to / clean как отдельные JSON-методы
 
 Нужный сценарий → сначала метод в `dispatch.go`, потом UI.

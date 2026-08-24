@@ -38,6 +38,14 @@ export type CommitSummary = {
   tag?: string;
 };
 
+export type StashSummary = {
+  hash: string;
+  message?: string;
+  tree_hash?: string;
+  branch?: string;
+  created_at?: number;
+};
+
 export type FileLock = {
   file_path: string;
   user?: string;
@@ -89,6 +97,7 @@ type AppState = {
   entries: DirEntry[];
   entriesHasMore: boolean;
   commits: CommitSummary[];
+  stashes: StashSummary[];
   branches: BranchSummary[];
   mergeStatus: MergeStatus;
   locks: FileLock[];
@@ -117,6 +126,7 @@ type AppState = {
     entries: DirEntry[];
     entriesHasMore: boolean;
     commits: CommitSummary[];
+    stashes: StashSummary[];
     branches: BranchSummary[];
     mergeStatus: MergeStatus;
     locks: FileLock[];
@@ -145,6 +155,7 @@ export const useAppStore = create<AppState>((set) => ({
   entries: [],
   entriesHasMore: false,
   commits: [],
+  stashes: [],
   branches: [],
   mergeStatus: { in_progress: false, conflicts: [] },
   locks: [],
@@ -175,6 +186,7 @@ export const useAppStore = create<AppState>((set) => ({
       entries: [],
       entriesHasMore: false,
       commits: [],
+      stashes: [],
       branches: [],
       mergeStatus: { in_progress: false, conflicts: [] },
       locks: [],

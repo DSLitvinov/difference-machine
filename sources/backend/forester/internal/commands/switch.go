@@ -37,11 +37,14 @@ func Switch(args []string) error {
 
 	// Parse arguments
 	autoStash := false
+	keepStash := false
 	var target string
 
 	for _, arg := range args {
 		if arg == "-a" || arg == "--auto-stash" {
 			autoStash = true
+		} else if arg == "--keep-stash" {
+			keepStash = true
 		} else if !strings.HasPrefix(arg, "-") {
 			if target != "" {
 				return fmt.Errorf("multiple targets specified")
@@ -145,12 +148,29 @@ func Switch(args []string) error {
 
 	// If it's a branch with no commits, just switch
 	if isBranch && targetCommitHash == "" {
+		if stashHash != "" {
+			sourceTree := headTreeHash(repo, repoPath, currentBranch)
+			if sourceTree != "" {
+				if err := core.RestoreTreeToWorkdir(storage, repoPath, sourceTree); err != nil {
+					return fmt.Errorf("failed to restore files: %w", err)
+				}
+				if err := removeWorkdirPathsNotInTree(repoPath, storage, sourceTree); err != nil {
+					return err
+				}
+			}
+			if err := storeAutoStashInfo(repoPath, currentBranch, stashHash); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to store stash info: %v\n", err)
+			}
+		}
 		if err := refs.SetCurrentBranch(targetBranchName); err != nil {
 			return fmt.Errorf("failed to set current branch: %w", err)
 		}
 		fmt.Printf("Switched to branch '%s' (no commits yet)\n", targetBranchName)
 		if stashHash != "" {
 			fmt.Printf("Stashed changes: %s\n", stashHash[:8])
+		}
+		if !keepStash {
+			restoreAutoStashIfNeeded(repoPath, repo, targetBranchName)
 		}
 		return nil
 	}
@@ -214,8 +234,9 @@ func Switch(args []string) error {
 				fmt.Fprintf(os.Stderr, "Warning: failed to store stash info: %v\n", err)
 			}
 		}
-		// Check if we're returning to a branch with auto-stash (always check, not just with -a flag)
-		restoreAutoStashIfNeeded(repoPath, repo, targetBranchName)
+		if !keepStash {
+			restoreAutoStashIfNeeded(repoPath, repo, targetBranchName)
+		}
 	} else {
 		hashShort := targetCommitHash
 		if len(hashShort) > 8 {
@@ -433,6 +454,54 @@ func storeAutoStashInfo(repoPath, branch, stashHash string) error {
 		return err
 	}
 	return utils.WriteFile(stashInfoPath, data)
+}
+
+// ForgetAutoStash removes a stash hash from every auto-stash stack.
+func ForgetAutoStash(repoPath, stashHash string) {
+	dir := filepath.Join(repoPath, ".DFM", "auto-stash")
+	if !utils.Exists(dir) {
+		return
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		path := filepath.Join(dir, entry.Name())
+		data, err := utils.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var stack AutoStashStack
+		if err := json.Unmarshal(data, &stack); err != nil {
+			if strings.TrimSpace(string(data)) == stashHash {
+				_ = utils.RemoveRecursive(path)
+			}
+			continue
+		}
+		kept := make([]string, 0, len(stack.Stashes))
+		for _, hash := range stack.Stashes {
+			if hash != stashHash {
+				kept = append(kept, hash)
+			}
+		}
+		if len(kept) == len(stack.Stashes) {
+			continue
+		}
+		if len(kept) == 0 {
+			_ = utils.RemoveRecursive(path)
+			continue
+		}
+		stack.Stashes = kept
+		out, err := json.MarshalIndent(stack, "", "  ")
+		if err != nil {
+			continue
+		}
+		_ = utils.WriteFile(path, out)
+	}
 }
 
 // restoreAutoStashIfNeeded checks if there's an auto-stash stack for the current branch and restores stashes in LIFO order

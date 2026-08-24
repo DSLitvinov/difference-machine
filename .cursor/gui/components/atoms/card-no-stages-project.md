@@ -12,7 +12,7 @@ Figma: [Atom / Cards / No Stages Project](https://www.figma.com/design/qlwKiMPZb
 | Title | `No stash of project` | Inter Medium 16/24 `#09090b` |
 | Body | `The project is not added to any stash` | Inter Regular 14/20 `#71717a` |
 
-Нет кнопки, иконки, hover. Оболочка — [SidebarCard](../items/sidebar-card.md) Disable. Пока нет JSON-метода stash list — этот атом, **не** мок `StageCard`.
+Нет кнопки, иконки, hover. Оболочка — [SidebarCard](../items/sidebar-card.md) Disable. Если `stash.list` пуст — этот атом, **не** мок `StageCard`.
 
 ---
 

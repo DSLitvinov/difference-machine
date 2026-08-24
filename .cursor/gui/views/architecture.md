@@ -152,6 +152,6 @@ Uncommitted --Commit All / composer--> Create Commit
 
 1. **Empty DFM Folder** (`4385:8956`): в сетке есть файлы, в сайдбаре плейсхолдер «Create repository». Это workdir без `.DFM/` или репозиторий без коммитов?
 2. **First Start vs Empty DFM Project**: оба умеют создать/открыть репо. First Start — только пока нет `[current repo]`?
-3. **Stash** (`View / … / Stages` в Figma): вкладка UI — **Stash** (Forester stash, не `staged_*` из `status.get`). Пустая вкладка — [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733`. Данные списка — когда появится метод stash list, не симулировать карточки. Кэш и лень — тот же каркас, ключ `stageId`: [revision-cache.md](../gui_frontend/revision-cache.md).
+3. **Stash** (`View / … / Stages` в Figma): вкладка UI — **Stash** (Forester stash, не `staged_*` из `status.get`). Список — `stash.list`. Пустая вкладка — [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733`. Кэш: [revision-cache.md](../gui_frontend/revision-cache.md).
 4. **View Commit** без выбранного файла в списке коммита — кадра нет. Пока не выбран path в `Content / File list`, какой diff показывать?
 5. **History of File** только Image и Text, binary-ревизии файла нет. Для бинарного файла из File view — оставаться на File View Binary или брать binary stub из View Commit?

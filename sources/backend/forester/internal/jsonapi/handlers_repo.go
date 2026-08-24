@@ -105,6 +105,7 @@ func handleRepoSwitch(workPath string, args json.RawMessage) (interface{}, error
 		if params.AutoStash {
 			cmdArgs = append(cmdArgs, "-a")
 		}
+		cmdArgs = append(cmdArgs, "--keep-stash")
 		if err := commands.Switch(cmdArgs); err != nil {
 			return nil, err
 		}

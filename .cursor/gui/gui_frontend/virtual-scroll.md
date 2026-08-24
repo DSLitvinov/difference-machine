@@ -30,7 +30,7 @@
 |-------------|--------|
 | Сетка папки в Content View | Главный случай: CSS Grid `auto-fill` + `minmax(200px, 1fr)`, дорогие thumbs |
 | Список коммитов в Project view / File view | `log.get`; `diff.stat` только visible карточек |
-| Список stash (вкладка Stash) | Тот же virtualizer; данные — когда будет API |
+| Список stash (вкладка Stash) | Тот же virtualizer; каталог `stash.list` |
 | Длинный список файлов коммита / Select More Files | scroll + догрузка, без chrome пагинации |
 
 Не виртуализировать:

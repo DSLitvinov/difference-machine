@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import { relativeTime } from "@/lib/relative-time";
@@ -12,18 +13,21 @@ type StageCardProps = {
   filesChanged?: number;
   insertions?: number;
   deletions?: number;
+  more?: ReactNode;
 };
 
-export function StageCard({ locale, title, author, description, timestamp, filesChanged, insertions, deletions }: StageCardProps) {
+export function StageCard({ locale, title, author, description, timestamp, filesChanged, insertions, deletions, more }: StageCardProps) {
   const copy = t(locale);
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="flex w-full flex-col gap-1">
         <div className="flex w-full items-center gap-1">
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
-          <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={(event) => event.stopPropagation()}>
-            <FigmaIcon src={ellipsisVertical} size={16} />
-          </button>
+          {more ?? (
+            <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={(event) => event.stopPropagation()}>
+              <FigmaIcon src={ellipsisVertical} size={16} />
+            </button>
+          )}
         </div>
         <p className="w-full text-[12px] leading-4 text-foreground">{author}</p>
       </div>

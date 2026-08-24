@@ -816,3 +816,83 @@ func TestDetachedHeadAfterRestoreVersion(t *testing.T) {
 		t.Fatalf("head after failed detached commit = %s, want %s", status.HeadCommit, branchHead)
 	}
 }
+
+func TestAutoStashBelongsToSourceBranch(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "tracked.txt", "base")
+	mustOK(t, h, "index.add", `{"files":["tracked.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"base"}`)
+
+	mustOK(t, h, "branch.create", `{"name":"2"}`)
+	writeFile(t, dir, "tracked.txt", "dirty on main")
+
+	mustOK(t, h, "repo.switch", `{"target":"2","auto_stash":true}`)
+
+	var status struct {
+		CurrentBranch         string   `json:"current_branch"`
+		UnstagedModifiedFiles []string `json:"unstaged_modified_files"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &status); err != nil {
+		t.Fatalf("decode status: %v", err)
+	}
+	if status.CurrentBranch != "2" {
+		t.Fatalf("branch = %q, want 2", status.CurrentBranch)
+	}
+	if len(status.UnstagedModifiedFiles) != 0 {
+		t.Fatalf("dirty files followed the switch: %v", status.UnstagedModifiedFiles)
+	}
+
+	type stashList struct {
+		Stashes []struct {
+			Hash    string `json:"hash"`
+			Branch  string `json:"branch"`
+			Message string `json:"message"`
+		} `json:"stashes"`
+	}
+	var onTarget stashList
+	if err := json.Unmarshal(mustOK(t, h, "stash.list", `{}`), &onTarget); err != nil {
+		t.Fatalf("decode stash.list: %v", err)
+	}
+	if len(onTarget.Stashes) != 0 {
+		t.Fatalf("stash.list on branch 2 = %d, want 0", len(onTarget.Stashes))
+	}
+
+	var onMain stashList
+	if err := json.Unmarshal(mustOK(t, h, "stash.list", `{"branch":"main"}`), &onMain); err != nil {
+		t.Fatalf("decode stash.list main: %v", err)
+	}
+	if len(onMain.Stashes) != 1 {
+		t.Fatalf("stash.list on main = %d, want 1", len(onMain.Stashes))
+	}
+	if onMain.Stashes[0].Branch != "main" {
+		t.Fatalf("stash branch = %q, want main", onMain.Stashes[0].Branch)
+	}
+
+	mustOK(t, h, "repo.switch", `{"target":"main"}`)
+	var still stashList
+	if err := json.Unmarshal(mustOK(t, h, "stash.list", `{}`), &still); err != nil {
+		t.Fatalf("decode stash.list after return: %v", err)
+	}
+	if len(still.Stashes) != 1 {
+		t.Fatalf("stash disappeared after returning to main: %d", len(still.Stashes))
+	}
+
+	hash := still.Stashes[0].Hash
+	mustOK(t, h, "stash.apply", `{"hash":"`+hash+`"}`)
+	got, err := os.ReadFile(filepath.Join(dir, "tracked.txt"))
+	if err != nil {
+		t.Fatalf("read restored file: %v", err)
+	}
+	if string(got) != "dirty on main" {
+		t.Fatalf("restored content = %q, want dirty on main", got)
+	}
+
+	mustOK(t, h, "stash.drop", `{"hash":"`+hash+`"}`)
+	var afterDrop stashList
+	if err := json.Unmarshal(mustOK(t, h, "stash.list", `{}`), &afterDrop); err != nil {
+		t.Fatalf("decode stash.list after drop: %v", err)
+	}
+	if len(afterDrop.Stashes) != 0 {
+		t.Fatalf("stash.list after drop = %d, want 0", len(afterDrop.Stashes))
+	}
+}

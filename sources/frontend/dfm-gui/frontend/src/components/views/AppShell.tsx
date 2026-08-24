@@ -9,9 +9,10 @@ import { FileInfoPanel } from "@/components/panels/FileInfoPanel";
 import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
 import { foresterCall } from "@/lib/bridge";
 import { showRightColumn } from "@/lib/view";
-import { useAppStore, useDerivedView, type CommitSummary } from "@/store/app-store";
+import { useAppStore, useDerivedView, type CommitSummary, type StashSummary } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import type { CommitCardAction } from "@/components/items/CommitCardMenu";
+import type { StashCardAction } from "@/components/items/StashCardMenu";
 
 type AppShellProps = {
   busy?: boolean;
@@ -36,6 +37,7 @@ type AppShellProps = {
   onEditIn: (path: string, editor: string) => void;
   onToggleLock: (path: string) => void;
   onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
+  onStashAction: (action: StashCardAction, stash: StashSummary) => void;
   onRefresh: () => Promise<void>;
 };
 
@@ -62,6 +64,7 @@ export function AppShell({
   onEditIn,
   onToggleLock,
   onCommitAction,
+  onStashAction,
   onRefresh,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
@@ -70,6 +73,7 @@ export function AppShell({
   const changedOnly = useAppStore((s) => s.changedOnly);
   const status = useAppStore((s) => s.status);
   const commits = useAppStore((s) => s.commits);
+  const stashes = useAppStore((s) => s.stashes);
   const branches = useAppStore((s) => s.branches);
   const mergeStatus = useAppStore((s) => s.mergeStatus);
   const entries = useAppStore((s) => s.entries);
@@ -144,6 +148,7 @@ export function AppShell({
             hasCommits={hasCommits}
             status={status}
             commits={commits}
+            stashes={stashes}
             branches={branches}
             branchName={status?.current_branch}
             sidebarTab={sidebarTab}
@@ -167,6 +172,7 @@ export function AppShell({
             onRenameBranch={onRenameBranch}
             onDeleteBranch={onDeleteBranch}
             onCommitAction={onCommitAction}
+            onStashAction={onStashAction}
           />
         )}
         {view === "file-history" && fileRevision ? (

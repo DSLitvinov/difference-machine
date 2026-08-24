@@ -14,15 +14,15 @@ const (
 
 // Commit represents a commit in the repository
 type Commit struct {
-	Hash          string     `json:"hash"`
-	ParentHash    string     `json:"parent_hash"`    // First parent (for backward compatibility)
-	ParentHashes  []string   `json:"parent_hashes"` // All parents (for merge commits)
-	TreeHash      string     `json:"tree_hash"`
-	Author        string     `json:"author"`
-	Message       string     `json:"message"`
-	Timestamp     int64      `json:"timestamp"`
-	Type          CommitType `json:"type"`
-	ScreenshotPath string    `json:"screenshot_path,omitempty"`
+	Hash           string     `json:"hash"`
+	ParentHash     string     `json:"parent_hash"`   // First parent (for backward compatibility)
+	ParentHashes   []string   `json:"parent_hashes"` // All parents (for merge commits)
+	TreeHash       string     `json:"tree_hash"`
+	Author         string     `json:"author"`
+	Message        string     `json:"message"`
+	Timestamp      int64      `json:"timestamp"`
+	Type           CommitType `json:"type"`
+	ScreenshotPath string     `json:"screenshot_path,omitempty"`
 }
 
 // NewCommit creates a new commit with default values
@@ -88,6 +88,7 @@ type Stash struct {
 	Hash      string `json:"hash"`
 	Message   string `json:"message"`
 	TreeHash  string `json:"tree_hash"`
+	Branch    string `json:"branch,omitempty"`
 	CreatedAt int64  `json:"created_at"`
 }
 
@@ -110,12 +111,12 @@ const (
 
 // Lock represents a file lock
 type Lock struct {
-	FilePath   string   `json:"file_path"`
-	User       string   `json:"user"`
-	Branch     string   `json:"branch"`
-	LockType   LockType `json:"lock_type"`
-	CreatedAt  int64    `json:"created_at"`
-	ExpiresAt  int64    `json:"expires_at"` // 0 = never expires
+	FilePath  string   `json:"file_path"`
+	User      string   `json:"user"`
+	Branch    string   `json:"branch"`
+	LockType  LockType `json:"lock_type"`
+	CreatedAt int64    `json:"created_at"`
+	ExpiresAt int64    `json:"expires_at"` // 0 = never expires
 }
 
 // NewLock creates a new lock with default values
@@ -224,17 +225,17 @@ func NewReflogEntry(commitHash, refName, refType, oldValue, newValue, operation 
 
 // Object represents an object in the repository (for Mark To system)
 type Object struct {
-	ID          int64                  `json:"id"`
-	EditorType  string                 `json:"editor_type"`  // 'blender', 'other_editor', etc.
-	FilePath    string                 `json:"file_path"`    // relative path to file
-	ObjectName  string                 `json:"object_name"`  // name of object
-	ObjectType  string                 `json:"object_type"` // 'MESH', 'LIGHT', 'CAMERA', etc.
-	CommitHash  string                 `json:"commit_hash"` // commit this object belongs to
-	ObjectData  map[string]interface{} `json:"object_data"` // JSON metadata (matrix, bbox, v_count)
-	Tags        []string               `json:"tags"`        // JSON array of tags
-	Metadata    map[string]string      `json:"metadata"`   // JSON additional data
-	CreatedAt   int64                  `json:"created_at"`
-	UpdatedAt   int64                  `json:"updated_at"`
+	ID         int64                  `json:"id"`
+	EditorType string                 `json:"editor_type"` // 'blender', 'other_editor', etc.
+	FilePath   string                 `json:"file_path"`   // relative path to file
+	ObjectName string                 `json:"object_name"` // name of object
+	ObjectType string                 `json:"object_type"` // 'MESH', 'LIGHT', 'CAMERA', etc.
+	CommitHash string                 `json:"commit_hash"` // commit this object belongs to
+	ObjectData map[string]interface{} `json:"object_data"` // JSON metadata (matrix, bbox, v_count)
+	Tags       []string               `json:"tags"`        // JSON array of tags
+	Metadata   map[string]string      `json:"metadata"`    // JSON additional data
+	CreatedAt  int64                  `json:"created_at"`
+	UpdatedAt  int64                  `json:"updated_at"`
 }
 
 // NewObject creates a new object with default values
@@ -252,4 +253,3 @@ func NewObject(editorType, filePath, objectName, objectType, commitHash string) 
 		UpdatedAt:  time.Now().Unix(),
 	}
 }
-

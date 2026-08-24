@@ -35,8 +35,8 @@ Empty истории и empty репозитория **не** заменяют C
 
 Трёхколоночная сборка: [../views/project-browse.md](../views/project-browse.md).
 
-Данные: `branch.list`, `status.get`, `log.get`. Панель не читает диск.
+Данные: `branch.list`, `status.get`, `log.get`, `stash.list`. Панель не читает диск.
 
 Commit List при длинной ветке — virtualizer + догрузка `log.get` по `capped`, без текста пагинации. `diff.stat` — только видимые карточки. [virtual-scroll.md](../gui_frontend/virtual-scroll.md), [revision-cache.md](../gui_frontend/revision-cache.md).
 
-Вкладка **Stash** (Figma Stages) — тот же virtualizer; список stash из API, не из `status.get.staged_*`. Пока метода нет (и когда список пуст) — один **Item / Card** Disable + [NoStagesProject](../components/atoms/card-no-stages-project.md), не пустая колонка и не мок StageCard.
+Вкладка **Stash** (Figma Stages) — тот же virtualizer; список из `stash.list`, не из `status.get.staged_*`. Пустой список — один **Item / Card** Disable + [NoStagesProject](../components/atoms/card-no-stages-project.md), не пустая колонка и не мок StageCard.
