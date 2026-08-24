@@ -105,7 +105,7 @@ GUI вызывает **только** методы из этой таблицы.
 
 Ставит пути в index. Коммит без непустого index невозможен (бизнес-правило Forester).
 
-Метода `index.drop` в диспетчере **нет**. Combobox File Action / Select More Files не должен слать «unstage», пока метод не появится.
+Метода `index.drop` в диспетчере **нет**. Меню File Action / combobox Select More Files не должен слать «unstage», пока метод не появится.
 
 ---
 

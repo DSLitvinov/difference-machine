@@ -94,7 +94,7 @@ export function ContentFilePanel({
         {kind === "image" ? (
           <ContentViewImg src={thumb?.kind === "image" ? thumb.blobUrl : undefined} />
         ) : kind === "text" ? (
-          <ContentViewText text={thumb?.kind === "text" ? thumb.text : ""} />
+          <ContentViewText fileName={file.name} text={thumb?.kind === "text" ? thumb.text : ""} />
         ) : (
           <ContentViewBinary locale={locale} onOpen={onOpenExternal} />
         )}

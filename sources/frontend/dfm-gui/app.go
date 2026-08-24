@@ -38,7 +38,6 @@ type SessionInfo struct {
 	Shell        string `json:"shell"`
 	RepoPath     string `json:"repoPath"`
 	Locale       string `json:"locale"`
-	Theme        string `json:"theme"`
 	UserName     string `json:"userName"`
 	UserEmail    string `json:"userEmail"`
 	IsRepository bool   `json:"isRepository"`
@@ -51,12 +50,12 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	a.applyLightTheme()
 	a.applyMenuLocale()
-	cfg, err := loadSetupCfg()
+	_, err := loadSetupCfg()
 	if err != nil {
 		return
 	}
-	a.applyNativeTheme(cfg.Theme)
 	repos, err := loadRepoState()
 	if err != nil {
 		return
@@ -82,19 +81,14 @@ func (a *App) GetSession() SessionInfo {
 	info := SessionInfo{
 		Shell:     "first-start",
 		Locale:    "en",
-		Theme:     "light",
 		UserName:  "",
 		UserEmail: "",
 	}
 	if err == nil {
 		info.Locale = cfg.Locale
-		info.Theme = cfg.Theme
-		if info.Theme != "dark" {
-			info.Theme = "light"
-		}
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
-		a.applyNativeTheme(info.Theme)
+		a.applyLightTheme()
 	}
 	if repos, err := loadRepoState(); err == nil {
 		info.RepoPath = repos.Current
@@ -226,7 +220,6 @@ type SettingsInfo struct {
 	UserName     string   `json:"userName"`
 	UserEmail    string   `json:"userEmail"`
 	Locale       string   `json:"locale"`
-	Theme        string   `json:"theme"`
 	Repos        []string `json:"repos"`
 	APIPath      string   `json:"apiPath"`
 	ForesterPath string   `json:"foresterPath"`
@@ -244,10 +237,6 @@ func settingsFromCfg(cfg setupCfg, repos repoState) SettingsInfo {
 	if editors == nil {
 		editors = []string{}
 	}
-	theme := cfg.Theme
-	if theme != "dark" {
-		theme = "light"
-	}
 	locale := cfg.Locale
 	if locale != "ru" {
 		locale = "en"
@@ -256,7 +245,6 @@ func settingsFromCfg(cfg setupCfg, repos repoState) SettingsInfo {
 		UserName:     cfg.UserName,
 		UserEmail:    cfg.UserEmail,
 		Locale:       locale,
-		Theme:        theme,
 		Repos:        list,
 		APIPath:      cfg.APIPath,
 		ForesterPath: cfg.ForesterPath,
@@ -293,20 +281,6 @@ func (a *App) SaveProfile(name, email, locale string) error {
 		return err
 	}
 	a.applyMenuLocale()
-	return nil
-}
-
-// SaveAppearance writes [ui] theme and updates the native window chrome.
-func (a *App) SaveAppearance(theme string) error {
-	if theme != "dark" {
-		theme = "light"
-	}
-	if err := updateSetupCfg(func(cfg *setupCfg) {
-		cfg.Theme = theme
-	}); err != nil {
-		return err
-	}
-	a.applyNativeTheme(theme)
 	return nil
 }
 
@@ -386,25 +360,17 @@ func isForesterRepo(absPath string) bool {
 	return err == nil && info.IsDir()
 }
 
-func (a *App) applyNativeTheme(theme string) {
+func (a *App) applyLightTheme() {
 	if a.ctx == nil {
 		return
 	}
-	if theme == "dark" {
-		runtime.WindowSetDarkTheme(a.ctx)
-	} else {
-		runtime.WindowSetLightTheme(a.ctx)
-	}
+	runtime.WindowSetLightTheme(a.ctx)
 }
 
 func sessionError(msg string) SessionInfo {
-	info := SessionInfo{Shell: "first-start", Locale: "en", Theme: "light", Error: msg}
+	info := SessionInfo{Shell: "first-start", Locale: "en", Error: msg}
 	if cfg, err := loadSetupCfg(); err == nil {
 		info.Locale = cfg.Locale
-		info.Theme = cfg.Theme
-		if info.Theme != "dark" {
-			info.Theme = "light"
-		}
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
 	}

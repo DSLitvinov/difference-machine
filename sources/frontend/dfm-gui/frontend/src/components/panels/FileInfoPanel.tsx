@@ -115,7 +115,13 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
       <HeaderRightSide locale={locale} onCollapse={onCollapse} />
       <div className="flex min-h-0 flex-1 flex-col justify-between px-3 pb-3">
         <div className="flex min-h-0 flex-col gap-4">
-          <FileInfoPreview name={name} src={thumb?.kind === "image" ? thumb.blobUrl : undefined} letter={letterStatus(path, status)} locked={Boolean(lock)} />
+          <FileInfoPreview
+            name={name}
+            src={thumb?.kind === "image" ? thumb.blobUrl : undefined}
+            text={thumb?.kind === "text" ? thumb.text : undefined}
+            letter={letterStatus(path, status)}
+            locked={Boolean(lock)}
+          />
           <div className="flex min-h-0 flex-col gap-3">
             <p className="text-[14px] font-semibold leading-5 text-foreground">{copy.metadata}</p>
             <div className="flex flex-col gap-1 overflow-y-auto">

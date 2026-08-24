@@ -136,6 +136,7 @@ Repository-local configuration is `.DFM/config` and is created by `forester init
 - `.cursor/commands/database.md`: canonical `.DFM` storage layout.
 - `.cursor/commands/business-rules.md`: VCS semantics and invariants.
 - `.cursor/commands/forester-arhitecture.md`: detailed Forester core and CLI notes.
-- `.cursor/gui/architecture.md`: GUI architecture (Wails + Forester).
+- `.cursor/gui/architecture.md`: GUI architecture (Wails + Forester). Workdir folder grid: default **48×48** icons (`gridTrack` 106), not Size=Max.
+- `.cursor/gui/panels/content-view.md`: Content View grid pixels, zoom, virtualizer columns.
 - `.cursor/gui/gui_backend/jsonapi.md`: GUI/JSON API contract.
 - `builder/README.md`: canonical build and release documentation.

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -206,11 +207,12 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 			}
 		}
 
-		if isTextExt(ext) && info.Size() <= maxTextPreviewBytes {
-			raw, err := os.ReadFile(abs)
+		if isTextExt(ext) {
+			raw, err := readTextPreviewBytes(abs)
 			if err != nil {
 				return nil, err
 			}
+			raw = clipUTF8(raw)
 			if !utf8.Valid(raw) {
 				return map[string]interface{}{
 					"kind": "placeholder",
@@ -387,11 +389,34 @@ func isImageExt(ext string) bool {
 
 func isTextExt(ext string) bool {
 	switch ext {
-	case ".txt", ".md", ".json", ".xml", ".svg", ".tsx", ".ts", ".js", ".jsx", ".go", ".py", ".rs", ".css", ".html", ".yaml", ".yml", ".ini", ".cfg", ".sh":
+	case ".txt", ".md", ".markdown", ".json", ".xml", ".svg", ".tsx", ".ts", ".js", ".jsx", ".mjs", ".cjs",
+		".go", ".py", ".rs", ".css", ".html", ".htm", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".sh", ".bash",
+		".csv", ".log":
 		return true
 	default:
 		return false
 	}
+}
+
+func readTextPreviewBytes(abs string) ([]byte, error) {
+	f, err := os.Open(abs)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	buf := make([]byte, maxTextPreviewBytes)
+	n, err := f.Read(buf)
+	if err != nil && err != io.EOF {
+		return nil, err
+	}
+	return buf[:n], nil
+}
+
+func clipUTF8(raw []byte) []byte {
+	for len(raw) > 0 && !utf8.Valid(raw) {
+		raw = raw[:len(raw)-1]
+	}
+	return raw
 }
 
 func guessMime(rel string) string {

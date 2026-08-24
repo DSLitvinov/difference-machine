@@ -26,10 +26,6 @@ export function ReadThumbCache(arg1, arg2, arg3) {
   return window['go']['main']['App']['ReadThumbCache'](arg1, arg2, arg3);
 }
 
-export function SaveAppearance(arg1) {
-  return window['go']['main']['App']['SaveAppearance'](arg1);
-}
-
 export function SaveEditors(arg1, arg2, arg3) {
   return window['go']['main']['App']['SaveEditors'](arg1, arg2, arg3);
 }

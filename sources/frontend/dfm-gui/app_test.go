@@ -48,11 +48,11 @@ func TestWatchIgnored(t *testing.T) {
 
 func TestNativeMenuCopy(t *testing.T) {
 	en := nativeMenuCopyFor("en")
-	if en.file != "File" || en.openFolder != "Open Folder" || en.merge != "Merge" {
+	if en.file != "File" || en.openFolder != "Open Folder" || en.addRepository != "Add repository" || en.branches != "Branches" || en.merge != "Merge" {
 		t.Fatalf("english menu = %+v", en)
 	}
 	ru := nativeMenuCopyFor("ru")
-	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.merge != "Слияние" {
+	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.addRepository != "Добавить репозиторий" || ru.branches != "Ветки" || ru.merge != "Слияние" {
 		t.Fatalf("russian menu = %+v", ru)
 	}
 }
@@ -79,13 +79,10 @@ func TestRepoMenuEntriesChecksCurrent(t *testing.T) {
 }
 
 func TestSettingsFromCfgIncludesCurrentRepo(t *testing.T) {
-	info := settingsFromCfg(setupCfg{Theme: "dark"}, repoState{
+	info := settingsFromCfg(setupCfg{}, repoState{
 		Current: "/tmp/project",
 		Repos:   []string{"/tmp/other"},
 	})
-	if info.Theme != "dark" {
-		t.Fatalf("theme = %q", info.Theme)
-	}
 	if len(info.Repos) != 2 || info.Repos[0] != "/tmp/project" || info.Repos[1] != "/tmp/other" {
 		t.Fatalf("repos = %v", info.Repos)
 	}

@@ -54,16 +54,17 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | contentContext | folder \| file \| file-revision \| commit | на сессию |
 | fileKind | image \| text \| binary | на сессию, от выбранного path |
 | infoCollapsed | bool | local, если в макете |
-| changedOnly | bool (switch Changed) | нет |
+| changedOnly | bool (фильтр Only changed) | нет |
 | sidebarTab | history \| stages | на сессию |
 | commitComposer | closed \| open | нет |
-| Preview layout | grid \| list — **нет в 0.8.1**; scale, filters | local, если в макете |
+| gridTrack | 106…360 px; default **106** → превью **48×48** | сессия процесса (не cfg). List-view **нет** в 0.8.1 |
 | Open dialog | id или null | нет |
-| Theme | light \| dark \| system | cfg/local |
 
 Нет измерения «режим окна Project vs History». Вкладки History/Stash — `sidebarTab` внутри Project view. Контекст файла — `contentContext`, left становится File view.
 
-Смена repo сбрасывает folder/selection/commit/composer. Тема и layout могут сохраняться.
+`gridTrack` не входит в селектор `View /`: плотность сетки не меняет кадр, только `nCols` и `previewSize`. Канон: [architecture.md](../architecture.md#сетка-рабочей-копии).
+
+Смена repo сбрасывает folder/selection/commit/composer. `gridTrack` сессии может сохраняться. Рестарт приложения возвращает default 106 / 48. GUI **только светлая тема**.
 
 ### Производный экран (кратко)
 

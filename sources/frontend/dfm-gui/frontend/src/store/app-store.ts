@@ -2,7 +2,6 @@ import { create } from "zustand";
 import type { Locale } from "@/lib/i18n";
 import { resetThumbCache } from "@/lib/thumb-cache";
 import { resetRevisionCache } from "@/lib/revision-cache";
-import { applyTheme } from "@/lib/theme";
 import { clampGridTrack, GRID_TRACK_DEFAULT } from "@/lib/grid";
 import { deriveView, type ContentContext, type DerivedView, type Shell, type SidebarTab } from "@/lib/view";
 
@@ -167,7 +166,6 @@ export const useAppStore = create<AppState>((set) => ({
   applySession: (info) => {
     resetThumbCache();
     resetRevisionCache();
-    applyTheme(info.theme);
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
     set({
       shell: info.shell === "app" ? "app" : "first-start",

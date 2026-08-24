@@ -66,7 +66,7 @@
 
 Автор из `[user]` передавать в `author`, если поле есть в мастере.
 
-Меню [Header Window](../components/items/header-window.md) → Repository → Create repository — тот же сценарий.
+Меню [Header Window](../components/items/header-window.md) → Repository → Create repository — тот же сценарий. Add repository — Open существующего `.DFM/`, без `repo.init`.
 
 ---
 

@@ -14,8 +14,6 @@ export function OpenRepository(arg1:string):Promise<main.SessionInfo>;
 
 export function ReadThumbCache(arg1:string,arg2:number,arg3:number):Promise<string>;
 
-export function SaveAppearance(arg1:string):Promise<void>;
-
 export function SaveEditors(arg1:string,arg2:string,arg3:Array<string>):Promise<void>;
 
 export function SaveForester(arg1:string,arg2:string):Promise<void>;

@@ -28,7 +28,7 @@
 
 | Поверхность | Зачем |
 |-------------|--------|
-| Сетка папки в Content View | Главный случай: CSS Grid `auto-fill` + `minmax(200px, 1fr)`, дорогие thumbs |
+| Сетка папки в Content View | Главный случай: default **48×48**, CSS Grid `auto-fill` + `minmax(106px, 1fr)`; больше колонок → больше visible thumbs |
 | Список коммитов в Project view / File view | `log.get`; `diff.stat` только visible карточек |
 | Список stash (вкладка Stash) | Тот же virtualizer; каталог `stash.list` |
 | Длинный список файлов коммита / Select More Files | scroll + догрузка, без chrome пагинации |
@@ -48,13 +48,15 @@
 Сетка папки — отзывчивая: [content-view](../panels/content-view.md). Кадр 772×648 задаёт padding 16 и gap 8, не 7×106.
 
 ```css
-grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+grid-template-columns: repeat(auto-fill, minmax(106px, 1fr));
 gap: 8px;
 ```
 
-`nCols = max(1, floor((innerWidth + 8) / 208))`. Collapse info (center 1120) и ресайз окна меняют `nCols`. Virtualizer **читает** это число (ResizeObserver), не хардкодит колонки. При смене `nCols` пересчитать ряды; каталог и LRU эскизов не сбрасывать; scrollTop сохранить, если возможно.
+`nCols = max(1, floor((innerWidth + 8) / (minTrack + 8)))`. При default `minTrack` 106 знаменатель 114. Collapse info (center 1120) и ресайз окна меняют `nCols`, не `previewSize`. Virtualizer **читает** это число (ResizeObserver), не хардкодит колонки. При смене `nCols` пересчитать ряды; каталог и LRU эскизов не сбрасывать; scrollTop сохранить, если возможно.
 
-Высота ряда зависит от ширины трека (квадрат превью + подпись). Overscan — **1–2 ряда** (= `nCols`…`2×nCols` ячеек), не «всегда 14».
+Высота ряда — от `previewSize(minTrack)` + padding 8×2 + gap 8 + подпись 34, **не** от фактической ширины `1fr`. При default 48 ряд ≈ 106. Overscan — **1–2 ряда** (= `nCols`…`2×nCols` ячеек), не «всегда 14».
+
+Плотность и формула квадрата: [architecture.md](../architecture.md#сетка-рабочей-копии), пиксели: [content-view](../panels/content-view.md).
 
 | Параметр | Правило |
 |----------|---------|
@@ -63,7 +65,7 @@ gap: 8px;
 | Placeholder в DOM | пустой слот той же геометрии, пока тайл не смонтирован — без спиннера на всю панель |
 | Скролл | сохранять позицию при догрузке страницы entries; не прыгать к началу |
 
-Смена папки / Switch Changed / поиск — сброс диапазона virtualizer и позиции скролла (новый набор path). Смена только selection — скролл не сбрасывать. Ресайз окна — не сброс папки.
+Смена папки / Only changed / поиск — сброс диапазона virtualizer и позиции скролла (новый набор path). Смена только selection — скролл не сбрасывать. Ресайз окна — не сброс папки.
 
 ---
 
@@ -96,7 +98,7 @@ Loading: квадрат `FilePreview` пустой (атом без spinner). Г
 
 Пока идёт догрузка страницы — не чистить уже показанные тайлы ([states](../states/architecture.md)). Ошибка страницы — toast, список остаётся.
 
-Switch **Changed** и поиск — те же правила: плоский/фильтрованный массив тоже виртуализируется и догружается страницами, без второго chrome.
+Фильтр **Only changed** и поиск — те же правила: плоский/фильтрованный массив тоже виртуализируется и догружается страницами, без второго chrome.
 
 ---
 
@@ -131,4 +133,4 @@ Marquee / range, если появятся в макете — считать п
 - Три копии одних байт (Zustand base64 + IndexedDB + диск).
 - Спиннер внутри `FilePreview`; спиннер на всю Content View.
 - Класть thumbs в `.DFM/objects` или коммитить `.DFM/cache/`.
-- Фиксировать колонки сетки папки (`repeat(7, 106px)` и т.п.) вместо `repeat(auto-fill, minmax(200px, 1fr))`.
+- Фиксировать колонки сетки папки (`repeat(7, 106px)` и т.п.) вместо `repeat(auto-fill, minmax(106px, 1fr))`.

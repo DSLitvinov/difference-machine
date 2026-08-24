@@ -18,7 +18,7 @@ Figma: [Item / Grid View / File](https://www.figma.com/design/qlwKiMPZblz96VSM2F
 | Min | `FilePreview` **S** 48×48 | min 106×106, padding 8, ширина 106 |
 | Max | `FilePreview` **M** 128×128 | padding 8; бейджи по нижнему краю превью |
 
-В **панели** Content View (обзор папки) тайл живёт в [отзывчивой сетке](../../panels/content-view.md): трек `minmax(200px, 1fr)`, ячейка `width: 100%`. Фиксированные 106 px из Size=Min **не** задают колонку. Канон слотов и hover — Size=Max. Квадрат превью растягивается с шириной ячейки (`aspect-ratio: 1`, `object-cover`), радиус 4 px — не атом L (312 / radius-lg).
+В **панели** Content View (обзор папки) тайл живёт в [отзывчивой сетке](../../panels/content-view.md): трек `minmax(106px, 1fr)`, ячейка `width: 100%`. Default — Size=Min: `FilePreview` **S** **48×48**, не растягивать квадрат на весь трек. Ctrl/Cmd+wheel растит превью вместе с `minTrack`. Радиус 4 px — не атом L (312 / radius-lg).
 
 Подпись: `File name`, Inter Regular 12/16 `#09090b`, ellipsis, nowrap. Min — `text-center` на всю ширину; Max и отзывчивый трек — подпись на ширину ячейки, `text-center`.
 
@@ -53,7 +53,7 @@ Gap превью↔лейбл: 8 px.
 
 ## Данные
 
-Thumbnail → `FilePreview`. Тайл **не** вызывает `workdir.thumbnail`: панель отдаёт `src` после ленивой загрузки (virtualizer + очередь). Letter/lock — из панели (`status.get`, `lock.list`). Клик — selection, не `workdir.open` (open — действие тулбара/меню).
+Thumbnail → `FilePreview` (`src` для картинки, `text` для `text_preview`). Тайл **не** вызывает `workdir.thumbnail`: панель отдаёт `src` / `text` после ленивой загрузки (virtualizer + очередь). Letter/lock — из панели (`status.get`, `lock.list`). Клик — selection, не `workdir.open` (open — действие тулбара/меню).
 
 Скролл и кэш: [virtual-scroll.md](../../gui_frontend/virtual-scroll.md).
 

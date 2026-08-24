@@ -13,7 +13,7 @@ Figma: [Item / Preview / File Info - More Files](https://www.figma.com/design/ql
 
 Канон — **один** экспорт node `4402:10360` (SVG): веер из трёх карточек + зелёный Grab снизу.
 
-Код: `frontend/src/assets/light/illustrations/file-info-more-files.svg` и `frontend/src/assets/dark/illustrations/file-info-more-files.svg`. Панель показывает текущую тему (`object-contain` / native 308).
+Код: `frontend/src/assets/light/illustrations/file-info-more-files.svg`. Панель показывает светлый SVG (`object-contain` / native 308).
 
 Не собирать слот из `@icons/256/File-TEXT` / `File-IMG`. Не сетка миниатюр выбранных path. Не добавлять «3 files» на квадрат.
 

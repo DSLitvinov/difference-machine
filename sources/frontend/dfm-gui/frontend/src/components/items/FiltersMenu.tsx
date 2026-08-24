@@ -24,10 +24,21 @@ type FiltersMenuProps = {
   locale: Locale;
   value: GridFilter;
   extensions: string[];
+  changedOnly: boolean;
+  dirty: boolean;
   onChange: (value: GridFilter) => void;
+  onChangedOnly: (value: boolean) => void;
 };
 
-export function FiltersMenu({ locale, value, extensions, onChange }: FiltersMenuProps) {
+export function FiltersMenu({
+  locale,
+  value,
+  extensions,
+  changedOnly,
+  dirty,
+  onChange,
+  onChangedOnly,
+}: FiltersMenuProps) {
   const copy = t(locale);
   function toggle(ext: string, checked: boolean) {
     if (checked) {
@@ -45,6 +56,14 @@ export function FiltersMenu({ locale, value, extensions, onChange }: FiltersMenu
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px] shadow-md">
+        <DropdownMenuCheckboxItem
+          checked={changedOnly}
+          disabled={!dirty}
+          onCheckedChange={(checked) => onChangedOnly(checked === true)}
+        >
+          {copy.onlyChanged}
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
         <DropdownMenuLabel>{copy.filterByType}</DropdownMenuLabel>
         <div className="max-h-72 overflow-y-auto">
           {extensions.map((ext) => (
@@ -60,7 +79,13 @@ export function FiltersMenu({ locale, value, extensions, onChange }: FiltersMenu
           ))}
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 text-[#ef4444] focus:text-[#ef4444]" onSelect={() => onChange([])}>
+        <DropdownMenuItem
+          className="gap-2 text-[#ef4444] focus:text-[#ef4444]"
+          onSelect={() => {
+            onChange([]);
+            onChangedOnly(false);
+          }}
+        >
           <FigmaIcon src="icons/trash-2.svg" size={16} />
           {copy.cleanFilters}
         </DropdownMenuItem>

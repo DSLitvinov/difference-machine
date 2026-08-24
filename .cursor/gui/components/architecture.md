@@ -78,7 +78,7 @@ frontend/src/components/<domain>/     # кастомные кирпичи
 | CSS-переменные атома для hex из макета | Ad-hoc hex в каждом тайле |
 | Иконка — экспорт Figma | Lucide «по имени», если глиф не совпал |
 
-Тёмная тема: без dark-варианта в наборе заливки не инвертировать.
+GUI только светлая тема. На тёмных кнопках (primary / destructive) светлый SVG инвертируется CSS (`filter: invert(1)`), второй набор ассетов не заводить.
 
 ---
 
@@ -116,7 +116,7 @@ frontend/src/components/<domain>/     # кастомные кирпичи
 | Atom / Cards / No History Project | `4382:9003` | [atoms/card-no-history-project.md](./atoms/card-no-history-project.md) | `NoHistoryProject` |
 | Atom / Cards / No Stages Project | `6020:12733` | [atoms/card-no-stages-project.md](./atoms/card-no-stages-project.md) | `NoStagesProject` |
 
-Иконка папки 48px живёт внутри [items/grid-folder.md](./items/grid-folder.md) (`Atom / Icons / 48 / Folder`, `4234:9143`). Отдельный атом-спеки нет, пока нет других размеров в наборе.
+Иконка папки в сетке — [items/grid-folder.md](./items/grid-folder.md) (`Atom / Icons / 48 / Folder`, `4234:9143`). Default **48×48**; Ctrl/Cmd+wheel растит её вместе с превью файла. Отдельного атома других размеров в наборе нет. Продуктовое правило: [../architecture.md](../architecture.md#сетка-рабочей-копии).
 
 ---
 

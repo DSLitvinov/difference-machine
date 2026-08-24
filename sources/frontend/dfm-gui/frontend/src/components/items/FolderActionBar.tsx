@@ -15,11 +15,14 @@ type FolderActionBarProps = {
   sort: GridSort;
   filter: GridFilter;
   extensions: string[];
+  changedOnly: boolean;
+  dirty: boolean;
   onSearchOpen: () => void;
   onQuery: (value: string) => void;
   onSearchEscape: () => void;
   onSort: (value: GridSort) => void;
   onFilter: (value: GridFilter) => void;
+  onChangedOnly: (value: boolean) => void;
 };
 
 export function FolderActionBar({
@@ -30,11 +33,14 @@ export function FolderActionBar({
   sort,
   filter,
   extensions,
+  changedOnly,
+  dirty,
   onSearchOpen,
   onQuery,
   onSearchEscape,
   onSort,
   onFilter,
+  onChangedOnly,
 }: FolderActionBarProps) {
   const copy = t(locale);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +77,15 @@ export function FolderActionBar({
         </Button>
       )}
       <SortMenu locale={locale} value={sort} onChange={onSort} />
-      <FiltersMenu locale={locale} value={filter} extensions={extensions} onChange={onFilter} />
+      <FiltersMenu
+        locale={locale}
+        value={filter}
+        extensions={extensions}
+        changedOnly={changedOnly}
+        dirty={dirty}
+        onChange={onFilter}
+        onChangedOnly={onChangedOnly}
+      />
     </div>
   );
 }

@@ -53,7 +53,14 @@ macOS дополнительно получает стандартные **App**
 | Пункт | Поведение |
 |-------|-----------|
 | Create repository | OS folder picker → `repo.init` (`CallStateless`) → запись cfg → `Open` сессии. Как Create на First Start |
+| Add repository | OS folder picker → `Open` существующего корня с `.DFM/` → запись в список cfg. Как Open Folder, из раздела Repository |
+| Branches ▸ Merge | открыть [Dialog / Merge](../../dialogs/merge.md). Disabled без открытой сессии |
+| Branches ▸ Create | [Create Branch](../../dialogs/branches.md) |
+| Branches ▸ Rename | [Rename Branch](../../dialogs/branches.md) текущей ветки |
+| Branches ▸ Delete | [Delete Branch](../../dialogs/branches.md); если других веток несколько — выбрать в меню ветки сайдбара |
 | Clean repository | **удалить каталог `.DFM/`** на диске в корне текущего репо. Не JSON API (метода нет). Сначала `jsonapi.Close`. Файлы проекта **не** трогать. Path в cfg можно оставить — папка остаётся известной, состояние **Not a repository** |
+
+Дальше в том же меню — radio-список известных репозиториев (переключение сессии).
 
 Clean — destructive: подтверждение по шаблону destructive-диалогов ([dialogs](../../dialogs/architecture.md)), не `window.confirm`. Кадра `Dialog / Clean repository` на холсте пока нет — copy уточнить при вёрстке, не молча сносить `.DFM/`.
 

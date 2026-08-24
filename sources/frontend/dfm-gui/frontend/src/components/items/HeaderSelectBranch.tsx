@@ -23,6 +23,7 @@ type HeaderSelectBranchProps = {
   onCreate: () => void;
   onRename: () => void;
   onDelete: (name: string) => void;
+  onMerge: () => void;
 };
 
 export function HeaderSelectBranch({
@@ -34,6 +35,7 @@ export function HeaderSelectBranch({
   onCreate,
   onRename,
   onDelete,
+  onMerge,
 }: HeaderSelectBranchProps) {
   const copy = t(locale);
   const current = branchName || "";
@@ -72,6 +74,12 @@ export function HeaderSelectBranch({
             </DropdownMenuRadioGroup>
           ) : null}
           <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={others.length === 0}
+            onSelect={() => window.setTimeout(onMerge, 0)}
+          >
+            {copy.merge}
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => window.setTimeout(onCreate, 0)}>{copy.create}</DropdownMenuItem>
           <DropdownMenuItem disabled={!current} onSelect={() => window.setTimeout(onRename, 0)}>
             {copy.rename}

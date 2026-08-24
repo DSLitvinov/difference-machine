@@ -44,7 +44,7 @@ Frontend не импортирует Go и не читает диск. Нет `f
 
 First Start — отдельное окно 640×656, [first-start](../views/first-start.md).
 
-Размеры колонок — из спеки View; persist splitter только если не ломает 309 / 788|1120 / 332. Сетка папки внутри center — CSS Grid `auto-fill` / `minmax(200px, 1fr)`, не фиксированные 7×106 с кадра.
+Размеры колонок — из спеки View; persist splitter только если не ломает 309 / 788|1120 / 332. Сетка папки внутри center — [продуктовое правило](../architecture.md#сетка-рабочей-копии): CSS Grid `auto-fill` / `minmax(106px, 1fr)`, default превью **48×48**, не фиксированные 7×106 с кадра и не Size=Max как посадка.
 
 Видимые подписи, бейджи, пустые состояния — только из Figma/спеки панели или экрана.
 
@@ -56,8 +56,9 @@ Zustand (или эквивалент) хранит:
 
 | Срез | Примеры | Источник истины |
 |------|---------|-----------------|
-| App | текущий repo path, тема, first-start vs app | cfg + local |
+| App | текущий repo path, first-start vs app | cfg + local |
 | Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, sidebarTab, commitComposer | UI; экран из [views](../views/architecture.md) |
+| Grid zoom | `gridTrack` 106…360, default **106** → `previewSize` **48** | сессия; не Forester, не cfg. Формула: [architecture.md](../architecture.md#сетка-рабочей-копии) |
 | History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*`; LRU payload — [revision-cache.md](./revision-cache.md) |
 | VCS | snapshot `status.get`, `merge.status` | API; не путать со вкладкой Stash |
 | Preview cache | LRU эскизов workdir, ключ path+size+mtime | [thumbnails.md](../gui_backend/thumbnails.md), [virtual-scroll.md](./virtual-scroll.md) |
@@ -75,7 +76,7 @@ Zustand (или эквивалент) хранит:
 `workdir.entries` и `log.get` пагинируются на backend. Frontend:
 
 - Догружает следующую страницу при scroll, без пользовательского текста пагинации.
-- Сетка папки — CSS Grid `repeat(auto-fill, minmax(200px, 1fr))`, gap 8, padding 16; virtualizer считает `nCols` с контейнера. `workdir.thumbnail` только для видимых + 1–2 ряда overscan.
+- Сетка папки — CSS Grid `repeat(auto-fill, minmax(gridTrack, 1fr))`, default `gridTrack` **106**, превью **48×48**; virtualizer считает `nCols` с контейнера. Квадрат — от `gridTrack`, не от ширины `1fr`. `workdir.thumbnail` только для видимых + 1–2 ряда overscan.
 - Карточки History — `diff.stat` только для видимых; payload path — только выбранный файл.
 - Очередь **1–2** in-flight на все `Call` окна.
 - `has_more` / `capped` — внутренние флаги, не копирайт в UI.
@@ -102,8 +103,10 @@ Selection живёт на frontend (клик, range, marquee — если в м�
 
 ---
 
-## Тема и a11y
+## Токены и a11y
 
-Тема — токены дизайн-системы. Для скрытого текста только `sr-only` / `aria-*`, не видимые «подсказки для агента».
+Токены — светлая дизайн-система Figma (`:root` в CSS). Тёмной темы в GUI нет: не `html.dark`, не `[ui] theme`, не вкладка Appearance. Иконки на тёмных кнопках (primary / destructive) — CSS `filter: invert(1)` на светлом SVG, не второй набор ассетов.
+
+Для скрытого текста только `sr-only` / `aria-*`, не видимые «подсказки для агента».
 
 Клавиатура: фокус в диалогах как в shadcn Dialog; горячие клавиши — только если есть в спеке.

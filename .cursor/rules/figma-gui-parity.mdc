@@ -33,7 +33,7 @@ If it is not in the mockup or spec, **do not ship it** in the frontend (no “he
 - **Specs** follow Figma; implementation follows specs.
 - `View /` specs say which panels sit together. Panel specs say slots. Atom specs say pixels.
 - Backend-driven behavior (pagination, virtualization) may exist **without** extra user-visible labels unless the design shows them. How: [virtual-scroll.md](../gui/gui_frontend/virtual-scroll.md).
-- The folder grid **column count** follows the window (CSS `auto-fill` + `minmax(200px, 1fr)`), not the 772-wide Figma frame. Do not paint “N columns”. Gap 8 and padding 16 stay from the mockup. Spec: [content-view.md](../gui/panels/content-view.md).
+- The folder grid **column count** follows the window (CSS `auto-fill` + `minmax(106px, 1fr)`), not the 772-wide Figma frame. Do not paint “N columns”. Gap 8 and padding 16 stay from the mockup. Default preview **48×48**. Spec: [content-view.md](../gui/panels/content-view.md).
 - If a label is needed for a11y only, use `aria-*` / `sr-only`, not visible copy.
 
 ## When Figma is unclear

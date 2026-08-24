@@ -48,7 +48,7 @@ Empty-варианты перечислены в спеке каноническ
 | **File Info / Select More Files** | метаданные выбора | `workdir.metadata`, `lock.list` |
 | **Merge banner** | Merge идёт / конфликты | `merge.status` |
 | **Detached banner** | Detached HEAD | `status.get.is_detached` |
-| **Settings** | пути, автор, внешний вид | `setup.cfg` (не JSON API) |
+| **Settings** | пути, автор, язык | `setup.cfg` (не JSON API). Без темы |
 
 Баннеров merge/detached на кадрах `View /` нет — полосы по [states](../states/architecture.md), когда API так говорит, не выдумывать chrome.
 
@@ -70,11 +70,12 @@ Empty-варианты перечислены в спеке каноническ
 ## Project preview
 
 - Источник списка: по умолчанию `workdir.entries` текущей папки.
-- Switch **Changed**: все dirty файлы проекта, не текущая папка.
-- Status нужен для бейджей и фильтра Changed.
+- Фильтр **Only changed**: все dirty файлы проекта, не текущая папка.
+- Status нужен для бейджей и фильтра Only changed.
+- Плотность сетки: default иконка/превью **48×48**, колонка min **106 px**. Масштаб — `gridTrack` (Ctrl/Cmd+wheel), без chrome. Не растягивать квадрат на `1fr`. Канон: [content-view](./content-view.md), [architecture.md](../architecture.md#сетка-рабочей-копии).
 - Тулбар: search / sort / filter из макета. Grid/list — нет в 0.8.1.
 - Open / rename / delete — `workdir.open` / `rename` / `delete`.
-- Stage выбранных: combobox + Apply на File Action / Select More Files → `index.add` (unstage — когда появится `index.drop`).
+- Stage выбранных: меню File Action (пункт сразу) / combobox + Apply на Select More Files → `index.add` (unstage — когда появится `index.drop`).
 - Commit All Files: все dirty path → `index.add` → композер.
 
 Compare extract и restore файла — из History of File ([header-file-commit-action](../components/items/header-file-commit-action.md)), не из сетки workdir.

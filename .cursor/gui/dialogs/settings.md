@@ -11,7 +11,8 @@ Property: `Tab`.
 | Repositories | список репо | `~/.dfm/repos.cfg` `[repo] path_N`, `[current repo]` |
 | External editors | редакторы | cfg, не JSON API. Тот же список — пункты **Edit in** в [File Info](../panels/file-info.md) |
 | Forester | пути CLI / native / addon | [setup-cfg-api-path](../../rules/setup-cfg-api-path.mdc) |
-| Tab=Tab5 | **не именовать** Tab5 в UI — взять подпись с node при вёрстке |
+
+GUI **только светлая тема**. Вкладку Appearance / выбор Light–Dark не рендерить. `[ui] theme` не читать и при записи cfg удалять. Иконки — `sources/frontend/dfm-gui/frontend/src/assets/light/`.
 
 Абсолютные native path. Не коммитить secrets. Поля вкладок — `get_design_context` на variant, не выдумывать extra rows.
 

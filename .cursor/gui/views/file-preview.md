@@ -31,7 +31,7 @@ Kind центральной области — по типу файла, не п
 
 Кадр Text Expanded в Figma **720** по высоте окна (тело 672) — считать отклонением; канон окна **768 / тело 720**, как у остальных File View.
 
-Хедер центра: [Header File Action](../components/items/header-file-action.md) — combobox действий + **Apply**. Не третья кнопка Save.
+Хедер центра: [Header File Action](../components/items/header-file-action.md) — More `⋯` открывает меню файла. Пункт меню выполняется сразу. Не combobox + Apply и не третья кнопка Save.
 
 ---
 
@@ -41,6 +41,8 @@ Kind центральной области — по типу файла, не п
 2. No History — `fileHasHistory = false` (`log.get` с `path` пуст). Превью файла всё равно показывается. Не подменять центр плейсхолдером истории.
 3. Кадр No History использует Img-превью как пример; kind в продукте остаётся у открытого файла.
 4. Данные left: `log.get` + `path`. Не `workdir.tree`.
+5. Img в центре: Ctrl/Cmd+wheel меняет масштаб картинки, без подписи zoom. Канон: [content-view](../components/items/content-view.md).
+6. Text в центре: подсветка синтаксиса по расширению, без дополнительного chrome.
 
 ---
 

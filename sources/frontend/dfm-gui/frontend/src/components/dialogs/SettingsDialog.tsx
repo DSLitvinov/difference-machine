@@ -5,7 +5,6 @@ import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import {
   getSettings,
-  saveAppearance,
   saveEditors,
   saveForester,
   saveProfile,
@@ -14,10 +13,9 @@ import {
   selectFile,
   type SettingsInfo,
 } from "@/lib/bridge";
-import { applyTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-type SettingsTab = "profile" | "appearance" | "repositories" | "editors" | "forester";
+type SettingsTab = "profile" | "repositories" | "editors" | "forester";
 
 type SettingsDialogProps = {
   locale: Locale;
@@ -32,7 +30,6 @@ function emptySettings(): SettingsInfo {
     userName: "",
     userEmail: "",
     locale: "en",
-    theme: "light",
     repos: [],
     apiPath: "",
     foresterPath: "",
@@ -46,7 +43,6 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
   const copy = t(locale);
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: "profile", label: copy.tabProfile },
-    { id: "appearance", label: copy.tabAppearance },
     { id: "repositories", label: copy.tabRepositories },
     { id: "editors", label: copy.tabEditors },
     { id: "forester", label: copy.tabForester },
@@ -115,15 +111,13 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
   }
 
   const heading =
-    tab === "appearance"
-      ? { title: copy.appearanceTitle, body: copy.appearanceBody }
-      : tab === "repositories"
-        ? { title: copy.repositoriesTitle, body: copy.repositoriesBody }
-        : tab === "editors"
-          ? { title: copy.editorsTitle, body: copy.editorsBody }
-          : tab === "forester"
-            ? { title: copy.foresterTitle, body: copy.foresterBody }
-            : { title: copy.profileTitle, body: copy.profileBody };
+    tab === "repositories"
+      ? { title: copy.repositoriesTitle, body: copy.repositoriesBody }
+      : tab === "editors"
+        ? { title: copy.editorsTitle, body: copy.editorsBody }
+        : tab === "forester"
+          ? { title: copy.foresterTitle, body: copy.foresterBody }
+          : { title: copy.profileTitle, body: copy.profileBody };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="presentation" onClick={busy ? undefined : onClose}>
@@ -171,9 +165,6 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
               </div>
               {tab === "profile" ? (
                 <ProfileFields locale={locale} draft={draft} busy={busy} onChange={setDraft} onLocale={onLocale} />
-              ) : null}
-              {tab === "appearance" ? (
-                <AppearanceFields locale={locale} theme={draft.theme === "dark" ? "dark" : "light"} onChange={(theme) => setDraft({ ...draft, theme })} />
               ) : null}
               {tab === "repositories" ? (
                 <RepositoryFields
@@ -225,23 +216,6 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
                   }
                 >
                   {copy.saveProfile}
-                </Button>
-              </div>
-            ) : null}
-            {tab === "appearance" ? (
-              <div className="flex shrink-0 justify-end">
-                <Button
-                  type="button"
-                  disabled={busy}
-                  onClick={() =>
-                    void run(async () => {
-                      const theme = draft.theme === "dark" ? "dark" : "light";
-                      await saveAppearance(theme);
-                      applyTheme(theme);
-                    })
-                  }
-                >
-                  {copy.saveAppearance}
                 </Button>
               </div>
             ) : null}
@@ -322,63 +296,6 @@ function ProfileFields({
         <p className="text-[14px] leading-5 text-foreground-muted">{copy.languageHintSettings}</p>
       </div>
     </div>
-  );
-}
-
-function AppearanceFields({
-  locale,
-  theme,
-  onChange,
-}: {
-  locale: Locale;
-  theme: "light" | "dark";
-  onChange: (theme: "light" | "dark") => void;
-}) {
-  const copy = t(locale);
-  return (
-    <div className="flex w-full flex-col gap-1">
-      <p className="text-[14px] leading-5 text-foreground-muted">{copy.themeHint}</p>
-      <div className="flex flex-wrap items-start gap-6 pt-2">
-        <ThemeCard label={copy.themeLight} selected={theme === "light"} dark={false} onSelect={() => onChange("light")} />
-        <ThemeCard label={copy.themeDark} selected={theme === "dark"} dark onSelect={() => onChange("dark")} />
-      </div>
-    </div>
-  );
-}
-
-function ThemeCard({
-  label,
-  selected,
-  dark,
-  onSelect,
-}: {
-  label: string;
-  selected: boolean;
-  dark: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button type="button" className="flex flex-col items-center gap-2" onClick={onSelect}>
-      <div className={cn("rounded-lg border-2 p-1", selected ? "border-[#a1a1aa]" : "border-[#d4d4d8]")}>
-        <div className={cn("flex flex-col gap-2.5 overflow-hidden rounded-lg p-2", dark ? "bg-[#09090b]" : "bg-[#e4e4e7]")}>
-          <div className={cn("flex w-full items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-white")}>
-            <div className="flex flex-col gap-2">
-              <div className={cn("h-4 w-[112px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
-              <div className={cn("h-4 w-[140px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
-            </div>
-          </div>
-          <div className={cn("flex items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-white")}>
-            <div className={cn("size-6 rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
-            <div className={cn("h-4 w-[200px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
-          </div>
-          <div className={cn("flex items-center gap-4 rounded p-2", dark ? "bg-[#27272a]" : "bg-white")}>
-            <div className={cn("size-6 rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
-            <div className={cn("h-4 w-[200px] rounded-full", dark ? "bg-[#52525b]" : "bg-[#fafafa]")} />
-          </div>
-        </div>
-      </div>
-      <p className="text-[14px] leading-5 text-foreground-muted">{label}</p>
-    </button>
   );
 }
 

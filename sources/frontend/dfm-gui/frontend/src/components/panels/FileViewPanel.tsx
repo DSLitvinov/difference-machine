@@ -26,6 +26,7 @@ type FileViewPanelProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  onMerge: () => void;
   onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
   switchLocked?: boolean;
 };
@@ -57,6 +58,7 @@ export function FileViewPanel({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  onMerge,
   onCommitAction,
   switchLocked,
 }: FileViewPanelProps) {
@@ -104,6 +106,7 @@ export function FileViewPanel({
         onCreate={onCreateBranch}
         onRename={onRenameBranch}
         onDelete={onDeleteBranch}
+        onMerge={onMerge}
       />
       <div className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", empty && "gap-2")}>
         <div className="flex w-[309px] shrink-0 flex-col gap-2 px-3">

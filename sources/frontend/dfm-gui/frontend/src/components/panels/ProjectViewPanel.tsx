@@ -31,13 +31,11 @@ type ProjectViewPanelProps = {
   branches: BranchSummary[];
   branchName?: string;
   sidebarTab: SidebarTab;
-  changedOnly: boolean;
   busy?: boolean;
   repoPath: string;
   selectedCommit?: string | null;
   commitComposer?: boolean;
   onSidebarTab: (tab: SidebarTab) => void;
-  onChangedOnly: (value: boolean) => void;
   onSettings: () => void;
   onCreateRepository: () => void;
   onSelectCommit: (hash: string) => void;
@@ -49,6 +47,7 @@ type ProjectViewPanelProps = {
   onCreateBranch: () => void;
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
+  onMerge: () => void;
   onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
   onStashAction: (action: StashCardAction, stash: StashSummary) => void;
   switchLocked?: boolean;
@@ -141,13 +140,11 @@ export function ProjectViewPanel({
   branches,
   branchName,
   sidebarTab,
-  changedOnly,
   busy,
   repoPath,
   selectedCommit,
   commitComposer,
   onSidebarTab,
-  onChangedOnly,
   onSettings,
   onCreateRepository,
   onSelectCommit,
@@ -159,6 +156,7 @@ export function ProjectViewPanel({
   onCreateBranch,
   onRenameBranch,
   onDeleteBranch,
+  onMerge,
   onCommitAction,
   onStashAction,
   switchLocked,
@@ -179,6 +177,7 @@ export function ProjectViewPanel({
         onCreate={onCreateBranch}
         onRename={onRenameBranch}
         onDelete={onDeleteBranch}
+        onMerge={onMerge}
       />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
@@ -193,8 +192,6 @@ export function ProjectViewPanel({
                 locale={locale}
                 dirty={dirty}
                 counts={counts}
-                changedOnly={changedOnly}
-                onChangedOnly={onChangedOnly}
                 onCommitAll={onCommitAll}
               />
             )}

@@ -2,6 +2,7 @@ import { FilePreview } from "@/components/atoms/FilePreview";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
 import { asset } from "@/assets/themed";
 import { fileKind } from "@/lib/file-kind";
+import { GRID_PREVIEW_DEFAULT } from "@/lib/grid";
 import type { LetterStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import type { MouseEvent } from "react";
@@ -14,6 +15,7 @@ type FileGridTileProps = {
   src?: string;
   text?: string;
   stub?: boolean;
+  previewSize?: number;
   onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
   onOpen?: () => void;
   onMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -26,7 +28,19 @@ const stubs = {
   binary: asset("illustrations/file-binary.svg"),
 } as const;
 
-export function FileGridTile({ name, selected, letter, locked, src, text, stub, onSelect, onOpen, onMenu }: FileGridTileProps) {
+export function FileGridTile({
+  name,
+  selected,
+  letter,
+  locked,
+  src,
+  text,
+  stub,
+  previewSize = GRID_PREVIEW_DEFAULT,
+  onSelect,
+  onOpen,
+  onMenu,
+}: FileGridTileProps) {
   return (
     <button
       type="button"
@@ -38,16 +52,14 @@ export function FileGridTile({ name, selected, letter, locked, src, text, stub, 
         selected ? "border-border-accent bg-foreground-accent" : "border-transparent hover:bg-foreground-accent",
       )}
     >
-      <div className="relative w-full">
-        {text ? (
-          <div className="aspect-square w-full overflow-hidden rounded-sm border border-border bg-background">
-            <pre className="h-full w-full overflow-hidden whitespace-pre-wrap break-all p-1 font-mono text-[10px] leading-3 text-foreground">
-              {text}
-            </pre>
-          </div>
-        ) : (
-          <FilePreview src={src ?? (stub ? stubs[fileKind(name)] : undefined)} className="aspect-square size-auto w-full" />
-        )}
+      <div className="relative" style={{ width: previewSize, height: previewSize }}>
+        <FilePreview
+          src={src ?? (stub && !text ? stubs[fileKind(name)] : undefined)}
+          text={text}
+          size="S"
+          className="size-auto"
+          style={{ width: previewSize, height: previewSize }}
+        />
         {letter ? <FileStatusBadge type={letter} className="absolute bottom-1 left-1" /> : null}
         {locked ? <FileStatusBadge type="lock" className="absolute bottom-1 right-1" /> : null}
       </div>

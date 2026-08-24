@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FolderGridTile } from "@/components/items/FolderGridTile";
 import { FileGridTile } from "@/components/items/FileGridTile";
-import { columnCount, tileRowHeight, wheelZoomDelta, GRID_GAP, GRID_PAD, trackWidth } from "@/lib/grid";
+import { columnCount, gridPreviewSize, tileRowHeight, wheelZoomDelta, GRID_GAP, GRID_PAD, GRID_TRACK_DEFAULT } from "@/lib/grid";
 import { letterStatus } from "@/lib/status";
 import { peekThumb, scheduleVisibleThumbs, setThumbLruLimit, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
 import { useAppStore, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
@@ -45,18 +45,18 @@ export function FolderEntryGrid({
   onFileMenu,
 }: FolderEntryGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef(200);
-  const [innerWidth, setInnerWidth] = useState(200);
+  const trackRef = useRef(GRID_TRACK_DEFAULT);
+  const [innerWidth, setInnerWidth] = useState(GRID_TRACK_DEFAULT);
   const minTrack = useAppStore((s) => s.gridTrack);
   const setGridTrack = useAppStore((s) => s.setGridTrack);
   useThumbEpoch();
 
   const nCols = columnCount(innerWidth, minTrack);
-  const track = trackWidth(innerWidth, nCols);
-  trackRef.current = track;
+  const previewSize = gridPreviewSize(minTrack);
+  trackRef.current = minTrack;
 
   const rowCount = Math.ceil(entries.length / nCols) || 0;
-  const rowH = tileRowHeight(track);
+  const rowH = tileRowHeight(minTrack);
 
   const virtualizer = useVirtualizer({
     count: rowCount,
@@ -134,7 +134,7 @@ export function FolderEntryGrid({
           return (
             <div
               key={row.key}
-              className="absolute left-0 right-0 grid items-stretch gap-2"
+              className="absolute left-0 right-0 grid items-start gap-2"
               style={{
                 transform: `translateY(${row.start}px)`,
                 gridTemplateColumns: `repeat(${nCols}, minmax(0, 1fr))`,
@@ -143,7 +143,13 @@ export function FolderEntryGrid({
               {slice.map((entry) => {
                 if (entry.is_dir) {
                   return (
-                    <FolderGridTile key={entry.path} name={entry.name} itemCount={entry.item_count ?? 0} onOpen={() => onOpenFolder(entry.path)} />
+                    <FolderGridTile
+                      key={entry.path}
+                      name={entry.name}
+                      itemCount={entry.item_count ?? 0}
+                      previewSize={previewSize}
+                      onOpen={() => onOpenFolder(entry.path)}
+                    />
                   );
                 }
                 const thumb = peekThumb(repoPath, asThumbRequest(entry));
@@ -158,6 +164,7 @@ export function FolderEntryGrid({
                     src={thumb?.kind === "image" ? thumb.blobUrl : undefined}
                     text={thumb?.kind === "text" ? thumb.text : undefined}
                     stub={thumb?.kind === "placeholder"}
+                    previewSize={previewSize}
                     onSelect={(event) => onSelectFile(entry.path, event)}
                     onOpen={() => onOpenFile?.(entry.path)}
                     onMenu={(event) => onFileMenu?.(entry.path, event)}

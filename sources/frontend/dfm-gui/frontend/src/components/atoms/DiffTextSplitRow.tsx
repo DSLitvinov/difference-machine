@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type DiffTextSplitRowProps = {
   line: number;
-  text: string;
+  text?: string;
   type?: "added" | "deleted" | "default";
+  children?: ReactNode;
 };
 
 const tone = {
@@ -24,7 +26,7 @@ const tone = {
   },
 } as const;
 
-export function DiffTextSplitRow({ line, text, type = "default" }: DiffTextSplitRowProps) {
+export function DiffTextSplitRow({ line, text, type = "default", children }: DiffTextSplitRowProps) {
   const spec = tone[type];
   return (
     <div className={cn("flex w-full items-center text-[16px] leading-6", spec.row)}>
@@ -33,7 +35,7 @@ export function DiffTextSplitRow({ line, text, type = "default" }: DiffTextSplit
       </div>
       <div className="flex min-w-0 items-center pl-1 font-normal">
         <span className={cn("w-3 shrink-0", spec.meta)}>{spec.prefix}</span>
-        <span className="whitespace-pre text-foreground">{text}</span>
+        <span className="whitespace-pre text-foreground">{children ?? text ?? ""}</span>
       </div>
     </div>
   );

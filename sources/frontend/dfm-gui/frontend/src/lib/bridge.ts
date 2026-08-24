@@ -55,7 +55,6 @@ export type SettingsInfo = {
   userName: string;
   userEmail: string;
   locale: string;
-  theme: string;
   repos: string[];
   apiPath: string;
   foresterPath: string;
@@ -83,16 +82,11 @@ export async function getSettings(): Promise<SettingsInfo> {
     ...info,
     repos: stringList(info?.repos),
     editors: stringList(info?.editors),
-    theme: info?.theme === "dark" ? "dark" : "light",
   };
 }
 
 export async function saveProfile(name: string, email: string, locale: string): Promise<void> {
   await app().SaveProfile(name, email, locale);
-}
-
-export async function saveAppearance(theme: string): Promise<void> {
-  await app().SaveAppearance(theme);
 }
 
 export async function saveRepos(paths: string[]): Promise<void> {

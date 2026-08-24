@@ -14,7 +14,6 @@ type setupCfg struct {
 	UserName     string
 	UserEmail    string
 	Locale       string
-	Theme        string
 	ForesterPath string
 	APIPath      string
 	AddonPath    string
@@ -55,7 +54,6 @@ func reposCfgPath() (string, error) {
 func loadSetupCfg() (setupCfg, error) {
 	cfg := setupCfg{
 		Locale: "en",
-		Theme:  "light",
 		raw:    map[string]map[string]string{},
 	}
 	path, err := setupCfgPath()
@@ -82,9 +80,6 @@ func applySetupSections(cfg *setupCfg) {
 	if ui := cfg.raw["ui"]; ui != nil {
 		if ui["language"] == "ru" {
 			cfg.Locale = "ru"
-		}
-		if ui["theme"] == "dark" {
-			cfg.Theme = "dark"
 		}
 	}
 	if ed := cfg.raw["editors"]; ed != nil {
@@ -270,7 +265,7 @@ func writeSetupCfg(cfg setupCfg) error {
 	setSection(cfg.raw, "user", "name", cfg.UserName)
 	setSection(cfg.raw, "user", "email", cfg.UserEmail)
 	setSection(cfg.raw, "ui", "language", cfg.Locale)
-	setSection(cfg.raw, "ui", "theme", cfg.Theme)
+	setSection(cfg.raw, "ui", "theme", "")
 	setSection(cfg.raw, "forester", "path", cfg.ForesterPath)
 	setSection(cfg.raw, "api", "path", cfg.APIPath)
 	setSection(cfg.raw, "addons", "diffmachine_path", cfg.AddonPath)

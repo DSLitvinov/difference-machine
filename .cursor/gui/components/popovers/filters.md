@@ -7,11 +7,13 @@ Figma: [Popover (Filters)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 
 ## Пункты
 
-Заголовок секции: `Filter by type`, Inter Semi Bold 14/20 `#09090b`, не кликабелен как фильтр.
+Первый пункт: checkbox `Only changed` / `Только измененные`. **Вкл.**: сетка = все dirty path проекта (`status.get` + `workdir.entries_by_paths`), не текущая папка. Пункт disabled, если dirty файлов нет. Не мутация Forester.
+
+Separator. Заголовок секции: `Filter by type`, Inter Semi Bold 14/20 `#09090b`, не кликабелен как фильтр.
 
 Список расширений — **файлы текущей папки** (`workdir.entries` / результаты search в этой папке), не фиксированный набор из макета. Copy: `.ext` в нижнем регистре (как в Figma `.jpeg`, не `JPEG`). Иконка 16: image / text / blend / binary по типу файла. Несколько пунктов можно включить сразу; выбранные — галочка shadcn `ItemIndicator`.
 
-Separator. Затем destructive: `trash-2` + `Clean filters`, цвет `#ef4444` — снимает все галочки.
+Separator. Затем destructive: `trash-2` + `Clean filters`, цвет `#ef4444` — снимает галочки типов и `Only changed`.
 
 Не добавлять «All files». Не звать API: фильтр UI панели.
 

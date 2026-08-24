@@ -138,6 +138,7 @@ export function AppShell({
             onCreateBranch={onCreateBranch}
             onRenameBranch={onRenameBranch}
             onDeleteBranch={onDeleteBranch}
+            onMerge={onOpenMerge}
             onCommitAction={onCommitAction}
           />
         ) : (
@@ -152,14 +153,12 @@ export function AppShell({
             branches={branches}
             branchName={status?.current_branch}
             sidebarTab={sidebarTab}
-            changedOnly={changedOnly}
             busy={busy}
             repoPath={repoPath}
             selectedCommit={selectedCommit}
             commitComposer={commitComposer === "open"}
             switchLocked={mergeLocked}
             onSidebarTab={setSidebarTab}
-            onChangedOnly={setChangedOnly}
             onSettings={onSettings}
             onCreateRepository={onCreateRepository}
             onSelectCommit={openCommit}
@@ -171,6 +170,7 @@ export function AppShell({
             onCreateBranch={onCreateBranch}
             onRenameBranch={onRenameBranch}
             onDeleteBranch={onDeleteBranch}
+            onMerge={onOpenMerge}
             onCommitAction={onCommitAction}
             onStashAction={onStashAction}
           />
@@ -246,6 +246,7 @@ export function AppShell({
             onSelect={setSelection}
             onExpandInfo={() => setInfoCollapsed(false)}
             onNeedMore={onNeedMore}
+            onChangedOnly={setChangedOnly}
             onOpenFile={openFile}
             onAddInCommit={onAddInCommit}
             onRenameFile={onRenameFile}

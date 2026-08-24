@@ -6,6 +6,7 @@ import type { LetterStatus } from "@/lib/status";
 type FileInfoPreviewProps = {
   name: string;
   src?: string;
+  text?: string;
   letter?: LetterStatus | null;
   locked?: boolean;
 };
@@ -17,14 +18,21 @@ const kindIcon: Record<FileKind, string> = {
   binary: "icons/binary.svg",
 };
 
-export function FileInfoPreview({ name, src, letter, locked }: FileInfoPreviewProps) {
+export function FileInfoPreview({ name, src, text, letter, locked }: FileInfoPreviewProps) {
   const kind = fileKind(name);
+  const filled = Boolean(src || text);
   return (
     <div className="relative size-[308px] shrink-0">
       <div className="size-[308px] overflow-hidden rounded-lg border border-border bg-background">
-        {src ? <img src={src} alt="" className="size-full object-cover" /> : null}
+        {src ? (
+          <img src={src} alt="" className="size-full object-cover" />
+        ) : text ? (
+          <pre className="pointer-events-none size-full overflow-hidden whitespace-pre-wrap break-all p-2 font-mono text-[12px] leading-4 text-foreground">
+            {text}
+          </pre>
+        ) : null}
       </div>
-      {src ? null : (
+      {filled ? null : (
         <div className="pointer-events-none absolute left-[144px] top-[144px] flex size-5 items-center justify-center">
           <FigmaIcon src={kindIcon[kind]} size={20} />
         </div>

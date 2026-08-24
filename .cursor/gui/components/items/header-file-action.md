@@ -12,18 +12,17 @@ Figma: [Item / Panel / Header / File Action](https://www.figma.com/design/qlwKiM
 | Слот | Вид | Действие |
 |------|-----|----------|
 | Back | outline 40×40, `chevron-left` | назад в сетку папки |
-| Имя | `file_name.png` в кадре | basename текущего path, не редактируется здесь |
-| Combobox | 200×40 | **выбор действия** над этим файлом |
-| Apply | primary, в кадре слой `primary` | **применить** выбранное действие. Продуктовый copy: `Apply` (не `Save`) |
-| Collapse | только `Collapse=yes`: `panel-right-open` | показать File Info (`infoCollapsed = false`) |
+| Имя | `file_name.png` в кадре | basename текущего path, по центру оставшегося трека, не редактируется здесь |
+| More | outline 40×40, `ellipsis` (горизонтальное `⋯`) | открывает контекстное меню файла |
+| Collapse | только `Collapse=yes`: separator 20 + `panel-right-open` secondary 40×40 | показать File Info (`infoCollapsed = false`) |
+
+Combobox 200×40 и кнопка **Apply** в этом хедере **нет**.
 
 ---
 
-## Combobox → Apply
+## Контекстное меню
 
-Combobox **не** выполняет операцию сам. Apply вызывает выбранное действие для **текущего** path.
-
-Закрытый combobox в кадре показывает `Add in commit`. Открытый список **идентичен** [Popover (File Preview Item)](../popovers/file-preview-item.md) (`4272:6726`): те же секции, copy, иконки и disabled. Не урезать до одного пункта.
+Клик More сразу открывает [Popover (File Preview Item)](../popovers/file-preview-item.md) (`4272:6726`): те же секции, copy, иконки и disabled. Выбор пункта **выполняет** действие для **текущего** path — не откладывать на Apply.
 
 | Выбор | API |
 |-------|-----|
@@ -36,12 +35,12 @@ Combobox **не** выполняет операцию сам. Apply вызыва
 | Lock | `lock.*` |
 | Delete in project | диалог → `workdir.delete` (корзина ОС) |
 
-Default при открытии файла — `Add in commit`. Пустой выбор + Apply — no-op.
+Колбэки — у панели, не у атома.
 
 ---
 
 ## Запрещено
 
-- Подпись кнопки `Save`, если продукт — Apply.
-- Третья текстовая кнопка рядом с Apply.
-- Вызов API из атома: колбэки панели.
+- Combobox + Apply в File Action.
+- Подпись кнопки `Save` / третья текстовая кнопка рядом с More.
+- Вертикальный ellipsis с карточек коммита — в этом слоте горизонтальный `⋯` из атома кнопки (`6034:11712`).

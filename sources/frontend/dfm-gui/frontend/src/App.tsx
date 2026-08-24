@@ -161,10 +161,39 @@ export default function App() {
       setMergeError(null);
       setMergeOpen(true);
     });
+    const offBranchCreate = onWailsEvent("menu:branch-create", () => {
+      if (useAppStore.getState().shell !== "app") {
+        return;
+      }
+      setBranchDialog({ kind: "create" });
+    });
+    const offBranchRename = onWailsEvent("menu:branch-rename", () => {
+      if (useAppStore.getState().shell !== "app") {
+        return;
+      }
+      if (!useAppStore.getState().status?.current_branch) {
+        return;
+      }
+      setBranchDialog({ kind: "rename" });
+    });
+    const offBranchDelete = onWailsEvent("menu:branch-delete", () => {
+      const state = useAppStore.getState();
+      if (state.shell !== "app") {
+        return;
+      }
+      const current = state.status?.current_branch ?? "";
+      const others = state.branches.filter((branch) => branch.name !== current);
+      if (others.length === 1 && others[0]) {
+        setBranchDialog({ kind: "delete", name: others[0].name });
+      }
+    });
     return () => {
       offSession();
       offSettings();
       offMerge();
+      offBranchCreate();
+      offBranchRename();
+      offBranchDelete();
     };
   }, [applySession]);
 

@@ -4,7 +4,6 @@ export namespace main {
 	    shell: string;
 	    repoPath: string;
 	    locale: string;
-	    theme: string;
 	    userName: string;
 	    userEmail: string;
 	    isRepository: boolean;
@@ -19,7 +18,6 @@ export namespace main {
 	        this.shell = source["shell"];
 	        this.repoPath = source["repoPath"];
 	        this.locale = source["locale"];
-	        this.theme = source["theme"];
 	        this.userName = source["userName"];
 	        this.userEmail = source["userEmail"];
 	        this.isRepository = source["isRepository"];
@@ -30,7 +28,6 @@ export namespace main {
 	    userName: string;
 	    userEmail: string;
 	    locale: string;
-	    theme: string;
 	    repos: string[];
 	    apiPath: string;
 	    foresterPath: string;
@@ -47,7 +44,6 @@ export namespace main {
 	        this.userName = source["userName"];
 	        this.userEmail = source["userEmail"];
 	        this.locale = source["locale"];
-	        this.theme = source["theme"];
 	        this.repos = source["repos"];
 	        this.apiPath = source["apiPath"];
 	        this.foresterPath = source["foresterPath"];

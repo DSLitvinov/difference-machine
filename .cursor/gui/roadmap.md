@@ -131,10 +131,10 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 **Specs:** [content-view.md](./panels/content-view.md), [virtual-scroll.md](./gui_frontend/virtual-scroll.md), [thumbnails.md](./gui_backend/thumbnails.md).
 
-- CSS Grid `auto-fill` / `minmax(200px, 1fr)`, gap 8, padding 16.
+- CSS Grid `auto-fill` / `minmax(106px, 1fr)`, gap 8, padding 16; default preview 48×48.
 - Tiles: [grid-folder](./components/items/grid-folder.md) (`sources/frontend/icons/48/Folder.svg`), [grid-file](./components/items/grid-file.md) + File-IMG / File-TEXT / File-Binary stubs.
 - `workdir.thumbnail` only viewport + 1–2 rows; shared 1–2 in-flight queue.
-- Changed switch filters dirty paths of the whole project.
+- Filter **Only changed** shows dirty paths of the whole project.
 - Double-click / Open → File View (phase 8).
 
 **Verify:** large folder scrolls without loading every thumb; resize changes column count.
@@ -202,7 +202,7 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 **Spec:** [dialogs/settings.md](./dialogs/settings.md).
 
-- Profile (author → avatar initials), Repositories, External editors, Forester paths, remaining tab from node.
+- Profile (author → avatar initials), Repositories, External editors, Forester paths. No Appearance / dark theme tab.
 - Same dialog from Header Settings gear and Edit → Settings.
 
 **Verify:** save name, avatar updates; `[api] path` is the native library.
@@ -244,7 +244,7 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 - Remaining copy i18n after Figma RU exists.
 - `icons:generate` for `.png` / `.ico`; `builder/scripts/build_gui.sh --gui`.
-- Dark theme only if a Figma set exists (do not invert).
+- GUI is light-only. Do not add a dark theme or a second SVG set.
 
 **Verify:** `./builder/build.sh --gui` stages the app.
 

@@ -15,7 +15,7 @@ Figma: [Item / Preview / File Info](https://www.figma.com/design/qlwKiMPZblz96VS
 |--------|----------------|---------------------|
 | Image | bitmap cover | `image` (пейзаж) |
 | Blend | bitmap cover (тот же слот, что image) | `image` |
-| Text | white + точечный паттерн (как empty preview) | `file-text` |
+| Text | фрагмент `text_preview`; нет превью — white + иконка `file-text` | иконка только если нет текста |
 | Binary | white | `binary` (01/10) |
 
 Иконки — экспорт Figma, по центру (left/top 144 на 308).

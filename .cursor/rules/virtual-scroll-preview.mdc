@@ -27,11 +27,11 @@ A page of entries or `log.get` commits is metadata for layout. It is **not** per
 
 ```css
 display: grid;
-grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+grid-template-columns: repeat(auto-fill, minmax(106px, 1fr));
 gap: 8px;
 ```
 
-  Padding 16. `nCols = max(1, floor((innerWidth + 8) / 208))`. Virtualizer follows ResizeObserver; do not hardcode 7×106. Tiles `width: 100%`. File preview square grows with the track (`aspect-ratio: 1`); folder icon stays 48×48. Brick hover/badges from Size=Max. Not FilePreview L.
+  Padding 16. `nCols = max(1, floor((innerWidth + 8) / 114))`. Virtualizer follows ResizeObserver; do not hardcode 7×106. Tiles `width: 100%`. Default preview and folder icon **48×48** (Size=Min); Ctrl/Cmd+wheel grows both with `minTrack`. Not FilePreview L.
 - Not: window chrome, a single File Info `L` preview, short menus.
 - Keep scroll position when appending a catalog page. Reset scroll on folder / Changed / search / branch change, not on selection change.
 - Selection lives in the store (paths / commit hash), not in mounted DOM nodes.

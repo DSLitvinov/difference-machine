@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu
 import { foresterCall } from "@/lib/bridge";
 import { applyFolderQuery, folderExtensions, inCurrentFolder, type GridFilter, type GridSort } from "@/lib/folder-query";
 import type { Locale } from "@/lib/i18n";
+import { isDirty } from "@/lib/status";
 import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
 
 type FileMenu = {
@@ -30,6 +31,7 @@ type ContentViewPanelProps = {
   onSelect: (paths: string[]) => void;
   onExpandInfo?: () => void;
   onNeedMore?: () => void;
+  onChangedOnly?: (value: boolean) => void;
   onOpenFile?: (path: string) => void;
   onAddInCommit?: (path: string) => void;
   onRenameFile?: (path: string) => void;
@@ -54,6 +56,7 @@ export function ContentViewPanel({
   onSelect,
   onExpandInfo,
   onNeedMore,
+  onChangedOnly,
   onOpenFile,
   onAddInCommit,
   onRenameFile,
@@ -171,6 +174,8 @@ export function ContentViewPanel({
         sort={sort}
         filter={filter}
         extensions={extensions}
+        changedOnly={Boolean(changedOnly)}
+        dirty={isDirty(status)}
         onNavigate={onNavigate}
         onExpandInfo={onExpandInfo}
         onSearchOpen={() => setSearchOpen(true)}
@@ -184,6 +189,7 @@ export function ContentViewPanel({
         }}
         onSort={setSort}
         onFilter={setFilter}
+        onChangedOnly={(value) => onChangedOnly?.(value)}
       />
       <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         {showEmptyFolder ? (

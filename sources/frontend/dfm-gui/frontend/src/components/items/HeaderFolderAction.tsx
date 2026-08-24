@@ -13,6 +13,8 @@ type HeaderFolderActionProps = {
   sort: GridSort;
   filter: GridFilter;
   extensions: string[];
+  changedOnly: boolean;
+  dirty: boolean;
   onNavigate: (path: string) => void;
   onExpandInfo?: () => void;
   onSearchOpen: () => void;
@@ -20,6 +22,7 @@ type HeaderFolderActionProps = {
   onSearchEscape: () => void;
   onSort: (value: GridSort) => void;
   onFilter: (value: GridFilter) => void;
+  onChangedOnly: (value: boolean) => void;
 };
 
 export function HeaderFolderAction({
@@ -31,6 +34,8 @@ export function HeaderFolderAction({
   sort,
   filter,
   extensions,
+  changedOnly,
+  dirty,
   onNavigate,
   onExpandInfo,
   onSearchOpen,
@@ -38,6 +43,7 @@ export function HeaderFolderAction({
   onSearchEscape,
   onSort,
   onFilter,
+  onChangedOnly,
 }: HeaderFolderActionProps) {
   const copy = t(locale);
   const parts = folderPath.split("/").filter(Boolean);
@@ -78,11 +84,14 @@ export function HeaderFolderAction({
           sort={sort}
           filter={filter}
           extensions={extensions}
+          changedOnly={changedOnly}
+          dirty={dirty}
           onSearchOpen={onSearchOpen}
           onQuery={onQuery}
           onSearchEscape={onSearchEscape}
           onSort={onSort}
           onFilter={onFilter}
+          onChangedOnly={onChangedOnly}
         />
         {collapsed ? (
           <>

@@ -17,9 +17,9 @@ Figma: [Atom / File Preview](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS
 | `M` | **128×128** | 4 px | `Radius/radius-sm` |
 | `L` | **312×312** | 12 px | `Radius/radius-lg` |
 
-Общее: фон `Background/default` `#ffffff`, обводка `1px solid Border/default` `#e4e4e7`. Содержимое — изображение на весь квадрат (`object-cover`) или пустой холст.
+Общее: фон `Background/default` `#ffffff`, обводка `1px solid Border/default` `#e4e4e7`. Содержимое — изображение на весь квадрат (`object-cover`), либо моноширинный фрагмент `text_preview` (клип, без скролла), либо пустой холст.
 
-`L` в сетке не используется (ни атом 312, ни `radius-lg`). В наборе: grid item `S` (Min) и `M` (Max). В **панели** обзора папки квадрат превью растягивается с треком CSS Grid (min 200 px), радиус как у S/M (4 px). `L` — только info (рамка 308).
+`L` в сетке не используется (ни атом 312, ни `radius-lg`). В наборе: grid item `S` (Min) и `M` (Max). В **панели** обзора папки default — `S` **48×48**; Ctrl/Cmd+wheel растит квадрат с `minTrack`, радиус как у S/M (4 px). `L` — только info (рамка 308).
 
 ---
 

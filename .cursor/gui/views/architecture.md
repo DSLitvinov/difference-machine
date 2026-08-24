@@ -50,7 +50,7 @@ Shell читает **производный** экран из store. Панел�
 | Center | 1120 | правая колонка скрыта (collapse / empty project / commit / history of file) |
 | Right | 332 | файл выбран, info не свёрнута; или Select More Files |
 
-Не держать пустую правую колонку «на всякий случай», если в варианте View её нет. Сетка папки в center заполняет слот: [отзывчивый Grid](../panels/content-view.md), не 7 колонок с кадра 1429.
+Не держать пустую правую колонку «на всякий случай», если в варианте View её нет. Сетка папки в center заполняет слот: [отзывчивый Grid](../panels/content-view.md), default **48×48**, не 7 колонок с кадра 1429 и не Size=Max как посадка. Плотность — UI-state `gridTrack`, не измерение экрана.
 
 Исключение макета: `Histpry of File - Image` рисует left 333 и center 1096. Канон колонок — **309 / 788|1120 / 332** из панельных спек, не этот кадр.
 
@@ -118,6 +118,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | `contentContext` | folder \| file \| file-revision \| commit | семейство экрана |
 | `fileKind` | image \| text \| binary | IMG / Text / Binary |
 | `infoCollapsed` | да \| нет | center 1120, right скрыта |
+| `gridTrack` | 106…360, default 106 | не кадр View; только колонки и 48×48→крупнее. [Сетка](../architecture.md#сетка-рабочей-копии) |
 | `sidebarTab` | history \| stages | список коммитов vs stash (UI: **Stash**) |
 | `commitComposer` | закрыт \| открыт | карточка Create Commit |
 | `fileHasHistory` | да \| нет | File view vs File view History Null |

@@ -48,7 +48,7 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 6. **Collapse** — `infoCollapsed`: right нет, center 1120, хедер Folder Action `Collapse=yes`. То же правило для file-preview collapse.
 7. **Create Commit** — не [Dialog /](../dialogs/architecture.md). Форма в слоте Uncommitted files. Right — Select More Files (действия над выбранными path: combobox + Apply). Cancel возвращает карточку Uncommitted.
 8. **Stash** — вкладка того же Project view (Figma: Stages). Forester stash, не git `staged_*`. Каталог: `stash.list`. Пустой список: [NoStagesProject](../components/atoms/card-no-stages-project.md), не мок карточек. Virtualizer как у коммитов ([revision-cache.md](../gui_frontend/revision-cache.md)).
-9. **Changed** вкл. — сетка = dirty файлы всего проекта, не текущая папка.
+9. **Only changed** вкл. — сетка = dirty файлы всего проекта, не текущая папка.
 
 ---
 

@@ -598,6 +598,20 @@ func TestWorkdirTreeAndEntries(t *testing.T) {
 	if thumbResult.TextPreview != "hello" {
 		t.Fatalf("text_preview = %q, want hello", thumbResult.TextPreview)
 	}
+
+	writeFile(t, dir, "notes.md", strings.Repeat("line\n", 9000))
+	if err := json.Unmarshal(mustOK(t, h, "workdir.thumbnail", `{"path":"notes.md"}`), &thumbResult); err != nil {
+		t.Fatalf("decode large text thumbnail: %v", err)
+	}
+	if thumbResult.Kind != "text" {
+		t.Fatalf("large text kind = %q, want text", thumbResult.Kind)
+	}
+	if !strings.HasPrefix(thumbResult.TextPreview, "line\n") {
+		t.Fatalf("large text_preview = %q", thumbResult.TextPreview)
+	}
+	if n := len([]rune(thumbResult.TextPreview)); n > 2000 {
+		t.Fatalf("text_preview runes = %d, want <= 2000", n)
+	}
 }
 
 func TestLogGetPathFilterAndRestoreFile(t *testing.T) {

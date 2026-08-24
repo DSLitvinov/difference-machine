@@ -66,7 +66,7 @@ Forester core  →  .DFM/
 
 | Раздел | Папка | Содержание |
 |--------|-------|------------|
-| Frontend | [gui_frontend](./gui_frontend/architecture.md) | React, Wails-мост, layout, клиентский state; [виртуальный скролл](./gui_frontend/virtual-scroll.md), [кэш ревизий](./gui_frontend/revision-cache.md) |
+| Frontend | [gui_frontend](./gui_frontend/architecture.md) | React, Wails-мост, layout, клиентский state; [сетка 48×48](#сетка-рабочей-копии); [виртуальный скролл](./gui_frontend/virtual-scroll.md), [кэш ревизий](./gui_frontend/revision-cache.md) |
 | Backend GUI | [gui_backend](./gui_backend/architecture.md) | Go/Wails, сессия, JSON API, workdir, превью |
 | Компоненты | [components](./components/architecture.md) | Кирпичи холста `4191:5772`: Atom / Item / Popover / Placeholder |
 | Панели | [panels](./panels/architecture.md) | Колонки `Panel / …` |
@@ -151,9 +151,11 @@ jsonapi.Close(h)
 **Frontend**
 
 - Режимы обзора папки / файла / коммита по [views](./views/architecture.md)
-- Сетка превью, карточки коммитов, стейджи и композер коммита
+- Сетка рабочей копии (default **48×48**, [ниже](#сетка-рабочей-копии)), карточки коммитов, стейджи и композер коммита
 - Диалоги и панели по спекам
 - Кэш превью в памяти (байты приходят из API)
+- Масштаб сетки (`gridTrack`) — UI-state сессии, не Forester и не `setup.cfg`
+- Только светлая тема: токены `:root`, SVG из `assets/light/`
 
 ---
 
@@ -164,15 +166,36 @@ jsonapi.Close(h)
 | Контур | API | UI |
 |--------|-----|-----|
 | Репозиторий | `repo.init`, список путей в cfg; Clean = удаление `.DFM/` | меню [Header Window](./components/items/header-window.md), First Start |
-| Рабочая копия | `status.get`, `workdir.*`, `index.add` | Project: дерево, сетка, dirty |
+| Рабочая копия | `status.get`, `workdir.*`, `index.add` | Project: дерево, сетка default 48×48, dirty |
 | История | `log.get`, `commit.*`, `diff.*`, `blob.get` | History: список коммитов, файлы ревизии; LRU — [revision-cache](./gui_frontend/revision-cache.md) |
 | Ветки | `branch.*`, `repo.switch` | селектор ветки, диалоги |
 | Сравнение | `compare.extract`, `restore.*` | extract в tmp_review, restore |
 | Слияние | `merge.*`, `object.*` | диалог merge, конфликты, теги объектов |
 | Блокировки | `lock.*` | индикатор и действия на файле |
-| Настройки | cfg, не JSON API | пути, тема, автор |
+| Настройки | cfg, не JSON API | пути, автор, язык |
 
 Детализация поверхностей: [views](./views/architecture.md). Колонки: [panels](./panels/architecture.md). Модалки: [dialogs](./dialogs/architecture.md). Состояния: [states](./states/architecture.md).
+
+---
+
+## Сетка рабочей копии
+
+Центр окна в семействе [project-browse](./views/project-browse.md): пользователь смотрит **каталог workdir**, не ревизию.
+
+**Продуктовое правило.** Стартовая плотность — Figma Size=Min. Иконка папки и превью файла **48×48**. Цель — максимум объектов в колонке (как мелкие значки в файловом менеджере). Крупный квадрат Size=Max (128) и трек 200 px — не посадка в обзор, а масштаб по Ctrl/Cmd+wheel. Переключателя grid/list в 0.8.1 нет. Подписи «N columns» / «zoom» в UI нет.
+
+**Два числа, не смешивать**
+
+| Число | Смысл | Default | Чей state |
+|-------|--------|---------|-----------|
+| `gridTrack` (`minTrack`) | минимум ширины колонки CSS Grid | **106 px** (ячейка Size=Min вместе с подписью) | Zustand, сессия процесса; не cfg |
+| `previewSize` | квадрат иконки / эскиза внутри тайла | **48 px** | производное: `48 + max(0, gridTrack − 106)` |
+
+Колонки считает `repeat(auto-fill, minmax(gridTrack, 1fr))`, gap 8, padding 16. Ширина окна и collapse info меняют **число колонок**, не размер квадрата. Квадрат не брать из фактической ширины трека (`1fr`): иначе широкое окно само увеличит иконки и сломает default 48.
+
+Диапазон `gridTrack`: **106…360**. Скролл без Ctrl/Cmd — прокрутка, не зум WebView. Смена репозитория масштаб не сбрасывает (предпочтение сессии). Рестарт приложения возвращает 106 / 48.
+
+Пиксели тайла: [content-view](./panels/content-view.md), [grid-file](./components/items/grid-file.md), [grid-folder](./components/items/grid-folder.md). Виртуализация и очередь thumbs: [virtual-scroll](./gui_frontend/virtual-scroll.md). При default колонок больше — в viewport больше тайлов; правило «thumbnail только visible + 1–2 ряда» не меняется, очередь по-прежнему 1–2 in-flight.
 
 ---
 

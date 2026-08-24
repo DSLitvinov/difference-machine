@@ -11,9 +11,12 @@ import (
 )
 
 const (
-	eventSessionChanged = "session:changed"
-	eventMenuSettings   = "menu:settings"
-	eventMenuMerge      = "menu:merge"
+	eventSessionChanged   = "session:changed"
+	eventMenuSettings     = "menu:settings"
+	eventMenuMerge        = "menu:merge"
+	eventMenuBranchCreate = "menu:branch-create"
+	eventMenuBranchRename = "menu:branch-rename"
+	eventMenuBranchDelete = "menu:branch-delete"
 )
 
 type nativeMenuCopy struct {
@@ -23,6 +26,11 @@ type nativeMenuCopy struct {
 	settings         string
 	repository       string
 	createRepository string
+	addRepository    string
+	branches         string
+	createBranch     string
+	renameBranch     string
+	deleteBranch     string
 	merge            string
 }
 
@@ -35,6 +43,11 @@ func nativeMenuCopyFor(locale string) nativeMenuCopy {
 			settings:         "Настройки",
 			repository:       "Репозиторий",
 			createRepository: "Создать репозиторий",
+			addRepository:    "Добавить репозиторий",
+			branches:         "Ветки",
+			createBranch:     "Создать",
+			renameBranch:     "Переименовать",
+			deleteBranch:     "Удалить",
 			merge:            "Слияние",
 		}
 	}
@@ -45,6 +58,11 @@ func nativeMenuCopyFor(locale string) nativeMenuCopy {
 		settings:         "Settings",
 		repository:       "Repository",
 		createRepository: "Create repository",
+		addRepository:    "Add repository",
+		branches:         "Branches",
+		createBranch:     "Create",
+		renameBranch:     "Rename",
+		deleteBranch:     "Delete",
 		merge:            "Merge",
 	}
 }
@@ -71,26 +89,50 @@ func (a *App) applicationMenu() *menu.Menu {
 
 	edit := appMenu.AddSubmenu(copy.edit)
 	edit.AddText(copy.settings, keys.CmdOrCtrl(","), func(_ *menu.CallbackData) {
-		if a.ctx == nil {
-			return
-		}
-		runtime.EventsEmit(a.ctx, eventMenuSettings)
+		a.emitMenu(eventMenuSettings)
 	})
 
 	repo := appMenu.AddSubmenu(copy.repository)
 	repo.AddText(copy.createRepository, nil, func(_ *menu.CallbackData) {
 		a.menuCreateRepository()
 	})
-	repo.AddText(copy.merge, nil, func(_ *menu.CallbackData) {
-		if a.ctx == nil {
-			return
-		}
-		runtime.EventsEmit(a.ctx, eventMenuMerge)
+	repo.AddText(copy.addRepository, nil, func(_ *menu.CallbackData) {
+		a.menuOpenFolder()
 	})
+
+	a.mu.Lock()
+	hasSession := a.hasSession
+	a.mu.Unlock()
+
+	branches := repo.AddSubmenu(copy.branches)
+	mergeItem := branches.AddText(copy.merge, nil, func(_ *menu.CallbackData) {
+		a.emitMenu(eventMenuMerge)
+	})
+	createItem := branches.AddText(copy.createBranch, nil, func(_ *menu.CallbackData) {
+		a.emitMenu(eventMenuBranchCreate)
+	})
+	renameItem := branches.AddText(copy.renameBranch, nil, func(_ *menu.CallbackData) {
+		a.emitMenu(eventMenuBranchRename)
+	})
+	deleteItem := branches.AddText(copy.deleteBranch, nil, func(_ *menu.CallbackData) {
+		a.emitMenu(eventMenuBranchDelete)
+	})
+	mergeItem.Disabled = !hasSession
+	createItem.Disabled = !hasSession
+	renameItem.Disabled = !hasSession
+	deleteItem.Disabled = !hasSession
+
 	a.appendRepoSwitchMenu(repo)
 
 	appMenu.Append(menu.WindowMenu())
 	return appMenu
+}
+
+func (a *App) emitMenu(event string) {
+	if a.ctx == nil {
+		return
+	}
+	runtime.EventsEmit(a.ctx, event)
 }
 
 func (a *App) appendRepoSwitchMenu(repo *menu.Menu) {

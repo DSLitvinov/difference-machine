@@ -39,7 +39,7 @@ func TestLoadSetupCfgSettingsIncludeCurrentRepo(t *testing.T) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	body := "[current repo]\npath = /Users/me/proj\n\n[ui]\ntheme = dark\n"
+	body := "[current repo]\npath = /Users/me/proj\n\n[ui]\ntheme = dark\nlanguage = ru\n"
 	if err := os.WriteFile(filepath.Join(dir, "setup.cfg"), []byte(body), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -52,8 +52,8 @@ func TestLoadSetupCfgSettingsIncludeCurrentRepo(t *testing.T) {
 		t.Fatal(err)
 	}
 	info := settingsFromCfg(cfg, repos)
-	if info.Theme != "dark" {
-		t.Fatalf("theme = %q", info.Theme)
+	if info.Locale != "ru" {
+		t.Fatalf("locale = %q", info.Locale)
 	}
 	if len(info.Repos) != 1 || info.Repos[0] != "/Users/me/proj" {
 		t.Fatalf("repos = %v", info.Repos)
@@ -71,6 +71,9 @@ func TestLoadSetupCfgSettingsIncludeCurrentRepo(t *testing.T) {
 	}
 	if strings.Contains(string(setup), "[current repo]") || strings.Contains(string(setup), "[repo]") {
 		t.Fatalf("setup.cfg still has repo sections: %s", setup)
+	}
+	if strings.Contains(string(setup), "theme") {
+		t.Fatalf("setup.cfg still has theme: %s", setup)
 	}
 }
 
