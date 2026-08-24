@@ -36,3 +36,7 @@ Empty истории и empty репозитория **не** заменяют C
 Трёхколоночная сборка: [../views/project-browse.md](../views/project-browse.md).
 
 Данные: `branch.list`, `status.get`, `log.get`. Панель не читает диск.
+
+Commit List при длинной ветке — virtualizer + догрузка `log.get` по `capped`, без текста пагинации. `diff.stat` — только видимые карточки. [virtual-scroll.md](../gui_frontend/virtual-scroll.md), [revision-cache.md](../gui_frontend/revision-cache.md).
+
+Вкладка Stages — тот же virtualizer; список с API, не из `status.get.staged_*`.

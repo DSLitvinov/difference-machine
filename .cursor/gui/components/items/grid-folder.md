@@ -5,7 +5,7 @@
 Figma: [Item / Grid View / Folder](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-6599) (`4191:6599`).  
 Код: `FolderGridTile`. Property: `state` (Default \| Hover \| Selected).
 
-Ширина 106 px (min-width 106). Иконка **48×48** `Atom / Icons / 48 / Folder` (`4234:9143`): корпус `#a8a29e`, union-глиф — экспорт SVG, не Lucide `Folder`.
+В наборе Figma ширина **106 px**. В Content View тайл заполняет трек отзывчивой сетки (`minmax(200px, 1fr)`, [content-view](../../panels/content-view.md)): `width: 100%`, `min-width: 0`. Иконка остаётся **48×48** `Atom / Icons / 48 / Folder` (`4234:9143`), по центру: корпус `#a8a29e`, union-глиф — экспорт SVG, не Lucide `Folder`. Не масштабировать иконку папки под 200 px.
 
 ---
 
@@ -18,7 +18,7 @@ Figma: [Item / Grid View / Folder](https://www.figma.com/design/qlwKiMPZblz96VSM
 
 Gap иконка↔тексты: 2 px. Padding: Default `space-100` 4 px; Hover/Selected горизонталь `spacing-xs` 4 px.
 
-**Нет** FileStatusBadge и lock на grid-папке.
+**Нет** FileStatusBadge и lock на grid-папке. Папка не вызывает `workdir.thumbnail` — иконка SVG из атома.
 
 ---
 

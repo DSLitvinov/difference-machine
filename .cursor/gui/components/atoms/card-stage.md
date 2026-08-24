@@ -5,7 +5,7 @@
 Figma: [Atom / Cards / Stage](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4402-9877) (`4402:9877`).  
 Код: `StageCard`.
 
-Ширина 245 px. Те же description / stats / date, что у commit project.
+Ширина 245 px. Те же description / stats / date, что у commit project. Атом не вызывает API. Пока нет метода стейджей — карточку не кормить мок-данными ([revision-cache.md](../../gui_frontend/revision-cache.md)).
 
 ---
 

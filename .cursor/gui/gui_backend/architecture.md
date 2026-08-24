@@ -5,7 +5,9 @@
 Обзор: [../architecture.md](../architecture.md).  
 Методы: [jsonapi.md](./jsonapi.md).  
 Workdir: [workdir.md](./workdir.md).  
-Превью: [thumbnails.md](./thumbnails.md).
+Превью: [thumbnails.md](./thumbnails.md).  
+Скролл сетки (frontend): [../gui_frontend/virtual-scroll.md](../gui_frontend/virtual-scroll.md).  
+Кэш коммитов/стейджей: [../gui_frontend/revision-cache.md](../gui_frontend/revision-cache.md).
 
 ---
 
@@ -79,13 +81,13 @@ Frontend не должен знать про `Handle`. Handle живёт тол�
 | Открыть файл в редакторе | `workdir.open` (`path` + опционально `editor`) |
 | Удалить файл | `workdir.delete` (корзина ОС, не `os.Remove` из GUI) |
 | Переименовать | `workdir.rename` |
-| Превью картинки/blend/текста | `workdir.thumbnail` / `blob.get` |
+| Превью картинки/blend/текста | `workdir.thumbnail` / `blob.get`; кэш — [thumbnails.md](./thumbnails.md) |
 
 Запрещено:
 
 - Запускать `forester` CLI из GUI для штатных операций.
 - Читать `.DFM/objects`, `index`, `HEAD` напрямую.
-- Собирать thumbnail в GUI, если метод API уже это делает.
+- Собирать thumbnail в React, если метод API уже это делает. Диск-кэш PNG в `.DFM/cache/thumbs/` после `Call` — можно (Wails).
 - Писать относительные пути с `\`.
 
 ---
@@ -114,8 +116,8 @@ Wails-слой:
 
 Если включён filesystem watcher:
 
-- Игнорировать `.DFM/` (кроме необходимости инвалидировать compare/tmp_review по продуктовому сценарию).
-- Дебаунс событий, затем `status.get` + инвалидация кэша превью на frontend.
+- Игнорировать `.DFM/` (в том числе `.DFM/cache/thumbs/` — запись эскиза не должна сбрасывать сетку).
+- Дебаунс событий, затем `status.get` + инвалидация кэша превью **затронутых path** ([thumbnails.md](./thumbnails.md)).
 - Не сканировать дерево в Go дублем `workdir.entries` — источник списка файлов остаётся JSON API.
 
 ---

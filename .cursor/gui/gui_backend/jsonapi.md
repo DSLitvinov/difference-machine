@@ -126,6 +126,8 @@ GUI вызывает **только** методы из этой таблицы.
 |------|--|
 | `hash` | обязательно |
 
+Вызывать при открытии inspect / для screenshot, не на каждую карточку в списке. Ответ — memory LRU по hash.
+
 ### `commit.revert` / `commit.reset`
 
 | Args | |
@@ -142,7 +144,7 @@ GUI вызывает **только** методы из этой таблицы.
 | `path` | пусто = вся история; иначе коммиты, затрагивающие файл |
 
 Результат: `{commits, capped, filtered}`.  
-`capped: true` — есть ещё записи; GUI не показывает «showing N of M», если этого нет в макете. Догрузка — повтор с большим `max_count` или отдельный UX из спеки.
+`capped: true` — есть ещё записи; GUI не показывает «showing N of M». Догрузка — повтор с большим `max_count` (отдельного `offset` нет). Каталог ≠ payload: `diff.stat` / `blob.get` не вызывать на всю страницу. [revision-cache.md](../gui_frontend/revision-cache.md).
 
 Файлового метода `commit.files` в диспетчере нет: список файлов ревизии — `diff.name_status` с `to` = хеш коммита.
 
@@ -190,16 +192,19 @@ GUI вызывает **только** методы из этой таблицы.
 
 ### `diff.stat`
 
-`{files_changed, insertions, deletions}` — insertions/deletions только по текстовым blob.
+`{files_changed, insertions, deletions}` — insertions/deletions только по текстовым blob.  
+GUI: лениво для **видимых** карточек, ключ hash (+ `path` в File view). Не после `log.get` на всю страницу.
 
 ### `diff.text`
 
 Дополнительно `path`. Результат: `{content, format: "unified", is_binary}`.  
-Файл не менялся в паре from/to — ошибка `file not changed in this commit`. Слишком большой — `file_too_large` (лимит 5 MiB суммарно).
+Файл не менялся в паре from/to — ошибка `file not changed in this commit`. Слишком большой — `file_too_large` (лимит 5 MiB суммарно). Только выбранный path.
 
 ### `blob.get`
 
-`commit` + `path` → `{content_base64, mime, size}`. Лимит 5 MiB.
+`commit` + `path` → `{content_base64, mime, size}`. Лимит 5 MiB. Memory LRU, не `.DFM/cache/thumbs/`. Только выбранный path.
+
+Ленивость слоёв: [revision-cache.md](../gui_frontend/revision-cache.md).
 
 ---
 

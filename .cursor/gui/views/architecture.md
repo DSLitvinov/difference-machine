@@ -50,7 +50,7 @@ Shell читает **производный** экран из store. Панел�
 | Center | 1120 | правая колонка скрыта (collapse / empty project / commit / history of file) |
 | Right | 332 | файл выбран, info не свёрнута; или Select More Files |
 
-Не держать пустую правую колонку «на всякий случай», если в варианте View её нет.
+Не держать пустую правую колонку «на всякий случай», если в варианте View её нет. Сетка папки в center заполняет слот: [отзывчивый Grid](../panels/content-view.md), не 7 колонок с кадра 1429.
 
 Исключение макета: `Histpry of File - Image` рисует left 333 и center 1096. Канон колонок — **309 / 788|1120 / 332** из панельных спек, не этот кадр.
 
@@ -151,6 +151,6 @@ Uncommitted --Commit All / composer--> Create Commit
 
 1. **Empty DFM Folder** (`4385:8956`): в сетке есть файлы, в сайдбаре плейсхолдер «Create repository». Это workdir без `.DFM/` или репозиторий без коммитов?
 2. **First Start vs Empty DFM Project**: оба умеют создать/открыть репо. First Start — только пока нет `[current repo]`?
-3. **Стейджи** (`View / … / Stages`): в JSON API Forester отдельной сущности stage нет (это не `staged_*` из `status.get`). Экран рисуем; данные — когда появится метод, не симулировать список.
+3. **Стейджи** (`View / … / Stages`): в JSON API Forester отдельной сущности stage нет (это не `staged_*` из `status.get`). Экран рисуем; данные — когда появится метод, не симулировать список. Кэш и лень — тот же каркас, ключ `stageId`: [revision-cache.md](../gui_frontend/revision-cache.md).
 4. **View Commit** без выбранного файла в списке коммита — кадра нет. Пока не выбран path в `Content / File list`, какой diff показывать?
 5. **History of File** только Image и Text, binary-ревизии файла нет. Для бинарного файла из File view — оставаться на File View Binary или брать binary stub из View Commit?

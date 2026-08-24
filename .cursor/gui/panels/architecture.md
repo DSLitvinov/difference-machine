@@ -44,7 +44,7 @@ Empty-варианты перечислены в спеке каноническ
 | **Shell** | Header Window, toaster, First Start | cfg, смена repo |
 | **Project view** | ветка, uncommitted, History/Stages | `branch.list`, `status.get`, `log.get` |
 | **File view** | история выбранного path | `log.get` + `path` |
-| **Content View** | сетка папки / превью файла / diff | `workdir.entries`, `diff.*`, `blob.get` |
+| **Content View** | сетка папки / превью файла / diff | `workdir.entries`, `diff.*`, `blob.get`; сетка — [virtual-scroll](../gui_frontend/virtual-scroll.md) |
 | **File Info / Select More Files** | метаданные выбора | `workdir.metadata`, `lock.list` |
 | **Merge banner** | Merge идёт / конфликты | `merge.status` |
 | **Detached banner** | Detached HEAD | `status.get.is_detached` |
@@ -83,10 +83,11 @@ Compare extract и restore файла — из History of File ([header-file-com
 
 ## History preview
 
-- Список файлов: `diff.name_status` с `to` = выбранный коммит.
-- Статистика карточки: `diff.stat` (кэшировать по hash).
-- Текстовый diff: `diff.text`. Бинарный — stub из макета.
-- Картинка из ревизии: `blob.get`.
+- Список файлов: `diff.name_status` с `to` = выбранный коммит — один раз на hash, в memory.
+- Статистика карточки: `diff.stat` по hash, **лениво** (visible карточки), кэш memory. Не после каждого `log.get` на всю страницу.
+- Текстовый diff: `diff.text` выбранного path. Бинарный — stub из макета.
+- Картинка из ревизии: `blob.get` выбранного path, memory (не `.DFM/cache/thumbs/`).
+- Канон: [revision-cache.md](../gui_frontend/revision-cache.md).
 - Restore file / restore version / revert **файла** (`restore.file`) / reset — соответствующие методы; destructive — через [диалог](../dialogs/architecture.md).
 - Compare файла: `compare.extract`.
 

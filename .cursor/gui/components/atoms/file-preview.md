@@ -5,7 +5,7 @@
 Figma: [Atom / File Preview](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-6503) (`4191:6503`).  
 Код: `FilePreview`. Property: `size`.
 
-Атом **не** вызывает API. Панель передаёт `src` превью (из `workdir.thumbnail` / `blob.get`) или пусто.
+Атом **не** вызывает API. Панель передаёт `src` превью (из `workdir.thumbnail` / `blob.get` после virtualizer) или пусто. Когда грузить: [virtual-scroll.md](../../gui_frontend/virtual-scroll.md).
 
 ---
 
@@ -19,7 +19,7 @@ Figma: [Atom / File Preview](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS
 
 Общее: фон `Background/default` `#ffffff`, обводка `1px solid Border/default` `#e4e4e7`. Содержимое — изображение на весь квадрат (`object-cover`) или пустой холст.
 
-`L` в сетке не используется: grid item берёт `S` (Min) и `M` (Max). `L` — крупный превью в info (рядом с item File Info, там рамка 308 и radius-lg).
+`L` в сетке не используется (ни атом 312, ни `radius-lg`). В наборе: grid item `S` (Min) и `M` (Max). В **панели** обзора папки квадрат превью растягивается с треком CSS Grid (min 200 px), радиус как у S/M (4 px). `L` — только info (рамка 308).
 
 ---
 

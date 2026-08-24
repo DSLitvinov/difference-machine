@@ -14,7 +14,7 @@
 - `.dfmignore`
 - пути, попавшие в `.dfmignore`
 
-Исключение: **`workdir.open`** может открыть `.DFM/tmp_review` и файлы внутри (extract коммита). Другие workdir-методы по-прежнему скрывают `.DFM/`.
+Исключение: **`workdir.open`** может открыть `.DFM/tmp_review` и файлы внутри (extract коммита). Другие workdir-методы по-прежнему скрывают `.DFM/` — в том числе `.DFM/cache/thumbs/` (диск-кэш эскизов, [thumbnails.md](./thumbnails.md)).
 
 Path traversal (`..`) и выход за корень репо — ошибка.
 
@@ -61,7 +61,7 @@ Path traversal (`..`) и выход за корень репо — ошибка.
 
 Результат: `{entries, total, has_more}`.
 
-Пагинация — backend-поведение. **Не** выводить в UI счётчики вроде «showing 2 of 3», если их нет в макете. Догрузка — следующий `offset`, без видимой подписи.
+Пагинация — backend-поведение. **Не** выводить в UI счётчики вроде «showing 2 of 3», если их нет в макете. Догрузка — следующий `offset`, без видимой подписи. Virtualizer и ленивые thumbs: [../gui_frontend/virtual-scroll.md](../gui_frontend/virtual-scroll.md).
 
 `entries_by_paths` — точечный refresh известных путей (после rename/status), без полного list.
 

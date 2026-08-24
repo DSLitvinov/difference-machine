@@ -34,6 +34,7 @@ Binary-ревизии файла отдельным View нет. Пока нет
 
 - Diff текста: `diff.text` с `path` и выбранным коммитом.
 - Картинка ревизии: `blob.get`.
+- Не вызывать `diff.name_status` всего дерева ради одного файла. LRU: [revision-cache.md](../gui_frontend/revision-cache.md).
 - Compare: `compare.extract` + open tmp_review для этого path.
 - Revert файла: `restore.file`. Destructive — через [диалог](../dialogs/architecture.md).
 

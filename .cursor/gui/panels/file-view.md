@@ -17,4 +17,4 @@ Figma: [Panel / File view](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 
 Вариант **File view - History Null** (`4309:9019`): [NoHistoryFile](../components/atoms/card-no-history-file.md).
 
-`log.get` с `path`. Не дерево workdir.
+`log.get` с `path`. Не дерево workdir. Список виртуализировать; `diff.stat` карточки — visible + overscan ([revision-cache.md](../gui_frontend/revision-cache.md)).

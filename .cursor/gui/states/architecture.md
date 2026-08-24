@@ -32,10 +32,12 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 |-----|-----------|--------------|
 | Первая загрузка репо | Skeleton/empty панели по макету | Toast + остаться на empty |
 | `log.get` / `workdir.entries` | Не чистить предыдущий список без нужды; догрузка тихая | Список остаётся, ошибка в toast |
-| Thumbnail тайла | Место превью в состоянии loading | `placeholder` |
+| `diff.stat` карточки | Слот Stats пустой (без «…»); title/date из `log.get` уже видны | Карточка без stats, toast |
+| `diff.text` / `blob.get` | Превью path по макету (пустой кадр / stub); не спиннер на весь commit inspect | Toast; список path остаётся |
+| Thumbnail тайла | Пустой квадрат `FilePreview` (атом без spinner); грузить только viewport + overscan | `placeholder` в кэше, без ретрая того же ключа |
 | Мутация (commit, switch) | Submit disabled | Диалог открыт |
 
-Не показывать глобальный полноэкранный spinner, если его нет в Figma.
+Не показывать глобальный полноэкранный spinner, если его нет в Figma. Эскизы: [virtual-scroll.md](../gui_frontend/virtual-scroll.md). Ревизии: [revision-cache.md](../gui_frontend/revision-cache.md).
 
 ---
 

@@ -5,7 +5,7 @@
 Figma: [Atom / Cards / Commit Project](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4279-11417) (`4279:11417`).  
 Код: `CommitProjectCard`. Boolean properties: `head`, `merge`, `more`, `tag`.
 
-Ширина в наборе **245 px**. Вертикальный stack, gap 8 px. Атом не вызывает `log.get` / `diff.stat`.
+Ширина в наборе **245 px**. Вертикальный stack, gap 8 px. Атом не вызывает `log.get` / `diff.stat`. Панель отдаёт stats из LRU, когда карточка в viewport ([revision-cache.md](../../gui_frontend/revision-cache.md)). Пока `diff.stat` нет — слот Stats пустой, без «…».
 
 ---
 

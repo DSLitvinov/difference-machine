@@ -56,7 +56,7 @@
 
 ## Данные
 
-Атом и item **не** вызывают JSON API. Панель передаёт готовые поля и колбэки.
+Атом и item **не** вызывают JSON API. Панель передаёт готовые поля и колбэки. Эскиз сетки — не в тайле: [virtual-scroll.md](../gui_frontend/virtual-scroll.md).
 
 Имена в коде — по UI (`FileStatusBadge`), не по методу API (`WorkdirThumbnailWidget`).
 

@@ -2,6 +2,8 @@
 
 Правила веб-слоя в `sources/frontend/dfm-gui/frontend`.  
 Обзор: [../architecture.md](../architecture.md).  
+Виртуальный скролл и ленивые эскизы: [virtual-scroll.md](./virtual-scroll.md).  
+Кэш коммитов и стейджей: [revision-cache.md](./revision-cache.md).  
 Панели / диалоги / состояния / экраны / компоненты — соседние папки.
 
 ---
@@ -42,7 +44,7 @@ Frontend не импортирует Go и не читает диск. Нет `f
 
 First Start — отдельное окно 640×656, [first-start](../views/first-start.md).
 
-Размеры колонок — из спеки View; persist splitter только если не ломает 309 / 788|1120 / 332.
+Размеры колонок — из спеки View; persist splitter только если не ломает 309 / 788|1120 / 332. Сетка папки внутри center — CSS Grid `auto-fill` / `minmax(200px, 1fr)`, не фиксированные 7×106 с кадра.
 
 Видимые подписи, бейджи, пустые состояния — только из Figma/спеки панели или экрана.
 
@@ -56,11 +58,11 @@ Zustand (или эквивалент) хранит:
 |------|---------|-----------------|
 | App | текущий repo path, тема, first-start vs app | cfg + local |
 | Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, sidebarTab, commitComposer | UI; экран из [views](../views/architecture.md) |
-| History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*` |
-| VCS | snapshot `status.get`, `merge.status` | API |
-| Preview cache | thumbnails по path | `workdir.thumbnail` |
+| History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*`; LRU payload — [revision-cache.md](./revision-cache.md) |
+| VCS | snapshot `status.get`, `merge.status` | API; не путать со Stages |
+| Preview cache | LRU эскизов workdir, ключ path+size+mtime | [thumbnails.md](../gui_backend/thumbnails.md), [virtual-scroll.md](./virtual-scroll.md) |
 
-Не класть в store сырые байты всех файлов репо. Кэш превью — LRU/по видимым path.
+Не класть в store сырые байты всех файлов репо. Кэш превью — LRU, blob URL, не вечный base64.
 
 Селекторы: панели читают узкий срез, не весь store.
 
@@ -68,10 +70,14 @@ Zustand (или эквивалент) хранит:
 
 ## Списки и виртуализация
 
+Канон: [virtual-scroll.md](./virtual-scroll.md). Кэш эскизов: [thumbnails.md](../gui_backend/thumbnails.md). Кэш ревизий: [revision-cache.md](./revision-cache.md).
+
 `workdir.entries` и `log.get` пагинируются на backend. Frontend:
 
 - Догружает следующую страницу при scroll, без пользовательского текста пагинации.
-- Для сетки превью — virtualizer по макету; запросы thumbnail только для видимых (+ небольшой overscan).
+- Сетка папки — CSS Grid `repeat(auto-fill, minmax(200px, 1fr))`, gap 8, padding 16; virtualizer считает `nCols` с контейнера. `workdir.thumbnail` только для видимых + 1–2 ряда overscan.
+- Карточки History — `diff.stat` только для видимых; payload path — только выбранный файл.
+- Очередь **1–2** in-flight на все `Call` окна.
 - `has_more` / `capped` — внутренние флаги, не копирайт в UI.
 
 ---

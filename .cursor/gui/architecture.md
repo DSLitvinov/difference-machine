@@ -66,7 +66,7 @@ Forester core  →  .DFM/
 
 | Раздел | Папка | Содержание |
 |--------|-------|------------|
-| Frontend | [gui_frontend](./gui_frontend/architecture.md) | React, Wails-мост, layout, клиентский state |
+| Frontend | [gui_frontend](./gui_frontend/architecture.md) | React, Wails-мост, layout, клиентский state; [виртуальный скролл](./gui_frontend/virtual-scroll.md), [кэш ревизий](./gui_frontend/revision-cache.md) |
 | Backend GUI | [gui_backend](./gui_backend/architecture.md) | Go/Wails, сессия, JSON API, workdir, превью |
 | Компоненты | [components](./components/architecture.md) | Кирпичи холста `4191:5772`: Atom / Item / Popover / Placeholder |
 | Панели | [panels](./panels/architecture.md) | Колонки `Panel / …` |
@@ -164,7 +164,7 @@ jsonapi.Close(h)
 |--------|-----|-----|
 | Репозиторий | `repo.init`, список путей в cfg; Clean = удаление `.DFM/` | меню [Header Window](./components/items/header-window.md), First Start |
 | Рабочая копия | `status.get`, `workdir.*`, `index.add` | Project: дерево, сетка, dirty |
-| История | `log.get`, `commit.*`, `diff.*`, `blob.get` | History: список коммитов, файлы ревизии |
+| История | `log.get`, `commit.*`, `diff.*`, `blob.get` | History: список коммитов, файлы ревизии; LRU — [revision-cache](./gui_frontend/revision-cache.md) |
 | Ветки | `branch.*`, `repo.switch` | селектор ветки, диалоги |
 | Сравнение | `compare.extract`, `restore.*` | extract в tmp_review, restore |
 | Слияние | `merge.*`, `object.*` | диалог merge, конфликты, теги объектов |

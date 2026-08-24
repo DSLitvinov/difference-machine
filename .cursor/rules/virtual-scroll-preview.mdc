@@ -1,0 +1,62 @@
+---
+description: Virtual scroll, lazy thumbnails, and revision cache — no pagination chrome
+globs: sources/frontend/dfm-gui/**/*.{go,ts,tsx},.cursor/gui/**/*.md
+alwaysApply: false
+---
+
+# Virtual scroll, lazy previews, revision cache
+
+Folder grids and long lists must virtualize. Heavy payloads load only for what is on screen or selected. Do not add pagination copy.
+
+Specs: `.cursor/gui/gui_frontend/virtual-scroll.md`, `.cursor/gui/gui_frontend/revision-cache.md`, `.cursor/gui/gui_backend/thumbnails.md`.
+
+## Three axes
+
+| Axis | API | When |
+|------|-----|------|
+| Catalog | `workdir.entries` / `search`; history: `log.get` | Next page when the virtualizer nears the end of the **already loaded** array |
+| Workdir thumbnail | `workdir.thumbnail` | Tiles in **viewport + 1–2 rows overscan** only |
+| Revision payload | `diff.stat` / `name_status` / `diff.text` / `blob.get` / `commit.get` | Visible **cards** (`diff.stat`) or the **selected** path — not every commit on the log page |
+
+A page of entries or `log.get` commits is metadata for layout. It is **not** permission to fire matching thumbnail / `diff.stat` / `blob.get` calls.
+
+## Virtualizer
+
+- Required: Content View folder grid; long commit / stage lists; long file lists in commit inspect / Select More Files.
+- Folder grid is **responsive CSS Grid**, not a screenshot column count:
+
+```css
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+gap: 8px;
+```
+
+  Padding 16. `nCols = max(1, floor((innerWidth + 8) / 208))`. Virtualizer follows ResizeObserver; do not hardcode 7×106. Tiles `width: 100%`. File preview square grows with the track (`aspect-ratio: 1`); folder icon stays 48×48. Brick hover/badges from Size=Max. Not FilePreview L.
+- Not: window chrome, a single File Info `L` preview, short menus.
+- Keep scroll position when appending a catalog page. Reset scroll on folder / Changed / search / branch change, not on selection change.
+- Selection lives in the store (paths / commit hash), not in mounted DOM nodes.
+
+## Shared queue
+
+- **1–2** in-flight Forester `Call`s for the whole window (thumbs **and** history). The JSON API is globally mutexed; a burst does not go faster.
+- Priority: selected panel payload, then visible tiles/cards, then overscan.
+- Atoms and cards do **not** call the API. The panel owns the virtualizer and the queue.
+
+## Workdir thumbnails
+
+- Protocol: memory LRU → disk PNG (ffmpeg `kind: image` only, `.DFM/cache/thumbs/`) → `workdir.thumbnail`. Full rules in `thumbnails.md`.
+- Key: `repoAbs + relPath + size + mtime`. Loading: empty `FilePreview` square. No grid-wide spinner.
+- Watcher ignores `.DFM/cache/`. Invalidate per path on watcher / rename / delete.
+
+## Commits and stages
+
+- `log.get` draws title / author / date. `diff.stat` only for visible cards; empty stats slot until the hit (no “…” copy).
+- Opening a commit: one `diff.name_status`; `diff.text` / `blob.get` only for the **selected** path. Do not prefetch every file in the commit.
+- Memory LRU keyed by `commitHash` (immutable). Do **not** write revision blobs to `.DFM/cache/` — they already live in `.DFM/objects`.
+- Named **Stages** (StageCard) are not `status.get` `staged_*`. No JSON API in 0.8.1: render the Figma empty/placeholder, do not mock a list. When a method exists, same lazy layers with key `stageId` and invalidate on stage mutate — see `revision-cache.md`.
+- Index dirty files use workdir thumbnail keys (mtime), not the revision LRU.
+
+## UI chrome
+
+- `has_more` / `capped` / `total` are internal. Never render `showing 2 of 3`, page numbers, or “preview 2 of 3”.
+- If a11y needs a name, use `aria-*` / `sr-only` only.

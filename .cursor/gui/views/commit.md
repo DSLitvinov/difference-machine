@@ -36,9 +36,11 @@
 
 ## Данные
 
-- Список path: `diff.name_status` с `to` = выбранный hash.
-- Статистика хедера: `diff.stat` (кэш по hash).
-- Текст: `diff.text`. Картинка: `blob.get`.
+- Список path: `diff.name_status` с `to` = выбранный hash (один `Call` на hash, дальше memory).
+- Статистика хедера: `diff.stat` (тот же ключ, что у карточки).
+- Текст: `diff.text`. Картинка: `blob.get`. Только **выбранный** path, не все файлы коммита.
+
+Ленивость и LRU: [revision-cache.md](../gui_frontend/revision-cache.md).
 
 Кадра «коммит выбран, path в списке нет» в Figma нет. Не показывать пустой центр с выдуманным copy. Пока нет ответа на вопрос 4 в [architecture.md](./architecture.md) — выбрать первый path списка (как в трёх кадрах-примерах) **или** ждать явного клика; не добавлять подпись «select a file».
 

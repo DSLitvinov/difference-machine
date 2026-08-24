@@ -47,7 +47,7 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 5. **Несколько файлов** — Select More Files, не стек File Info.
 6. **Collapse** — `infoCollapsed`: right нет, center 1120, хедер Folder Action `Collapse=yes`. То же правило для file-preview collapse.
 7. **Create Commit** — не [Dialog /](../dialogs/architecture.md). Форма в слоте Uncommitted files. Right — Select More Files (действия над выбранными path: combobox + Apply). Cancel возвращает карточку Uncommitted.
-8. **Stages** — вкладка того же Project view. Не git `staged_*`. API сущности пока нет — см. вопрос 3 в [architecture.md](./architecture.md).
+8. **Stages** — вкладка того же Project view. Не git `staged_*`. API сущности пока нет — см. вопрос 3 в [architecture.md](./architecture.md). Когда метод появится: virtualizer + LRU как у коммитов ([revision-cache.md](../gui_frontend/revision-cache.md)).
 9. **Changed** вкл. — сетка = dirty файлы всего проекта, не текущая папка.
 
 ---
