@@ -19,7 +19,9 @@ shadcn `Input`: ширина 300, min-height 36, radius 6, border `#e4e4e7`, sha
 
 Sort открывает [popovers/sort](../popovers/sort.md). Filter — [popovers/filters](../popovers/filters.md).
 
-Нет кнопки «grid/list» в этом item — вид сетки в другом хедере, если он есть в Folder Action header.
+Поиск: `workdir.search`. **В корне** (`folderPath` пустой) — по всем папкам. **Во вложенной папке** — только path с префиксом текущей папки (результаты search обрезать на frontend, у метода нет `path`). Пустой query — не звать API, вернуть обычную сетку.
+
+Кнопок grid/list в 0.8.1 **нет** (будут позже). Не добавлять переключатель вида.
 
 ---
 
@@ -27,3 +29,4 @@ Sort открывает [popovers/sort](../popovers/sort.md). Filter — [popove
 
 - Подпись «showing N of M».
 - Четвёртая кнопка без макета.
+- Поиск «как git grep по содержимому», если query — имя/путь.

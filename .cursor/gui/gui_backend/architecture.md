@@ -74,6 +74,8 @@ Frontend не должен знать про `Handle`. Handle живёт тол�
 | Список репозиториев | `setup.cfg` `[repo]` / `[current repo]` |
 | Автор по умолчанию | `setup.cfg` `[user]`; в `commit.create` передавать `author` |
 | Выбор папки на диске | Wails/OS dialog → абсолютный путь |
+| Open Folder / Create repository | picker + `Open` / `repo.init` — [Header Window](../components/items/header-window.md) |
+| Clean repository | Close + удалить каталог `.DFM/` на диске, не JSON API |
 | Открыть файл в редакторе | `workdir.open` (`path` + опционально `editor`) |
 | Удалить файл | `workdir.delete` (корзина ОС, не `os.Remove` из GUI) |
 | Переименовать | `workdir.rename` |

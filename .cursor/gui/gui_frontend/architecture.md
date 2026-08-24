@@ -2,7 +2,7 @@
 
 Правила веб-слоя в `sources/frontend/dfm-gui/frontend`.  
 Обзор: [../architecture.md](../architecture.md).  
-Панели / диалоги / состояния / компоненты — соседние папки.
+Панели / диалоги / состояния / экраны / компоненты — соседние папки.
 
 ---
 
@@ -33,16 +33,18 @@ Frontend не импортирует Go и не читает диск. Нет `f
 
 ## Layout
 
-Главное окно — shell из панелей (не роутер страниц):
+Главное окно — shell из панелей по [views](../views/architecture.md), не роутер страниц:
 
-- **Rail / sidebar mode** — переключение Project и History (если так в макете).
-- **Sidebar** — дерево папок или список коммитов.
-- **Preview** — сетка файлов, diff, просмотр.
-- **Info** — метаданные выбранного файла/коммита.
+- **Header Window** — шапка 1429×48 на всех app-экранах.
+- **Left** — Project view или File view (контекст, не «вторая страница»).
+- **Center** — сетка папки, превью файла, diff ревизии или состав коммита.
+- **Right** — File Info / Select More Files, либо скрыта (center 1120).
 
-Размеры колонок — из макета; persist splitter в local storage допустим, если не противоречит спеке.
+First Start — отдельное окно 640×656, [first-start](../views/first-start.md).
 
-Видимые подписи, бейджи, пустые состояния — только из Figma/спеки панели.
+Размеры колонок — из спеки View; persist splitter только если не ломает 309 / 788|1120 / 332.
+
+Видимые подписи, бейджи, пустые состояния — только из Figma/спеки панели или экрана.
 
 ---
 
@@ -52,8 +54,8 @@ Zustand (или эквивалент) хранит:
 
 | Срез | Примеры | Источник истины |
 |------|---------|-----------------|
-| App | текущий repo path, тема, настройки UI | cfg + local |
-| Project | path папки, selection, filter | `workdir.*` + UI |
+| App | текущий repo path, тема, first-start vs app | cfg + local |
+| Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, sidebarTab, commitComposer | UI; экран из [views](../views/architecture.md) |
 | History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*` |
 | VCS | snapshot `status.get`, `merge.status` | API |
 | Preview cache | thumbnails по path | `workdir.thumbnail` |

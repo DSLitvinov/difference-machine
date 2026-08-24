@@ -71,6 +71,8 @@ GUI вызывает **только** методы из этой таблицы.
 
 Результат: `commits_found`, `commits_rebuilt` (всегда 0), `trees_found`, `blobs_found`.
 
+**Clean repository** (меню окна) — не метод JSON API. GUI удаляет каталог `.DFM/` после `Close`. См. [header-window](../components/items/header-window.md).
+
 ---
 
 ## Status и index
@@ -103,7 +105,7 @@ GUI вызывает **только** методы из этой таблицы.
 
 Ставит пути в index. Коммит без непустого index невозможен (бизнес-правило Forester).
 
-Метода `index.drop` в диспетчере **нет**. Unstage в GUI не выдумывать без нового API.
+Метода `index.drop` в диспетчере **нет**. Combobox File Action / Select More Files не должен слать «unstage», пока метод не появится.
 
 ---
 

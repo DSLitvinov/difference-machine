@@ -33,6 +33,6 @@ Padding колонки: 12 px горизонталь.
 
 Empty истории и empty репозитория **не** заменяют Card Directory. No History и Null Repository живут только в Commit List.
 
-Не описывать здесь трёхколоночный экран.
+Трёхколоночная сборка: [../views/project-browse.md](../views/project-browse.md).
 
 Данные: `branch.list`, `status.get`, `log.get`. Панель не читает диск.

@@ -69,9 +69,10 @@ Forester core  →  .DFM/
 | Frontend | [gui_frontend](./gui_frontend/architecture.md) | React, Wails-мост, layout, клиентский state |
 | Backend GUI | [gui_backend](./gui_backend/architecture.md) | Go/Wails, сессия, JSON API, workdir, превью |
 | Компоненты | [components](./components/architecture.md) | Кирпичи холста `4191:5772`: Atom / Item / Popover / Placeholder |
-| Панели | [panels](./panels/architecture.md) | Колонки `Panel / …` (не `View / …`) |
+| Панели | [panels](./panels/architecture.md) | Колонки `Panel / …` |
+| Экраны | [views](./views/architecture.md) | Сборка окна `View / …` из панелей |
 | Диалоги | [dialogs](./dialogs/architecture.md) | Модалки `Dialog / …` |
-| Состояния | [states](./states/architecture.md) | Режимы репозитория и экрана (не кирпичи) |
+| Состояния | [states](./states/architecture.md) | Режимы репозитория и UI; экран вычисляется, не хранится |
 
 Контракт методов: [gui_backend/jsonapi.md](./gui_backend/jsonapi.md).
 
@@ -148,8 +149,8 @@ jsonapi.Close(h)
 
 **Frontend**
 
-- Режимы Project / History
-- Сетка превью, дерево папок, карточки коммитов
+- Режимы обзора папки / файла / коммита по [views](./views/architecture.md)
+- Сетка превью, карточки коммитов, стейджи и композер коммита
 - Диалоги и панели по спекам
 - Кэш превью в памяти (байты приходят из API)
 
@@ -161,7 +162,7 @@ jsonapi.Close(h)
 
 | Контур | API | UI |
 |--------|-----|-----|
-| Репозиторий | `repo.init`, список путей в cfg | мастер init, селектор репо |
+| Репозиторий | `repo.init`, список путей в cfg; Clean = удаление `.DFM/` | меню [Header Window](./components/items/header-window.md), First Start |
 | Рабочая копия | `status.get`, `workdir.*`, `index.add` | Project: дерево, сетка, dirty |
 | История | `log.get`, `commit.*`, `diff.*`, `blob.get` | History: список коммитов, файлы ревизии |
 | Ветки | `branch.*`, `repo.switch` | селектор ветки, диалоги |
@@ -170,7 +171,7 @@ jsonapi.Close(h)
 | Блокировки | `lock.*` | индикатор и действия на файле |
 | Настройки | cfg, не JSON API | пути, тема, автор |
 
-Детализация: [panels](./panels/architecture.md), [dialogs](./dialogs/architecture.md), [states](./states/architecture.md).
+Детализация поверхностей: [views](./views/architecture.md). Колонки: [panels](./panels/architecture.md). Модалки: [dialogs](./dialogs/architecture.md). Состояния: [states](./states/architecture.md).
 
 ---
 
@@ -199,7 +200,7 @@ jsonapi.Close(h)
 См. [components/architecture.md](./components/architecture.md) и [shadcn-custom-components](../rules/shadcn-custom-components.mdc).
 
 Дизайн-система: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772) (`4191:5772`).  
-Кирпичи — `Atom /`, `Item /`, `Panel /`, `Dialog /`, `Popover /`. Фреймы `View / …` и внешний вид окна **не** входят в этот каталог.
+Кирпичи — `Atom /`, `Item /`, `Panel /`, `Dialog /`, `Popover /`. Сборка окна — `View / …` в [views](./views/architecture.md), не в каталоге кирпичей.
 
 shadcn/ui — база поведения; кастомный атом — по наборному фрейму Figma, не «на глаз» с кадра View.
 
@@ -209,7 +210,15 @@ shadcn/ui — база поведения; кастомный атом — по 
 
 См. [panels/architecture.md](./panels/architecture.md) и кирпичи [project-view](./panels/project-view.md), [content-view](./panels/content-view.md), [file-info](./panels/file-info.md).
 
-Панель — колонка `Panel / …` (sidebar, preview, info). Данные из JSON API. Не описывать сборку `View / …` в этих спеках.
+Панель — колонка `Panel / …` (sidebar, preview, info). Данные из JSON API. Какие колонки стоят вместе — [views](./views/architecture.md), не спека панели.
+
+---
+
+## Правила построения экранов
+
+См. [views/architecture.md](./views/architecture.md).
+
+Экран `View /` — рецепт: Header Window + left + center + optional right. Не отдельный виджет. Имя кадра вычисляется из [states](./states/architecture.md), не хранится в store.
 
 ---
 
@@ -223,4 +232,4 @@ shadcn/ui — база поведения; кастомный атом — по 
 
 См. [states/architecture.md](./states/architecture.md).
 
-Ключевые режимы репозитория: нет репо / не инициализирован / clean / dirty / detached HEAD / merge in progress. Frontend отображает их; источник истины — `status.get` и `merge.status`.
+Ключевые режимы репозитория: нет репо / не инициализирован / clean / dirty / detached HEAD / merge in progress. Frontend отображает их; источник истины — `status.get` и `merge.status`. Какой `View /` показать — таблица в [views](./views/architecture.md) и [states](./states/architecture.md).

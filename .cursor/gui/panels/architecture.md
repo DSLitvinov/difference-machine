@@ -3,13 +3,14 @@
 Панель — **постоянная** область главного окна. Не модалка и не toast.  
 Правила диалогов: [../dialogs/architecture.md](../dialogs/architecture.md).  
 Frontend shell: [../gui_frontend/architecture.md](../gui_frontend/architecture.md).  
-Кирпичи колонок (без `View /`): каталог ниже.
+Сборка колонок в окно: [../views/architecture.md](../views/architecture.md).  
+Кирпичи колонок: каталог ниже.
 
 ---
 
 ## Кирпичи Figma (`Panel /`)
 
-Холст [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772). Не специфицировать здесь `View / Project view / …`.
+Холст [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772). Какие `View / Project view / …` в каком состоянии — [../views](../views/architecture.md), не эта таблица.
 
 | Figma | Node | Спека |
 |-------|------|-------|
@@ -36,47 +37,47 @@ Empty-варианты перечислены в спеке каноническ
 
 ## Каркас окна
 
-Логические панели, выводимые из API Forester и типичного VCS-клиента. Имена в коде — по макету.
+Порядок и видимость колонок — только [views](../views/architecture.md). Ниже — какие данные обязательны, когда панель есть в макете.
 
 | Панель | Роль | Основные методы |
 |--------|------|-----------------|
-| **Shell** | Окно, rail режимов, toaster | cfg, смена repo |
-| **Repo / branch** | Текущий репозиторий и ветка | `branch.list`, `repo.switch` |
-| **Project sidebar** | Дерево папок workdir | `workdir.tree` |
-| **Project preview** | Сетка/список файлов текущей папки | `workdir.entries`, `workdir.thumbnail`, `status.get` |
-| **History sidebar** | Список коммитов выбранной ветки | `log.get`, `diff.stat` |
-| **History preview** | Файлы ревизии, diff, blob | `diff.name_status`, `diff.text`, `blob.get` |
-| **Content info** | Метаданные выбора, история файла | `workdir.metadata`, `log.get` + `path`, `lock.list` |
+| **Shell** | Header Window, toaster, First Start | cfg, смена repo |
+| **Project view** | ветка, uncommitted, History/Stages | `branch.list`, `status.get`, `log.get` |
+| **File view** | история выбранного path | `log.get` + `path` |
+| **Content View** | сетка папки / превью файла / diff | `workdir.entries`, `diff.*`, `blob.get` |
+| **File Info / Select More Files** | метаданные выбора | `workdir.metadata`, `lock.list` |
 | **Merge banner** | Merge идёт / конфликты | `merge.status` |
 | **Detached banner** | Detached HEAD | `status.get.is_detached` |
-| **Settings** | Пути, автор, внешний вид | `setup.cfg` (не JSON API) |
+| **Settings** | пути, автор, внешний вид | `setup.cfg` (не JSON API) |
 
-Наличие, порядок и chrome — **только Figma**. Таблица задаёт, какие данные обязательны, когда панель есть в макете.
+Баннеров merge/detached на кадрах `View /` нет — полосы по [states](../states/architecture.md), когда API так говорит, не выдумывать chrome.
 
 ---
 
-## Режимы Project и History
+## Контекст left-колонки
 
-Один sidebar + один preview, содержимое зависит от режима.
+В макете нет отдельного окна History. Меняется **контекст сайдбара** внутри того же shell.
 
-| Режим | Sidebar | Preview | Info |
-|-------|---------|---------|------|
-| Project | дерево workdir | entries текущей папки, dirty-бейджи | файл/папка workdir |
-| History | карточки коммитов | изменение файлов коммита | коммит / файл в ревизии |
+| Контекст | Left | Когда |
+|----------|------|--------|
+| Проект | [project-view](./project-view.md) | обзор папки, стейджи, композер, View Commit |
+| Файл | [file-view](./file-view.md) | File View и History of File |
 
-Переключение режима не закрывает репозиторий и не должно сбрасывать ветку. Selection path можно шарить, если макет это делает.
+Вкладки **History / Stages** — внутри Project view, не смена контекста.
 
 ---
 
 ## Project preview
 
-- Источник списка: `workdir.entries`, не `status.get`.
-- Status нужен для бейджей и фильтра «только изменённые», если фильтр есть в тулбаре макета.
-- Тулбар (вид сетки/списка, фильтр расширений, scale) — из макета; значения вида не уходят в Forester.
+- Источник списка: по умолчанию `workdir.entries` текущей папки.
+- Switch **Changed**: все dirty файлы проекта, не текущая папка.
+- Status нужен для бейджей и фильтра Changed.
+- Тулбар: search / sort / filter из макета. Grid/list — нет в 0.8.1.
 - Open / rename / delete — `workdir.open` / `rename` / `delete`.
-- Stage: `index.add` по выбранным path.
+- Stage выбранных: combobox + Apply на File Action / Select More Files → `index.add` (unstage — когда появится `index.drop`).
+- Commit All Files: все dirty path → `index.add` → композер.
 
-Compare extract и restore — действия над коммитом, обычно из History, не из сетки workdir.
+Compare extract и restore файла — из History of File ([header-file-commit-action](../components/items/header-file-commit-action.md)), не из сетки workdir.
 
 ---
 
@@ -86,7 +87,8 @@ Compare extract и restore — действия над коммитом, обы�
 - Статистика карточки: `diff.stat` (кэшировать по hash).
 - Текстовый diff: `diff.text`. Бинарный — stub из макета.
 - Картинка из ревизии: `blob.get`.
-- Restore file / restore version / revert / reset — соответствующие методы; destructive — через [диалог](../dialogs/architecture.md).
+- Restore file / restore version / revert **файла** (`restore.file`) / reset — соответствующие методы; destructive — через [диалог](../dialogs/architecture.md).
+- Compare файла: `compare.extract`.
 
 ---
 
@@ -96,7 +98,7 @@ Compare extract и restore — действия над коммитом, обы�
 
 - Файл workdir: `workdir.metadata`, locks, `log.get` с `path`.
 - Коммит: `commit.get` (сообщение, автор, screenshot).
-- Кнопка «открыть во внешнем редакторе»: `workdir.open`.
+- Кнопка «открыть во внешнем редакторе»: `Edit in` в File Info — список из Settings / External editors → `workdir.open` + `editor`.
 
 ---
 

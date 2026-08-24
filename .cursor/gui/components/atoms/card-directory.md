@@ -38,9 +38,9 @@ Gap 4 px, Inter Regular 12/16, одна строка:
 
 Смысл = [FileStatusBadge](../badge-file-status.md) (`appended` / `new` / `modified` / `delete`). Цифры — агрегаты `status.get`. Нет `renamed`.
 
-Switch «Changed» — UI-фильтр списка, не мутация Forester.
+Switch «Changed» — **вкл.**: в Content View показать все изменённые и незакоммиченные файлы **всего проекта** (пересечение `status.get` со всеми path, не только текущая папка). Выкл.: обычная сетка `workdir.entries` текущей папки. Не мутация Forester.
 
-Кнопка: outline, radius 8, height как Button, full width. Колбэк → сценарий commit all (`index.add` + открыть Create Commit), не commit внутри атома.
+Кнопка: outline, radius 8, height как Button, full width. Колбэк → `index.add` **всех dirty path** (staged + unstaged + untracked + renamed из `status.get`) → открыть Create Commit. Не только видимые в сетке и не только текущая папка.
 
 ---
 

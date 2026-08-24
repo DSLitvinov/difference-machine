@@ -1,6 +1,6 @@
 # Panel / File view
 
-Левая колонка **истории файла** (не проекта).
+Левая колонка **истории файла** (не проекта). Экраны: [../views/file-preview.md](../views/file-preview.md), [../views/file-history.md](../views/file-history.md).
 
 Figma: [Panel / File view](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-7530) (`4309:7530`).  
 Код: `FileViewPanel`. 309×720.

@@ -4,7 +4,7 @@
 Панели и диалоги собираются из этих кирпичей плюс shadcn/ui.
 
 Холст дизайн-системы: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772) (`4191:5772`).  
-**Не** описывать и **не** реализовывать с этого холста фреймы `View / …` — это сборка окна, не кирпич.
+**Не** описывать и **не** реализовывать с этого холста фреймы `View / …` как кирпич — это сборка окна. Каталог экранов: [../views/architecture.md](../views/architecture.md).
 
 Обзор: [../architecture.md](../architecture.md).  
 Паритет: [figma-gui-parity](../../rules/figma-gui-parity.mdc).  
@@ -23,7 +23,7 @@
 | **Popover** | `Popover (` | Меню. shadcn `DropdownMenu` / `Popover` |
 | **Panel** | `Panel /` | Колонка. [../panels/architecture.md](../panels/architecture.md) |
 | **Dialog** | `Dialog /` | Модалка. [../dialogs/architecture.md](../dialogs/architecture.md) |
-| **View** | `View /` | Вне скоупа кирпичей. Не документировать здесь |
+| **View** | `View /` | Сборка окна. [../views/architecture.md](../views/architecture.md). Не документировать здесь |
 
 `Components / Dialog / …` — заготовки примитивов диалога, не отдельные продуктовые компоненты.
 

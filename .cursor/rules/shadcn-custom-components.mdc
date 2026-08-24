@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Custom shadcn/ui bricks
 
-Visual canon: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772) (`4191:5772`). Specs: `.cursor/gui/components/`, `.cursor/gui/panels/`, `.cursor/gui/dialogs/`. Do not implement `View / …` from this rule.
+Visual canon: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772) (`4191:5772`). Specs: `.cursor/gui/components/`, `.cursor/gui/panels/`, `.cursor/gui/dialogs/`, `.cursor/gui/views/`. Do not implement `View / …` as a brick from this rule — compose panels listed in the View spec.
 
 ## Layers
 
@@ -16,12 +16,14 @@ Visual canon: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VS
 | `Atom /` | `components/<domain>/` | Own `cva` keys from Figma (`type`, `size`, `state`). |
 | `Item /` | same, composed of atoms | Do not copy atom hex into the item. |
 | `Panel /` `Dialog /` `Popover /` | panel / dialog / popover | Compose bricks. Empty = `Content / Placeholder /`. |
+| `View /` | `.cursor/gui/views/` | Shell composition only. Not a `components/` file. |
 
 ## Figma fetch
 
 - One `get_design_context` per **variant set** (the frame with `type=` / `state=` / `size=`), never the whole canvas `4191:5772`.
 - Do not fetch each variant symbol separately.
 - Do not take colors from a `View /` screenshot if an Atom/Item set exists.
+- Layout of columns (which panel, 788 vs 1120) comes from the View spec, not from inventing a splitter.
 
 ## Do / don't
 

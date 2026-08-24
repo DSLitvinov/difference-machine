@@ -1,9 +1,10 @@
 # Состояния GUI
 
 Источник истины по репозиторию — Forester (`status.get`, `merge.status`, `branch.list`).  
-Frontend хранит **снимок** этих ответов плюс UI-state (selection, mode, open dialog).
+Frontend хранит **снимок** этих ответов плюс UI-state (selection, contentContext, open dialog).
 
-Обзор: [../architecture.md](../architecture.md).
+Обзор: [../architecture.md](../architecture.md).  
+Какой кадр `View /` собрать: [../views/architecture.md](../views/architecture.md).
 
 ---
 
@@ -13,13 +14,13 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 
 | Состояние | Как узнать | UI |
 |-----------|------------|-----|
-| **No repo** | Нет `[current repo]` / список пуст | Селектор / empty из макета, не вызывать workdir API |
-| **Not a repository** | `Call` → `not a Forester repository` | Предложить init |
-| **Ready / clean** | `status.get` без staged/unstaged/untracked/renamed | Обычный Project |
-| **Dirty** | Любой из списков status непустой | Бейджи, ограничения switch без диалога |
-| **Detached HEAD** | `is_detached: true` | Баннер; switch на ветку возвращает attached |
-| **Merge in progress** | `merge.status.in_progress` | Баннер + диалог merge; не стартовать второй merge |
-| **Merge conflicts** | `has_conflicts` | Список conflicts, continue заблокирован пока не разрешено (по макету) |
+| **No repo** | Нет `[current repo]` / список пуст | [First Start](../views/first-start.md); не вызывать workdir API |
+| **Not a repository** | `Call` → `not a Forester repository` | First Start или toast + Open; не app shell с сеткой |
+| **Ready / clean** | `status.get` без staged/unstaged/untracked/renamed | обзор папки / файл / коммит по UI-измерениям |
+| **Dirty** | Любой из списков status непустой | бейджи на сетке; композер Create Commit; ограничения switch |
+| **Detached HEAD** | `is_detached: true` | баннер поверх текущего View; switch на ветку возвращает attached |
+| **Merge in progress** | `merge.status.in_progress` | баннер + диалог merge; отдельного `View / Merge` нет |
+| **Merge conflicts** | `has_conflicts` | список conflicts в диалоге; continue заблокирован пока не разрешено |
 
 `.DFM/` отсутствует и path выбран — это **Not a repository**, не ошибка сети.
 
@@ -40,25 +41,53 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 
 ## Режимы окна (UI-state)
 
-Не путать с VCS:
+Не путать с VCS. Имя `View /` **не** класть в store: его вычисляет селектор из этих полей. Каталог: [../views/architecture.md](../views/architecture.md).
 
 | State | Значения | Persist |
 |-------|----------|---------|
-| Sidebar mode | Project \| History | да, если в спеке |
-| Current folder path | rel string | на сессию |
-| File / commit selection | paths, commit hash | на сессию |
-| Preview layout | grid \| list, scale, filters | local, если в макете |
+| shell | first-start \| app | нет |
+| folderPath | rel string (`""` = корень) | на сессию |
+| selectedCommit | hash или null | на сессию |
+| selection | none \| paths[] | на сессию |
+| contentContext | folder \| file \| file-revision \| commit | на сессию |
+| fileKind | image \| text \| binary | на сессию, от выбранного path |
+| infoCollapsed | bool | local, если в макете |
+| changedOnly | bool (switch Changed) | нет |
+| sidebarTab | history \| stages | на сессию |
+| commitComposer | closed \| open | нет |
+| Preview layout | grid \| list — **нет в 0.8.1**; scale, filters | local, если в макете |
 | Open dialog | id или null | нет |
 | Theme | light \| dark \| system | cfg/local |
 
-Смена repo сбрасывает folder/selection/commit. Тема и layout могут сохраняться.
+Нет измерения «режим окна Project vs History». Вкладки History/Stages — `sidebarTab` внутри Project view. Контекст файла — `contentContext`, left становится File view.
+
+Смена repo сбрасывает folder/selection/commit/composer. Тема и layout могут сохраняться.
+
+### Производный экран (кратко)
+
+| Условие | Семейство View |
+|---------|----------------|
+| `shell = first-start` | [First Start](../views/first-start.md) |
+| папка пустая, нет коммитов | Empty DFM Project |
+| файлы есть, нет истории репо в сайдбаре | Empty DFM Folder |
+| корень, selection none | Root Folder (± Collapse) |
+| вложенный path | SubFolder |
+| один файл в сетке | File Info |
+| несколько файлов в сетке | File More Info |
+| `sidebarTab = stages` | Stages |
+| `commitComposer = open` | Create Commit |
+| `contentContext = file` | [file-preview](../views/file-preview.md) |
+| `contentContext = file-revision` | [file-history](../views/file-history.md) |
+| `contentContext = commit` | [commit](../views/commit.md) |
+
+Полные слоты колонок — в спеках семейств, не дублировать здесь.
 
 ---
 
 ## Выбор и фокус
 
-- Пустой selection: info показывает состояние empty из макета (не «выберите файл» если такой копирайт не нарисован).
-- Многофайловый selection: info/multi-preview только если есть в макете; иначе действия тулбара над множеством без смены info.
+- Пустой selection: info — File Info Null / empty из макета ([not-select-file](../components/placeholders/not-select-file.md)), не произвольный «выберите файл».
+- Многофайловый selection: только [Select More Files](../panels/select-more-files.md) ([File More Info](../views/project-browse.md)).
 - После `workdir.rename` selection переезжает на `new_path`.
 - После `workdir.delete` path исчезает из selection.
 
