@@ -1,7 +1,7 @@
 # Popover Filters
 
 Figma: [Popover (Filters)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4272-6728) (`4272:6728`).  
-Код: `FiltersMenu`. База: shadcn `DropdownMenu`. Ширина **200 px**, radius 8, border `#e4e4e7`, shadow-md, py 4.
+Код: `FiltersMenu`. База: shadcn `DropdownMenu` + `DropdownMenuCheckboxItem`. Ширина **200 px**, radius 8, border `#e4e4e7`, shadow-md, py 4.
 
 ---
 
@@ -9,14 +9,10 @@ Figma: [Popover (Filters)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 
 Заголовок секции: `Filter by type`, Inter Semi Bold 14/20 `#09090b`, не кликабелен как фильтр.
 
-| Иконка 16 | Copy |
-|-----------|------|
-| `file-image` | `.jpeg` |
-| `file-text` | `.txt` |
-| `file-digit` | `.blend` |
+Список расширений — **файлы текущей папки** (`workdir.entries` / результаты search в этой папке), не фиксированный набор из макета. Copy: `.ext` в нижнем регистре (как в Figma `.jpeg`, не `JPEG`). Иконка 16: image / text / blend / binary по типу файла. Несколько пунктов можно включить сразу; выбранные — галочка shadcn `ItemIndicator`.
 
-Текст пунктов: Regular 14/20 `#18181b`. Separator. Затем destructive: `trash-2` + `Clean filters`, цвет `#ef4444`.
+Separator. Затем destructive: `trash-2` + `Clean filters`, цвет `#ef4444` — снимает все галочки.
 
-Не добавлять `.png`, «All files», чекбоксы, если их нет в этом popover. Расширения — как в макете (`.jpeg` не `JPEG`).
+Не добавлять «All files». Не звать API: фильтр UI панели.
 
 Фильтр — UI панели `workdir.entries`, не API.

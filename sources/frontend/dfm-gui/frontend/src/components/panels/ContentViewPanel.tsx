@@ -1,9 +1,19 @@
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { HeaderFolderAction } from "@/components/items/HeaderFolderAction";
+import { FilePreviewItemMenu } from "@/components/items/FilePreviewItemMenu";
 import { FolderEntryGrid } from "@/components/panels/FolderEntryGrid";
 import { FolderNullPlaceholder } from "@/components/placeholders/FolderNullPlaceholder";
+import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { foresterCall } from "@/lib/bridge";
+import { applyFolderQuery, folderExtensions, inCurrentFolder, type GridFilter, type GridSort } from "@/lib/folder-query";
 import type { Locale } from "@/lib/i18n";
 import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
+
+type FileMenu = {
+  path: string;
+  x: number;
+  y: number;
+};
 
 type ContentViewPanelProps = {
   locale: Locale;
@@ -21,6 +31,12 @@ type ContentViewPanelProps = {
   onExpandInfo?: () => void;
   onNeedMore?: () => void;
   onOpenFile?: (path: string) => void;
+  onAddInCommit?: (path: string) => void;
+  onRenameFile?: (path: string) => void;
+  onDeleteFile?: (path: string) => void;
+  onOpenInFolder?: (path: string) => void;
+  onEditIn?: (path: string, editor: string) => void;
+  onToggleLock?: (path: string) => void;
 };
 
 export function ContentViewPanel({
@@ -39,19 +55,80 @@ export function ContentViewPanel({
   onExpandInfo,
   onNeedMore,
   onOpenFile,
+  onAddInCommit,
+  onRenameFile,
+  onDeleteFile,
+  onOpenInFolder,
+  onEditIn,
+  onToggleLock,
 }: ContentViewPanelProps) {
-  const folders = entries.filter((entry) => entry.is_dir);
-  const files = entries.filter((entry) => !entry.is_dir);
-  const items = changedOnly ? files : [...folders, ...files];
   const [anchor, setAnchor] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [sort, setSort] = useState<GridSort>("modified");
+  const [filter, setFilter] = useState<GridFilter>([]);
+  const [searchEntries, setSearchEntries] = useState<DirEntry[] | null>(null);
+  const [menu, setMenu] = useState<FileMenu | null>(null);
 
   useEffect(() => {
     setAnchor(null);
+    setSearchOpen(false);
+    setQuery("");
+    setDebounced("");
+    setSearchEntries(null);
+    setMenu(null);
   }, [folderPath, changedOnly]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebounced(query), 300);
+    return () => window.clearTimeout(id);
+  }, [query]);
+
+  useEffect(() => {
+    const needle = debounced.trim();
+    if (!needle) {
+      setSearchEntries(null);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = (await foresterCall("workdir.search", { query: needle, limit: 200 })) as { entries?: DirEntry[] };
+        if (cancelled) {
+          return;
+        }
+        const found = (result.entries ?? []).filter((entry) => inCurrentFolder(entry.path, folderPath));
+        setSearchEntries(found);
+      } catch {
+        if (!cancelled) {
+          setSearchEntries([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [debounced, folderPath]);
+
+  const source = searchEntries ?? entries;
+  const searching = searchEntries !== null;
+  const extensions = useMemo(() => folderExtensions(source), [searchEntries, entries]);
+  const folders = source.filter((entry) => entry.is_dir);
+  const files = source.filter((entry) => !entry.is_dir);
+  const rawItems = changedOnly && !searching ? files : [...folders, ...files];
+  const items = useMemo(() => applyFolderQuery(rawItems, sort, filter), [rawItems, sort, filter]);
+  const filePaths = items.filter((entry) => !entry.is_dir).map((entry) => entry.path);
+
+  useEffect(() => {
+    setFilter((prev) => {
+      const next = prev.filter((ext) => extensions.includes(ext));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [extensions]);
 
   function selectFile(path: string, event: MouseEvent) {
     event.preventDefault();
-    const filePaths = files.map((entry) => entry.path);
     if (event.shiftKey && anchor) {
       const from = filePaths.indexOf(anchor);
       const to = filePaths.indexOf(path);
@@ -72,11 +149,42 @@ export function ContentViewPanel({
     setAnchor(path);
   }
 
-  const showEmptyFolder = items.length === 0 && !changedOnly;
+  function onFileMenu(path: string, event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    onSelect([path]);
+    setAnchor(path);
+    setMenu({ path, x: event.clientX, y: event.clientY });
+  }
+
+  const showEmptyFolder = items.length === 0 && !changedOnly && !searching && filter.length === 0;
+  const paginate = Boolean(hasMore) && !searching;
 
   return (
     <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden pb-3 pl-2 pr-3">
-      <HeaderFolderAction locale={locale} folderPath={folderPath} collapsed={collapsed} onNavigate={onNavigate} onExpandInfo={onExpandInfo} />
+      <HeaderFolderAction
+        locale={locale}
+        folderPath={folderPath}
+        collapsed={collapsed}
+        searchOpen={searchOpen}
+        query={query}
+        sort={sort}
+        filter={filter}
+        extensions={extensions}
+        onNavigate={onNavigate}
+        onExpandInfo={onExpandInfo}
+        onSearchOpen={() => setSearchOpen(true)}
+        onQuery={setQuery}
+        onSearchEscape={() => {
+          if (query) {
+            setQuery("");
+            return;
+          }
+          setSearchOpen(false);
+        }}
+        onSort={setSort}
+        onFilter={setFilter}
+      />
       <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         {showEmptyFolder ? (
           <div className="flex min-h-0 flex-1 flex-col items-center overflow-hidden p-4">
@@ -86,20 +194,37 @@ export function ContentViewPanel({
           <div className="min-h-0 flex-1" />
         ) : (
           <FolderEntryGrid
-            key={`${folderPath}:${changedOnly ? "changed" : "folder"}`}
+            key={`${folderPath}:${changedOnly ? "changed" : "folder"}:${searching ? "search" : "list"}`}
             repoPath={repoPath}
             entries={items}
             selection={selection}
             status={status}
             locks={locks}
-            hasMore={hasMore}
+            hasMore={paginate}
             onSelectFile={selectFile}
             onOpenFolder={onNavigate}
             onOpenFile={onOpenFile}
             onNeedMore={onNeedMore}
+            onFileMenu={onFileMenu}
           />
         )}
       </div>
+      {menu ? (
+        <DropdownMenu open onOpenChange={(open) => { if (!open) setMenu(null); }}>
+          <DropdownMenuTrigger asChild>
+            <span className="fixed z-50 size-0" style={{ left: menu.x, top: menu.y }} />
+          </DropdownMenuTrigger>
+          <FilePreviewItemMenu
+            locale={locale}
+            onAddInCommit={() => onAddInCommit?.(menu.path)}
+            onRename={() => onRenameFile?.(menu.path)}
+            onOpenInFolder={() => onOpenInFolder?.(menu.path)}
+            onEditIn={(editor) => onEditIn?.(menu.path, editor)}
+            onToggleLock={() => onToggleLock?.(menu.path)}
+            onDeleteInProject={() => onDeleteFile?.(menu.path)}
+          />
+        </DropdownMenu>
+      ) : null}
     </section>
   );
 }

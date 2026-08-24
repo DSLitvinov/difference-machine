@@ -3,13 +3,14 @@ import { HeaderRightSide } from "@/components/items/HeaderRightSide";
 import { FileInfoPreview } from "@/components/items/FileInfoPreview";
 import { NoFileSelectedPlaceholder } from "@/components/placeholders/NoFileSelectedPlaceholder";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 import { formatDateTime, formatSize } from "@/lib/format";
 import { letterStatus } from "@/lib/status";
 import { typeLabel } from "@/lib/file-kind";
 import { foresterCall } from "@/lib/bridge";
+import { loadExternalEditors, type ExternalEditor } from "@/lib/editors";
 import { peekThumb, releaseThumb, requestThumb, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
 import { useAppStore, type FileLock, type StatusSnapshot } from "@/store/app-store";
 import chevronDown from "@/assets/icons/chevron-down.svg";
@@ -50,7 +51,12 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
   const copy = t(locale);
   const repoPath = useAppStore((s) => s.repoPath);
   const [meta, setMeta] = useState<FileMetadata | null>(null);
+  const [editors, setEditors] = useState<ExternalEditor[]>([]);
   useThumbEpoch();
+
+  useEffect(() => {
+    void loadExternalEditors().then(setEditors);
+  }, []);
 
   useEffect(() => {
     if (!path) {
@@ -133,7 +139,24 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
               <FigmaIcon src={chevronDown} size={16} />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-[308px]" />
+          <DropdownMenuContent align="center" className="w-[308px]">
+            {editors.map((editor) => (
+              <DropdownMenuItem
+                key={editor.path}
+                onSelect={() => {
+                  void (async () => {
+                    try {
+                      await foresterCall("workdir.open", { path, editor: editor.path });
+                    } catch (err) {
+                      useAppStore.getState().setToast(err instanceof Error ? err.message : "request failed");
+                    }
+                  })();
+                }}
+              >
+                {editor.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </aside>

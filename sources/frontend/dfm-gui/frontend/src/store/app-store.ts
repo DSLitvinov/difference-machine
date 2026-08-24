@@ -25,6 +25,7 @@ export type DirEntry = {
   item_count?: number;
   size?: number;
   modified?: number;
+  created?: number;
 };
 
 export type CommitSummary = {

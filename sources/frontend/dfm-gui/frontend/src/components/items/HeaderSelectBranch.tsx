@@ -2,6 +2,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -57,17 +59,20 @@ export function HeaderSelectBranch({
           className="w-[285px]"
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
-          {branches.map((branch) => (
-            <DropdownMenuItem
-              key={branch.name}
-              disabled={switchLocked || branch.name === current}
-              onSelect={() => {
-                window.setTimeout(() => onSwitch(branch.name), 0);
+          {branches.length > 0 ? (
+            <DropdownMenuRadioGroup
+              value={current}
+              onValueChange={(name) => {
+                window.setTimeout(() => onSwitch(name), 0);
               }}
             >
-              {branch.name}
-            </DropdownMenuItem>
-          ))}
+              {branches.map((branch) => (
+                <DropdownMenuRadioItem key={branch.name} value={branch.name} disabled={switchLocked}>
+                  {branch.name}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          ) : null}
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => window.setTimeout(onCreate, 0)}>Create</DropdownMenuItem>
           <DropdownMenuItem disabled={!current} onSelect={() => window.setTimeout(onRename, 0)}>

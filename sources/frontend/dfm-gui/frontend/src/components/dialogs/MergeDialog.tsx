@@ -5,7 +5,8 @@ import { AlertBanner } from "@/components/ui/alert";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CommitFileItem } from "@/components/atoms/CommitFileItem";
@@ -175,11 +176,13 @@ export function MergeDialog({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-[748px]">
-                {others.map((branch) => (
-                  <DropdownMenuItem key={branch.name} onSelect={() => setPickedBranch(branch.name)}>
-                    {branch.name}
-                  </DropdownMenuItem>
-                ))}
+                <DropdownMenuRadioGroup value={selectedBranch} onValueChange={setPickedBranch}>
+                  {others.map((branch) => (
+                    <DropdownMenuRadioItem key={branch.name} value={branch.name}>
+                      {branch.name}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

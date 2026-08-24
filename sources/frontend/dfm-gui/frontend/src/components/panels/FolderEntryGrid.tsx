@@ -19,6 +19,7 @@ type FolderEntryGridProps = {
   onOpenFolder: (path: string) => void;
   onOpenFile?: (path: string) => void;
   onNeedMore?: () => void;
+  onFileMenu?: (path: string, event: MouseEvent) => void;
 };
 
 function asThumbRequest(entry: DirEntry): ThumbRequest {
@@ -41,6 +42,7 @@ export function FolderEntryGrid({
   onOpenFolder,
   onOpenFile,
   onNeedMore,
+  onFileMenu,
 }: FolderEntryGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef(200);
@@ -140,6 +142,7 @@ export function FolderEntryGrid({
                     stub={thumb?.kind === "placeholder"}
                     onSelect={(event) => onSelectFile(entry.path, event)}
                     onOpen={() => onOpenFile?.(entry.path)}
+                    onMenu={(event) => onFileMenu?.(entry.path, event)}
                   />
                 );
               })}

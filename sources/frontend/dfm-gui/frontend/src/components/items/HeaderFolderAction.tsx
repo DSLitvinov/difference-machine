@@ -1,21 +1,46 @@
 import { Button } from "@/components/ui/button";
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { FolderActionBar } from "@/components/items/FolderActionBar";
 import { t, type Locale } from "@/lib/i18n";
+import type { GridFilter, GridSort } from "@/lib/folder-query";
 import chevronRight from "@/assets/icons/chevron-right.svg";
-import searchIcon from "@/assets/icons/search.svg";
-import sortIcon from "@/assets/icons/arrow-up-a-z.svg";
-import filterIcon from "@/assets/icons/filter.svg";
 import panelRightOpen from "@/assets/icons/panel-right-open.svg";
 
 type HeaderFolderActionProps = {
   locale: Locale;
   folderPath: string;
   collapsed?: boolean;
+  searchOpen: boolean;
+  query: string;
+  sort: GridSort;
+  filter: GridFilter;
+  extensions: string[];
   onNavigate: (path: string) => void;
   onExpandInfo?: () => void;
+  onSearchOpen: () => void;
+  onQuery: (value: string) => void;
+  onSearchEscape: () => void;
+  onSort: (value: GridSort) => void;
+  onFilter: (value: GridFilter) => void;
 };
 
-export function HeaderFolderAction({ locale, folderPath, collapsed, onNavigate, onExpandInfo }: HeaderFolderActionProps) {
+export function HeaderFolderAction({
+  locale,
+  folderPath,
+  collapsed,
+  searchOpen,
+  query,
+  sort,
+  filter,
+  extensions,
+  onNavigate,
+  onExpandInfo,
+  onSearchOpen,
+  onQuery,
+  onSearchEscape,
+  onSort,
+  onFilter,
+}: HeaderFolderActionProps) {
   const copy = t(locale);
   const parts = folderPath.split("/").filter(Boolean);
   return (
@@ -47,17 +72,19 @@ export function HeaderFolderAction({ locale, folderPath, collapsed, onNavigate, 
         })}
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <div className="flex items-center gap-1">
-          <Button type="button" variant="secondary" size="icon" aria-label="Search">
-            <FigmaIcon src={searchIcon} size={16} />
-          </Button>
-          <Button type="button" variant="secondary" size="icon" aria-label="Sort">
-            <FigmaIcon src={sortIcon} size={16} />
-          </Button>
-          <Button type="button" variant="secondary" size="icon" aria-label="Filter">
-            <FigmaIcon src={filterIcon} size={16} />
-          </Button>
-        </div>
+        <FolderActionBar
+          collapsed={collapsed}
+          searchOpen={searchOpen}
+          query={query}
+          sort={sort}
+          filter={filter}
+          extensions={extensions}
+          onSearchOpen={onSearchOpen}
+          onQuery={onQuery}
+          onSearchEscape={onSearchEscape}
+          onSort={onSort}
+          onFilter={onFilter}
+        />
         {collapsed ? (
           <>
             <div className="h-5 w-px bg-border" />

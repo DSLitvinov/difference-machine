@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/difference-machine/forester/pkg/jsonapi"
+	"github.com/fsnotify/fsnotify"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -28,17 +29,19 @@ type App struct {
 	handle     jsonapi.Handle
 	hasSession bool
 	workPath   string
+	watcher    *fsnotify.Watcher
+	watchStop  chan struct{}
 }
 
 // SessionInfo is the bootstrap payload for the React shell.
 type SessionInfo struct {
-	Shell          string `json:"shell"`
-	RepoPath       string `json:"repoPath"`
-	Locale         string `json:"locale"`
-	UserName       string `json:"userName"`
-	UserEmail      string `json:"userEmail"`
-	IsRepository   bool   `json:"isRepository"`
-	Error          string `json:"error,omitempty"`
+	Shell        string `json:"shell"`
+	RepoPath     string `json:"repoPath"`
+	Locale       string `json:"locale"`
+	UserName     string `json:"userName"`
+	UserEmail    string `json:"userEmail"`
+	IsRepository bool   `json:"isRepository"`
+	Error        string `json:"error,omitempty"`
 }
 
 func NewApp() *App {
@@ -69,9 +72,9 @@ func (a *App) shutdown(_ context.Context) {
 func (a *App) GetSession() SessionInfo {
 	cfg, err := loadSetupCfg()
 	info := SessionInfo{
-		Shell:    "first-start",
-		Locale:   "en",
-		UserName: "",
+		Shell:     "first-start",
+		Locale:    "en",
+		UserName:  "",
 		UserEmail: "",
 	}
 	if err == nil {
@@ -314,9 +317,11 @@ func (a *App) openLocked(absPath string) {
 	a.handle = jsonapi.Open(absPath)
 	a.hasSession = true
 	a.workPath = absPath
+	a.startWatchLocked()
 }
 
 func (a *App) closeLocked() {
+	a.stopWatchLocked()
 	if a.hasSession {
 		jsonapi.Close(a.handle)
 		a.hasSession = false

@@ -28,6 +28,12 @@ type AppShellProps = {
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
   onOpenMerge: () => void;
+  onAddInCommit: (path: string) => void;
+  onRenameFile: (path: string) => void;
+  onDeleteFile: (path: string) => void;
+  onOpenInFolder: (path: string) => void;
+  onEditIn: (path: string, editor: string) => void;
+  onToggleLock: (path: string) => void;
 };
 
 export function AppShell({
@@ -46,6 +52,12 @@ export function AppShell({
   onRenameBranch,
   onDeleteBranch,
   onOpenMerge,
+  onAddInCommit,
+  onRenameFile,
+  onDeleteFile,
+  onOpenInFolder,
+  onEditIn,
+  onToggleLock,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
@@ -198,6 +210,12 @@ export function AppShell({
             onExpandInfo={() => setInfoCollapsed(false)}
             onNeedMore={onNeedMore}
             onOpenFile={openFile}
+            onAddInCommit={onAddInCommit}
+            onRenameFile={onRenameFile}
+            onDeleteFile={onDeleteFile}
+            onOpenInFolder={onOpenInFolder}
+            onEditIn={onEditIn}
+            onToggleLock={onToggleLock}
           />
         )}
         {showRight ? (

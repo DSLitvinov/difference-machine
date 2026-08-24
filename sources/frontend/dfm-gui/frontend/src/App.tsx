@@ -3,6 +3,7 @@ import { FirstStartView } from "@/components/views/FirstStartView";
 import { AppShell } from "@/components/views/AppShell";
 import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
 import { MergeDialog } from "@/components/dialogs/MergeDialog";
+import { FileDeleteDialog, FileRenameDialog } from "@/components/dialogs/FileDialogs";
 import { CreateBranchDialog, DeleteBranchDialog, RenameBranchDialog, SwitchBranchDialog } from "@/components/dialogs/BranchDialogs";
 import {
   foresterCall,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/bridge";
 import type { Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
+import { parentRel } from "@/lib/folder-query";
 import { resetRevisionCache } from "@/lib/revision-cache";
 import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type MergeStatus, type StatusSnapshot } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
@@ -60,6 +62,8 @@ type BranchDialog =
   | { kind: "delete"; name: string }
   | { kind: "switch"; target: string };
 
+type FileDialog = { kind: "rename"; path: string } | { kind: "delete"; path: string };
+
 function commitMessage(title: string, description: string): string {
   const head = title.trim();
   const body = description.trim();
@@ -100,6 +104,7 @@ export default function App() {
   const [mergeOpen, setMergeOpen] = useState(false);
   const [mergeError, setMergeError] = useState<string | null>(null);
   const [branchDialog, setBranchDialog] = useState<BranchDialog | null>(null);
+  const [fileDialog, setFileDialog] = useState<FileDialog | null>(null);
   const loadingMore = useRef(false);
 
   useEffect(() => {
@@ -149,6 +154,7 @@ export default function App() {
   useEffect(() => {
     setMergeOpen(false);
     setMergeError(null);
+    setFileDialog(null);
   }, [repoPath, shell]);
 
   useEffect(() => {
@@ -157,6 +163,15 @@ export default function App() {
     }
     void refreshRepoMeta();
   }, [shell, repoPath, folderPath, changedOnly]);
+
+  useEffect(() => {
+    if (shell !== "app") {
+      return;
+    }
+    return onWailsEvent("workdir:changed", () => {
+      void refreshRepoMeta();
+    });
+  }, [shell, repoPath]);
 
   async function refreshRepoMeta() {
     try {
@@ -543,6 +558,89 @@ export default function App() {
     }
   }
 
+  async function onAddInCommit(path: string) {
+    try {
+      await foresterCall("index.add", { files: [path] });
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    }
+  }
+
+  async function onRenameFile(newName: string) {
+    const path = fileDialog?.kind === "rename" ? fileDialog.path : "";
+    if (!path) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = (await foresterCall("workdir.rename", { path, new_name: newName })) as { new_path?: string };
+      const next = result.new_path ?? path;
+      const state = useAppStore.getState();
+      state.setSelection(state.selection.map((item) => (item === path ? next : item)));
+      setFileDialog(null);
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onDeleteFile() {
+    const path = fileDialog?.kind === "delete" ? fileDialog.path : "";
+    if (!path) {
+      return;
+    }
+    setBusy(true);
+    try {
+      await foresterCall("workdir.delete", { path });
+      const state = useAppStore.getState();
+      state.setSelection(state.selection.filter((item) => item !== path));
+      if (state.contentContext === "file" || state.contentContext === "file-revision") {
+        state.setContentContext("folder");
+      }
+      setFileDialog(null);
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onOpenInFolder(path: string) {
+    try {
+      await foresterCall("workdir.open", { path: parentRel(path) });
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    }
+  }
+
+  async function onEditIn(path: string, editor: string) {
+    try {
+      await foresterCall("workdir.open", { path, editor });
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    }
+  }
+
+  async function onToggleLock(path: string) {
+    const state = useAppStore.getState();
+    const lock = state.locks.find((item) => item.file_path === path);
+    const user = state.userName;
+    try {
+      if (lock) {
+        await foresterCall("lock.release", { file_path: path, user: lock.user || user });
+      } else {
+        await foresterCall("lock.acquire", { file_path: path, user, lock_type: 0, expire_hours: 0 });
+      }
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    }
+  }
+
   async function onLocale(next: Locale) {
     setLocale(next);
     try {
@@ -574,6 +672,12 @@ export default function App() {
             setMergeError(null);
             setMergeOpen(true);
           }}
+          onAddInCommit={(path) => void onAddInCommit(path)}
+          onRenameFile={(path) => setFileDialog({ kind: "rename", path })}
+          onDeleteFile={(path) => setFileDialog({ kind: "delete", path })}
+          onOpenInFolder={(path) => void onOpenInFolder(path)}
+          onEditIn={(path, editor) => void onEditIn(path, editor)}
+          onToggleLock={(path) => void onToggleLock(path)}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />
@@ -637,6 +741,23 @@ export default function App() {
           busy={busy}
           onCancel={() => setBranchDialog(null)}
           onDelete={() => void onDeleteBranch(branchDialog.name)}
+        />
+      ) : null}
+      {fileDialog?.kind === "rename" ? (
+        <FileRenameDialog
+          locale={locale}
+          path={fileDialog.path}
+          busy={busy}
+          onCancel={() => setFileDialog(null)}
+          onRename={(name) => void onRenameFile(name)}
+        />
+      ) : null}
+      {fileDialog?.kind === "delete" ? (
+        <FileDeleteDialog
+          locale={locale}
+          busy={busy}
+          onCancel={() => setFileDialog(null)}
+          onDelete={() => void onDeleteFile()}
         />
       ) : null}
       {toast ? (

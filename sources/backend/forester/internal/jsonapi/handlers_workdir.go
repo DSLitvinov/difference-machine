@@ -244,9 +244,6 @@ func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, erro
 	if err := decodeArgs(args, &params); err != nil {
 		return nil, err
 	}
-	if params.Path == "" {
-		return nil, fmt.Errorf("path is required")
-	}
 
 	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
 		scanner := newWorkdirScanner(repoPath)

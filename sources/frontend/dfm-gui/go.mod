@@ -6,6 +6,7 @@ replace github.com/difference-machine/forester => ../../backend/forester
 
 require (
 	github.com/difference-machine/forester v0.0.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/wailsapp/wails/v2 v2.15.0
 )
 

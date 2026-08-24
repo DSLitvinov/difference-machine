@@ -31,3 +31,11 @@ func TestWorkdirOpenStillRejectsOtherDFMPaths(t *testing.T) {
 
 	mustFail(t, h, "workdir.open", `{"path":".DFM/config"}`)
 }
+
+func TestWorkdirOpenAllowsDirectory(t *testing.T) {
+	dir, h := initTestRepo(t)
+	if err := os.Mkdir(filepath.Join(dir, "assets"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	mustOK(t, h, "workdir.open", `{"path":"assets"}`)
+}

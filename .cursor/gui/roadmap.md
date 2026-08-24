@@ -31,7 +31,7 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 13 | Settings dialog | done |
 | 14 | Branches dialogs | done |
 | 15 | Merge + detached HEAD banners | done |
-| 16 | Search, sort, filter, locks, watcher | pending |
+| 16 | Search, sort, filter, locks, watcher | done |
 | 17 | Polish, i18n, packaging | pending |
 
 ---

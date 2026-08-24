@@ -28,6 +28,23 @@ func TestEnvelopeError(t *testing.T) {
 	}
 }
 
+func TestWatchIgnored(t *testing.T) {
+	root := t.TempDir()
+	thumbs := filepath.Join(root, ".DFM", "cache", "thumbs", "a.png")
+	if !watchIgnored(root, thumbs) {
+		t.Fatal(".DFM cache should be ignored")
+	}
+	if !watchIgnored(root, filepath.Join(root, ".DFM")) {
+		t.Fatal(".DFM should be ignored")
+	}
+	if watchIgnored(root, filepath.Join(root, "readme.txt")) {
+		t.Fatal("workdir file should not be ignored")
+	}
+	if watchIgnored(root, root) {
+		t.Fatal("repo root should not be ignored")
+	}
+}
+
 func TestThumbCacheRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, ".DFM"), 0o755); err != nil {
