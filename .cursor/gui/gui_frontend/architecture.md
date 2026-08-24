@@ -59,7 +59,7 @@ Zustand (или эквивалент) хранит:
 | App | текущий repo path, тема, first-start vs app | cfg + local |
 | Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, sidebarTab, commitComposer | UI; экран из [views](../views/architecture.md) |
 | History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*`; LRU payload — [revision-cache.md](./revision-cache.md) |
-| VCS | snapshot `status.get`, `merge.status` | API; не путать со Stages |
+| VCS | snapshot `status.get`, `merge.status` | API; не путать со вкладкой Stash |
 | Preview cache | LRU эскизов workdir, ключ path+size+mtime | [thumbnails.md](../gui_backend/thumbnails.md), [virtual-scroll.md](./virtual-scroll.md) |
 
 Не класть в store сырые байты всех файлов репо. Кэш превью — LRU, blob URL, не вечный base64.

@@ -40,6 +40,12 @@ export type FileLock = {
   user?: string;
 };
 
+export type BranchSummary = {
+  name: string;
+  commit_hash?: string;
+  is_current?: boolean;
+};
+
 type AppState = {
   shell: Shell;
   locale: Locale;
@@ -61,6 +67,7 @@ type AppState = {
   entries: DirEntry[];
   entriesHasMore: boolean;
   commits: CommitSummary[];
+  branches: BranchSummary[];
   locks: FileLock[];
   toast: string | null;
   applySession: (info: SessionInfo) => void;
@@ -79,6 +86,7 @@ type AppState = {
   openCommitComposer: () => void;
   closeCommitComposer: () => void;
   setToast: (message: string | null) => void;
+  setProfile: (name: string, email: string) => void;
   setRepoMeta: (meta: {
     folderEmpty: boolean;
     hasCommits: boolean;
@@ -86,6 +94,7 @@ type AppState = {
     entries: DirEntry[];
     entriesHasMore: boolean;
     commits: CommitSummary[];
+    branches: BranchSummary[];
     locks: FileLock[];
   }) => void;
   appendEntries: (entries: DirEntry[], hasMore: boolean) => void;
@@ -112,6 +121,7 @@ export const useAppStore = create<AppState>((set) => ({
   entries: [],
   entriesHasMore: false,
   commits: [],
+  branches: [],
   locks: [],
   toast: null,
   applySession: (info) => {
@@ -139,6 +149,7 @@ export const useAppStore = create<AppState>((set) => ({
       entries: [],
       entriesHasMore: false,
       commits: [],
+      branches: [],
       locks: [],
       toast: info.error || null,
     });
@@ -179,6 +190,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ commitComposer: "open", contentContext: "folder", selectedCommit: null, fileRevision: null, infoCollapsed: false, sidebarTab: "history" }),
   closeCommitComposer: () => set({ commitComposer: "closed" }),
   setToast: (message) => set({ toast: message }),
+  setProfile: (name, email) => set({ userName: name, userEmail: email }),
   setRepoMeta: (meta) => set(meta),
   appendEntries: (entries, hasMore) =>
     set((state) => {

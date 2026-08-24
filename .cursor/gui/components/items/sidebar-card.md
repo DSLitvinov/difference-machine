@@ -17,7 +17,8 @@ Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for
 |-----------------|---------------------|
 | Список истории проекта | [CommitProjectCard](../atoms/card-commit-project.md) |
 | Список истории файла | [CommitFileCard](../atoms/card-commit-file.md) |
-| Стейджи | [StageCard](../atoms/card-stage.md) |
+| Stash | [StageCard](../atoms/card-stage.md) |
+| Empty stash | [NoStagesProject](../atoms/card-no-stages-project.md) |
 | Форма коммита | [CreateCommitCard](../atoms/card-create-commit.md) |
 | Empty истории | [NoHistoryProject](../atoms/card-no-history-project.md) / [NoHistoryFile](../atoms/card-no-history-file.md) |
 | File view, верх | [BackToFileRow](../atoms/card-back-to-file.md) |

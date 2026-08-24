@@ -6,6 +6,7 @@ import { SidebarCard } from "@/components/items/SidebarCard";
 import { SidebarCardDirectory } from "@/components/items/SidebarCardDirectory";
 import { CommitProjectCard } from "@/components/atoms/CommitProjectCard";
 import { StageCard } from "@/components/atoms/StageCard";
+import { NoStagesProject } from "@/components/atoms/NoStagesProject";
 import { UncommittedFilesCard } from "@/components/atoms/UncommittedFilesCard";
 import { CreateCommitCard, type CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import { NoHistoryProject } from "@/components/atoms/NoHistoryProject";
@@ -15,7 +16,7 @@ import { t, type Locale } from "@/lib/i18n";
 import { changeCounts, isDirty } from "@/lib/status";
 import { requestVisibleStats, useStat } from "@/lib/revision-cache";
 import type { SidebarTab } from "@/lib/view";
-import type { CommitSummary, StatusSnapshot } from "@/store/app-store";
+import type { BranchSummary, CommitSummary, StatusSnapshot } from "@/store/app-store";
 
 type ProjectViewPanelProps = {
   locale: Locale;
@@ -24,6 +25,7 @@ type ProjectViewPanelProps = {
   hasCommits: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
+  branches: BranchSummary[];
   branchName?: string;
   sidebarTab: SidebarTab;
   changedOnly: boolean;
@@ -40,6 +42,10 @@ type ProjectViewPanelProps = {
   onCommitAll: () => void;
   onCancelComposer: () => void;
   onCreateCommit: (fields: CreateCommitFields) => void;
+  onSwitchBranch: (name: string) => void;
+  onCreateBranch: () => void;
+  onRenameBranch: () => void;
+  onDeleteBranch: (name: string) => void;
 };
 
 function splitMessage(message: string): { title: string; description: string } {
@@ -69,9 +75,16 @@ type StageSummary = {
   deletions?: number;
 };
 
-function StageList() {
-  // No stage entity in JSON API 0.8.1 — do not invent rows.
+function StageList({ locale }: { locale: Locale }) {
+  // No stash list in JSON API 0.8.1 — do not invent rows.
   const stages: StageSummary[] = [];
+  if (stages.length === 0) {
+    return (
+      <SidebarCard state="disabled">
+        <NoStagesProject locale={locale} />
+      </SidebarCard>
+    );
+  }
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="flex w-full flex-col gap-2">
@@ -100,6 +113,7 @@ export function ProjectViewPanel({
   hasCommits,
   status,
   commits,
+  branches,
   branchName,
   sidebarTab,
   changedOnly,
@@ -116,6 +130,10 @@ export function ProjectViewPanel({
   onCommitAll,
   onCancelComposer,
   onCreateCommit,
+  onSwitchBranch,
+  onCreateBranch,
+  onRenameBranch,
+  onDeleteBranch,
 }: ProjectViewPanelProps) {
   const copy = t(locale);
   const dirty = isDirty(status);
@@ -124,7 +142,15 @@ export function ProjectViewPanel({
   const composerOpen = Boolean(commitComposer);
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
-      <HeaderSelectBranch locale={locale} branchName={branchName} />
+      <HeaderSelectBranch
+        locale={locale}
+        branchName={branchName}
+        branches={branches}
+        onSwitch={onSwitchBranch}
+        onCreate={onCreateBranch}
+        onRename={onRenameBranch}
+        onDelete={onDeleteBranch}
+      />
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
           <SidebarCardDirectory
@@ -168,7 +194,7 @@ export function ProjectViewPanel({
               onSelectCommit={onSelectCommit}
             />
           ) : (
-            <StageList />
+            <StageList locale={locale} />
           )}
         </div>
       </div>

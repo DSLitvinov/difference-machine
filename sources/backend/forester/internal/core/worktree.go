@@ -72,11 +72,8 @@ func restoreTreeEntries(storage *Storage, repoPath string, tree *models.Tree) er
 		}
 		switch entry.Type {
 		case "blob":
-			if err := utils.EnsureDirectory(filepath.Dir(filePath)); err != nil {
+			if err := writeTreeBlob(storage, filePath, entry.Name, entry.Hash); err != nil {
 				return err
-			}
-			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
-				return fmt.Errorf("restore file %s: %w", entry.Name, err)
 			}
 		case "tree":
 			subContent, err := storage.GetTreeContent(entry.Hash)
@@ -95,8 +92,24 @@ func restoreTreeEntries(storage *Storage, repoPath string, tree *models.Tree) er
 	return nil
 }
 
-// TreeBlobPaths returns all blob paths reachable from a tree hash.
-func TreeBlobPaths(storage *Storage, treeHash string) (map[string]bool, error) {
+func writeTreeBlob(storage *Storage, filePath, relPath, hash string) error {
+	if utils.IsFile(filePath) {
+		current, err := HashFile(filePath)
+		if err == nil && current == hash {
+			return nil
+		}
+	}
+	if err := utils.EnsureDirectory(filepath.Dir(filePath)); err != nil {
+		return err
+	}
+	if err := storage.WriteBlobToFile(hash, filePath); err != nil {
+		return fmt.Errorf("restore file %s: %w", relPath, err)
+	}
+	return nil
+}
+
+// TreeBlobHashes returns blob path → hash for every file reachable from treeHash.
+func TreeBlobHashes(storage *Storage, treeHash string) (map[string]string, error) {
 	treeContent, err := storage.GetTreeContent(treeHash)
 	if err != nil {
 		return nil, err
@@ -109,11 +122,72 @@ func TreeBlobPaths(storage *Storage, treeHash string) (map[string]bool, error) {
 	if err := BuildTreeMapRecursive(storage, &tree, "", treeMap); err != nil {
 		return nil, err
 	}
-	paths := make(map[string]bool, len(treeMap))
+	hashes := make(map[string]string, len(treeMap))
 	for path, entry := range treeMap {
 		if entry.Type == "blob" {
-			paths[path] = true
+			hashes[path] = entry.Hash
 		}
+	}
+	return hashes, nil
+}
+
+// RestoreWorkdirDelta writes blobs that differ between fromTree and toTree and
+// removes files that exist only in fromTree. Identical paths are left untouched
+// so mtime (and GUI thumbnails) stay valid. fromTreeHash may be empty.
+func RestoreWorkdirDelta(storage *Storage, repoPath, fromTreeHash, toTreeHash string) error {
+	if fromTreeHash != "" && fromTreeHash == toTreeHash {
+		return nil
+	}
+	from := map[string]string{}
+	if fromTreeHash != "" {
+		var err error
+		from, err = TreeBlobHashes(storage, fromTreeHash)
+		if err != nil {
+			return err
+		}
+	}
+	to, err := TreeBlobHashes(storage, toTreeHash)
+	if err != nil {
+		return err
+	}
+	for path, hash := range to {
+		if from[path] == hash {
+			continue
+		}
+		filePath, err := utils.JoinRepoPath(repoPath, path)
+		if err != nil {
+			return fmt.Errorf("invalid tree path %s: %w", path, err)
+		}
+		if err := writeTreeBlob(storage, filePath, path, hash); err != nil {
+			return err
+		}
+	}
+	for path := range from {
+		if _, ok := to[path]; ok {
+			continue
+		}
+		filePath, err := utils.JoinRepoPath(repoPath, path)
+		if err != nil {
+			continue
+		}
+		if utils.Exists(filePath) {
+			if err := utils.RemoveRecursive(filePath); err != nil {
+				return fmt.Errorf("remove %s: %w", path, err)
+			}
+		}
+	}
+	return nil
+}
+
+// TreeBlobPaths returns all blob paths reachable from a tree hash.
+func TreeBlobPaths(storage *Storage, treeHash string) (map[string]bool, error) {
+	hashes, err := TreeBlobHashes(storage, treeHash)
+	if err != nil {
+		return nil, err
+	}
+	paths := make(map[string]bool, len(hashes))
+	for path := range hashes {
+		paths[path] = true
 	}
 	return paths, nil
 }

@@ -16,7 +16,7 @@
 3. Center 788 или 1120 — Folder Expanded / Collapse / Empty.
 4. Right 332 — File Info / File Info Null / Select More Files, либо **нет**.
 
-Вкладки сайдбара `History` / `Stages` — внутри панели, не смена экрана-приложения.
+Вкладки сайдбара `History` / `Stash` (слой Figma `Stages`) — внутри панели, не смена экрана-приложения.
 
 ---
 
@@ -31,7 +31,7 @@
 | SubFolder | [`4324:5701`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4324-5701) | вложенная папка (breadcrumb не только `Home`) | Project view | Folder Expanded 788 | File Info |
 | File Info | [`4408:11431`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4408-11431) | выбран **один** файл в сетке | Project view | Folder Expanded 788 | File Info |
 | File More Info | [`4408:12671`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4408-12671) | выбрано **несколько** файлов | Project view | Folder Expanded 788 | [Select More Files](../panels/select-more-files.md) |
-| Stages | [`4385:12759`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-12759) | вкладка Stages | Project view, список = [StageCard](../components/atoms/card-stage.md) | Folder Expanded 788 | File Info Null |
+| Stages | [`4385:12759`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-12759) | вкладка **Stash** (Figma Stages) | Project view, список = [StageCard](../components/atoms/card-stage.md); пусто = [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733` | Folder Expanded 788 | File Info Null |
 | Create Commit | [`4385:10858`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-10858) | открыт композер коммита | Uncommitted слот = [CreateCommitCard](../components/atoms/card-create-commit.md); список коммитов как обычно | Folder Expanded 788 | Select More Files |
 
 Empty Project: copy центра `No files yet` / `Create or move your files to the repository` — [folder-null](../components/placeholders/folder-null.md).
@@ -47,7 +47,7 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 5. **Несколько файлов** — Select More Files, не стек File Info.
 6. **Collapse** — `infoCollapsed`: right нет, center 1120, хедер Folder Action `Collapse=yes`. То же правило для file-preview collapse.
 7. **Create Commit** — не [Dialog /](../dialogs/architecture.md). Форма в слоте Uncommitted files. Right — Select More Files (действия над выбранными path: combobox + Apply). Cancel возвращает карточку Uncommitted.
-8. **Stages** — вкладка того же Project view. Не git `staged_*`. API сущности пока нет — см. вопрос 3 в [architecture.md](./architecture.md). Когда метод появится: virtualizer + LRU как у коммитов ([revision-cache.md](../gui_frontend/revision-cache.md)).
+8. **Stash** — вкладка того же Project view (Figma: Stages). Forester stash, не git `staged_*`. API списка пока нет — см. вопрос 3 в [architecture.md](./architecture.md). Пустой список: [NoStagesProject](../components/atoms/card-no-stages-project.md), не мок карточек. Когда метод появится: virtualizer + LRU как у коммитов ([revision-cache.md](../gui_frontend/revision-cache.md)).
 9. **Changed** вкл. — сетка = dirty файлы всего проекта, не текущая папка.
 
 ---
@@ -62,6 +62,6 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 | Range / multi-select | File More Info |
 | Open / двойной клик файла | [file-preview](./file-preview.md) по kind |
 | Клик коммита в History | [commit](./commit.md) |
-| Вкладка Stages | Stages |
+| Вкладка Stash | Stash |
 | Commit All Files / Create | Create Commit |
 | Collapse info | Root Folder Collapse (или collapse текущего folder-экрана) |

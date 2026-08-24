@@ -9,17 +9,22 @@ import { NoHistoryFile } from "@/components/atoms/NoHistoryFile";
 import { t, type Locale } from "@/lib/i18n";
 import { foresterCall } from "@/lib/bridge";
 import { cn } from "@/lib/utils";
-import type { CommitSummary, StatusSnapshot } from "@/store/app-store";
+import type { BranchSummary, CommitSummary, StatusSnapshot } from "@/store/app-store";
 
 type FileViewPanelProps = {
   locale: Locale;
   userName: string;
   path: string;
   status: StatusSnapshot | null;
+  branches: BranchSummary[];
   selectedHash?: string | null;
   onSettings: () => void;
   onCurrentPreview: () => void;
   onSelectCommit: (commit: CommitSummary) => void;
+  onSwitchBranch: (name: string) => void;
+  onCreateBranch: () => void;
+  onRenameBranch: () => void;
+  onDeleteBranch: (name: string) => void;
 };
 
 type LogResult = {
@@ -40,10 +45,15 @@ export function FileViewPanel({
   userName,
   path,
   status,
+  branches,
   selectedHash,
   onSettings,
   onCurrentPreview,
   onSelectCommit,
+  onSwitchBranch,
+  onCreateBranch,
+  onRenameBranch,
+  onDeleteBranch,
 }: FileViewPanelProps) {
   const copy = t(locale);
   const [commits, setCommits] = useState<CommitSummary[]>([]);
@@ -73,14 +83,22 @@ export function FileViewPanel({
     return () => {
       cancelled = true;
     };
-  }, [path]);
+  }, [path, status?.current_branch]);
 
   const empty = commits.length === 0;
   const revisionOpen = Boolean(selectedHash);
 
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
-      <HeaderSelectBranch locale={locale} branchName={status?.current_branch} />
+      <HeaderSelectBranch
+        locale={locale}
+        branchName={status?.current_branch}
+        branches={branches}
+        onSwitch={onSwitchBranch}
+        onCreate={onCreateBranch}
+        onRename={onRenameBranch}
+        onDelete={onDeleteBranch}
+      />
       <div className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", empty && "gap-2")}>
         <div className="flex w-[309px] shrink-0 flex-col gap-2 px-3">
           <SidebarCard

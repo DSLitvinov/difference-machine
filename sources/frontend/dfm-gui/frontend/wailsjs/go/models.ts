@@ -24,6 +24,36 @@ export namespace main {
 	        this.error = source["error"];
 	    }
 	}
+	export class SettingsInfo {
+	    userName: string;
+	    userEmail: string;
+	    locale: string;
+	    theme: string;
+	    repos: string[];
+	    apiPath: string;
+	    foresterPath: string;
+	    blenderPath: string;
+	    addonPath: string;
+	    editors: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SettingsInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.userName = source["userName"];
+	        this.userEmail = source["userEmail"];
+	        this.locale = source["locale"];
+	        this.theme = source["theme"];
+	        this.repos = source["repos"];
+	        this.apiPath = source["apiPath"];
+	        this.foresterPath = source["foresterPath"];
+	        this.blenderPath = source["blenderPath"];
+	        this.addonPath = source["addonPath"];
+	        this.editors = source["editors"];
+	    }
+	}
 
 }
 

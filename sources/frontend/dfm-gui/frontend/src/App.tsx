@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { FirstStartView } from "@/components/views/FirstStartView";
 import { AppShell } from "@/components/views/AppShell";
+import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
+import { CreateBranchDialog, DeleteBranchDialog, RenameBranchDialog, SwitchBranchDialog } from "@/components/dialogs/BranchDialogs";
 import {
   foresterCall,
   getSession,
@@ -12,7 +14,8 @@ import {
 } from "@/lib/bridge";
 import type { Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
-import { useAppStore, type CommitSummary, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
+import { resetRevisionCache } from "@/lib/revision-cache";
+import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 
 type EntriesResult = {
@@ -28,6 +31,16 @@ type LogResult = {
 type LocksResult = {
   locks?: FileLock[];
 };
+
+type BranchListResult = {
+  branches?: BranchSummary[];
+};
+
+type BranchDialog =
+  | { kind: "create" }
+  | { kind: "rename" }
+  | { kind: "delete"; name: string }
+  | { kind: "switch"; target: string };
 
 function commitMessage(title: string, description: string): string {
   const head = title.trim();
@@ -56,11 +69,14 @@ export default function App() {
   const repoPath = useAppStore((s) => s.repoPath);
   const folderPath = useAppStore((s) => s.folderPath);
   const changedOnly = useAppStore((s) => s.changedOnly);
+  const status = useAppStore((s) => s.status);
   const applySession = useAppStore((s) => s.applySession);
   const setLocale = useAppStore((s) => s.setLocale);
   const setToast = useAppStore((s) => s.setToast);
   const setRepoMeta = useAppStore((s) => s.setRepoMeta);
   const [busy, setBusy] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [branchDialog, setBranchDialog] = useState<BranchDialog | null>(null);
   const loadingMore = useRef(false);
 
   useEffect(() => {
@@ -91,7 +107,7 @@ export default function App() {
       applySession(info);
     });
     const offSettings = onWailsEvent("menu:settings", () => {
-      // Settings dialog is phase 13.
+      setSettingsOpen(true);
     });
     return () => {
       offSession();
@@ -108,10 +124,11 @@ export default function App() {
 
   async function refreshRepoMeta() {
     try {
-      const [status, log, locksResult] = await Promise.all([
+      const [status, log, locksResult, branchList] = await Promise.all([
         foresterCall("status.get") as Promise<StatusSnapshot>,
         foresterCall("log.get") as Promise<LogResult>,
         foresterCall("lock.list") as Promise<LocksResult>,
+        foresterCall("branch.list") as Promise<BranchListResult>,
       ]);
       const commits = log.commits ?? [];
       let showChanged = useAppStore.getState().changedOnly;
@@ -140,6 +157,7 @@ export default function App() {
         entries,
         entriesHasMore,
         commits,
+        branches: branchList.branches ?? [],
         locks: locksResult.locks ?? [],
         folderEmpty,
         hasCommits: commits.length > 0,
@@ -152,6 +170,7 @@ export default function App() {
         entries: [],
         entriesHasMore: false,
         commits: [],
+        branches: [],
         locks: [],
       });
     }
@@ -336,6 +355,94 @@ export default function App() {
     }
   }
 
+  function afterBranchChange() {
+    resetRevisionCache();
+    const state = useAppStore.getState();
+    if (state.contentContext === "commit") {
+      state.leaveCommit();
+    } else if (state.contentContext === "file-revision") {
+      state.leaveFileRevision();
+    }
+  }
+
+  async function switchBranch(target: string, autoStash: boolean) {
+    setBusy(true);
+    let switched = false;
+    try {
+      await foresterCall("repo.switch", { target, auto_stash: autoStash });
+      afterBranchChange();
+      setBranchDialog(null);
+      switched = true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "request failed";
+      if (!autoStash && /uncommitted|stash/i.test(message)) {
+        setBranchDialog({ kind: "switch", target });
+        return;
+      }
+      setToast(message);
+    } finally {
+      setBusy(false);
+    }
+    if (switched) {
+      await refreshRepoMeta();
+    }
+  }
+
+  function onSwitchBranch(name: string) {
+    const state = useAppStore.getState();
+    if (!name || name === state.status?.current_branch) {
+      return;
+    }
+    if (isDirty(state.status)) {
+      setBranchDialog({ kind: "switch", target: name });
+      return;
+    }
+    void switchBranch(name, false);
+  }
+
+  async function onCreateBranch(name: string) {
+    setBusy(true);
+    try {
+      await foresterCall("branch.create", { name });
+      setBranchDialog(null);
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onRenameBranch(newName: string) {
+    const oldName = useAppStore.getState().status?.current_branch;
+    if (!oldName) {
+      return;
+    }
+    setBusy(true);
+    try {
+      await foresterCall("branch.rename", { old_name: oldName, new_name: newName });
+      setBranchDialog(null);
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onDeleteBranch(name: string) {
+    setBusy(true);
+    try {
+      await foresterCall("branch.delete", { name });
+      setBranchDialog(null);
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onLocale(next: Locale) {
     setLocale(next);
     try {
@@ -350,7 +457,7 @@ export default function App() {
       {shell === "app" ? (
         <AppShell
           busy={busy}
-          onSettings={() => undefined}
+          onSettings={() => setSettingsOpen(true)}
           onCreateRepository={() => void onCreateRepository()}
           onApplySelection={(paths) => void onApplySelection(paths)}
           onNeedMore={() => void loadMoreEntries()}
@@ -359,10 +466,60 @@ export default function App() {
           onCreateCommit={(fields) => void onCreateCommit(fields)}
           onCompareFile={() => void onCompareFile()}
           onRestoreFile={onRestoreFile}
+          onSwitchBranch={onSwitchBranch}
+          onCreateBranch={() => setBranchDialog({ kind: "create" })}
+          onRenameBranch={() => setBranchDialog({ kind: "rename" })}
+          onDeleteBranch={(name) => setBranchDialog({ kind: "delete", name })}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />
       )}
+      {settingsOpen ? (
+        <SettingsDialog
+          locale={locale}
+          onClose={() => setSettingsOpen(false)}
+          onProfileSaved={(name, email, nextLocale) => {
+            useAppStore.getState().setProfile(name, email);
+            setLocale(nextLocale);
+          }}
+          onError={(message) => setToast(message)}
+        />
+      ) : null}
+      {branchDialog?.kind === "switch" ? (
+        <SwitchBranchDialog
+          locale={locale}
+          target={branchDialog.target}
+          status={status}
+          busy={busy}
+          onCancel={() => setBranchDialog(null)}
+          onConfirm={() => void switchBranch(branchDialog.target, true)}
+        />
+      ) : null}
+      {branchDialog?.kind === "create" ? (
+        <CreateBranchDialog
+          locale={locale}
+          busy={busy}
+          onCancel={() => setBranchDialog(null)}
+          onCreate={(name) => void onCreateBranch(name)}
+        />
+      ) : null}
+      {branchDialog?.kind === "rename" ? (
+        <RenameBranchDialog
+          locale={locale}
+          oldName={status?.current_branch ?? ""}
+          busy={busy}
+          onCancel={() => setBranchDialog(null)}
+          onRename={(name) => void onRenameBranch(name)}
+        />
+      ) : null}
+      {branchDialog?.kind === "delete" ? (
+        <DeleteBranchDialog
+          locale={locale}
+          busy={busy}
+          onCancel={() => setBranchDialog(null)}
+          onDelete={() => void onDeleteBranch(branchDialog.name)}
+        />
+      ) : null}
       {toast ? (
         <div
           role="status"

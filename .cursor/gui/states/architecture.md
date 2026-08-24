@@ -61,7 +61,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | Open dialog | id или null | нет |
 | Theme | light \| dark \| system | cfg/local |
 
-Нет измерения «режим окна Project vs History». Вкладки History/Stages — `sidebarTab` внутри Project view. Контекст файла — `contentContext`, left становится File view.
+Нет измерения «режим окна Project vs History». Вкладки History/Stash — `sidebarTab` внутри Project view. Контекст файла — `contentContext`, left становится File view.
 
 Смена repo сбрасывает folder/selection/commit/composer. Тема и layout могут сохраняться.
 
@@ -76,7 +76,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | вложенный path | SubFolder |
 | один файл в сетке | File Info |
 | несколько файлов в сетке | File More Info |
-| `sidebarTab = stages` | Stages |
+| `sidebarTab = stages` | Stash |
 | `commitComposer = open` | Create Commit |
 | `contentContext = file` | [file-preview](../views/file-preview.md) |
 | `contentContext = file-revision` | [file-history](../views/file-history.md) |

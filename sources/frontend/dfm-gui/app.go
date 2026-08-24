@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/difference-machine/forester/pkg/jsonapi"
@@ -194,6 +195,121 @@ func (a *App) WindowClose() {
 	runtime.Quit(a.ctx)
 }
 
+// SettingsInfo is the setup.cfg payload for Dialog / Settings.
+type SettingsInfo struct {
+	UserName     string   `json:"userName"`
+	UserEmail    string   `json:"userEmail"`
+	Locale       string   `json:"locale"`
+	Theme        string   `json:"theme"`
+	Repos        []string `json:"repos"`
+	APIPath      string   `json:"apiPath"`
+	ForesterPath string   `json:"foresterPath"`
+	BlenderPath  string   `json:"blenderPath"`
+	AddonPath    string   `json:"addonPath"`
+	Editors      []string `json:"editors"`
+}
+
+func settingsFromCfg(cfg setupCfg) SettingsInfo {
+	repos := cfg.Repos
+	if repos == nil {
+		repos = []string{}
+	}
+	editors := cfg.Editors
+	if editors == nil {
+		editors = []string{}
+	}
+	theme := cfg.Theme
+	if theme != "dark" {
+		theme = "light"
+	}
+	locale := cfg.Locale
+	if locale != "ru" {
+		locale = "en"
+	}
+	return SettingsInfo{
+		UserName:     cfg.UserName,
+		UserEmail:    cfg.UserEmail,
+		Locale:       locale,
+		Theme:        theme,
+		Repos:        repos,
+		APIPath:      cfg.APIPath,
+		ForesterPath: cfg.ForesterPath,
+		BlenderPath:  cfg.BlenderPath,
+		AddonPath:    cfg.AddonPath,
+		Editors:      editors,
+	}
+}
+
+// GetSettings returns author, repos, editors, and Forester paths from setup.cfg.
+func (a *App) GetSettings() (SettingsInfo, error) {
+	cfg, err := loadSetupCfg()
+	if err != nil {
+		return SettingsInfo{}, err
+	}
+	return settingsFromCfg(cfg), nil
+}
+
+// SaveProfile writes [user] name/email and [ui] language.
+func (a *App) SaveProfile(name, email, locale string) error {
+	if locale != "en" && locale != "ru" {
+		locale = "en"
+	}
+	return updateSetupCfg(func(cfg *setupCfg) {
+		cfg.UserName = strings.TrimSpace(name)
+		cfg.UserEmail = strings.TrimSpace(email)
+		cfg.Locale = locale
+	})
+}
+
+// SaveAppearance writes [ui] theme. Dark tokens are not applied until a Figma dark set exists.
+func (a *App) SaveAppearance(theme string) error {
+	if theme != "dark" {
+		theme = "light"
+	}
+	return updateSetupCfg(func(cfg *setupCfg) {
+		cfg.Theme = theme
+	})
+}
+
+// SaveRepos writes [repo] path_N. Does not delete .DFM/ on disk.
+func (a *App) SaveRepos(paths []string) error {
+	return updateSetupCfg(func(cfg *setupCfg) {
+		cfg.Repos = compactPaths(paths)
+	})
+}
+
+// SaveForester writes [api] path (native library) and [forester] path (CLI).
+func (a *App) SaveForester(apiPath, cliPath string) error {
+	return updateSetupCfg(func(cfg *setupCfg) {
+		cfg.APIPath = strings.TrimSpace(apiPath)
+		cfg.ForesterPath = strings.TrimSpace(cliPath)
+	})
+}
+
+// SaveEditors writes [blender] path, [addons] diffmachine_path, and [editors] path_N.
+func (a *App) SaveEditors(blenderPath, addonPath string, others []string) error {
+	return updateSetupCfg(func(cfg *setupCfg) {
+		cfg.BlenderPath = strings.TrimSpace(blenderPath)
+		cfg.AddonPath = strings.TrimSpace(addonPath)
+		cfg.Editors = compactPaths(others)
+	})
+}
+
+// SelectFile opens a native file picker and returns an absolute path.
+func (a *App) SelectFile() (string, error) {
+	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select file",
+	})
+	if err != nil || path == "" {
+		return "", err
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Clean(abs), nil
+}
+
 func (a *App) openLocked(absPath string) {
 	a.handle = jsonapi.Open(absPath)
 	a.hasSession = true
@@ -252,4 +368,16 @@ func envelopeError(raw []byte) string {
 		return "request failed"
 	}
 	return env.Error
+}
+
+func compactPaths(paths []string) []string {
+	out := make([]string, 0, len(paths))
+	for _, p := range paths {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		out = append(out, p)
+	}
+	return out
 }

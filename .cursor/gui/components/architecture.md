@@ -114,6 +114,7 @@ frontend/src/components/<domain>/     # кастомные кирпичи
 | Atom / Cards / Back to file | `4279:11427` | [atoms/card-back-to-file.md](./atoms/card-back-to-file.md) | `BackToFileRow` |
 | Atom / Cards / No History File | `4279:11870` | [atoms/card-no-history-file.md](./atoms/card-no-history-file.md) | `NoHistoryFile` |
 | Atom / Cards / No History Project | `4382:9003` | [atoms/card-no-history-project.md](./atoms/card-no-history-project.md) | `NoHistoryProject` |
+| Atom / Cards / No Stages Project | `6020:12733` | [atoms/card-no-stages-project.md](./atoms/card-no-stages-project.md) | `NoStagesProject` |
 
 Иконка папки 48px живёт внутри [items/grid-folder.md](./items/grid-folder.md) (`Atom / Icons / 48 / Folder`, `4234:9143`). Отдельный атом-спеки нет, пока нет других размеров в наборе.
 

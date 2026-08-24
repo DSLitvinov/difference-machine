@@ -13,7 +13,7 @@ Figma: [Atom / Swapper](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-
 
 | Родитель в Figma | В коде вместо Swapper |
 |------------------|------------------------|
-| [Item / Card](../items/sidebar-card.md) | атом карточки: [Commit Project](./card-commit-project.md), [Commit File](./card-commit-file.md), [Stage](./card-stage.md), [Create Commit](./card-create-commit.md), [No History …](./card-no-history-project.md), [Back to file](./card-back-to-file.md) |
+| [Item / Card](../items/sidebar-card.md) | атом карточки: [Commit Project](./card-commit-project.md), [Commit File](./card-commit-file.md), [Stage](./card-stage.md), [Create Commit](./card-create-commit.md), [No History …](./card-no-history-project.md), [No Stages Project](./card-no-stages-project.md), [Back to file](./card-back-to-file.md) |
 | [Item / Card Directory](../items/sidebar-card-directory.md) | [UncommittedFilesCard](./card-directory.md) |
 | [Item / Commit / Diff / Image](../items/commit-diff-image.md) Tab Swipe | реальный swipe (два кадра + ручка), не teal-слой |
 

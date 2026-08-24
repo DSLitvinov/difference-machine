@@ -22,6 +22,10 @@ type AppShellProps = {
   onCreateCommit: (fields: CreateCommitFields) => void;
   onCompareFile: () => void;
   onRestoreFile: () => Promise<boolean>;
+  onSwitchBranch: (name: string) => void;
+  onCreateBranch: () => void;
+  onRenameBranch: () => void;
+  onDeleteBranch: (name: string) => void;
 };
 
 export function AppShell({
@@ -35,6 +39,10 @@ export function AppShell({
   onCreateCommit,
   onCompareFile,
   onRestoreFile,
+  onSwitchBranch,
+  onCreateBranch,
+  onRenameBranch,
+  onDeleteBranch,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
@@ -42,6 +50,7 @@ export function AppShell({
   const changedOnly = useAppStore((s) => s.changedOnly);
   const status = useAppStore((s) => s.status);
   const commits = useAppStore((s) => s.commits);
+  const branches = useAppStore((s) => s.branches);
   const entries = useAppStore((s) => s.entries);
   const entriesHasMore = useAppStore((s) => s.entriesHasMore);
   const repoPath = useAppStore((s) => s.repoPath);
@@ -92,10 +101,15 @@ export function AppShell({
             userName={userName}
             path={filePath}
             status={status}
+            branches={branches}
             selectedHash={fileRevision?.hash ?? null}
             onSettings={onSettings}
             onCurrentPreview={leaveFileRevision}
             onSelectCommit={openFileRevision}
+            onSwitchBranch={onSwitchBranch}
+            onCreateBranch={onCreateBranch}
+            onRenameBranch={onRenameBranch}
+            onDeleteBranch={onDeleteBranch}
           />
         ) : (
           <ProjectViewPanel
@@ -105,6 +119,7 @@ export function AppShell({
             hasCommits={hasCommits}
             status={status}
             commits={commits}
+            branches={branches}
             branchName={status?.current_branch}
             sidebarTab={sidebarTab}
             changedOnly={changedOnly}
@@ -121,6 +136,10 @@ export function AppShell({
             onCommitAll={onCommitAll}
             onCancelComposer={onCancelComposer}
             onCreateCommit={onCreateCommit}
+            onSwitchBranch={onSwitchBranch}
+            onCreateBranch={onCreateBranch}
+            onRenameBranch={onRenameBranch}
+            onDeleteBranch={onDeleteBranch}
           />
         )}
         {view === "file-history" && fileRevision ? (

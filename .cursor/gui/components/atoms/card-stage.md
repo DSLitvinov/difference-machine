@@ -1,11 +1,11 @@
 # Stage Card
 
-Карточка стейджа (именованный снимок), не git-commit. Не путать с [Commit Project](./card-commit-project.md).
+Карточка **stash** (именованный снимок workdir). Слой Figma — `Atom / Cards / Stage`; в UI слово **Stash**, не Stage. Не путать с [Commit Project](./card-commit-project.md) и не с `status.get.staged_*`.
 
 Figma: [Atom / Cards / Stage](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4402-9877) (`4402:9877`).  
 Код: `StageCard`.
 
-Ширина 245 px. Те же description / stats / date, что у commit project. Атом не вызывает API. Пока нет метода стейджей — карточку не кормить мок-данными ([revision-cache.md](../../gui_frontend/revision-cache.md)).
+Ширина 245 px. Те же description / stats / date, что у commit project. Атом не вызывает API. Пока нет метода списка stash — карточку не кормить мок-данными. Пустая вкладка: [NoStagesProject](./card-no-stages-project.md).
 
 ---
 
@@ -13,7 +13,7 @@ Figma: [Atom / Cards / Stage](https://www.figma.com/design/qlwKiMPZblz96VSM2F3Dl
 
 | Слот | Вид |
 |------|-----|
-| Title | Inter Semi Bold 14/20, пример «Stage №2» |
+| Title | Inter Semi Bold 14/20, пример «Stash №2» |
 | More | 16×16 ellipsis-vertical |
 | Author | 12/16 `#09090b` |
 | Description | 12/16 `#71717a`, 2 строки |
@@ -28,5 +28,6 @@ Figma: [Atom / Cards / Stage](https://www.figma.com/design/qlwKiMPZblz96VSM2F3Dl
 
 ## Запрещено
 
-- Badge Head на стейдже.
+- Badge Head на stash-карточке.
 - Путать с Create Commit формой.
+- Писать **Stage** в UI — только **Stash**.

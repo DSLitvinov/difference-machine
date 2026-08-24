@@ -99,7 +99,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | View / Project view / View Commit - Text | `4290:24338` | коммит |
 | View / Project view / View Commit - Img | `4306:3027` | коммит |
 
-Отдельного `View / History` окна нет. Вкладки **History / Stages** живут внутри [Panel / Project view](../panels/project-view.md).
+Отдельного `View / History` окна нет. Вкладки **History / Stash** (Figma: Stages) живут внутри [Panel / Project view](../panels/project-view.md).
 
 Нет экранов merge, detached HEAD, settings — это [диалоги](../dialogs/architecture.md) и баннеры из [states](../states/architecture.md), не `View /`.
 
@@ -118,7 +118,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | `contentContext` | folder \| file \| file-revision \| commit | семейство экрана |
 | `fileKind` | image \| text \| binary | IMG / Text / Binary |
 | `infoCollapsed` | да \| нет | center 1120, right скрыта |
-| `sidebarTab` | history \| stages | список коммитов vs стейджи |
+| `sidebarTab` | history \| stages | список коммитов vs stash (UI: **Stash**) |
 | `commitComposer` | закрыт \| открыт | карточка Create Commit |
 | `fileHasHistory` | да \| нет | File view vs File view History Null |
 
@@ -139,7 +139,7 @@ File View --select commit--> History of File
 History of File --Current preview--> File View
 Project History --select commit--> View Commit
 Uncommitted --Commit All / composer--> Create Commit
-вкладка Stages --> Stages
+вкладка Stash --> Stash
 ```
 
 Детали — в спеках семейств.
@@ -152,6 +152,6 @@ Uncommitted --Commit All / composer--> Create Commit
 
 1. **Empty DFM Folder** (`4385:8956`): в сетке есть файлы, в сайдбаре плейсхолдер «Create repository». Это workdir без `.DFM/` или репозиторий без коммитов?
 2. **First Start vs Empty DFM Project**: оба умеют создать/открыть репо. First Start — только пока нет `[current repo]`?
-3. **Стейджи** (`View / … / Stages`): в JSON API Forester отдельной сущности stage нет (это не `staged_*` из `status.get`). Экран рисуем; данные — когда появится метод, не симулировать список. Кэш и лень — тот же каркас, ключ `stageId`: [revision-cache.md](../gui_frontend/revision-cache.md).
+3. **Stash** (`View / … / Stages` в Figma): вкладка UI — **Stash** (Forester stash, не `staged_*` из `status.get`). Пустая вкладка — [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733`. Данные списка — когда появится метод stash list, не симулировать карточки. Кэш и лень — тот же каркас, ключ `stageId`: [revision-cache.md](../gui_frontend/revision-cache.md).
 4. **View Commit** без выбранного файла в списке коммита — кадра нет. Пока не выбран path в `Content / File list`, какой diff показывать?
 5. **History of File** только Image и Text, binary-ревизии файла нет. Для бинарного файла из File view — оставаться на File View Binary или брать binary stub из View Commit?

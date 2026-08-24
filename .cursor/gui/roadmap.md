@@ -27,9 +27,9 @@ Mark a phase **done** only when the listed verify check passes. Current work is 
 | 9 | History sidebar + View Commit | done |
 | 10 | Create Commit composer | done |
 | 11 | History of File (text / image) | done |
-| 12 | Stages placeholder | done |
-| 13 | Settings dialog | pending |
-| 14 | Branches dialogs | pending |
+| 12 | Stash placeholder | done |
+| 13 | Settings dialog | done |
+| 14 | Branches dialogs | done |
 | 15 | Merge + detached HEAD banners | pending |
 | 16 | Search, sort, filter, locks, watcher | pending |
 | 17 | Polish, i18n, packaging | pending |
@@ -80,11 +80,11 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 - Window resize to **1429×768** when `shell = app`.
 - [Header Window](./components/items/header-window.md) 1429×48.
-- Left 309: Project view History Null (branch, Uncommitted Un Changed, History/Stages, No History Project, Header Settings).
+- Left 309: Project view History Null (branch, Uncommitted Un Changed, History/Stash, No History Project, Header Settings).
 - Center 1120: Folder Empty + [FolderNullPlaceholder](./components/placeholders/folder-null.md). No right column.
 - Derived view selector; do not store the Figma view name.
 
-**Verify:** empty project matches the mockup; Stages tab is visible but empty (no fake stage list).
+**Verify:** empty project matches the mockup; Stash tab is visible but empty (no fake stash list).
 
 ---
 
@@ -188,14 +188,13 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 ---
 
-## Phase 12 — Stages
+## Phase 12 — Stash
 
-**Spec:** Stages view. No JSON stage entity in 0.8.1.
+**Spec:** Stash view (Figma Stages). No JSON stash-list entity in 0.8.1.
 
-- Tab renders StageCard empty/placeholder from Figma.
-- Do not fake a list from `status.get.staged_*`.
+- Tab label **Stash**. Empty: [NoStagesProject](./components/atoms/card-no-stages-project.md) `6020:12733`. Do not fake a list from `status.get.staged_*`.
 
-**Verify:** Stages tab has no invented rows.
+**Verify:** Stash tab has no invented rows.
 
 ---
 
@@ -253,7 +252,7 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 ## Open design questions (do not invent)
 
-See [views/architecture.md](./views/architecture.md): Empty DFM Folder vs uninitialized folder; First Start vs Empty Project dual Create; Stages API; View Commit with no selected path; binary History of File.
+See [views/architecture.md](./views/architecture.md): Empty DFM Folder vs uninitialized folder; First Start vs Empty Project dual Create; Stash API; View Commit with no selected path; binary History of File.
 
 ---
 

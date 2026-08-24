@@ -10,6 +10,10 @@ export function GetSession() {
   return window['go']['main']['App']['GetSession']();
 }
 
+export function GetSettings() {
+  return window['go']['main']['App']['GetSettings']();
+}
+
 export function InitRepository(arg1) {
   return window['go']['main']['App']['InitRepository'](arg1);
 }
@@ -22,8 +26,32 @@ export function ReadThumbCache(arg1, arg2, arg3) {
   return window['go']['main']['App']['ReadThumbCache'](arg1, arg2, arg3);
 }
 
+export function SaveAppearance(arg1) {
+  return window['go']['main']['App']['SaveAppearance'](arg1);
+}
+
+export function SaveEditors(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveEditors'](arg1, arg2, arg3);
+}
+
+export function SaveForester(arg1, arg2) {
+  return window['go']['main']['App']['SaveForester'](arg1, arg2);
+}
+
+export function SaveProfile(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SaveProfile'](arg1, arg2, arg3);
+}
+
+export function SaveRepos(arg1) {
+  return window['go']['main']['App']['SaveRepos'](arg1);
+}
+
 export function SelectDirectory() {
   return window['go']['main']['App']['SelectDirectory']();
+}
+
+export function SelectFile() {
+  return window['go']['main']['App']['SelectFile']();
 }
 
 export function SetLocale(arg1) {

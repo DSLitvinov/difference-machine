@@ -166,42 +166,17 @@ func Switch(args []string) error {
 		return fmt.Errorf("failed to get target commit: %w", err)
 	}
 
-	if err := core.RestoreTreeToWorkdir(storage, repoPath, targetCommit.TreeHash); err != nil {
-		return fmt.Errorf("failed to restore files: %w", err)
-	}
-
-	// Delete files that are not in target tree
-	allFiles, err := utils.ListFiles(repoPath, true)
-	targetFiles, mapErr := core.TreeBlobPaths(storage, targetCommit.TreeHash)
-	if err == nil && mapErr == nil {
-		patterns := utils.NewPatterns()
-		ignorePath := filepath.Join(repoPath, ".dfmignore")
-		if utils.Exists(ignorePath) {
-			patterns.LoadFromFile(ignorePath)
+	currentTreeHash := headTreeHash(repo, repoPath, currentBranch)
+	if hasChanges {
+		if err := core.RestoreTreeToWorkdir(storage, repoPath, targetCommit.TreeHash); err != nil {
+			return fmt.Errorf("failed to restore files: %w", err)
 		}
-
-		for _, filePath := range allFiles {
-			if strings.Contains(filePath, ".DFM") {
-				continue
-			}
-
-			relPath, err := utils.GetRelativePath(repoPath, filePath)
-			if err != nil {
-				continue
-			}
-			relPath = filepath.ToSlash(relPath)
-
-			if patterns.Matches(relPath) {
-				continue
-			}
-
-			if !targetFiles[relPath] {
-				if utils.Exists(filePath) {
-					if err := utils.RemoveRecursive(filePath); err != nil {
-						fmt.Fprintf(os.Stderr, "Warning: failed to delete file %s: %v\n", relPath, err)
-					}
-				}
-			}
+		if err := removeWorkdirPathsNotInTree(repoPath, storage, targetCommit.TreeHash); err != nil {
+			return err
+		}
+	} else {
+		if err := core.RestoreWorkdirDelta(storage, repoPath, currentTreeHash, targetCommit.TreeHash); err != nil {
+			return fmt.Errorf("failed to restore files: %w", err)
 		}
 	}
 
@@ -257,6 +232,61 @@ func Switch(args []string) error {
 		}
 	}
 
+	return nil
+}
+
+func headTreeHash(repo *core.Repository, repoPath, branch string) string {
+	head := ""
+	if detached, state, err := core.ReadDetachedHead(repoPath); err == nil && detached {
+		head = state.Commit
+	} else {
+		head, _ = repo.GetBranchHead(branch)
+	}
+	if head == "" {
+		return ""
+	}
+	commit, err := repo.GetCommit(head)
+	if err != nil {
+		return ""
+	}
+	return commit.TreeHash
+}
+
+func removeWorkdirPathsNotInTree(repoPath string, storage *core.Storage, treeHash string) error {
+	allFiles, err := utils.ListFiles(repoPath, true)
+	if err != nil {
+		return err
+	}
+	targetFiles, err := core.TreeBlobPaths(storage, treeHash)
+	if err != nil {
+		return err
+	}
+	patterns := utils.NewPatterns()
+	ignorePath := filepath.Join(repoPath, ".dfmignore")
+	if utils.Exists(ignorePath) {
+		patterns.LoadFromFile(ignorePath)
+	}
+	for _, filePath := range allFiles {
+		if strings.Contains(filePath, ".DFM") {
+			continue
+		}
+		relPath, err := utils.GetRelativePath(repoPath, filePath)
+		if err != nil {
+			continue
+		}
+		relPath = filepath.ToSlash(relPath)
+		if patterns.Matches(relPath) {
+			continue
+		}
+		if targetFiles[relPath] {
+			continue
+		}
+		if utils.Exists(filePath) {
+			if err := utils.RemoveRecursive(filePath); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to delete file %s: %v\n", relPath, err)
+			}
+		}
+	}
 	return nil
 }
 

@@ -51,6 +51,47 @@ export async function setLocale(locale: string): Promise<void> {
   await app().SetLocale(locale);
 }
 
+export type SettingsInfo = {
+  userName: string;
+  userEmail: string;
+  locale: string;
+  theme: string;
+  repos: string[];
+  apiPath: string;
+  foresterPath: string;
+  blenderPath: string;
+  addonPath: string;
+  editors: string[];
+};
+
+export async function getSettings(): Promise<SettingsInfo> {
+  return app().GetSettings();
+}
+
+export async function saveProfile(name: string, email: string, locale: string): Promise<void> {
+  await app().SaveProfile(name, email, locale);
+}
+
+export async function saveAppearance(theme: string): Promise<void> {
+  await app().SaveAppearance(theme);
+}
+
+export async function saveRepos(paths: string[]): Promise<void> {
+  await app().SaveRepos(paths);
+}
+
+export async function saveForester(apiPath: string, cliPath: string): Promise<void> {
+  await app().SaveForester(apiPath, cliPath);
+}
+
+export async function saveEditors(blenderPath: string, addonPath: string, others: string[]): Promise<void> {
+  await app().SaveEditors(blenderPath, addonPath, others);
+}
+
+export async function selectFile(): Promise<string> {
+  return app().SelectFile();
+}
+
 export async function windowMinimise(): Promise<void> {
   await app().WindowMinimise();
 }

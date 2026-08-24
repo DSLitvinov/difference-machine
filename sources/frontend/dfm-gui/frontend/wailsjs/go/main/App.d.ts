@@ -6,13 +6,27 @@ export function ForesterCall(arg1:string,arg2:string):Promise<string>;
 
 export function GetSession():Promise<main.SessionInfo>;
 
+export function GetSettings():Promise<main.SettingsInfo>;
+
 export function InitRepository(arg1:string):Promise<main.SessionInfo>;
 
 export function OpenRepository(arg1:string):Promise<main.SessionInfo>;
 
 export function ReadThumbCache(arg1:string,arg2:number,arg3:number):Promise<string>;
 
+export function SaveAppearance(arg1:string):Promise<void>;
+
+export function SaveEditors(arg1:string,arg2:string,arg3:Array<string>):Promise<void>;
+
+export function SaveForester(arg1:string,arg2:string):Promise<void>;
+
+export function SaveProfile(arg1:string,arg2:string,arg3:string):Promise<void>;
+
+export function SaveRepos(arg1:Array<string>):Promise<void>;
+
 export function SelectDirectory():Promise<string>;
+
+export function SelectFile():Promise<string>;
 
 export function SetLocale(arg1:string):Promise<void>;
 

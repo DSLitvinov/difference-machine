@@ -13,10 +13,10 @@
 | Что | Это | Кэш |
 |-----|-----|-----|
 | **Коммит** | Неизменяемый объект Forester (`hash`) | Memory LRU по hash. Диск GUI **не** нужен: байты уже в `.DFM/objects` |
-| **Именованный стейдж** (вкладка Stages, [StageCard](../components/atoms/card-stage.md)) | Снимок **не** git-commit. В JSON API 0.8.1 метода **нет** | Тот же каркас, другой ключ (`stageId`), когда метод появится. Список **не** симулировать |
+| **Именованный stash** (вкладка Stash, Figma Stages, [StageCard](../components/atoms/card-stage.md)) | Снимок workdir, не git-commit. В JSON API 0.8.1 метода списка **нет** | Тот же каркас, другой ключ (`stageId`), когда метод появится. Список **не** симулировать |
 | **Index / `staged_*`** | Живой индекс (`status.get`, `index.add`) | Снимок VCS-store. Не LRU blob. Превью этих файлов — workdir + mtime, не hash коммита |
 
-Вкладка Stages ≠ фильтр «только staged в git». Открытый вопрос: [views/architecture.md](../views/architecture.md) §3.
+Вкладка Stash ≠ фильтр «только staged в git». Открытый вопрос: [views/architecture.md](../views/architecture.md) §3.
 
 ---
 
@@ -79,9 +79,9 @@ JSON API под глобальный mutex. Бюджет GUI: **1–2** in-fligh
 
 ---
 
-## Стейджи (вкладка Stages)
+## Stash (вкладка Stash)
 
-Экран и [StageCard](../components/atoms/card-stage.md) — из Figma. Данных в API нет: пустой/placeholder список по макету, **не** мок «Stage №1…».
+Экран и [StageCard](../components/atoms/card-stage.md) — из Figma (слой Stage). В UI **Stash**. Данных списка в API нет: вкладка показывает [NoStagesProject](../components/atoms/card-no-stages-project.md) (`6020:12733`), **не** мок «Stash №1…».
 
 Когда появится метод (имя зафиксировать в [jsonapi.md](../gui_backend/jsonapi.md)):
 
@@ -125,5 +125,5 @@ LRU: недавно открытые ревизии + visible stats, не вся
 - Prefetch всех path выбранного коммита.
 - Диск-кэш GUI для blob ревизии (дубль object store).
 - Выдуманный список стейджей до метода API.
-- Путать StageCard с `staged_*` из `status.get`.
+- Путать StageCard / вкладку Stash с `staged_*` из `status.get`.
 - Видимые «cached», «N files loaded», MIME debug.

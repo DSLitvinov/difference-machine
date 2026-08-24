@@ -10,12 +10,18 @@ import (
 )
 
 type setupCfg struct {
-	UserName    string
-	UserEmail   string
-	CurrentRepo string
-	Repos       []string
-	Locale      string
-	raw         map[string]map[string]string
+	UserName     string
+	UserEmail    string
+	CurrentRepo  string
+	Repos        []string
+	Locale       string
+	Theme        string
+	ForesterPath string
+	APIPath      string
+	AddonPath    string
+	BlenderPath  string
+	Editors      []string
+	raw          map[string]map[string]string
 }
 
 func setupCfgPath() (string, error) {
@@ -29,6 +35,7 @@ func setupCfgPath() (string, error) {
 func loadSetupCfg() (setupCfg, error) {
 	cfg := setupCfg{
 		Locale: "en",
+		Theme:  "light",
 		raw:    map[string]map[string]string{},
 	}
 	path, err := setupCfgPath()
@@ -87,15 +94,27 @@ func loadSetupCfg() (setupCfg, error) {
 		if ui["language"] == "ru" {
 			cfg.Locale = "ru"
 		}
+		if ui["theme"] == "dark" {
+			cfg.Theme = "dark"
+		}
 	}
 	if repo := cfg.raw["repo"]; repo != nil {
-		for i := 1; i < 1024; i++ {
-			p := repo["path_"+strconv.Itoa(i)]
-			if p == "" {
-				break
-			}
-			cfg.Repos = append(cfg.Repos, p)
-		}
+		cfg.Repos = loadPathList(repo)
+	}
+	if ed := cfg.raw["editors"]; ed != nil {
+		cfg.Editors = loadPathList(ed)
+	}
+	if f := cfg.raw["forester"]; f != nil {
+		cfg.ForesterPath = f["path"]
+	}
+	if a := cfg.raw["api"]; a != nil {
+		cfg.APIPath = a["path"]
+	}
+	if ad := cfg.raw["addons"]; ad != nil {
+		cfg.AddonPath = ad["diffmachine_path"]
+	}
+	if b := cfg.raw["blender"]; b != nil {
+		cfg.BlenderPath = b["path"]
 	}
 	return cfg, nil
 }
@@ -140,6 +159,11 @@ func writeSetupCfg(cfg setupCfg) error {
 	setSection(cfg.raw, "user", "email", cfg.UserEmail)
 	setSection(cfg.raw, "current repo", "path", cfg.CurrentRepo)
 	setSection(cfg.raw, "ui", "language", cfg.Locale)
+	setSection(cfg.raw, "ui", "theme", cfg.Theme)
+	setSection(cfg.raw, "forester", "path", cfg.ForesterPath)
+	setSection(cfg.raw, "api", "path", cfg.APIPath)
+	setSection(cfg.raw, "addons", "diffmachine_path", cfg.AddonPath)
+	setSection(cfg.raw, "blender", "path", cfg.BlenderPath)
 
 	repo := map[string]string{}
 	for i, p := range cfg.Repos {
@@ -147,7 +171,13 @@ func writeSetupCfg(cfg setupCfg) error {
 	}
 	cfg.raw["repo"] = repo
 
-	order := []string{"user", "ui", "current repo", "repo", "forester", "api", "addons", "blender", "gc", "python_bindings", "plugins"}
+	editors := map[string]string{}
+	for i, p := range cfg.Editors {
+		editors["path_"+strconv.Itoa(i+1)] = p
+	}
+	cfg.raw["editors"] = editors
+
+	order := []string{"user", "ui", "current repo", "repo", "forester", "api", "addons", "blender", "editors", "gc", "python_bindings", "plugins"}
 	seen := map[string]bool{}
 	var b strings.Builder
 	writeSection := func(name string) {
@@ -160,6 +190,14 @@ func writeSetupCfg(cfg setupCfg) error {
 		if name == "repo" {
 			for i := 1; i <= len(cfg.Repos); i++ {
 				p := cfg.Repos[i-1]
+				if p == "" {
+					continue
+				}
+				fmt.Fprintf(&b, "path_%d = %s\n", i, p)
+			}
+		} else if name == "editors" {
+			for i := 1; i <= len(cfg.Editors); i++ {
+				p := cfg.Editors[i-1]
 				if p == "" {
 					continue
 				}
@@ -189,6 +227,18 @@ func writeSetupCfg(cfg setupCfg) error {
 		return err
 	}
 	return os.Rename(tmp, path)
+}
+
+func loadPathList(section map[string]string) []string {
+	var out []string
+	for i := 1; i < 1024; i++ {
+		p := section["path_"+strconv.Itoa(i)]
+		if p == "" {
+			break
+		}
+		out = append(out, p)
+	}
+	return out
 }
 
 func setSection(raw map[string]map[string]string, section, key, value string) {
