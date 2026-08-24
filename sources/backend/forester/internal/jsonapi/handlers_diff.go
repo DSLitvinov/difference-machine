@@ -317,39 +317,34 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 				continue
 			}
 			filesChanged++
+			if skipStatText(file) {
+				continue
+			}
 			e1 := diff.tree1[file]
 			e2 := diff.tree2[file]
-			c1, err1 := storage.GetBlobContentString(e1.Hash)
-			c2, err2 := storage.GetBlobContentString(e2.Hash)
-			if err1 == nil && err2 == nil && utils.IsTextFile([]byte(c1)) && utils.IsTextFile([]byte(c2)) {
-				for _, line := range utils.ComputeDiff(c1, c2) {
-					if line.Type == utils.DiffLineAdded {
-						insertions++
-					} else if line.Type == utils.DiffLineRemoved {
-						deletions++
-					}
-				}
-			}
+			add, del := statModifiedDelta(storage, e1.Hash, e2.Hash)
+			insertions += add
+			deletions += del
 		}
 		for _, file := range diff.added {
 			if utils.IsDfmignoreRelPath(file) {
 				continue
 			}
 			filesChanged++
-			c2, err := storage.GetBlobContentString(diff.tree2[file].Hash)
-			if err == nil && utils.IsTextFile([]byte(c2)) {
-				insertions += len(utils.SplitLines(c2))
+			if skipStatText(file) {
+				continue
 			}
+			insertions += statBlobLineCount(storage, diff.tree2[file].Hash)
 		}
 		for _, file := range diff.deleted {
 			if utils.IsDfmignoreRelPath(file) {
 				continue
 			}
 			filesChanged++
-			c1, err := storage.GetBlobContentString(diff.tree1[file].Hash)
-			if err == nil && utils.IsTextFile([]byte(c1)) {
-				deletions += len(utils.SplitLines(c1))
+			if skipStatText(file) {
+				continue
 			}
+			deletions += statBlobLineCount(storage, diff.tree1[file].Hash)
 		}
 
 		for _, pair := range diff.renamed {
@@ -365,6 +360,48 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 			"deletions":     deletions,
 		}, nil
 	})
+}
+
+const maxStatBlobBytes = 512 * 1024
+
+func skipStatText(path string) bool {
+	ext := strings.ToLower(path)
+	if i := strings.LastIndex(ext, "."); i >= 0 {
+		ext = ext[i:]
+	} else {
+		return false
+	}
+	switch ext {
+	case ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".tif", ".tiff", ".ico", ".avif", ".exr",
+		".blend", ".mp4", ".mov", ".wav", ".mp3", ".pdf", ".zip", ".gz", ".7z", ".rar",
+		".woff", ".woff2", ".ttf", ".otf", ".glb", ".bin":
+		return true
+	default:
+		return false
+	}
+}
+
+func statBlobLineCount(storage *core.Storage, hash string) int {
+	raw, err := storage.GetBlobContent(hash)
+	if err != nil || len(raw) > maxStatBlobBytes || !utils.IsTextFile(raw) {
+		return 0
+	}
+	return len(utils.SplitLines(string(raw)))
+}
+
+func statModifiedDelta(storage *core.Storage, hash1, hash2 string) (insertions, deletions int) {
+	c1, err1 := storage.GetBlobContent(hash1)
+	c2, err2 := storage.GetBlobContent(hash2)
+	if err1 != nil || err2 != nil {
+		return 0, 0
+	}
+	if len(c1) > maxStatBlobBytes || len(c2) > maxStatBlobBytes {
+		return 0, 0
+	}
+	if !utils.IsTextFile(c1) || !utils.IsTextFile(c2) {
+		return 0, 0
+	}
+	return utils.CountLineDelta(string(c1), string(c2))
 }
 
 func handleDiffText(workPath string, args json.RawMessage) (interface{}, error) {

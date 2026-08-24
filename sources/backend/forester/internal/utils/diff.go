@@ -161,6 +161,36 @@ func ComputeDiff(content1, content2 string) []DiffLine {
 	return BuildDiffFromLCS(lines1, lines2, dp)
 }
 
+const maxStatDiffLines = 2000
+
+// CountLineDelta returns added/removed line counts without building a full diff.
+// Large files skip the O(n*m) LCS and contribute 0/0 (files_changed is counted elsewhere).
+func CountLineDelta(content1, content2 string) (insertions, deletions int) {
+	lines1 := SplitLines(content1)
+	lines2 := SplitLines(content2)
+	if len(lines1) > maxStatDiffLines || len(lines2) > maxStatDiffLines {
+		return 0, 0
+	}
+	dp := ComputeLCS(lines1, lines2)
+	i := len(lines1)
+	j := len(lines2)
+	for i > 0 || j > 0 {
+		if i > 0 && j > 0 && lines1[i-1] == lines2[j-1] {
+			i--
+			j--
+			continue
+		}
+		if j > 0 && (i == 0 || dp[i][j-1] >= dp[i-1][j]) {
+			insertions++
+			j--
+			continue
+		}
+		deletions++
+		i--
+	}
+	return insertions, deletions
+}
+
 const unifiedContextLines = 3
 
 func buildHunkRanges(diffLines []DiffLine, context int) [][2]int {

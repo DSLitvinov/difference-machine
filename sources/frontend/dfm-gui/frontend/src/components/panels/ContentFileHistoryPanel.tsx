@@ -6,11 +6,10 @@ import { BinaryDiffStub } from "@/components/items/BinaryDiffStub";
 import { RestoreFileDialog } from "@/components/dialogs/RestoreFileDialog";
 import { fileKind } from "@/lib/file-kind";
 import {
-  peekBlob,
-  peekText,
+  useBlob,
+  useText,
   requestBlob,
   requestText,
-  useRevisionEpoch,
 } from "@/lib/revision-cache";
 import type { Locale } from "@/lib/i18n";
 import type { CommitSummary } from "@/store/app-store";
@@ -43,14 +42,13 @@ export function ContentFileHistoryPanel({
   onRevert,
   onOpenExternal,
 }: ContentFileHistoryPanelProps) {
-  useRevisionEpoch();
   const [confirm, setConfirm] = useState(false);
   const name = basename(path);
   const kind = fileKind(name);
-  const parent = commit.parent_hashes?.[0];
-  const text = peekText(repoPath, commit.hash, path);
-  const afterBlob = peekBlob(repoPath, commit.hash, path);
-  const beforeBlob = parent ? peekBlob(repoPath, parent, path) : undefined;
+  const parent = commit.parent_hashes?.[0] ?? "";
+  const text = useText(repoPath, commit.hash, path);
+  const afterBlob = useBlob(repoPath, commit.hash, path);
+  const beforeBlob = useBlob(repoPath, parent, path);
 
   useEffect(() => {
     if (kind === "image") {

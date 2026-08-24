@@ -76,3 +76,20 @@ func TestFormatUnifiedDiffMultipleHunks(t *testing.T) {
 		t.Fatalf("expected two hunks:\n%s", out)
 	}
 }
+
+func TestCountLineDeltaMatchesComputeDiff(t *testing.T) {
+	old := "a\nb\nc\n"
+	new := "a\nB\nc\nD\n"
+	add, del := CountLineDelta(old, new)
+	var wantAdd, wantDel int
+	for _, line := range ComputeDiff(old, new) {
+		if line.Type == DiffLineAdded {
+			wantAdd++
+		} else if line.Type == DiffLineRemoved {
+			wantDel++
+		}
+	}
+	if add != wantAdd || del != wantDel {
+		t.Fatalf("CountLineDelta = +%d -%d, want +%d -%d", add, del, wantAdd, wantDel)
+	}
+}

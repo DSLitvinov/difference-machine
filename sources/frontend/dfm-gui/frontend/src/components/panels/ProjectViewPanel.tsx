@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { HeaderSelectBranch } from "@/components/items/HeaderSelectBranch";
 import { HeaderSettings } from "@/components/items/HeaderSettings";
 import { SidebarCard } from "@/components/items/SidebarCard";
@@ -11,7 +12,7 @@ import { NullRepositoryPlaceholder } from "@/components/placeholders/NullReposit
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
 import { changeCounts, isDirty } from "@/lib/status";
-import { peekStat, requestStat, useRevisionEpoch } from "@/lib/revision-cache";
+import { requestVisibleStats, useStat } from "@/lib/revision-cache";
 import type { SidebarTab } from "@/lib/view";
 import type { CommitSummary, StatusSnapshot } from "@/store/app-store";
 
@@ -116,7 +117,7 @@ export function ProjectViewPanel({
             </TabsList>
           </Tabs>
         </div>
-        <div className="flex min-h-0 w-[309px] flex-1 flex-col overflow-y-auto px-3">
+        <div className="flex min-h-0 w-[309px] flex-1 flex-col px-3">
           {sidebarTab === "history" ? (
             <CommitList
               locale={locale}
@@ -138,7 +139,7 @@ export function ProjectViewPanel({
   );
 }
 
-function VisibleCommitCard({
+function VirtualCommitCard({
   hash,
   repoPath,
   selected,
@@ -148,32 +149,14 @@ function VisibleCommitCard({
   hash: string;
   repoPath: string;
   selected?: boolean;
-  children: ReactNode;
+  children: (stat: ReturnType<typeof useStat>) => ReactNode;
   onSelect: () => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) {
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          requestStat(repoPath, hash);
-        }
-      },
-      { rootMargin: "160px" },
-    );
-    io.observe(node);
-    return () => io.disconnect();
-  }, [repoPath, hash]);
+  const stat = useStat(repoPath, hash);
   return (
-    <div ref={ref}>
-      <SidebarCard state={selected ? "selected" : "default"} onClick={onSelect}>
-        {children}
-      </SidebarCard>
-    </div>
+    <SidebarCard state={selected ? "selected" : "default"} onClick={onSelect}>
+      {children(stat)}
+    </SidebarCard>
   );
 }
 
@@ -200,7 +183,24 @@ function CommitList({
   onCreateRepository: () => void;
   onSelectCommit: (hash: string) => void;
 }) {
-  useRevisionEpoch();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: commits.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 140,
+    overscan: 2,
+    gap: 8,
+  });
+  const items = virtualizer.getVirtualItems();
+  const visibleHashes = items.map((row) => commits[row.index]?.hash ?? "").join("\0");
+
+  useEffect(() => {
+    if (!repoPath || !visibleHashes) {
+      return;
+    }
+    requestVisibleStats(repoPath, visibleHashes.split("\0").filter(Boolean));
+  }, [repoPath, visibleHashes]);
+
   if (!hasCommits && !folderEmpty) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
@@ -216,33 +216,44 @@ function CommitList({
     );
   }
   return (
-    <div className="flex w-full flex-col gap-2">
-      {commits.map((commit) => {
-        const { title, description } = splitMessage(commit.message ?? "");
-        const stat = peekStat(repoPath, commit.hash);
-        return (
-          <VisibleCommitCard
-            key={commit.hash}
-            hash={commit.hash}
-            repoPath={repoPath}
-            selected={commit.hash === selectedCommit}
-            onSelect={() => onSelectCommit(commit.hash)}
-          >
-            <CommitProjectCard
-              title={title}
-              author={commit.author ?? ""}
-              description={description}
-              timestamp={commit.timestamp ?? 0}
-              head={Boolean(commit.hash && commit.hash === status?.head_commit)}
-              merge={(commit.parent_hashes?.length ?? 0) > 1}
-              tag={commit.tag}
-              filesChanged={stat?.files_changed}
-              insertions={stat?.insertions}
-              deletions={stat?.deletions}
-            />
-          </VisibleCommitCard>
-        );
-      })}
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto">
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {items.map((row) => {
+          const commit = commits[row.index];
+          const { title, description } = splitMessage(commit.message ?? "");
+          return (
+            <div
+              key={commit.hash}
+              data-index={row.index}
+              ref={virtualizer.measureElement}
+              className="absolute left-0 right-0"
+              style={{ transform: `translateY(${row.start}px)` }}
+            >
+              <VirtualCommitCard
+                hash={commit.hash}
+                repoPath={repoPath}
+                selected={commit.hash === selectedCommit}
+                onSelect={() => onSelectCommit(commit.hash)}
+              >
+                {(stat) => (
+                  <CommitProjectCard
+                    title={title}
+                    author={commit.author ?? ""}
+                    description={description}
+                    timestamp={commit.timestamp ?? 0}
+                    head={Boolean(commit.hash && commit.hash === status?.head_commit)}
+                    merge={(commit.parent_hashes?.length ?? 0) > 1}
+                    tag={commit.tag}
+                    filesChanged={stat?.files_changed}
+                    insertions={stat?.insertions}
+                    deletions={stat?.deletions}
+                  />
+                )}
+              </VirtualCommitCard>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

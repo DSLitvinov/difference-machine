@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { HeaderSelectBranch } from "@/components/items/HeaderSelectBranch";
 import { HeaderSettings } from "@/components/items/HeaderSettings";
 import { SidebarCard } from "@/components/items/SidebarCard";
@@ -46,6 +47,14 @@ export function FileViewPanel({
 }: FileViewPanelProps) {
   const copy = t(locale);
   const [commits, setCommits] = useState<CommitSummary[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: commits.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 140,
+    overscan: 2,
+    gap: 8,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -85,34 +94,46 @@ export function FileViewPanel({
         <div className="flex w-full shrink-0 items-center p-3">
           <p className="text-[16px] font-semibold leading-6 text-background-primary">{copy.historyOfFile}</p>
         </div>
-        <div className="flex min-h-0 w-[309px] flex-1 flex-col gap-2 overflow-y-auto px-3">
-          {empty ? (
+        {empty ? (
+          <div className="flex min-h-0 w-[309px] flex-1 flex-col px-3">
             <SidebarCard state="disabled">
               <NoHistoryFile locale={locale} />
             </SidebarCard>
-          ) : (
-            commits.map((commit) => {
-              const { title, description } = splitMessage(commit.message ?? "");
-              return (
-                <SidebarCard
-                  key={commit.hash}
-                  state={commit.hash === selectedHash ? "selected" : "default"}
-                  onClick={() => onSelectCommit(commit)}
-                >
-                  <CommitFileCard
-                    title={title}
-                    author={commit.author ?? ""}
-                    description={description}
-                    timestamp={commit.timestamp ?? 0}
-                    head={Boolean(commit.hash && commit.hash === status?.head_commit)}
-                    merge={(commit.parent_hashes?.length ?? 0) > 1}
-                    tag={commit.tag}
-                  />
-                </SidebarCard>
-              );
-            })
-          )}
-        </div>
+          </div>
+        ) : (
+          <div ref={scrollRef} className="min-h-0 w-[309px] flex-1 overflow-y-auto px-3">
+            <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+              {virtualizer.getVirtualItems().map((row) => {
+                const commit = commits[row.index];
+                const { title, description } = splitMessage(commit.message ?? "");
+                return (
+                  <div
+                    key={commit.hash}
+                    data-index={row.index}
+                    ref={virtualizer.measureElement}
+                    className="absolute left-0 right-0"
+                    style={{ transform: `translateY(${row.start}px)` }}
+                  >
+                    <SidebarCard
+                      state={commit.hash === selectedHash ? "selected" : "default"}
+                      onClick={() => onSelectCommit(commit)}
+                    >
+                      <CommitFileCard
+                        title={title}
+                        author={commit.author ?? ""}
+                        description={description}
+                        timestamp={commit.timestamp ?? 0}
+                        head={Boolean(commit.hash && commit.hash === status?.head_commit)}
+                        merge={(commit.parent_hashes?.length ?? 0) > 1}
+                        tag={commit.tag}
+                      />
+                    </SidebarCard>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
       <HeaderSettings userName={userName} onSettings={onSettings} />
     </aside>

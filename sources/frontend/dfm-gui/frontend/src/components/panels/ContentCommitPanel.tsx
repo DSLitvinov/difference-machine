@@ -6,15 +6,14 @@ import { ImageDiffViewer } from "@/components/items/ImageDiffViewer";
 import { BinaryDiffStub } from "@/components/items/BinaryDiffStub";
 import { fileKind } from "@/lib/file-kind";
 import {
-  peekBlob,
-  peekNames,
-  peekStat,
-  peekText,
+  useBlob,
+  useNames,
+  useStat,
+  useText,
   requestBlob,
   requestNames,
   requestStat,
   requestText,
-  useRevisionEpoch,
 } from "@/lib/revision-cache";
 import { foresterCall } from "@/lib/bridge";
 import type { Locale } from "@/lib/i18n";
@@ -33,10 +32,9 @@ function basename(path: string): string {
 }
 
 export function ContentCommitPanel({ locale, repoPath, commit, head }: ContentCommitPanelProps) {
-  useRevisionEpoch();
   const [path, setPath] = useState<string>("");
-  const files = peekNames(repoPath, commit.hash);
-  const stat = peekStat(repoPath, commit.hash);
+  const files = useNames(repoPath, commit.hash);
+  const stat = useStat(repoPath, commit.hash);
 
   useEffect(() => {
     requestNames(repoPath, commit.hash);
@@ -52,10 +50,10 @@ export function ContentCommitPanel({ locale, repoPath, commit, head }: ContentCo
   }, [files, commit.hash]);
 
   const kind = path ? fileKind(basename(path)) : "binary";
-  const text = path ? peekText(repoPath, commit.hash, path) : undefined;
-  const parent = commit.parent_hashes?.[0];
-  const afterBlob = path ? peekBlob(repoPath, commit.hash, path) : undefined;
-  const beforeBlob = path && parent ? peekBlob(repoPath, parent, path) : undefined;
+  const text = useText(repoPath, commit.hash, path);
+  const parent = commit.parent_hashes?.[0] ?? "";
+  const afterBlob = useBlob(repoPath, commit.hash, path);
+  const beforeBlob = useBlob(repoPath, parent, path);
 
   useEffect(() => {
     if (!path) {
@@ -100,7 +98,7 @@ export function ContentCommitPanel({ locale, repoPath, commit, head }: ContentCo
         stat={stat}
       />
       <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-border bg-background shadow-sm">
-        <CommitFileList locale={locale} files={files} selectedPath={path} onSelect={setPath} />
+        <CommitFileList key={commit.hash} locale={locale} files={files} selectedPath={path} onSelect={setPath} />
         {path && showBinary ? <BinaryDiffStub locale={locale} onOpen={() => void openExternal()} /> : null}
         {path && kind === "text" && text && !text.isBinary ? (
           <TextDiffViewer locale={locale} unified={text.content} noCommits={noCommits} />

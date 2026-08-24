@@ -38,29 +38,37 @@ const LRU_LIMIT = 64;
 const memory = new Map<string, CacheRecord>();
 const inflightKeys = new Set<string>();
 const pending: Job[] = [];
+const keyListeners = new Map<string, Set<() => void>>();
 
-let epoch = 0;
 let inflight = 0;
-const listeners = new Set<() => void>();
 
-function emit() {
-  epoch += 1;
-  listeners.forEach((listener) => listener());
+function emitKey(key: string) {
+  keyListeners.get(key)?.forEach((listener) => listener());
 }
 
-function subscribe(listener: () => void): () => void {
+function emitAll() {
+  for (const listeners of keyListeners.values()) {
+    listeners.forEach((listener) => listener());
+  }
+}
+
+function subscribeKey(key: string, listener: () => void): () => void {
+  let listeners = keyListeners.get(key);
+  if (!listeners) {
+    listeners = new Set();
+    keyListeners.set(key, listeners);
+  }
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
+    if (listeners.size === 0) {
+      keyListeners.delete(key);
+    }
   };
 }
 
-function getEpoch(): number {
-  return epoch;
-}
-
-export function useRevisionEpoch(): number {
-  return useSyncExternalStore(subscribe, getEpoch, getEpoch);
+function useRecord<T>(key: string, read: () => T): T {
+  return useSyncExternalStore((onStoreChange) => subscribeKey(key, onStoreChange), read, read);
 }
 
 function touch(key: string, record: CacheRecord) {
@@ -80,8 +88,9 @@ function touch(key: string, record: CacheRecord) {
     if (evicted?.kind === "blob") {
       URL.revokeObjectURL(evicted.blobUrl);
     }
+    emitKey(oldest);
   }
-  emit();
+  emitKey(key);
 }
 
 function enqueue(key: string, priority: number, run: () => Promise<void>) {
@@ -137,7 +146,7 @@ export function resetRevisionCache() {
     job.cancelled = true;
   });
   pending.length = 0;
-  emit();
+  emitAll();
 }
 
 export function statKey(repoAbs: string, hash: string): string {
@@ -174,6 +183,39 @@ export function peekText(repoAbs: string, hash: string, path: string): DiffTextP
 export function peekBlob(repoAbs: string, commit: string, path: string): string | undefined {
   const record = memory.get(blobKey(repoAbs, commit, path));
   return record?.kind === "blob" ? record.blobUrl : undefined;
+}
+
+export function useStat(repoAbs: string, hash: string): DiffStat | undefined {
+  const key = statKey(repoAbs, hash);
+  return useRecord(key, () => peekStat(repoAbs, hash));
+}
+
+export function useNames(repoAbs: string, hash: string): NameStatusFile[] | undefined {
+  const key = namesKey(repoAbs, hash);
+  return useRecord(key, () => peekNames(repoAbs, hash));
+}
+
+export function useText(repoAbs: string, hash: string, path: string): DiffTextPayload | undefined {
+  const key = textKey(repoAbs, hash, path);
+  return useRecord(key, () => (path ? peekText(repoAbs, hash, path) : undefined));
+}
+
+export function useBlob(repoAbs: string, commit: string, path: string): string | undefined {
+  const key = blobKey(repoAbs, commit, path);
+  return useRecord(key, () => (commit && path ? peekBlob(repoAbs, commit, path) : undefined));
+}
+
+export function requestVisibleStats(repoAbs: string, hashes: string[]) {
+  const keep = new Set(hashes.map((hash) => statKey(repoAbs, hash)));
+  const prefix = `${repoAbs}\0stat\0`;
+  for (const job of pending) {
+    if (job.key.startsWith(prefix) && !keep.has(job.key)) {
+      job.cancelled = true;
+    }
+  }
+  hashes.forEach((hash, index) => {
+    requestStat(repoAbs, hash, 10 + index);
+  });
 }
 
 export function requestStat(repoAbs: string, hash: string, priority = 10) {

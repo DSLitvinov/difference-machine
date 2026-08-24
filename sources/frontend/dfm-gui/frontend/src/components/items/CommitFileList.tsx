@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { CommitFileItem } from "@/components/atoms/CommitFileItem";
 import { DiffFileListPlaceholder } from "@/components/placeholders/DiffFileListPlaceholder";
 import { letterFromDiffStatus } from "@/lib/status";
@@ -11,7 +13,20 @@ type CommitFileListProps = {
   onSelect: (path: string) => void;
 };
 
+const ROW_H = 40;
+
 export function CommitFileList({ locale, files, selectedPath, onSelect }: CommitFileListProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const rows = files ?? [];
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_H,
+    overscan: 12,
+    paddingStart: 4,
+    paddingEnd: 4,
+  });
+
   if (!files) {
     return <div className="h-full w-[342px] shrink-0 overflow-y-auto border-r border-border" />;
   }
@@ -22,17 +37,28 @@ export function CommitFileList({ locale, files, selectedPath, onSelect }: Commit
       </div>
     );
   }
+
   return (
-    <div className="h-full w-[342px] shrink-0 overflow-y-auto border-r border-border py-1">
-      {files.map((file) => (
-        <CommitFileItem
-          key={file.path}
-          path={file.path}
-          letter={letterFromDiffStatus(file.status)}
-          selected={file.path === selectedPath}
-          onSelect={() => onSelect(file.path)}
-        />
-      ))}
+    <div ref={scrollRef} className="h-full w-[342px] shrink-0 overflow-y-auto border-r border-border">
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((row) => {
+          const file = rows[row.index];
+          return (
+            <div
+              key={file.path}
+              className="absolute left-0 right-0"
+              style={{ height: ROW_H, transform: `translateY(${row.start}px)` }}
+            >
+              <CommitFileItem
+                path={file.path}
+                letter={letterFromDiffStatus(file.status)}
+                selected={file.path === selectedPath}
+                onSelect={() => onSelect(file.path)}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
