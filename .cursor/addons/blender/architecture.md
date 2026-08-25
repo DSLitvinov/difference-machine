@@ -125,7 +125,7 @@ Auto Save: `wm.save_mainfile` → `index.add(".")` → `commit.create` с соо
 
 | Скрипт | Расположение | Использование |
 |--------|--------------|---------------|
-| `merge_apply_background.py` | `scripts/` | Merge по тегам DELETE → RENAME → MERGE (background Blender). Forester берёт путь из `[addons] diffmachine_path` |
+| `merge_apply_background.py` | `scripts/` | Merge по тегам DELETE → RENAME → MERGE (background Blender). Forester: `--factory-startup`, timeout 15m, `os._exit` после скрипта. Путь из `[addons] diffmachine_path` |
 | `object_export_background.py` | `operators/` | Экспорт объектов в background (вспомогательный) |
 
 Аддон **не** содержит `scripts/focus_object.py` (запланировано в roadmap).

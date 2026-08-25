@@ -120,4 +120,6 @@
 
 Args: `--objects_json`, `--theirs_blend`, `--repo_path`, `--output_file`
 
-Order: Delete → Rename → Merge.
+Order: Delete → Rename (two-pass, collision-safe) → Merge.
+
+Forester launches Blender with `--factory-startup` and a 15-minute timeout; the script ends with `os._exit` so addon timers cannot freeze the merge.

@@ -5,6 +5,7 @@ Auto-save version and scheduled GC timer logic for Difference Machine addon.
 import time
 import datetime
 from pathlib import Path
+from typing import Optional
 
 import bpy
 
@@ -38,9 +39,11 @@ def run_auto_save_commit(repo_path: Path, prefs) -> None:
         logger.warning("Auto save API error: %s", e)
 
 
-def check_auto_save_version() -> float:
+def check_auto_save_version() -> Optional[float]:
     """Timer callback for auto save version - save file and create commit at interval. Returns next interval in seconds."""
     global _auto_save_last_run
+    if getattr(bpy.app, "background", False):
+        return None
     try:
         if not bpy.context or not bpy.data.filepath:
             return 10.0
@@ -81,8 +84,10 @@ def check_auto_save_version() -> float:
     return 10.0
 
 
-def check_scheduled_gc() -> float:
+def check_scheduled_gc() -> Optional[float]:
     """Timer callback to check and run scheduled garbage collection. Returns next interval in seconds."""
+    if getattr(bpy.app, "background", False):
+        return None
     try:
         if not bpy.context or not bpy.data.filepath:
             return 60.0

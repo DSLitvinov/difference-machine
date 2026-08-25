@@ -328,7 +328,10 @@ class DF_OT_tag_delete_mark(Operator):
 
         target_commit = get_target_commit_hash(context, repo_path)
         if not target_commit:
-            self.report({"ERROR"}, "No commit selected. Select a commit in Compare panel.")
+            self.report(
+                {"ERROR"},
+                "No commit selected. Select a commit in Compare panel or ensure HEAD exists.",
+            )
             return {"CANCELLED"}
 
         removed, sync_error = _remove_tag_from_objects(

@@ -21,28 +21,112 @@ _HEAD_CACHE_TTL = 5.0
 _head_cache: dict[str, tuple[float, str]] = {}
 
 
+def invalidate_head_cache(repo_path: Optional[Path] = None) -> None:
+    """Drop cached HEAD hash (call after branch/commit changes)."""
+    if repo_path is None:
+        _head_cache.clear()
+        return
+    _head_cache.pop(str(repo_path), None)
+
+
+def _hash_from_commit_item(item) -> str:
+    raw = (getattr(item, "hash", "") or "").strip()
+    if not raw:
+        return ""
+    try:
+        from .helpers import normalize_commit_hash
+
+        return normalize_commit_hash(raw) or ""
+    except Exception:
+        return raw
+
+
+def _head_from_scene_lists(scene) -> str:
+    """Prefer the commit flagged is_head in Compare lists (no API)."""
+    for collection_name in ("df_commits", "df_commits_all"):
+        collection = getattr(scene, collection_name, None)
+        if collection is None:
+            continue
+        try:
+            items = list(collection)
+        except Exception:
+            continue
+        for item in items:
+            if getattr(item, "is_head", False):
+                commit_hash = _hash_from_commit_item(item)
+                if commit_hash:
+                    return commit_hash
+    return ""
+
+
+def _fetch_head_hash(repo_path: Path) -> str:
+    """Resolve HEAD via status, then log; never cache empty/failure."""
+    cache_key = str(repo_path)
+    now = time.monotonic()
+    cached = _head_cache.get(cache_key)
+    if cached is not None and (now - cached[0]) < _HEAD_CACHE_TTL and cached[1]:
+        return cached[1]
+
+    api = get_api()
+    success, status_data, error = api.status(repo_path)
+    head = ""
+    if success and status_data:
+        head = (status_data.get("head") or "").strip()
+        try:
+            from .helpers import normalize_commit_hash
+
+            normalized = normalize_commit_hash(head) if head else None
+            if normalized:
+                head = normalized
+            elif head:
+                # Keep raw if already usable length; otherwise clear for log fallback
+                if len("".join(head.split())) != 64:
+                    logger.warning("status head_commit not a full hash (%s…); trying log", head[:12])
+                    head = ""
+        except Exception:
+            pass
+
+    if not head:
+        ok_log, commits, log_error = api.log(repo_path, limit=1)
+        if ok_log and commits:
+            raw = (commits[0].get("hash") or "").strip()
+            try:
+                from .helpers import normalize_commit_hash
+
+                head = normalize_commit_hash(raw) or ""
+            except Exception:
+                head = raw
+        elif not success:
+            logger.warning("Failed to resolve HEAD for marks: status=%s log=%s", error, log_error)
+
+    if head:
+        _head_cache[cache_key] = (now, head)
+    else:
+        _head_cache.pop(cache_key, None)
+    return head
+
+
 def get_target_commit_hash(context: Context, repo_path: Path) -> str:
     """Commit marks apply to: selected in Compare panel, or HEAD."""
     scene = getattr(context, "scene", None) if context else None
     if scene is not None:
-        commits = getattr(scene, "df_commits", [])
-        idx = getattr(scene, "df_commit_list_index", 0)
-        if commits and 0 <= idx < len(commits):
-            commit_hash = getattr(commits[idx], "hash", "") or ""
-            if commit_hash.strip():
-                return commit_hash.strip()
-    cache_key = str(repo_path)
-    now = time.monotonic()
-    cached = _head_cache.get(cache_key)
-    if cached is not None and (now - cached[0]) < _HEAD_CACHE_TTL:
-        return cached[1]
-    api = get_api()
-    success, status_data, _ = api.status(repo_path)
-    head = ""
-    if success and status_data:
-        head = (status_data.get("head") or "").strip()
-    _head_cache[cache_key] = (now, head)
-    return head
+        commits = getattr(scene, "df_commits", None)
+        if commits is not None:
+            idx = int(getattr(scene, "df_commit_list_index", 0) or 0)
+            try:
+                count = len(commits)
+            except Exception:
+                count = 0
+            if count > 0 and 0 <= idx < count:
+                commit_hash = _hash_from_commit_item(commits[idx])
+                if commit_hash:
+                    return commit_hash
+
+        head_from_list = _head_from_scene_lists(scene)
+        if head_from_list:
+            return head_from_list
+
+    return _fetch_head_hash(repo_path)
 
 
 def get_blend_file_path(repo_path: Path) -> str:

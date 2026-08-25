@@ -50,8 +50,11 @@ def register():
     except (AttributeError, KeyError, TypeError):
         pass
 
-    bpy.app.timers.register(auto_save.check_scheduled_gc, first_interval=60.0)
-    bpy.app.timers.register(auto_save.check_auto_save_version, first_interval=10.0, persistent=True)
+    # Background merge apply must exit after the script; persistent timers keep Blender alive
+    # and can deadlock Forester (merge waits on Blender while auto-save calls the API).
+    if not getattr(bpy.app, "background", False):
+        bpy.app.timers.register(auto_save.check_scheduled_gc, first_interval=60.0)
+        bpy.app.timers.register(auto_save.check_auto_save_version, first_interval=10.0, persistent=True)
 
     logger.info("Difference Machine addon registered")
 

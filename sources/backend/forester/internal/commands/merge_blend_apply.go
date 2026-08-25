@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,6 +15,10 @@ import (
 	"github.com/difference-machine/forester/internal/models"
 	"github.com/difference-machine/forester/internal/utils"
 )
+
+// blendMergeApplyTimeout caps how long background Blender may run per .blend.
+// Without a timeout a stuck Blender (addon timers / auto-save) freezes the whole merge.
+const blendMergeApplyTimeout = 15 * time.Minute
 
 var userHomeDir = os.UserHomeDir
 
@@ -418,9 +423,13 @@ func applyBlendMergeMarks(
 	}
 	defer os.Remove(objectsJSON)
 
-	cmd := exec.Command(
+	ctx, cancel := context.WithTimeout(context.Background(), blendMergeApplyTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(
+		ctx,
 		blenderExecutable,
 		"--background",
+		"--factory-startup",
 		"--python-exit-code",
 		"1",
 		blendPath,
@@ -436,8 +445,15 @@ func applyBlendMergeMarks(
 		"--output_file",
 		blendPath,
 	)
+	cmd.Env = append(os.Environ(), "DFM_MERGE_APPLY=1")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return false, fmt.Errorf(
+				"blend merge apply timed out after %s for %s (background Blender did not exit)",
+				blendMergeApplyTimeout, relPath,
+			)
+		}
 		details := strings.TrimSpace(string(output))
 		if details == "" {
 			return false, fmt.Errorf("blend merge apply failed for %s: %w", relPath, err)

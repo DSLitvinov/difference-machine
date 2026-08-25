@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -121,6 +122,11 @@ def _link_object(obj, collections) -> None:
 
 
 def _metadata_new_name(meta) -> str:
+    if isinstance(meta, str):
+        try:
+            meta = json.loads(meta) if meta.strip() else {}
+        except Exception:
+            return ""
     if not isinstance(meta, dict):
         return ""
     for key in ("new_name", "NewName", "newName"):
@@ -149,7 +155,9 @@ def _apply_delete(objects: list[dict]) -> list[str]:
 
 
 def _apply_rename(objects: list[dict]) -> list[str]:
+    """Rename marked objects in two passes to avoid name collisions hanging Blender."""
     errors = []
+    pending: list[tuple[object, str, str]] = []
     for ob in objects:
         if not _has_tag(ob.get("tags"), "RENAME"):
             continue
@@ -158,12 +166,38 @@ def _apply_rename(objects: list[dict]) -> list[str]:
         if not name or not new_name:
             errors.append(f"RENAME: missing name or new_name for {name or '?'}")
             continue
+        if name == new_name:
+            log.info("RENAME skipped (same name): %s", name)
+            continue
         obj = _find_object(name)
         if obj is None:
             errors.append(f"RENAME: object not found: {name}")
             continue
-        obj.name = new_name
-        log.info("Renamed %s -> %s", name, obj.name)
+        pending.append((obj, name, new_name))
+
+    # Pass 1: move to unique temporary names so destination slots are free.
+    for index, (obj, name, new_name) in enumerate(pending):
+        temp_name = f"__dfm_rename_{index}_{id(obj) & 0xFFFF:04x}"
+        while temp_name in bpy.data.objects:
+            temp_name = f"{temp_name}_"
+        try:
+            obj.name = temp_name
+        except Exception as error:
+            errors.append(f"RENAME: failed temp rename {name}: {error}")
+
+    # Pass 2: assign final names.
+    for obj, name, new_name in pending:
+        if obj.name not in bpy.data.objects and _find_object(obj.name) is None:
+            # Object disappeared during temp rename — should not happen.
+            errors.append(f"RENAME: lost object after temp rename: {name}")
+            continue
+        try:
+            obj.name = new_name
+            log.info("Renamed %s -> %s", name, obj.name)
+            if obj.name != new_name:
+                log.warning("RENAME: Blender adjusted name %s -> %s", new_name, obj.name)
+        except Exception as error:
+            errors.append(f"RENAME: failed {name} -> {new_name}: {error}")
     return errors
 
 
@@ -333,8 +367,14 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    exit_code = 1
     try:
-        sys.exit(main())
+        exit_code = main()
     except Exception as error:
         log.exception("%s", error)
-        sys.exit(1)
+        exit_code = 1
+    # Hard-exit: addon timers (or other scripts) must not keep background Blender alive
+    # while Forester waits on CombinedOutput.
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(exit_code)

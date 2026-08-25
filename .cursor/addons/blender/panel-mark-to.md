@@ -35,12 +35,16 @@ Tagged Objects                  ← if df_objects non-empty
 
 ## Target commit
 
-Marks применяются к:
+Marks применяются к (по порядку):
 
-1. Commit, выбранный в **Compare** UIList (`df_commit_list_index`)
-2. Иначе **HEAD** (`status.get`)
+1. Commit, выбранный в **Compare** UIList (`df_commit_list_index`), если hash валиден
+2. Commit с `is_head` в `df_commits` / `df_commits_all`
+3. **HEAD** из `status.get` (кэш только непустого hash, TTL 5s)
+4. Fallback: первый commit из `log.get` (limit 1)
 
 Ошибка если commit не определён: *"No commit selected. Select a commit in Compare panel or ensure HEAD exists."*
+
+Пустой HEAD после сбоя API **не** кэшируется — повторный Mark сразу пробует снова.
 
 ---
 

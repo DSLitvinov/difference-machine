@@ -96,6 +96,10 @@ class DF_OT_refresh_history(Operator):
         if scene.df_commit_list_index >= len(scene.df_commits):
             scene.df_commit_list_index = max(0, len(scene.df_commits) - 1)
 
+        from ..utils.object_mark_sync import invalidate_head_cache
+
+        invalidate_head_cache(repo_path)
+
         if current_branch:
             for branch in scene.df_branches:
                 if branch.name == current_branch:
