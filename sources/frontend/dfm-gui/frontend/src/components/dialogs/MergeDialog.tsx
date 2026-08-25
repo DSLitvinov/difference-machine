@@ -1,3 +1,4 @@
+import { ChevronDown, Filter, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CommitFileItem } from "@/components/atoms/CommitFileItem";
 import { ObjectStatusBadge, objectStatusTypes } from "@/components/atoms/ObjectStatusBadge";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { foresterCall } from "@/lib/bridge";
 import { fileKind } from "@/lib/file-kind";
 import { t, type Locale } from "@/lib/i18n";
@@ -241,7 +242,7 @@ export function MergeDialog({
           onClick={onClose}
           disabled={locked}
         >
-          <FigmaIcon src="icons/x.svg" size={16} />
+          <Icon icon={X} size={16} />
         </button>
         <div className="flex w-full flex-col">
           <p id="merge-dialog-title" className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
@@ -274,7 +275,7 @@ export function MergeDialog({
                   <span className="min-w-0 flex-1 truncate text-left text-[14px] leading-5 text-foreground">
                     {selectedBranch || copy.branchName}
                   </span>
-                  <FigmaIcon src="icons/chevron-down.svg" size={20} />
+                  <Icon icon={ChevronDown} size={20} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-[748px]">
@@ -313,7 +314,7 @@ export function MergeDialog({
                 onChange={(event) => setSearch(event.target.value)}
               />
               <Button type="button" variant="outline" size="icon" aria-label={copy.filter}>
-                <FigmaIcon src="icons/filter.svg" size={16} />
+                <Icon icon={Filter} size={16} />
               </Button>
             </div>
             <div className="flex h-[206px] w-full overflow-clip rounded-md border border-border">

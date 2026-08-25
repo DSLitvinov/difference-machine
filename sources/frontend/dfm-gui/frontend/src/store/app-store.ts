@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import type { Locale } from "@/lib/i18n";
+import type { UiTheme } from "@/assets/themed";
+import { applyDocumentTheme } from "@/assets/themed";
 import { resetThumbCache } from "@/lib/thumb-cache";
 import { resetRevisionCache } from "@/lib/revision-cache";
 import { clampGridTrack, GRID_TRACK_DEFAULT } from "@/lib/grid";
@@ -79,6 +81,7 @@ export type MergeStatus = {
 type AppState = {
   shell: Shell;
   locale: Locale;
+  theme: UiTheme;
   repoPath: string;
   userName: string;
   userEmail: string;
@@ -109,6 +112,7 @@ type AppState = {
   toast: string | null;
   applySession: (info: SessionInfo) => void;
   setLocale: (locale: Locale) => void;
+  setTheme: (theme: UiTheme) => void;
   setSidebarTab: (tab: SidebarTab) => void;
   setChangedOnly: (value: boolean) => void;
   setFolderPath: (path: string) => void;
@@ -143,6 +147,7 @@ type AppState = {
 export const useAppStore = create<AppState>((set) => ({
   shell: "first-start",
   locale: "en",
+  theme: "light",
   repoPath: "",
   userName: "",
   userEmail: "",
@@ -174,9 +179,12 @@ export const useAppStore = create<AppState>((set) => ({
     resetThumbCache();
     resetRevisionCache();
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
+    const theme: UiTheme = info.theme === "dark" ? "dark" : "light";
+    applyDocumentTheme(theme);
     set((state) => ({
       shell: info.shell === "app" ? "app" : "first-start",
       locale,
+      theme,
       repoPath: info.repoPath || "",
       userName: info.userName || "",
       userEmail: info.userEmail || "",
@@ -206,6 +214,10 @@ export const useAppStore = create<AppState>((set) => ({
     }));
   },
   setLocale: (locale) => set({ locale }),
+  setTheme: (theme) => {
+    applyDocumentTheme(theme);
+    set({ theme });
+  },
   setSidebarTab: (tab) =>
     set((s) => ({
       sidebarTab: tab,

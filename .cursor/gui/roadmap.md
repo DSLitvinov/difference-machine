@@ -3,8 +3,7 @@
 Build the Difference Machine window from `.cursor/gui` specs, bottom-up: a blank native frame first, then chrome, then empty states, then live Forester data, then every remaining `View /` and dialog.
 
 Sources: `sources/frontend/dfm-gui`.  
-Icons and stub illustrations: `sources/frontend/icons`.  
-Figma chrome icons (window, menus, placeholders) live next to the frontend after export.  
+Icons: chrome UI from **lucide-react** (`Icon`); immutable brand/empty art in `frontend/src/assets/{light,dark}/illustrations/` (appicon + placeholders). OS app icon: `sources/frontend/icons/512/Appicon.svg` via `npm run icons:generate`.  
 Parity: [figma-gui-parity](../rules/figma-gui-parity.mdc). Do not invent visible copy.
 
 Mark a phase **done** only when the listed verify check passes. Current work is always the first unchecked phase.
@@ -203,10 +202,10 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 **Spec:** [dialogs/settings.md](./dialogs/settings.md).
 
-- Profile (author → avatar initials), Repositories, External editors, Forester paths. No Appearance / dark theme tab.
+- Profile (author → avatar initials), Appearance (Light/Dark → `[ui] theme`), Repositories, External editors, Forester paths.
 - Same dialog from Header Settings gear and Edit → Settings.
 
-**Verify:** save name, avatar updates; `[api] path` is the native library.
+**Verify:** save name, avatar updates; save Appearance toggles `html.dark`; `[api] path` is the native library.
 
 ---
 
@@ -245,7 +244,7 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 - Remaining copy i18n after Figma RU exists.
 - `icons:generate` for `.png` / `.ico`; `builder/scripts/build_gui.sh --gui`.
-- GUI is light-only. Do not add a dark theme or a second SVG set.
+- Themes: Light/Dark via Settings Appearance; illustrations under `assets/light/` and `assets/dark/`.
 
 **Verify:** `./builder/build.sh --gui` stages the app.
 

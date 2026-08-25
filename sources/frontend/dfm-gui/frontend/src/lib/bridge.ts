@@ -51,10 +51,15 @@ export async function setLocale(locale: string): Promise<void> {
   await app().SetLocale(locale);
 }
 
+export async function setTheme(theme: string): Promise<void> {
+  await app().SetTheme(theme);
+}
+
 export type SettingsInfo = {
   userName: string;
   userEmail: string;
   locale: string;
+  theme: string;
   repos: string[];
   apiPath: string;
   foresterPath: string;

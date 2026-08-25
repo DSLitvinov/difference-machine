@@ -36,6 +36,8 @@ type ProjectViewPanelProps = {
   repoPath: string;
   selectedCommit?: string | null;
   commitComposer?: boolean;
+  /** Card Directory Load while staging files for the commit composer. */
+  stagingCommit?: boolean;
   onSidebarTab: (tab: SidebarTab) => void;
   onSettings: () => void;
   onCreateRepository: () => void;
@@ -146,6 +148,7 @@ export function ProjectViewPanel({
   repoPath,
   selectedCommit,
   commitComposer,
+  stagingCommit,
   onSidebarTab,
   onSettings,
   onCreateRepository,
@@ -184,8 +187,8 @@ export function ProjectViewPanel({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
           <SidebarCardDirectory
-            state={directoryState(commitOpen, composerOpen)}
-            onClick={commitOpen && !composerOpen ? onLeaveCommit : undefined}
+            state={directoryState(commitOpen, composerOpen || Boolean(stagingCommit))}
+            onClick={commitOpen && !composerOpen && !stagingCommit ? onLeaveCommit : undefined}
           >
             {composerOpen ? (
               <CreateCommitCard locale={locale} busy={busy} onCancel={onCancelComposer} onCreate={onCreateCommit} />
@@ -194,6 +197,7 @@ export function ProjectViewPanel({
                 locale={locale}
                 dirty={dirty}
                 counts={counts}
+                loading={stagingCommit}
                 onCommitAll={onCommitAll}
               />
             )}

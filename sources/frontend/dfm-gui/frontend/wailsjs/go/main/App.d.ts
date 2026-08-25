@@ -28,6 +28,8 @@ export function SelectFile():Promise<string>;
 
 export function SetLocale(arg1:string):Promise<void>;
 
+export function SetTheme(arg1:string):Promise<void>;
+
 export function WindowClose():Promise<void>;
 
 export function WindowMinimise():Promise<void>;

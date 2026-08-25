@@ -1,6 +1,7 @@
+import { X } from "lucide-react";
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 
 import { cn } from "@/lib/utils";
 
@@ -93,7 +94,7 @@ export function AlertBanner({ variant, title, description, className, onClick, o
               onClose();
             }}
           >
-            <FigmaIcon src="icons/x.svg" size={16} />
+            <Icon icon={X} size={16} />
           </button>
         ) : null}
       </div>

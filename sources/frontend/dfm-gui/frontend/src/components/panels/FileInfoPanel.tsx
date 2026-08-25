@@ -1,3 +1,4 @@
+import { ChevronDown, Ellipsis } from "lucide-react";
 import { useEffect, useState } from "react";
 import { HeaderRightSide } from "@/components/items/HeaderRightSide";
 import { FileInfoPreview } from "@/components/items/FileInfoPreview";
@@ -5,7 +6,7 @@ import { FilePreviewItemMenu, type FileWorkdirAction } from "@/components/items/
 import { NoFileSelectedPlaceholder } from "@/components/placeholders/NoFileSelectedPlaceholder";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { formatDateTime, formatSize } from "@/lib/format";
 import { letterStatus } from "@/lib/status";
@@ -144,7 +145,7 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse, onFileA
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="outline" className="min-w-0 flex-1">
                 {copy.fileEdit}
-                <FigmaIcon src="icons/chevron-down.svg" size={16} />
+                <Icon icon={ChevronDown} size={16} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[264px]">
@@ -158,7 +159,7 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse, onFileA
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="outline" size="icon" aria-label={copy.more}>
-                <FigmaIcon src="icons/ellipsis.svg" size={16} />
+                <Icon icon={Ellipsis} size={16} />
               </Button>
             </DropdownMenuTrigger>
             <FilePreviewItemMenu

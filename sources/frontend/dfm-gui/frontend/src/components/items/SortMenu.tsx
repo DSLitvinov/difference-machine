@@ -1,3 +1,4 @@
+import { ArrowUpAZ } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridSort } from "@/lib/folder-query";
 
@@ -23,7 +24,7 @@ export function SortMenu({ locale, value, onChange }: SortMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="secondary" size="icon" aria-label={copy.sort}>
-          <FigmaIcon src="icons/arrow-up-a-z.svg" size={16} />
+          <Icon icon={ArrowUpAZ} size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px] shadow-md">

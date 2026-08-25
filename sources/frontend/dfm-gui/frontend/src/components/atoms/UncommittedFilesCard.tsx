@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import type { ChangeCounts } from "@/lib/status";
 import { cn } from "@/lib/utils";
@@ -6,6 +8,8 @@ type UncommittedFilesCardProps = {
   locale: Locale;
   dirty: boolean;
   counts?: ChangeCounts;
+  /** Atom Directory state `3) Load` while `index.add` runs before the composer. */
+  loading?: boolean;
   onCommitAll: () => void;
 };
 
@@ -13,9 +17,26 @@ export function UncommittedFilesCard({
   locale,
   dirty,
   counts,
+  loading,
   onCommitAll,
 }: UncommittedFilesCardProps) {
   const copy = t(locale);
+  if (loading) {
+    return (
+      <div className="flex w-full flex-col gap-2">
+        <p className="min-w-0 text-[14px] font-semibold leading-5 text-foreground-muted">{copy.appendFiles}</p>
+        <p className="truncate text-[12px] leading-4 text-foreground-muted">{copy.pleaseWait}</p>
+        <button
+          type="button"
+          disabled
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border text-[14px] font-medium leading-5 text-foreground opacity-50"
+        >
+          <Icon icon={Loader2} size={16} className="animate-spin" />
+          {copy.commitAllFiles}
+        </button>
+      </div>
+    );
+  }
   const stats = dirty && counts && counts.append + counts.new + counts.modified + counts.deleted > 0 ? counts : null;
   return (
     <div className="flex w-full flex-col gap-2">

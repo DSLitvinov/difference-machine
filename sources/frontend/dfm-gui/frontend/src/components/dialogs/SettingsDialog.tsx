@@ -1,8 +1,10 @@
+import { Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
+import type { UiTheme } from "@/assets/themed";
 import {
   getSettings,
   saveEditors,
@@ -11,25 +13,29 @@ import {
   saveRepos,
   selectDirectory,
   selectFile,
+  setTheme as persistTheme,
   type SettingsInfo,
 } from "@/lib/bridge";
 import { cn } from "@/lib/utils";
 
-type SettingsTab = "profile" | "repositories" | "editors" | "forester";
+type SettingsTab = "profile" | "appearance" | "repositories" | "editors" | "forester";
 
 type SettingsDialogProps = {
   locale: Locale;
+  theme: UiTheme;
   onClose: () => void;
   onLocale: (locale: Locale) => void;
+  onThemeSaved: (theme: UiTheme) => void;
   onProfileSaved: (name: string, email: string, locale: Locale) => void;
   onError: (message: string) => void;
 };
 
-function emptySettings(): SettingsInfo {
+function emptySettings(theme: UiTheme = "light"): SettingsInfo {
   return {
     userName: "",
     userEmail: "",
     locale: "en",
+    theme,
     repos: [],
     apiPath: "",
     foresterPath: "",
@@ -39,17 +45,18 @@ function emptySettings(): SettingsInfo {
   };
 }
 
-export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onError }: SettingsDialogProps) {
+export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved, onProfileSaved, onError }: SettingsDialogProps) {
   const copy = t(locale);
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: "profile", label: copy.tabProfile },
+    { id: "appearance", label: copy.tabAppearance },
     { id: "repositories", label: copy.tabRepositories },
     { id: "editors", label: copy.tabEditors },
     { id: "forester", label: copy.tabForester },
   ];
   const [tab, setTab] = useState<SettingsTab>("profile");
   const [busy, setBusy] = useState(false);
-  const [draft, setDraft] = useState<SettingsInfo>(emptySettings);
+  const [draft, setDraft] = useState<SettingsInfo>(() => emptySettings(theme));
 
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
@@ -62,6 +69,7 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
         if (!cancelled) {
           setDraft({
             ...info,
+            theme: info.theme === "dark" ? "dark" : "light",
             repos: info.repos,
             editors: info.editors,
           });
@@ -111,13 +119,17 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
   }
 
   const heading =
-    tab === "repositories"
-      ? { title: copy.repositoriesTitle, body: copy.repositoriesBody }
-      : tab === "editors"
-        ? { title: copy.editorsTitle, body: copy.editorsBody }
-        : tab === "forester"
-          ? { title: copy.foresterTitle, body: copy.foresterBody }
-          : { title: copy.profileTitle, body: copy.profileBody };
+    tab === "appearance"
+      ? { title: copy.appearanceTitle, body: copy.appearanceBody }
+      : tab === "repositories"
+        ? { title: copy.repositoriesTitle, body: copy.repositoriesBody }
+        : tab === "editors"
+          ? { title: copy.editorsTitle, body: copy.editorsBody }
+          : tab === "forester"
+            ? { title: copy.foresterTitle, body: copy.foresterBody }
+            : { title: copy.profileTitle, body: copy.profileBody };
+
+  const draftTheme: UiTheme = draft.theme === "dark" ? "dark" : "light";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="presentation" onClick={busy ? undefined : onClose}>
@@ -129,7 +141,7 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-3 top-3 flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>
-          <FigmaIcon src="icons/x.svg" size={16} />
+          <Icon icon={X} size={16} />
         </button>
         <div className="flex w-full shrink-0 flex-col gap-6">
           <div className="flex flex-col gap-1 pl-4">
@@ -165,6 +177,9 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
               </div>
               {tab === "profile" ? (
                 <ProfileFields locale={locale} draft={draft} busy={busy} onChange={setDraft} onLocale={onLocale} />
+              ) : null}
+              {tab === "appearance" ? (
+                <AppearanceFields locale={locale} theme={draftTheme} busy={busy} onChange={(next) => setDraft({ ...draft, theme: next })} />
               ) : null}
               {tab === "repositories" ? (
                 <RepositoryFields
@@ -219,6 +234,22 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
                 </Button>
               </div>
             ) : null}
+            {tab === "appearance" ? (
+              <div className="flex shrink-0 justify-end">
+                <Button
+                  type="button"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      await persistTheme(draftTheme);
+                      onThemeSaved(draftTheme);
+                    })
+                  }
+                >
+                  {copy.saveAppearance}
+                </Button>
+              </div>
+            ) : null}
             {tab === "forester" ? (
               <div className="flex shrink-0 justify-end">
                 <Button type="button" disabled={busy} onClick={() => void run(() => saveForester(draft.apiPath, draft.foresterPath))}>
@@ -252,6 +283,72 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
             ) : null}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AppearanceFields({
+  locale,
+  theme,
+  busy,
+  onChange,
+}: {
+  locale: Locale;
+  theme: UiTheme;
+  busy: boolean;
+  onChange: (theme: UiTheme) => void;
+}) {
+  const copy = t(locale);
+  return (
+    <div className="flex w-full flex-col gap-1">
+      <p className="text-[14px] leading-5 text-foreground-muted">{copy.themeSelectHint}</p>
+      <div className="flex flex-wrap items-start gap-6 pt-2">
+        <ThemeCard locale={locale} mode="light" selected={theme === "light"} disabled={busy} onSelect={() => onChange("light")} />
+        <ThemeCard locale={locale} mode="dark" selected={theme === "dark"} disabled={busy} onSelect={() => onChange("dark")} />
+      </div>
+    </div>
+  );
+}
+
+function ThemeCard({
+  locale,
+  mode,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  locale: Locale;
+  mode: UiTheme;
+  selected: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  const copy = t(locale);
+  const dark = mode === "dark";
+  return (
+    <button type="button" disabled={disabled} className="flex flex-col items-center gap-2" onClick={onSelect}>
+      <div className={cn("rounded-md border-2 p-1", selected ? "border-foreground-disabled" : "border-border")}>
+        <div className={cn("flex flex-col gap-2.5 overflow-hidden rounded-md p-2", dark ? "bg-[#09090b]" : "bg-[#e4e4e7]")}>
+          <ThemeSkeleton dark={dark} wide />
+          <ThemeSkeleton dark={dark} />
+          <ThemeSkeleton dark={dark} />
+        </div>
+      </div>
+      <span className="text-[14px] leading-5 text-foreground-muted">{dark ? copy.themeDark : copy.themeLight}</span>
+    </button>
+  );
+}
+
+function ThemeSkeleton({ dark, wide }: { dark: boolean; wide?: boolean }) {
+  const bar = dark ? "bg-[#52525b]" : "bg-[#fafafa]";
+  const card = dark ? "bg-[#27272a]" : "bg-white";
+  return (
+    <div className={cn("flex items-center gap-4 rounded p-2", card, wide && "w-full")}>
+      {wide ? null : <div className={cn("size-6 shrink-0 rounded-full", bar)} />}
+      <div className="flex flex-col gap-2">
+        <div className={cn("h-4 rounded-full", bar, wide ? "w-[112px]" : "w-[200px]")} />
+        {wide ? <div className={cn("h-4 w-[140px] rounded-full", bar)} /> : null}
       </div>
     </div>
   );
@@ -464,7 +561,7 @@ function PathRow({
       </Button>
       {showRemove && onRemove ? (
         <Button type="button" variant="destructive" size="icon" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
-          <FigmaIcon src="icons/trash-2.svg" size={16} />
+          <Icon icon={Trash2} size={16} />
         </Button>
       ) : null}
     </div>

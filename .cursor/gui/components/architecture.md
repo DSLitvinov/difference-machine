@@ -76,9 +76,10 @@ frontend/src/components/<domain>/     # кастомные кирпичи
 | База: Button, Badge, Dialog, Switch, Textarea, DropdownMenu | `variant="destructive"` вместо продуктового `type` |
 | Свои ключи cva = property Figma | Один компонент на два атома Figma |
 | CSS-переменные атома для hex из макета | Ad-hoc hex в каждом тайле |
-| Иконка — экспорт Figma | Lucide «по имени», если глиф не совпал |
+| Chrome-иконки — **lucide-react** (`Icon`, `currentColor`) | SVG из Figma на каждый глиф в `assets/…/icons/` |
+| Immutable art — `assets/{light,dark}/illustrations/` (appicon, empty placeholders, file/folder stubs) | Подменять placeholder Lucide |
 
-GUI только светлая тема. На тёмных кнопках (primary / destructive) светлый SVG инвертируется CSS (`filter: invert(1)`), второй набор ассетов не заводить.
+Chrome-иконки через Lucide (`currentColor`). Иллюстрации (appicon, folder-null, not-select-file, file-info-more-files, file-*, folder) — статические файлы в light/dark; резолв через `asset()`.
 
 ---
 

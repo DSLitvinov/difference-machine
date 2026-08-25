@@ -64,7 +64,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 
 `gridTrack` не входит в селектор `View /`: плотность сетки не меняет кадр, только `nCols` и `previewSize`. Канон: [architecture.md](../architecture.md#сетка-рабочей-копии).
 
-Смена repo сбрасывает folder/selection/commit/composer. `gridTrack` сессии может сохраняться. Рестарт приложения возвращает default 106 / 48. GUI **только светлая тема**.
+Смена repo сбрасывает folder/selection/commit/composer. `gridTrack` сессии может сохраняться. Рестарт приложения возвращает default 106 / 48. Тема Light/Dark из `[ui] theme` (`html.dark`).
 
 ### Производный экран (кратко)
 

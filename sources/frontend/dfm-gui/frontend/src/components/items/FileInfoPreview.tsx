@@ -1,5 +1,6 @@
+import { type LucideIcon, Binary, FileText, Image } from "lucide-react";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { fileKind, type FileKind } from "@/lib/file-kind";
 import type { LetterStatus } from "@/lib/status";
 
@@ -11,11 +12,11 @@ type FileInfoPreviewProps = {
   locked?: boolean;
 };
 
-const kindIcon: Record<FileKind, string> = {
-  image: "icons/image.svg",
-  blend: "icons/image.svg",
-  text: "icons/file-text.svg",
-  binary: "icons/binary.svg",
+const kindIcon: Record<FileKind, LucideIcon> = {
+  image: Image,
+  blend: Image,
+  text: FileText,
+  binary: Binary,
 };
 
 export function FileInfoPreview({ name, src, text, letter, locked }: FileInfoPreviewProps) {
@@ -34,7 +35,7 @@ export function FileInfoPreview({ name, src, text, letter, locked }: FileInfoPre
       </div>
       {filled ? null : (
         <div className="pointer-events-none absolute left-[144px] top-[144px] flex size-5 items-center justify-center">
-          <FigmaIcon src={kindIcon[kind]} size={20} />
+          <Icon icon={kindIcon[kind]} size={20} />
         </div>
       )}
       {letter ? <FileStatusBadge type={letter} className="absolute left-3 top-[276px]" /> : null}

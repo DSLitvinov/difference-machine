@@ -4,8 +4,8 @@
 
 Живёт внутри [Item / Card Directory](../items/sidebar-card-directory.md) под селектором ветки в [Panel / Project view](../../panels/project-view.md). Не класть в [Item / Card](../items/sidebar-card.md).
 
-Figma: [Atom / Cards / Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-9126) (`4309:9126`).  
-Код: `UncommittedFilesCard`. Properties: `state` (`1) Un Changed` \| `2) Changed`), `Selected` (yes/no).
+Figma: [Atom / Cards / Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-9126) (`4309:9126`), Load [`6044:13670`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6044-13670).  
+Код: `UncommittedFilesCard`. Properties: `state` (`1) Un Changed` \| `2) Changed` \| `3) Load`), `Selected` (yes/no).
 
 Ширина 277 px. **Selected в наборе не меняет заливку карточки** — слоты те же. Не красить карточку accent из‑за Selected, пока макет не разъедется.
 
@@ -17,10 +17,13 @@ Figma: [Atom / Cards / Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2
 
 | `state` | Заголовок | Под заголовком | Кнопка |
 |---------|-----------|----------------|--------|
-| Un Changed | `#71717a` muted | `No changed files` 12/16 `#71717a` | `Сommit All Files` disabled: opacity 50%, border, без shadow |
+| Un Changed | `#71717a` muted | `No changed files` 12/16 `#71717a` | `Сommit all files` disabled: opacity 50%, border, без shadow |
 | Changed | `#09090b` | счётчики | та же подпись, enabled: white, border, shadow-sm |
+| Load | `Append files` `#71717a` | `Please wait` 12/16 `#71717a` | disabled, opacity 50%, spinner (Lucide `Loader2`) + `Сommit all files` |
 
-Копирайт кнопки в макете — `Сommit All Files` (кириллическая **С**). Не «исправлять» на `Commit`, пока не сменят макет.
+Копирайт кнопки в макете — `Сommit all files` (кириллическая **С**). Не «исправлять» на `Commit`, пока не сменят макет.
+
+**Load** показывается пока идёт `index.add` после **Сommit all files** (или staging выбранных path перед композером), до открытия Create Commit. Оболочка Card Directory остаётся Selected.
 
 ---
 

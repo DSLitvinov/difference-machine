@@ -1,5 +1,6 @@
+import { EllipsisVertical } from "lucide-react";
 import type { ReactNode } from "react";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { relativeTime } from "@/lib/relative-time";
 
@@ -24,7 +25,7 @@ export function StageCard({ locale, title, author, description, timestamp, files
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
           {more ?? (
             <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={(event) => event.stopPropagation()}>
-              <FigmaIcon src="icons/ellipsis-vertical.svg" size={16} />
+              <Icon icon={EllipsisVertical} size={16} />
             </button>
           )}
         </div>

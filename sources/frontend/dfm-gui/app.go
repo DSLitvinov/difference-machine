@@ -38,6 +38,7 @@ type SessionInfo struct {
 	Shell        string `json:"shell"`
 	RepoPath     string `json:"repoPath"`
 	Locale       string `json:"locale"`
+	Theme        string `json:"theme"`
 	UserName     string `json:"userName"`
 	UserEmail    string `json:"userEmail"`
 	IsRepository bool   `json:"isRepository"`
@@ -50,9 +51,13 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	a.applyLightTheme()
+	cfg, err := loadSetupCfg()
+	if err == nil {
+		a.applyWindowTheme(cfg.Theme)
+	} else {
+		a.applyWindowTheme("light")
+	}
 	a.applyMenuLocale()
-	_, err := loadSetupCfg()
 	if err != nil {
 		return
 	}
@@ -81,14 +86,16 @@ func (a *App) GetSession() SessionInfo {
 	info := SessionInfo{
 		Shell:     "first-start",
 		Locale:    "en",
+		Theme:     "light",
 		UserName:  "",
 		UserEmail: "",
 	}
 	if err == nil {
 		info.Locale = cfg.Locale
+		info.Theme = normalizeTheme(cfg.Theme)
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
-		a.applyLightTheme()
+		a.applyWindowTheme(info.Theme)
 	}
 	if repos, err := loadRepoState(); err == nil {
 		info.RepoPath = repos.Current
@@ -220,6 +227,7 @@ type SettingsInfo struct {
 	UserName     string   `json:"userName"`
 	UserEmail    string   `json:"userEmail"`
 	Locale       string   `json:"locale"`
+	Theme        string   `json:"theme"`
 	Repos        []string `json:"repos"`
 	APIPath      string   `json:"apiPath"`
 	ForesterPath string   `json:"foresterPath"`
@@ -245,6 +253,7 @@ func settingsFromCfg(cfg setupCfg, repos repoState) SettingsInfo {
 		UserName:     cfg.UserName,
 		UserEmail:    cfg.UserEmail,
 		Locale:       locale,
+		Theme:        normalizeTheme(cfg.Theme),
 		Repos:        list,
 		APIPath:      cfg.APIPath,
 		ForesterPath: cfg.ForesterPath,
@@ -360,17 +369,42 @@ func isForesterRepo(absPath string) bool {
 	return err == nil && info.IsDir()
 }
 
-func (a *App) applyLightTheme() {
+func (a *App) applyWindowTheme(theme string) {
 	if a.ctx == nil {
+		return
+	}
+	if normalizeTheme(theme) == "dark" {
+		runtime.WindowSetDarkTheme(a.ctx)
 		return
 	}
 	runtime.WindowSetLightTheme(a.ctx)
 }
 
+func normalizeTheme(theme string) string {
+	if theme == "dark" {
+		return "dark"
+	}
+	return "light"
+}
+
+// SetTheme persists UI theme (light|dark) in setup.cfg and updates the native window chrome.
+func (a *App) SetTheme(theme string) error {
+	theme = normalizeTheme(theme)
+	err := updateSetupCfg(func(cfg *setupCfg) {
+		cfg.Theme = theme
+	})
+	if err != nil {
+		return err
+	}
+	a.applyWindowTheme(theme)
+	return nil
+}
+
 func sessionError(msg string) SessionInfo {
-	info := SessionInfo{Shell: "first-start", Locale: "en", Error: msg}
+	info := SessionInfo{Shell: "first-start", Locale: "en", Theme: "light", Error: msg}
 	if cfg, err := loadSetupCfg(); err == nil {
 		info.Locale = cfg.Locale
+		info.Theme = normalizeTheme(cfg.Theme)
 		info.UserName = cfg.UserName
 		info.UserEmail = cfg.UserEmail
 	}

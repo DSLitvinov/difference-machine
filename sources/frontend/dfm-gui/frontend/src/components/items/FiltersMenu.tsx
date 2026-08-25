@@ -1,3 +1,4 @@
+import { type LucideIcon, Binary, FileText, Filter, Image, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,17 +9,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { fileKind } from "@/lib/file-kind";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridFilter } from "@/lib/folder-query";
 
 const kindIcon = {
-  image: "icons/image.svg",
-  text: "icons/file-text.svg",
-  blend: "icons/binary.svg",
-  binary: "icons/binary.svg",
-} as const;
+  image: Image,
+  text: FileText,
+  blend: Binary,
+  binary: Binary,
+} as const satisfies Record<string, LucideIcon>;
 
 type FiltersMenuProps = {
   locale: Locale;
@@ -52,7 +53,7 @@ export function FiltersMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="secondary" size="icon" aria-label={copy.filter}>
-          <FigmaIcon src="icons/filter.svg" size={16} />
+          <Icon icon={Filter} size={16} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px] shadow-md">
@@ -73,7 +74,7 @@ export function FiltersMenu({
               checked={value.includes(ext)}
               onCheckedChange={(checked) => toggle(ext, checked === true)}
             >
-              <FigmaIcon src={kindIcon[fileKind(`file.${ext}`)]} size={16} />
+              <Icon icon={kindIcon[fileKind(`file.${ext}`)]} size={16} />
               .{ext}
             </DropdownMenuCheckboxItem>
           ))}
@@ -86,7 +87,7 @@ export function FiltersMenu({
             onChangedOnly(false);
           }}
         >
-          <FigmaIcon src="icons/trash-2.svg" size={16} />
+          <Icon icon={Trash2} size={16} />
           {copy.cleanFilters}
         </DropdownMenuItem>
       </DropdownMenuContent>

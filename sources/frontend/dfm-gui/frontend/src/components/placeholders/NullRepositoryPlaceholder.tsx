@@ -1,5 +1,6 @@
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 
 type NullRepositoryPlaceholderProps = {
@@ -17,7 +18,7 @@ export function NullRepositoryPlaceholder({ locale, busy, onCreate }: NullReposi
         <p className="w-full text-[14px] leading-5">{copy.createRepoHistoryHint}</p>
       </div>
       <Button type="button" disabled={busy} onClick={onCreate}>
-        <FigmaIcon src="icons/plus.svg" size={16} />
+        <Icon icon={Plus} size={16} />
         {copy.createRepository}
       </Button>
     </div>

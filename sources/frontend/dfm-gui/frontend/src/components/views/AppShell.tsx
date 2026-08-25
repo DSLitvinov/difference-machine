@@ -22,6 +22,7 @@ type AppShellProps = {
   onCreateCommitFromSelection: (paths: string[]) => void;
   onNeedMore: () => void;
   onCommitAll: () => void;
+  stagingCommit?: boolean;
   onCancelComposer: () => void;
   onCreateCommit: (fields: CreateCommitFields) => void;
   onCompareFile: () => void;
@@ -49,6 +50,7 @@ export function AppShell({
   onCreateCommitFromSelection,
   onNeedMore,
   onCommitAll,
+  stagingCommit,
   onCancelComposer,
   onCreateCommit,
   onCompareFile,
@@ -204,6 +206,7 @@ export function AppShell({
             repoPath={repoPath}
             selectedCommit={selectedCommit}
             commitComposer={commitComposer === "open"}
+            stagingCommit={stagingCommit}
             switchLocked={mergeLocked}
             onSidebarTab={setSidebarTab}
             onSettings={onSettings}

@@ -11,9 +11,11 @@
 ## Стек
 
 - React + TypeScript + Vite (Wails embed)
-- Tailwind + shadcn/ui
+- Tailwind + shadcn/ui + **lucide-react** (chrome icons)
 - Zustand для клиентского состояния
 - Вызовы backend только через Wails bindings
+
+Иконки UI: `components/chrome/Icon.tsx` → lucide. Immutable illustrations: `src/assets/{light,dark}/illustrations/` (appicon + placeholders). OS app icon: `npm run icons:generate` from `sources/frontend/icons/512/Appicon.svg`.
 
 Frontend не импортирует Go и не читает диск. Нет `fetch` на JSON API Forester: API не HTTP-сервер.
 
@@ -111,7 +113,7 @@ Selection живёт на frontend (клик, range, marquee — если в м�
 
 ## Токены и a11y
 
-Токены — светлая дизайн-система Figma (`:root` в CSS). Тёмной темы в GUI нет: не `html.dark`, не `[ui] theme`, не вкладка Appearance. Иконки на тёмных кнопках (primary / destructive) — CSS `filter: invert(1)` на светлом SVG, не второй набор ассетов.
+Токены — дизайн-система Figma: светлая в `:root`, тёмная в `html.dark`. Тема из `[ui] theme` (`light` \| `dark`), вкладка Appearance в Settings. Immutable illustrations: `assets/{light,dark}/illustrations/` через `asset()`. Chrome-иконки — Lucide (`currentColor`); на тёмных кнопках (primary / destructive) при необходимости CSS `filter: invert(1)`.
 
 Для скрытого текста только `sr-only` / `aria-*`, не видимые «подсказки для агента».
 

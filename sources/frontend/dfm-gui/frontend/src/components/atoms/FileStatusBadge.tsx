@@ -1,4 +1,5 @@
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Lock } from "lucide-react";
+import { Icon } from "@/components/chrome/Icon";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { LetterStatus } from "@/lib/status";
@@ -25,7 +26,7 @@ export function FileStatusBadge({ type, className }: FileStatusBadgeProps) {
         aria-label={copy.locked}
         className={cn("inline-flex size-5 items-center justify-center rounded-sm border border-border bg-background", className)}
       >
-        <FigmaIcon src="icons/lock.svg" size={16} />
+        <Icon icon={Lock} size={16} />
       </span>
     );
   }

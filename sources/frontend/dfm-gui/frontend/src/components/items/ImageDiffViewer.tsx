@@ -1,5 +1,6 @@
+import { Circle, GripVertical } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -145,8 +146,8 @@ function SwipeCompare({ afterSrc, beforeSrc }: { afterSrc?: string; beforeSrc?: 
           ) : null}
         </div>
         <div className="pointer-events-none absolute inset-y-0 h-full w-0.5 -translate-x-1/2 bg-[#4f46e5]" style={{ left: `${split * 100}%` }} />
-        <div className="pointer-events-none absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2" style={{ left: `${split * 100}%` }}>
-          <FigmaIcon src="icons/diff-swipe-thumb.svg" size={32} />
+        <div className="pointer-events-none absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-[#4f46e5]" style={{ left: `${split * 100}%` }}>
+          <Icon icon={GripVertical} size={32} />
         </div>
       </div>
     </div>
@@ -184,8 +185,8 @@ export function ImageDiffViewer({ locale, afterSrc, beforeSrc, noCommits }: Imag
                   aria-label={copy.tabOverlay}
                 />
                 <div className="pointer-events-none absolute left-0 top-0 h-full rounded-md bg-background-primary" style={{ width: `${overlay * 100}%` }} />
-                <div className="pointer-events-none absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2" style={{ left: `${overlay * 100}%` }}>
-                  <FigmaIcon src="icons/diff-overlay-thumb.svg" size={20} />
+                <div className="pointer-events-none absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-background-primary" style={{ left: `${overlay * 100}%` }}>
+                  <Icon icon={Circle} size={20} className="fill-background-primary" />
                 </div>
               </div>
               <Badge label={copy.before} />

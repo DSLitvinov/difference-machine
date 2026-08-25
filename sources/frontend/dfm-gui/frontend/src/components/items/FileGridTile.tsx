@@ -5,6 +5,7 @@ import { fileKind } from "@/lib/file-kind";
 import { GRID_PREVIEW_DEFAULT } from "@/lib/grid";
 import type { LetterStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store/app-store";
 import type { MouseEvent } from "react";
 
 type FileGridTileProps = {
@@ -21,12 +22,16 @@ type FileGridTileProps = {
   onMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
-const stubs = {
-  image: asset("illustrations/file-img.svg"),
-  text: asset("illustrations/file-text.svg"),
-  blend: asset("illustrations/file-binary.svg"),
-  binary: asset("illustrations/file-binary.svg"),
-} as const;
+function stubSrc(name: string, theme: "light" | "dark"): string {
+  const kind = fileKind(name);
+  if (kind === "image") {
+    return asset("illustrations/file-img.svg", theme);
+  }
+  if (kind === "text") {
+    return asset("illustrations/file-text.svg", theme);
+  }
+  return asset("illustrations/file-binary.svg", theme);
+}
 
 export function FileGridTile({
   name,
@@ -41,6 +46,7 @@ export function FileGridTile({
   onOpen,
   onMenu,
 }: FileGridTileProps) {
+  const theme = useAppStore((s) => s.theme);
   return (
     <button
       type="button"
@@ -54,7 +60,7 @@ export function FileGridTile({
     >
       <div className="relative" style={{ width: previewSize, height: previewSize }}>
         <FilePreview
-          src={src ?? (stub && !text ? stubs[fileKind(name)] : undefined)}
+          src={src ?? (stub && !text ? stubSrc(name, theme) : undefined)}
           text={text}
           size="S"
           className="size-auto"

@@ -1,5 +1,6 @@
+import { EllipsisVertical, GitMerge } from "lucide-react";
 import type { ReactNode } from "react";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { relativeTime } from "@/lib/relative-time";
 
@@ -36,7 +37,7 @@ export function CommitFileCard({
     <div className="flex w-full flex-col gap-2">
       <div className="flex w-full flex-col gap-1">
         <div className="flex w-full items-center gap-1">
-          {merge ? <FigmaIcon src="icons/git-merge.svg" size={16} /> : null}
+          {merge ? <Icon icon={GitMerge} size={16} /> : null}
           {head ? (
             <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-background-primary px-3 text-[12px] font-semibold leading-4 text-foreground-primary">
               {copy.head}
@@ -45,7 +46,7 @@ export function CommitFileCard({
           <p className="min-w-0 flex-1 text-[14px] font-semibold leading-5 text-foreground">{title}</p>
           {more ?? (
             <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={(event) => event.stopPropagation()}>
-              <FigmaIcon src="icons/ellipsis-vertical.svg" size={16} />
+              <Icon icon={EllipsisVertical} size={16} />
             </button>
           )}
         </div>

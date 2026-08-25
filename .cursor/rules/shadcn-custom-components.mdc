@@ -39,6 +39,7 @@ Visual canon: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VS
 - No extra chrome (counters, tooltips) unless the brick spec shows it.
 - Two Figma atoms (file badge vs object badge) → two components, not `if`.
 - Placeholders and empty copy live on the panel spec, not as a new atom, unless named `Atom / Cards / No History …`.
+- **Icons:** chrome UI → `lucide-react` via `components/chrome/Icon.tsx` (`currentColor` for themes). Immutable brand/empty art in `assets/{light,dark}/illustrations/` (appicon, placeholders, file/folder stubs) via `asset()`. Do not add per-glyph SVG under `assets/.../icons/`.
 - `Atom / Swapper` is a Figma slot only: never ship the teal fill; put the real child (card atom, swipe bitmaps).
 - `Panel / Project view`: Uncommitted files sit in `Item / Card Directory`, not `Item / Card`. Commit list uses `Item / Card`.
 - `Item / Card Directory` (`6004:10960`): border is **dashed on every state** (Default / Hover / Selected / Disable). Do not copy `border-solid` from `Item / Card`.

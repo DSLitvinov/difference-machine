@@ -1,9 +1,10 @@
+import { Ellipsis } from "lucide-react";
 import { HeaderRightSide } from "@/components/items/HeaderRightSide";
 import { FileInfoPreviewMulti } from "@/components/items/FileInfoPreviewMulti";
 import { FilePreviewItemMenu, type FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { formatSize } from "@/lib/format";
 import { typeLabel } from "@/lib/file-kind";
@@ -63,7 +64,7 @@ export function SelectMoreFilesPanel({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="outline" size="icon" aria-label={copy.more}>
-                <FigmaIcon src="icons/ellipsis.svg" size={16} />
+                <Icon icon={Ellipsis} size={16} />
               </Button>
             </DropdownMenuTrigger>
             <FilePreviewItemMenu

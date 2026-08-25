@@ -1,7 +1,8 @@
+import { Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { SortMenu } from "@/components/items/SortMenu";
 import { FiltersMenu } from "@/components/items/FiltersMenu";
 import type { GridFilter, GridSort } from "@/lib/folder-query";
@@ -56,7 +57,7 @@ export function FolderActionBar({
     <div className="flex items-center gap-1">
       {showSearch ? (
         <div className="relative w-[300px]">
-          <FigmaIcon src="icons/search.svg" size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" />
+          <Icon icon={Search} size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
           <Input
             ref={inputRef}
             value={query}
@@ -73,7 +74,7 @@ export function FolderActionBar({
         </div>
       ) : (
         <Button type="button" variant="secondary" size="icon" aria-label={copy.search} onClick={onSearchOpen}>
-          <FigmaIcon src="icons/search.svg" size={16} />
+          <Icon icon={Search} size={16} />
         </Button>
       )}
       <SortMenu locale={locale} value={sort} onChange={onSort} />

@@ -1,3 +1,4 @@
+import { ChevronsUpDown, SquareTerminal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +11,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import type { BranchSummary } from "@/store/app-store";
 
@@ -46,12 +47,12 @@ export function HeaderSelectBranch({
         <DropdownMenuTrigger asChild>
           <button type="button" className="flex w-full items-center gap-1 rounded-sm border border-border bg-background px-3 py-2 shadow-sm">
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <FigmaIcon src="icons/square-terminal.svg" size={20} />
+              <Icon icon={SquareTerminal} size={20} />
               <span className="min-w-0 truncate text-left text-[16px] font-normal leading-6 text-foreground-secondary">
                 {current || copy.branchName}
               </span>
             </span>
-            <FigmaIcon src="icons/chevrons-up-down.svg" size={20} />
+            <Icon icon={ChevronsUpDown} size={20} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeImg } from "@/components/chrome/ThemeImg";
 import { asset } from "@/assets/themed";
 import { t, type Locale } from "@/lib/i18n";
+import { useAppStore } from "@/store/app-store";
 
 type FirstStartViewProps = {
   locale: Locale;
@@ -13,11 +14,12 @@ type FirstStartViewProps = {
 
 export function FirstStartView({ locale, busy, onCreate, onOpen, onLocale }: FirstStartViewProps) {
   const copy = t(locale);
+  const theme = useAppStore((s) => s.theme);
   return (
     <div className="flex h-full w-full flex-col items-center overflow-hidden bg-background-light">
       <div className="flex w-full flex-col items-center gap-6 p-8">
         <div className="flex flex-col items-center gap-3">
-          <ThemeImg src={asset("illustrations/appicon.svg")} alt="" width={128} height={128} className="size-32 shrink-0 object-contain" />
+          <ThemeImg src={asset("illustrations/appicon.svg", theme)} alt="" width={128} height={128} className="size-32 shrink-0 object-contain" />
           <div className="flex w-full flex-col items-center gap-1">
             <h1 className="text-[30px] font-semibold leading-9 tracking-[-0.225px] text-foreground">{copy.appName}</h1>
             <p className="text-center text-[14px] leading-5 text-foreground-muted">{copy.prototype}</p>

@@ -1,3 +1,4 @@
+import { ChevronRight, Copy, ExternalLink, Replace } from "lucide-react";
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -5,7 +6,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { basenameRel } from "@/lib/folder-query";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -26,18 +27,18 @@ export function FileInCommitMenu({ locale, path, status, onOpen, onRevert }: Fil
   return (
     <DropdownMenuContent align="start" className="w-[217px] shadow-md">
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onOpen, 0)}>
-        <FigmaIcon src="icons/external-link.svg" size={16} />
+        <Icon icon={ExternalLink} size={16} />
         {copy.openFileFromCommit}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onRevert, 0)}>
-        <FigmaIcon src="icons/replace.svg" size={16} />
+        <Icon icon={Replace} size={16} />
         {copy.revertFileFromCommit}
       </DropdownMenuItem>
       <DropdownMenuSub>
         <DropdownMenuSubTrigger className="gap-2">
-          <FigmaIcon src="icons/copy.svg" size={16} />
+          <Icon icon={Copy} size={16} />
           <span className="min-w-0 flex-1">{copy.copyPath}</span>
-          <FigmaIcon src="icons/chevron-right.svg" size={16} />
+          <Icon icon={ChevronRight} size={16} />
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent className="w-[200px] shadow-md">
           <DropdownMenuItem onSelect={() => copyText(path.replace(/^\/+/, ""))}>{copy.pathOfFile}</DropdownMenuItem>

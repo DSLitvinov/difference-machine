@@ -102,6 +102,7 @@ function commitTitle(message: string): string {
 export default function App() {
   const shell = useAppStore((s) => s.shell);
   const locale = useAppStore((s) => s.locale);
+  const theme = useAppStore((s) => s.theme);
   const toast = useAppStore((s) => s.toast);
   const repoPath = useAppStore((s) => s.repoPath);
   const folderPath = useAppStore((s) => s.folderPath);
@@ -115,6 +116,7 @@ export default function App() {
   const setToast = useAppStore((s) => s.setToast);
   const setRepoMeta = useAppStore((s) => s.setRepoMeta);
   const [busy, setBusy] = useState(false);
+  const [stagingCommit, setStagingCommit] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mergeOpen, setMergeOpen] = useState(false);
   const [mergeError, setMergeError] = useState<string | null>(null);
@@ -399,6 +401,7 @@ export default function App() {
       return;
     }
     setBusy(true);
+    setStagingCommit(true);
     try {
       await foresterCall("index.add", { files: paths });
       await refreshRepoMeta();
@@ -406,6 +409,7 @@ export default function App() {
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
     } finally {
+      setStagingCommit(false);
       setBusy(false);
     }
   }
@@ -416,6 +420,7 @@ export default function App() {
       return;
     }
     setBusy(true);
+    setStagingCommit(true);
     try {
       await foresterCall("index.add", { files: paths });
       await refreshRepoMeta();
@@ -423,6 +428,7 @@ export default function App() {
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
     } finally {
+      setStagingCommit(false);
       setBusy(false);
     }
   }
@@ -841,6 +847,7 @@ export default function App() {
           onCreateCommitFromSelection={(paths) => void onCreateCommitFromSelection(paths)}
           onNeedMore={() => void loadMoreEntries()}
           onCommitAll={() => void onCommitAll()}
+          stagingCommit={stagingCommit}
           onCancelComposer={() => useAppStore.getState().closeCommitComposer()}
           onCreateCommit={(fields) => void onCreateCommit(fields)}
           onCompareFile={() => void onCompareFile()}
@@ -869,8 +876,10 @@ export default function App() {
       {settingsOpen ? (
         <SettingsDialog
           locale={locale}
+          theme={theme}
           onClose={() => setSettingsOpen(false)}
           onLocale={onLocale}
+          onThemeSaved={(next) => useAppStore.getState().setTheme(next)}
           onProfileSaved={(name, email, nextLocale) => {
             useAppStore.getState().setProfile(name, email);
             setLocale(nextLocale);

@@ -1,6 +1,7 @@
+import { ChevronRight, Ellipsis, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { FilePreviewItemMenu, type FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -21,14 +22,14 @@ export function HeaderFileAction({ locale, fileName, collapsed, locked, onBack, 
   return (
     <div className="flex w-full items-center justify-between pb-2 pt-3">
       <Button type="button" variant="outline" size="icon" aria-label={copy.back} onClick={onBack}>
-        <FigmaIcon src="icons/chevron-right.svg" size={16} className="-scale-x-100" />
+        <Icon icon={ChevronRight} size={16} className="-scale-x-100" />
       </Button>
       <p className="min-w-0 flex-1 truncate text-center text-[14px] font-medium leading-5 text-foreground">{fileName}</p>
       <div className="flex shrink-0 items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button type="button" variant="outline" size="icon" aria-label={copy.more}>
-              <FigmaIcon src="icons/ellipsis.svg" size={16} />
+              <Icon icon={Ellipsis} size={16} />
             </Button>
           </DropdownMenuTrigger>
           <FilePreviewItemMenu
@@ -47,7 +48,7 @@ export function HeaderFileAction({ locale, fileName, collapsed, locked, onBack, 
           <>
             <div className="h-5 w-px bg-border" />
             <Button type="button" variant="secondary" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
-              <FigmaIcon src="icons/panel-right-open.svg" size={16} />
+              <Icon icon={PanelRightOpen} size={16} />
             </Button>
           </>
         ) : null}

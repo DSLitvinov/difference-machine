@@ -26,6 +26,22 @@
   color-scheme: light;
 }
 
+html.dark {
+  --background-primary-light: #09090b;
+  --background-default: #18181b;
+  --background-primary-default: #fafafa;
+  --background-muted: #27272a;
+  --foreground-default: #fafafa;
+  --foreground-muted: #a1a1aa;
+  --foreground-secondary: #d4d4d8;
+  --foreground-primary-default: #18181b;
+  --foreground-disabled: #71717a;
+  --foreground-accent-light: #1e293b;
+  --border-default: #3f3f46;
+  --border-accent: #60a5fa;
+  color-scheme: dark;
+}
+
 html,
 body,
 #root {

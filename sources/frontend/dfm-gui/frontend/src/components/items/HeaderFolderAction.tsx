@@ -1,5 +1,6 @@
+import { ChevronRight, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { FolderActionBar } from "@/components/items/FolderActionBar";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridFilter, GridSort } from "@/lib/folder-query";
@@ -57,7 +58,7 @@ export function HeaderFolderAction({
             {copy.home}
           </button>
         )}
-        <FigmaIcon src="icons/chevron-right.svg" size={24} />
+        <Icon icon={ChevronRight} size={24} />
         {parts.map((part, index) => {
           const path = parts.slice(0, index + 1).join("/");
           const last = index === parts.length - 1;
@@ -70,7 +71,7 @@ export function HeaderFolderAction({
                   {part}
                 </button>
               )}
-              {last ? null : <FigmaIcon src="icons/chevron-right.svg" size={24} />}
+              {last ? null : <Icon icon={ChevronRight} size={24} />}
             </div>
           );
         })}
@@ -97,7 +98,7 @@ export function HeaderFolderAction({
           <>
             <div className="h-5 w-px bg-border" />
             <Button type="button" variant="secondary" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
-              <FigmaIcon src="icons/panel-right-open.svg" size={16} />
+              <Icon icon={PanelRightOpen} size={16} />
             </Button>
           </>
         ) : null}

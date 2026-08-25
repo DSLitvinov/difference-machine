@@ -10,6 +10,7 @@ interface SessionInfo {
   shell: "first-start" | "app";
   repoPath: string;
   locale: string;
+  theme: string;
   userName: string;
   userEmail: string;
   isRepository: boolean;
@@ -20,6 +21,7 @@ interface SettingsInfo {
   userName: string;
   userEmail: string;
   locale: string;
+  theme: string;
   repos: string[];
   apiPath: string;
   foresterPath: string;
@@ -43,6 +45,7 @@ interface GoApp {
   SaveEditors: (blenderPath: string, addonPath: string, others: string[]) => Promise<void>;
   SelectFile: () => Promise<string>;
   SetLocale: (locale: string) => Promise<void>;
+  SetTheme: (theme: string) => Promise<void>;
   WindowMinimise: () => Promise<void>;
   WindowToggleMaximise: () => Promise<void>;
   WindowClose: () => Promise<void>;

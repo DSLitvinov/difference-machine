@@ -1,3 +1,4 @@
+import { Copy, EllipsisVertical, ExternalLink, RefreshCw, Replace, Reply, Trash2 } from "lucide-react";
 import type { SyntheticEvent } from "react";
 import {
   DropdownMenu,
@@ -6,7 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { FigmaIcon } from "@/components/chrome/FigmaIcon";
+import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 
 export type CommitCardAction = "compare" | "cleanup-tmp" | "restore-version" | "revert-commit" | "reset";
@@ -31,32 +32,32 @@ export function CommitCardMenu({ locale, hash, message, onAction }: CommitCardMe
   return (
     <DropdownMenuContent align="end" className="w-[227px] shadow-md" onClick={stopCardClick}>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("compare"), 0)}>
-        <FigmaIcon src="icons/external-link.svg" size={16} />
+        <Icon icon={ExternalLink} size={16} />
         {copy.compareWithWorkingTree}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("cleanup-tmp"), 0)}>
-        <FigmaIcon src="icons/trash-2.svg" size={16} />
+        <Icon icon={Trash2} size={16} />
         {copy.cleanTemporaryFolder}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("restore-version"), 0)}>
-        <FigmaIcon src="icons/reply.svg" size={16} />
+        <Icon icon={Reply} size={16} />
         {copy.restoreThisVersion}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("revert-commit"), 0)}>
-        <FigmaIcon src="icons/replace.svg" size={16} />
+        <Icon icon={Replace} size={16} />
         {copy.revertCommit}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("reset"), 0)}>
-        <FigmaIcon src="icons/refresh-cw.svg" size={16} />
+        <Icon icon={RefreshCw} size={16} />
         {copy.resetBranchToCommit}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem className="gap-2" onSelect={() => copyText(hash)}>
-        <FigmaIcon src="icons/copy.svg" size={16} />
+        <Icon icon={Copy} size={16} />
         {copy.copyHash}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => copyText(message)}>
-        <FigmaIcon src="icons/copy.svg" size={16} />
+        <Icon icon={Copy} size={16} />
         {copy.copyMessage}
       </DropdownMenuItem>
     </DropdownMenuContent>
@@ -76,7 +77,7 @@ export function CommitCardMoreButton({ locale, hash, message, onAction }: Commit
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={stopCardClick} onPointerDown={stopCardClick}>
-          <FigmaIcon src="icons/ellipsis-vertical.svg" size={16} />
+          <Icon icon={EllipsisVertical} size={16} />
         </button>
       </DropdownMenuTrigger>
       <CommitCardMenu locale={locale} hash={hash} message={message} onAction={onAction} />

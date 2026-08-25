@@ -28,7 +28,7 @@ GUI не реализует контроль версий самостоятел
 | Язык backend GUI | **Go** 1.22+ |
 | Оболочка | [Wails](https://wails.io/) v2 |
 | Frontend | React, Vite, TypeScript |
-| Стили и компоненты | Tailwind CSS, [shadcn/ui](https://ui.shadcn.com/) (Radix) |
+| Стили и компоненты | Tailwind CSS, [shadcn/ui](https://ui.shadcn.com/) (Radix), [lucide-react](https://lucide.dev/) (chrome icons) |
 | Состояние UI | Zustand |
 | VCS | Forester JSON API in-process (`pkg/jsonapi`) |
 
@@ -155,7 +155,7 @@ jsonapi.Close(h)
 - Диалоги и панели по спекам
 - Кэш превью в памяти (байты приходят из API)
 - Масштаб сетки (`gridTrack`) — UI-state сессии, не Forester и не `setup.cfg`
-- Только светлая тема: токены `:root`, SVG из `assets/light/`
+- Тема Light/Dark: токены `:root` / `html.dark`, SVG из `assets/{light,dark}/`, `[ui] theme`
 
 ---
 
