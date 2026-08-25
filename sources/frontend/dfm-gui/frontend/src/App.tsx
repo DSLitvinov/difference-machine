@@ -466,6 +466,10 @@ export default function App() {
         await foresterCall("compare.extract", { commit_hash: commit.hash, open: true });
         return true;
       }
+      if (action === "cleanup-tmp") {
+        await foresterCall("compare.extract", { commit_hash: commit.hash, cleanup: true });
+        return true;
+      }
       if (action === "restore-version") {
         await foresterCall("restore.version", { commit_hash: commit.hash });
         await refreshRepoMeta();
@@ -489,7 +493,7 @@ export default function App() {
   }
 
   function onCommitAction(action: CommitCardAction, commit: CommitSummary) {
-    if (action === "compare") {
+    if (action === "compare" || action === "cleanup-tmp") {
       void runCommitAction(action, commit);
       return;
     }

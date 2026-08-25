@@ -251,7 +251,7 @@ GUI: лениво для **видимых** карточек, ключ hash (+ `
 | Args | |
 |------|--|
 | `commit_hash` | обязательно |
-| `cleanup` | bool: убрать tmp_review |
+| `cleanup` | bool: убрать tmp_review. GUI **Clean temporary folder** |
 | `editor_path` | опционально: открыть .blend из extract в этом executable |
 | `open` | bool: после extract открыть `.DFM/tmp_review` в файловом менеджере ОС. GUI **Compare with working tree**. Не вместе с `cleanup`. Не ставить при Compare **файла** (там `workdir.open` конкретного path) |
 

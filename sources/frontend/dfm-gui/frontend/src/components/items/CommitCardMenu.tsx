@@ -9,7 +9,7 @@ import {
 import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { t, type Locale } from "@/lib/i18n";
 
-export type CommitCardAction = "compare" | "restore-version" | "revert-commit" | "reset";
+export type CommitCardAction = "compare" | "cleanup-tmp" | "restore-version" | "revert-commit" | "reset";
 
 type CommitCardMenuProps = {
   locale: Locale;
@@ -33,6 +33,10 @@ export function CommitCardMenu({ locale, hash, message, onAction }: CommitCardMe
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("compare"), 0)}>
         <FigmaIcon src="icons/external-link.svg" size={16} />
         {copy.compareWithWorkingTree}
+      </DropdownMenuItem>
+      <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("cleanup-tmp"), 0)}>
+        <FigmaIcon src="icons/trash-2.svg" size={16} />
+        {copy.cleanTemporaryFolder}
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("restore-version"), 0)}>
         <FigmaIcon src="icons/reply.svg" size={16} />

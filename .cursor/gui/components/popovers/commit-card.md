@@ -8,6 +8,7 @@ Figma: [Popover (Commit Card)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3D
 | Пункт | Действие |
 |-------|----------|
 | Compare with working tree | `compare.extract` с `open: true`: выгрузка коммита в `.DFM/tmp_review`, затем открыть **эту папку** в файловом менеджере ОС (Finder / Explorer). Не `editor_path` |
+| Clean temporary folder | `compare.extract` с `cleanup: true`: удалить `.DFM/tmp_review`. Без confirm. Сразу под Compare |
 | Restore this version | confirm → `restore.version` |
 | Revert commit | confirm → `commit.revert` |
 | Reset branch to commit | confirm → `commit.reset` `mode: mixed`. **Без** chevron `>` — submenu нет |
