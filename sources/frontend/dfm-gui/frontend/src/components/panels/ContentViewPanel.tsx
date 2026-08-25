@@ -6,7 +6,7 @@ import { FolderNullPlaceholder } from "@/components/placeholders/FolderNullPlace
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { foresterCall } from "@/lib/bridge";
 import { applyFolderQuery, folderExtensions, inCurrentFolder, type GridFilter, type GridSort } from "@/lib/folder-query";
-import type { Locale } from "@/lib/i18n";
+import { t, type Locale } from "@/lib/i18n";
 import { isDirty } from "@/lib/status";
 import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
 
@@ -196,7 +196,7 @@ export function ContentViewPanel({
       <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         {showEmptyFolder ? (
           <div className="flex min-h-0 flex-1 flex-col items-center overflow-hidden p-4">
-            <FolderNullPlaceholder locale={locale} />
+            <FolderNullPlaceholder locale={locale} body={forceEmpty ? t(locale).createStash : undefined} />
           </div>
         ) : items.length === 0 ? (
           <div className="min-h-0 flex-1" />
