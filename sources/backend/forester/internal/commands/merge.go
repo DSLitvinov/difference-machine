@@ -218,7 +218,10 @@ func performFastForward(repoPath string, repo *core.Repository, currentBranch, t
 	}
 
 	// Clear index
-	index, _ := core.NewIndex(repoPath)
+	index, err := core.NewIndex(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to create index: %w", err)
+	}
 	index.Clear()
 
 	hashShort := targetHead

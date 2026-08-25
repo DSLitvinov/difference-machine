@@ -279,6 +279,9 @@ func resolveMergeApplyScript(blenderPath, foresterCLI, addonPath string) string 
 }
 
 func taggedObjectsForBlendMerge(repo *core.Repository, currentHead, targetHead, filePath string) ([]*models.Object, error) {
+	if repo == nil || repo.Manifests == nil {
+		return nil, nil
+	}
 	filePath = utils.NormalizeRepoRelPath(filePath)
 	byName := make(map[string]*models.Object)
 	mergeTagged := func(objects []*models.Object) {
@@ -495,6 +498,9 @@ func finishBlendFileMerge(
 	hash, err := core.HashFile(fullPath)
 	if err != nil {
 		return false, fmt.Errorf("failed to hash merged blend %s: %w", relPath, err)
+	}
+	if storage == nil {
+		return false, fmt.Errorf("failed to store merged blend %s: storage is nil", relPath)
 	}
 	if _, err := storage.StoreBlobFromFile(fullPath); err != nil {
 		return false, fmt.Errorf("failed to store merged blend %s: %w", relPath, err)

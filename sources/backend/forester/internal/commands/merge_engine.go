@@ -140,11 +140,15 @@ func performMergeCommit(repoPath string, repo *core.Repository, storage *core.St
 				targetChanged := !inBase || (inBase && targetEntry.Hash != baseEntry.Hash)
 
 				if currentChanged && targetChanged && currentEntry.Hash != targetEntry.Hash {
-					// Conflict detected
+					// Conflict detected (base may be absent for add/add).
+					baseHash := ""
+					if inBase && baseEntry != nil {
+						baseHash = baseEntry.Hash
+					}
 					hasConflict = true
 					conflicts = append(conflicts, ConflictInfo{
 						Path:      path,
-						BaseHash:  baseEntry.Hash,
+						BaseHash:  baseHash,
 						OurHash:   currentEntry.Hash,
 						TheirHash: targetEntry.Hash,
 					})

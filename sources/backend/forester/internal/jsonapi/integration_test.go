@@ -770,6 +770,61 @@ func TestMergeFastForward(t *testing.T) {
 	}
 }
 
+func TestMergeAddAddBinaryConflictNoPanic(t *testing.T) {
+	// Both branches add the same .blend path independently (no merge-base entry).
+	// Previously paniced on baseEntry.Hash when building ConflictInfo.
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "base.txt", "base")
+	mustOK(t, h, "index.add", `{"files":["base.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"base"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{}`), &logResult); err != nil {
+		t.Fatalf("decode log: %v", err)
+	}
+	baseHead := logResult.Commits[0].Hash
+
+	mustOK(t, h, "branch.create", `{"name":"feature","commit_hash":"`+baseHead+`"}`)
+
+	writeFile(t, dir, "scene.blend", "ours-blend")
+	mustOK(t, h, "index.add", `{"files":["scene.blend"]}`)
+	mustOK(t, h, "commit.create", `{"message":"ours blend"}`)
+
+	mustOK(t, h, "repo.switch", `{"target":"feature","auto_stash":true}`)
+	writeFile(t, dir, "scene.blend", "theirs-blend")
+	mustOK(t, h, "index.add", `{"files":["scene.blend"]}`)
+	mustOK(t, h, "commit.create", `{"message":"theirs blend"}`)
+
+	mustOK(t, h, "repo.switch", `{"target":"main"}`)
+
+	resp := call(t, h, "merge.start", `{"branch":"feature","no_ff":true}`)
+	if !resp.OK {
+		// Conflict / blender apply failure is acceptable; panic is not.
+		if strings.Contains(resp.Error, "nil pointer") || strings.Contains(resp.Error, "invalid memory") {
+			t.Fatalf("merge.start panicked: %s", resp.Error)
+		}
+	}
+
+	var status struct {
+		InProgress   bool `json:"in_progress"`
+		HasConflicts bool `json:"has_conflicts"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "merge.status", `{}`), &status); err != nil {
+		t.Fatalf("decode merge.status: %v", err)
+	}
+	if resp.OK && !status.InProgress && !status.HasConflicts {
+		// Completed without conflict recording — still a successful non-panic path.
+		return
+	}
+	if status.InProgress && !status.HasConflicts {
+		t.Fatal("expected binary add/add conflict to be recorded")
+	}
+}
+
 func TestDetachedHeadAfterRestoreVersion(t *testing.T) {
 	dir, h := initTestRepo(t)
 	writeFile(t, dir, "a.txt", "v1")

@@ -22,6 +22,18 @@ func withSilencedCLIOutput(fn func() (interface{}, error)) (interface{}, error) 
 	os.Stdout = stdoutWrite
 	os.Stderr = stderrWrite
 
+	// Drain pipes while fn runs so writers (fmt / child tools inheriting fds) cannot fill
+	// the OS pipe buffer and deadlock the merge.
+	done := make(chan struct{}, 2)
+	go func() {
+		_, _ = io.Copy(io.Discard, stdoutRead)
+		done <- struct{}{}
+	}()
+	go func() {
+		_, _ = io.Copy(io.Discard, stderrRead)
+		done <- struct{}{}
+	}()
+
 	result, callErr := fn()
 
 	_ = stdoutWrite.Close()
@@ -29,8 +41,8 @@ func withSilencedCLIOutput(fn func() (interface{}, error)) (interface{}, error) 
 	os.Stdout = prevStdout
 	os.Stderr = prevStderr
 
-	_, _ = io.Copy(io.Discard, stdoutRead)
-	_, _ = io.Copy(io.Discard, stderrRead)
+	<-done
+	<-done
 	_ = stdoutRead.Close()
 	_ = stderrRead.Close()
 

@@ -77,7 +77,13 @@ func CallStateless(workPath, method, argsJSON string) []byte {
 	return callWorkPath(workPath, method, argsJSON)
 }
 
-func callWorkPath(workPath, method, argsJSON string) []byte {
+func callWorkPath(workPath, method, argsJSON string) (out []byte) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			out = marshalErr(fmt.Sprintf("internal error: %v", rec))
+		}
+	}()
+
 	method = strings.TrimSpace(method)
 	fn, ok := handlers[method]
 	if !ok {
