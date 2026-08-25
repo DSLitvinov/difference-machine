@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -13,6 +14,8 @@ import (
 	"github.com/difference-machine/forester/internal/models"
 	"github.com/difference-machine/forester/internal/utils"
 )
+
+var userHomeDir = os.UserHomeDir
 
 type mergeObjectJSON struct {
 	ObjectName string            `json:"object_name"`
@@ -44,7 +47,7 @@ func containsConflictPath(conflicts []ConflictInfo, path string) bool {
 }
 
 func blenderConfig() (executable string, mergeScript string) {
-	home, err := os.UserHomeDir()
+	home, err := userHomeDir()
 	if err != nil {
 		return "", ""
 	}
@@ -58,7 +61,7 @@ func blenderConfig() (executable string, mergeScript string) {
 		blenderSection = map[string]string{}
 	}
 	executable = resolveBlenderExecutable(strings.TrimSpace(blenderSection["path"]))
-	mergeScript = strings.TrimSpace(blenderSection["merge_apply_script"])
+	explicitScript := strings.TrimSpace(blenderSection["merge_apply_script"])
 	foresterCLI := ""
 	if foresterSection != nil {
 		foresterCLI = strings.TrimSpace(foresterSection["path"])
@@ -67,8 +70,9 @@ func blenderConfig() (executable string, mergeScript string) {
 	if addonsSection := config["addons"]; addonsSection != nil {
 		addonPath = strings.TrimSpace(addonsSection["diffmachine_path"])
 	}
-	if mergeScript == "" {
-		mergeScript = resolveMergeApplyScript(executable, foresterCLI, addonPath)
+	mergeScript = resolveMergeApplyScript(executable, foresterCLI, addonPath)
+	if mergeScript == "" && explicitScript != "" && utils.Exists(explicitScript) {
+		mergeScript = explicitScript
 	}
 	return executable, mergeScript
 }
@@ -118,25 +122,19 @@ func objectHasBlendMergeTag(obj *models.Object) bool {
 	return false
 }
 
-func repoHasBlendMergeMarks(repo *core.Repository, heads ...string) bool {
+func repoHasBlendMergeMarks(repo *core.Repository, _ ...string) bool {
 	if repo == nil || repo.Manifests == nil {
 		return false
 	}
-	for _, hash := range heads {
-		if hash == "" {
-			continue
+	found := false
+	_ = repo.Manifests.EachObject(func(obj *models.Object) bool {
+		if objectHasBlendMergeTag(obj) {
+			found = true
+			return false
 		}
-		objects, err := repo.Manifests.GetObjectsByCommit(hash)
-		if err != nil {
-			continue
-		}
-		for _, obj := range objects {
-			if objectHasBlendMergeTag(obj) {
-				return true
-			}
-		}
-	}
-	return false
+		return true
+	})
+	return found
 }
 
 func resolveMergeApplyScriptFromDir(startDir string) string {
@@ -179,6 +177,60 @@ func mergeApplyScriptInAddon(addonPath string) string {
 	return ""
 }
 
+func blenderUserConfigRoots(home string) []string {
+	home = strings.TrimSpace(home)
+	if home == "" {
+		return nil
+	}
+	switch runtime.GOOS {
+	case "darwin":
+		return []string{filepath.Join(home, "Library", "Application Support", "Blender")}
+	case "windows":
+		appData := strings.TrimSpace(os.Getenv("APPDATA"))
+		if appData == "" {
+			appData = filepath.Join(home, "AppData", "Roaming")
+		}
+		return []string{filepath.Join(appData, "Blender Foundation", "Blender")}
+	default:
+		return []string{filepath.Join(home, ".config", "blender")}
+	}
+}
+
+func mergeApplyScriptInBlenderUserAddons(home string) string {
+	for _, root := range blenderUserConfigRoots(home) {
+		versions, err := os.ReadDir(root)
+		if err != nil {
+			continue
+		}
+		for _, version := range versions {
+			if !version.IsDir() {
+				continue
+			}
+			verDir := filepath.Join(root, version.Name())
+			addonDirs := []string{
+				filepath.Join(verDir, "scripts", "addons", "difference_machine"),
+			}
+			if extRoot := filepath.Join(verDir, "extensions"); utils.Exists(extRoot) {
+				repos, err := os.ReadDir(extRoot)
+				if err == nil {
+					for _, repo := range repos {
+						if !repo.IsDir() {
+							continue
+						}
+						addonDirs = append(addonDirs, filepath.Join(extRoot, repo.Name(), "difference_machine"))
+					}
+				}
+			}
+			for _, addonDir := range addonDirs {
+				if script := mergeApplyScriptInAddon(addonDir); script != "" {
+					return script
+				}
+			}
+		}
+	}
+	return ""
+}
+
 func resolveMergeApplyScript(blenderPath, foresterCLI, addonPath string) string {
 	if env := strings.TrimSpace(os.Getenv("DFM_MERGE_APPLY_SCRIPT")); env != "" && utils.Exists(env) {
 		return env
@@ -186,6 +238,12 @@ func resolveMergeApplyScript(blenderPath, foresterCLI, addonPath string) string 
 
 	if script := mergeApplyScriptInAddon(addonPath); script != "" {
 		return script
+	}
+
+	if home, err := userHomeDir(); err == nil {
+		if script := mergeApplyScriptInBlenderUserAddons(home); script != "" {
+			return script
+		}
 	}
 
 	if foresterCLI != "" {
@@ -216,15 +274,22 @@ func resolveMergeApplyScript(blenderPath, foresterCLI, addonPath string) string 
 }
 
 func taggedObjectsForBlendMerge(repo *core.Repository, currentHead, targetHead, filePath string) ([]*models.Object, error) {
-	filePath = filepath.ToSlash(filePath)
+	filePath = utils.NormalizeRepoRelPath(filePath)
 	byName := make(map[string]*models.Object)
 	mergeTagged := func(objects []*models.Object) {
 		for _, obj := range objects {
 			if obj == nil || !objectHasBlendMergeTag(obj) {
 				continue
 			}
-			if filepath.ToSlash(obj.FilePath) != filePath {
+			stored := utils.NormalizeRepoRelPath(obj.FilePath)
+			if stored != filePath && filepath.Base(stored) != filepath.Base(filePath) {
 				continue
+			}
+			if stored != filePath && filepath.Base(stored) == filepath.Base(filePath) && stored != "" {
+				// Same basename in another folder: only accept when the requested file has no exact match yet.
+				if existing, ok := byName[obj.ObjectName]; ok && utils.NormalizeRepoRelPath(existing.FilePath) == filePath {
+					continue
+				}
 			}
 			existing, ok := byName[obj.ObjectName]
 			if !ok || obj.UpdatedAt > existing.UpdatedAt {
@@ -244,13 +309,11 @@ func taggedObjectsForBlendMerge(repo *core.Repository, currentHead, targetHead, 
 		mergeTagged(objects)
 	}
 
-	if len(byName) == 0 {
-		objects, err := repo.Manifests.FindObjectsByFileAcrossCommits(filePath)
-		if err != nil {
-			return nil, err
-		}
-		mergeTagged(objects)
+	objects, err := repo.Manifests.FindObjectsByFileAcrossCommits(filePath)
+	if err != nil {
+		return nil, err
 	}
+	mergeTagged(objects)
 
 	tagged := make([]*models.Object, 0, len(byName))
 	for _, obj := range byName {
@@ -358,6 +421,8 @@ func applyBlendMergeMarks(
 	cmd := exec.Command(
 		blenderExecutable,
 		"--background",
+		"--python-exit-code",
+		"1",
 		blendPath,
 		"--python",
 		mergeScript,
@@ -425,6 +490,42 @@ func finishBlendFileMerge(
 	}
 	fmt.Fprintf(os.Stderr, "Applied object merge marks for %s\n", relPath)
 	return true, nil
+}
+
+func applyBlendMergeMarksFromTree(
+	repoPath string,
+	repo *core.Repository,
+	storage *core.Storage,
+	treeHash, currentHead, targetHead string,
+	index *core.Index,
+) error {
+	if storage == nil || treeHash == "" {
+		return nil
+	}
+	content, err := storage.GetTreeContent(treeHash)
+	if err != nil {
+		return err
+	}
+	var tree models.Tree
+	if err := json.Unmarshal([]byte(content), &tree); err != nil {
+		return err
+	}
+	treeMap := make(map[string]*models.TreeEntry)
+	if err := core.BuildTreeMapRecursive(storage, &tree, "", treeMap); err != nil {
+		return err
+	}
+	for path, entry := range treeMap {
+		if entry == nil || entry.Type != "blob" {
+			continue
+		}
+		if !strings.HasSuffix(strings.ToLower(filepath.ToSlash(path)), ".blend") {
+			continue
+		}
+		if _, err := finishBlendFileMerge(repoPath, path, currentHead, targetHead, entry.Hash, repo, storage, index); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func mergeStateConflictPaths(state map[string]interface{}) []string {

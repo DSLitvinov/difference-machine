@@ -213,6 +213,10 @@ func performFastForward(repoPath string, repo *core.Repository, currentBranch, t
 		return fmt.Errorf("failed to restore files: %w", err)
 	}
 
+	if err := applyBlendMergeMarksFromTree(repoPath, repo, storage, targetCommit.TreeHash, oldHead, targetHead, nil); err != nil {
+		return fmt.Errorf("object merge failed: %w", err)
+	}
+
 	// Clear index
 	index, _ := core.NewIndex(repoPath)
 	index.Clear()

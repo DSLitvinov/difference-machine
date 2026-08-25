@@ -17,5 +17,5 @@ Figma: [Dialog / Merge](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-
 
 1. Next на select branch **не** вызывает `merge.start`. Показать view objects.
 2. Файлы до старта: `diff.name_status` (`from`: `HEAD`, `to`: `commit_hash` выбранной ветки). Объекты выбранного `.blend`: `object.list_by_file` (`commit_hash` = хеш вливаемой ветки).
-3. Merge → step wait (дать кадру отрисоваться), затем `merge.start`. Forester запускает `merge_apply_background.py` в background Blender по тегам MERGE/DELETE/RENAME. Fast-forward с такими тегами не пропускает скрипт. Если диалог открыт по `in_progress` (баннер) — сразу view objects, Merge → wait → `merge.continue`.
+3. Merge → step wait (дать кадру отрисоваться), затем `merge.start`. Forester запускает `merge_apply_background.py` в background Blender по тегам MERGE/DELETE/RENAME. Теги ищутся по всем commit-манифестам файла, не только HEAD. Fast-forward после checkout тоже прогоняет скрипт. Если диалог открыт по `in_progress` (баннер) — сразу view objects, Merge → wait → `merge.continue`.
 4. Успех без `in_progress` — закрыть. Конфликты или ошибка — вернуться на view objects. Abort — `merge.abort`.

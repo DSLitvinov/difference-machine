@@ -255,7 +255,48 @@ func (m *ManifestStore) GetObjectsByFile(commitHash, filePath string) ([]*models
 }
 
 func manifestPathsMatch(stored, requested string) bool {
-	return filepath.ToSlash(stored) == filepath.ToSlash(requested)
+	return utils.NormalizeRepoRelPath(stored) == utils.NormalizeRepoRelPath(requested)
+}
+
+// EachObject visits every object in every commit manifest. Stop if fn returns false.
+func (m *ManifestStore) EachObject(fn func(*models.Object) bool) error {
+	if fn == nil || !utils.Exists(m.manifestDir) {
+		return nil
+	}
+	commitDirs, err := os.ReadDir(m.manifestDir)
+	if err != nil {
+		return err
+	}
+	for _, commitEntry := range commitDirs {
+		if !commitEntry.IsDir() {
+			continue
+		}
+		dir := filepath.Join(m.manifestDir, commitEntry.Name())
+		manifestFiles, err := os.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+		for _, manifestFile := range manifestFiles {
+			if manifestFile.IsDir() || !strings.HasSuffix(manifestFile.Name(), ".json") {
+				continue
+			}
+			data, err := os.ReadFile(filepath.Join(dir, manifestFile.Name()))
+			if err != nil {
+				return err
+			}
+			var manifest FileManifest
+			if err := json.Unmarshal(data, &manifest); err != nil {
+				return err
+			}
+			for i := range manifest.Objects {
+				obj := manifest.Objects[i]
+				if !fn(&obj) {
+					return nil
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // FindObjectsByFileAcrossCommits returns tagged objects for a file from any commit manifest.

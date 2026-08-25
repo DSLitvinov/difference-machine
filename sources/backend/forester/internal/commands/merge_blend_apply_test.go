@@ -3,6 +3,7 @@ package commands
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/difference-machine/forester/internal/core"
@@ -91,8 +92,8 @@ func TestRepoHasBlendMergeMarks(t *testing.T) {
 	if err := repo.Manifests.AddObject(marked); err != nil {
 		t.Fatal(err)
 	}
-	if !repoHasBlendMergeMarks(repo, "head-a", "head-b") {
-		t.Fatal("expected merge marks on head-b")
+	if !repoHasBlendMergeMarks(repo, "head-a") {
+		t.Fatal("expected merge marks stored on another commit to still apply")
 	}
 }
 
@@ -138,6 +139,9 @@ func TestResolveMergeApplyScriptFromDir(t *testing.T) {
 }
 
 func TestResolveMergeApplyScript_PrefersForesterCLI(t *testing.T) {
+	origHome := userHomeDir
+	userHomeDir = func() (string, error) { return t.TempDir(), nil }
+	t.Cleanup(func() { userHomeDir = origHome })
 	root := t.TempDir()
 	scriptDir := filepath.Join(root, "Forester.app", "Contents", "Resources", "share", "scripts")
 	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
@@ -190,6 +194,9 @@ func TestMergeApplyScriptInAddon(t *testing.T) {
 
 func TestResolveMergeApplyScript_PrefersAddonPath(t *testing.T) {
 	t.Setenv("DFM_MERGE_APPLY_SCRIPT", "")
+	origHome := userHomeDir
+	userHomeDir = func() (string, error) { return t.TempDir(), nil }
+	t.Cleanup(func() { userHomeDir = origHome })
 	root := t.TempDir()
 	addonScriptDir := filepath.Join(root, "addon", "scripts")
 	if err := os.MkdirAll(addonScriptDir, 0o755); err != nil {
@@ -218,6 +225,35 @@ func TestResolveMergeApplyScript_PrefersAddonPath(t *testing.T) {
 	got := resolveMergeApplyScript("", foresterCLI, filepath.Join(root, "addon"))
 	if got != addonScript {
 		t.Fatalf("resolveMergeApplyScript = %q, want addon %q", got, addonScript)
+	}
+}
+
+func TestMergeApplyScriptInBlenderUserAddons(t *testing.T) {
+	home := t.TempDir()
+	roots := blenderUserConfigRoots(home)
+	if len(roots) == 0 {
+		t.Fatal("expected blender user config root")
+	}
+	scriptDir := filepath.Join(roots[0], "5.0", "extensions", "user_default", "difference_machine", "scripts")
+	if err := os.MkdirAll(scriptDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	scriptPath := filepath.Join(scriptDir, "merge_apply_background.py")
+	if err := os.WriteFile(scriptPath, []byte("# installed addon"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	got := mergeApplyScriptInBlenderUserAddons(home)
+	if got != scriptPath {
+		t.Fatalf("mergeApplyScriptInBlenderUserAddons = %q, want %q (goos=%s)", got, scriptPath, runtime.GOOS)
+	}
+
+	origHome := userHomeDir
+	userHomeDir = func() (string, error) { return home, nil }
+	t.Cleanup(func() { userHomeDir = origHome })
+	t.Setenv("DFM_MERGE_APPLY_SCRIPT", "")
+	got = resolveMergeApplyScript("", "", "/missing/addons/difference_machine")
+	if got != scriptPath {
+		t.Fatalf("resolveMergeApplyScript stale addon = %q, want installed %q", got, scriptPath)
 	}
 }
 

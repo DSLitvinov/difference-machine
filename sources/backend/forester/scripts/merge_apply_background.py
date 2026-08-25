@@ -1,7 +1,11 @@
 """
 Apply object-level merge marks (Delete, Rename, Merge) to a .blend file in background Blender.
 
-Invoked by Forester during branch merge when a .blend file conflicts.
+Lives next to the installed Difference Machine addon
+(scripts/merge_apply_background.py). Forester resolves this file from
+addons.diffmachine_path in ~/.dfm/setup.cfg.
+
+Invoked by Forester during branch merge when a .blend file has object tags.
 
 Usage:
   blender --background <blend_file> --python merge_apply_background.py -- \\
@@ -30,6 +34,12 @@ if str(_SCRIPT_DIR) not in sys.path:
 from asset_path import fix_retrieved_assets
 
 
+def _script_argv() -> list[str]:
+    if "--" in sys.argv:
+        return sys.argv[sys.argv.index("--") + 1 :]
+    return sys.argv[1:]
+
+
 def _parse_args():
     parser = argparse.ArgumentParser(
         description="Apply merge operations (Delete, Rename, Merge) to .blend in background"
@@ -38,7 +48,7 @@ def _parse_args():
     parser.add_argument("--theirs_blend", required=True, help="Path to 'theirs' .blend for MERGE")
     parser.add_argument("--repo_path", required=True, help="Repository root path")
     parser.add_argument("--output_file", default=None, help="Output path; default overwrite open file")
-    return parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
+    return parser.parse_args(_script_argv())
 
 
 def _load_objects_json(path: Path) -> list[dict]:
@@ -51,40 +61,115 @@ def _load_objects_json(path: Path) -> list[dict]:
     return []
 
 
-def _apply_delete(objects: list[dict]) -> None:
-    for ob in objects:
-        tags = ob.get("tags") or []
-        if "DELETE" not in tags:
-            continue
-        name = (ob.get("object_name") or "").strip()
-        if not name or name not in bpy.data.objects:
-            continue
-        obj = bpy.data.objects[name]
-        for collection in list(obj.users_collection):
+def _has_tag(tags, name: str) -> bool:
+    target = name.strip().upper()
+    for tag in tags or []:
+        if str(tag).strip().upper() == target:
+            return True
+    return False
+
+
+def _find_object(name: str):
+    name = (name or "").strip()
+    if not name:
+        return None
+    obj = bpy.data.objects.get(name)
+    if obj is not None:
+        return obj
+    lowered = name.lower()
+    matches = [candidate for candidate in bpy.data.objects if candidate.name.lower() == lowered]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+def _remove_object(obj) -> None:
+    for collection in list(obj.users_collection):
+        try:
             collection.objects.unlink(obj)
+        except Exception:
+            pass
+    try:
+        bpy.data.objects.remove(obj, do_unlink=True)
+    except TypeError:
         bpy.data.objects.remove(obj)
-        log.info("Deleted object %s", name)
 
 
-def _apply_rename(objects: list[dict]) -> None:
+def _link_object(obj, collections) -> None:
+    linked = False
+    for collection in collections or []:
+        if collection is None:
+            continue
+        try:
+            if obj.name not in collection.objects:
+                collection.objects.link(obj)
+            linked = True
+        except RuntimeError as error:
+            log.warning("Link to collection %s: %s", getattr(collection, "name", "?"), error)
+    if linked:
+        return
+    scene = getattr(bpy.context, "scene", None)
+    if scene is None:
+        return
+    try:
+        if obj.name not in scene.collection.objects:
+            scene.collection.objects.link(obj)
+    except RuntimeError as error:
+        log.warning("Link to scene collection: %s", error)
+
+
+def _metadata_new_name(meta) -> str:
+    if not isinstance(meta, dict):
+        return ""
+    for key in ("new_name", "NewName", "newName"):
+        value = meta.get(key)
+        if value:
+            return str(value).strip()
+    return ""
+
+
+def _apply_delete(objects: list[dict]) -> list[str]:
+    errors = []
     for ob in objects:
-        tags = ob.get("tags") or []
-        if "RENAME" not in tags:
+        if not _has_tag(ob.get("tags"), "DELETE"):
             continue
         name = (ob.get("object_name") or "").strip()
-        meta = ob.get("metadata") or {}
-        new_name = (meta.get("new_name") or "").strip()
-        if not new_name or name not in bpy.data.objects:
+        if not name:
+            errors.append("DELETE: empty object_name")
             continue
-        bpy.data.objects[name].name = new_name
-        log.info("Renamed %s -> %s", name, new_name)
+        obj = _find_object(name)
+        if obj is None:
+            log.warning("DELETE: object already absent: %s", name)
+            continue
+        _remove_object(obj)
+        log.info("Deleted object %s", name)
+    return errors
+
+
+def _apply_rename(objects: list[dict]) -> list[str]:
+    errors = []
+    for ob in objects:
+        if not _has_tag(ob.get("tags"), "RENAME"):
+            continue
+        name = (ob.get("object_name") or "").strip()
+        new_name = _metadata_new_name(ob.get("metadata") or {})
+        if not name or not new_name:
+            errors.append(f"RENAME: missing name or new_name for {name or '?'}")
+            continue
+        obj = _find_object(name)
+        if obj is None:
+            errors.append(f"RENAME: object not found: {name}")
+            continue
+        obj.name = new_name
+        log.info("Renamed %s -> %s", name, obj.name)
+    return errors
 
 
 def _validate_merge_inputs(objects: list[dict], theirs_blend: Path) -> bool:
     merge_names = [
         (obj.get("object_name") or "").strip()
         for obj in objects
-        if "MERGE" in (obj.get("tags") or [])
+        if _has_tag(obj.get("tags"), "MERGE")
     ]
     merge_names = [name for name in merge_names if name]
     if not merge_names:
@@ -95,63 +180,76 @@ def _validate_merge_inputs(objects: list[dict], theirs_blend: Path) -> bool:
 
     try:
         with bpy.data.libraries.load(str(theirs_blend), link=False) as (data_from, _data_to):
-            available = set(data_from.objects)
+            available = {item for item in data_from.objects if item}
     except Exception as error:
         log.error("Failed to inspect theirs blend: %s", error)
         return False
 
     missing = [name for name in merge_names if name not in available]
     if missing:
-        log.error("Missing MERGE object(s) in theirs blend: %s", ", ".join(missing))
-        return False
+        lowered = {item.lower(): item for item in available}
+        still_missing = [name for name in missing if name.lower() not in lowered]
+        if still_missing:
+            log.error("Missing MERGE object(s) in theirs blend: %s", ", ".join(still_missing))
+            return False
     return True
 
 
-def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> None:
-    merge_objects = [obj for obj in objects if "MERGE" in (obj.get("tags") or [])]
-    if not merge_objects:
-        return
-    if not theirs_blend.exists():
-        raise FileNotFoundError(f"Theirs blend not found: {theirs_blend}")
+def _theirs_object_name(name: str, available: set[str]) -> str:
+    if name in available:
+        return name
+    lowered = {item.lower(): item for item in available}
+    return lowered.get(name.lower(), name)
 
+
+def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> list[str]:
+    merge_objects = [obj for obj in objects if _has_tag(obj.get("tags"), "MERGE")]
+    if not merge_objects:
+        return []
+    if not theirs_blend.exists():
+        return [f"Theirs blend not found: {theirs_blend}"]
+
+    errors = []
     loaded_for_fix = []
+
+    with bpy.data.libraries.load(str(theirs_blend), link=False) as (data_from, _data_to):
+        available = {item for item in data_from.objects if item}
 
     for ob in merge_objects:
         name = (ob.get("object_name") or "").strip()
-        obj_type = (ob.get("object_type") or "MESH").strip()
+        obj_type = (ob.get("object_type") or "").strip().upper()
         if not name:
+            errors.append("MERGE: empty object_name")
             continue
 
+        source_name = _theirs_object_name(name, available)
+        if source_name not in available:
+            errors.append(f"Object {name} not in theirs blend")
+            continue
+
+        old = _find_object(name)
+        old_collections = list(old.users_collection) if old is not None else []
+        if old is not None:
+            _remove_object(old)
+
         with bpy.data.libraries.load(str(theirs_blend), link=False) as (data_from, data_to):
-            if name not in data_from.objects:
-                raise RuntimeError(f"Object {name} not in theirs blend")
-            data_to.objects = [name]
+            data_to.objects = [source_name]
 
         loaded_objects = [obj for obj in data_to.objects if obj]
         new_obj = loaded_objects[0] if loaded_objects else None
         if not new_obj:
-            raise RuntimeError(f"Failed to load MERGE object {name}")
-        if new_obj.type != obj_type:
-            bpy.data.objects.remove(new_obj)
-            raise RuntimeError(f"MERGE object {name} type mismatch: expected {obj_type}, got {new_obj.type}")
+            errors.append(f"Failed to load MERGE object {name}")
+            continue
+        if obj_type and new_obj.type != obj_type:
+            _remove_object(new_obj)
+            errors.append(f"MERGE object {name} type mismatch: expected {obj_type}, got {new_obj.type}")
+            continue
 
-        if name in bpy.data.objects:
-            old = bpy.data.objects[name]
-            for collection in list(old.users_collection):
-                collection.objects.unlink(old)
-            bpy.data.objects.remove(old)
+        if new_obj.name != name:
             new_obj.name = name
-        else:
-            new_obj.name = f"{name}_retrieved"
-
-        try:
-            scene_collection = bpy.context.scene.collection
-            if new_obj.name not in scene_collection.objects:
-                scene_collection.objects.link(new_obj)
-        except Exception as error:
-            log.warning("Link to scene collection: %s", error)
-
-        loaded_for_fix.append({"new_obj": new_obj, "obj_type": obj_type})
+        _link_object(new_obj, old_collections)
+        loaded_for_fix.append({"new_obj": new_obj, "obj_type": obj_type or new_obj.type})
+        log.info("Merged object %s", name)
 
     if loaded_for_fix:
         assets = []
@@ -167,6 +265,20 @@ def _apply_merge(objects: list[dict], theirs_blend: Path, repo_path: Path) -> No
                 )
         if assets:
             fix_retrieved_assets(assets, Path(repo_path))
+
+    return errors
+
+
+def _save(output: Path) -> None:
+    output = output.expanduser()
+    current = Path(bpy.data.filepath).expanduser() if bpy.data.filepath else None
+    try:
+        if current is not None and output.resolve() == current.resolve():
+            bpy.ops.wm.save_mainfile()
+            return
+    except Exception:
+        pass
+    bpy.ops.wm.save_as_mainfile(filepath=str(output))
 
 
 def main() -> int:
@@ -189,19 +301,27 @@ def main() -> int:
         log.error("Failed to load objects JSON: %s", error)
         return 1
 
+    log.info("Applying %d tagged object(s) to %s", len(objects), bpy.data.filepath or output)
+
     if not _validate_merge_inputs(objects, theirs_blend):
         return 1
 
     try:
-        _apply_delete(objects)
-        _apply_rename(objects)
-        _apply_merge(objects, theirs_blend, repo_path)
+        errors = []
+        errors.extend(_apply_delete(objects))
+        errors.extend(_apply_rename(objects))
+        errors.extend(_apply_merge(objects, theirs_blend, repo_path))
     except Exception as error:
         log.error("Failed to apply merge operations: %s", error)
         return 1
 
+    if errors:
+        for message in errors:
+            log.error("%s", message)
+        return 1
+
     try:
-        bpy.ops.wm.save_as_mainfile(filepath=str(output))
+        _save(output)
     except Exception as error:
         log.error("Failed to save: %s", error)
         return 1
