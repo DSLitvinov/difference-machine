@@ -72,7 +72,6 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 |---------|----------------|
 | `shell = first-start` | [First Start](../views/first-start.md) |
 | папка пустая, нет коммитов, вкладка History | Empty DFM Project |
-| папка пустая, нет коммитов | Empty DFM Project |
 | файлы есть, нет истории репо в сайдбаре | Empty DFM Folder |
 | корень, selection none | Root Folder (± Collapse) |
 | вложенный path | SubFolder |
