@@ -71,13 +71,15 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | Условие | Семейство View |
 |---------|----------------|
 | `shell = first-start` | [First Start](../views/first-start.md) |
+| папка пустая, нет коммитов, вкладка History | Empty DFM Project |
 | папка пустая, нет коммитов | Empty DFM Project |
 | файлы есть, нет истории репо в сайдбаре | Empty DFM Folder |
 | корень, selection none | Root Folder (± Collapse) |
 | вложенный path | SubFolder |
 | один файл в сетке | File Info |
 | несколько файлов в сетке | File More Info |
-| `sidebarTab = stages` | Stash |
+| `sidebarTab = stages`, есть stash | Stash (сетка папки) |
+| `sidebarTab = stages`, `stash.list` пуст | [Stashes Null](../views/project-browse.md): Folder Empty + File Info Null, не сетка workdir |
 | `commitComposer = open` | Create Commit |
 | `contentContext = file` | [file-preview](../views/file-preview.md) |
 | `contentContext = file-revision` | [file-history](../views/file-history.md) |

@@ -192,9 +192,9 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 **Spec:** Stash view (Figma Stages). Catalog: `stash.list`.
 
-- Tab label **Stash**. Empty: [NoStagesProject](./components/atoms/card-no-stages-project.md) `6020:12733`. Do not fake a list from `status.get.staged_*`.
+- Tab label **Stash**. Empty: view [Stashes Null](./views/project-browse.md) `6035:12553` — [NoStagesProject](./components/atoms/card-no-stages-project.md) `6020:12733` + Folder Empty, not the workdir grid. Do not fake a list from `status.get.staged_*`.
 
-**Verify:** Stash tab shows Forester stashes from `.DFM/stash/`; empty repo stays empty.
+**Verify:** Stash tab with no entries stays on Stashes Null; workdir files are not shown in the center.
 
 ---
 

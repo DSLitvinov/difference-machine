@@ -106,7 +106,8 @@ export function AppShell({
   const filePath = selection[0] ?? "";
   const fileLeft = (view === "file-view" || view === "file-history") && Boolean(filePath);
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
-  const moreFiles = view === "create-commit" || (view !== "stages" && selection.length > 1);
+  const moreFiles = view === "create-commit" || (view !== "stages" && view !== "stashes-null" && selection.length > 1);
+  const stashSidebar = view === "stages" || view === "stashes-null";
   const mergeLocked = Boolean(mergeStatus.in_progress);
 
   function applyWorkdirAction(paths: string[], action: FileWorkdirAction) {
@@ -267,6 +268,7 @@ export function AppShell({
             changedOnly={changedOnly}
             hasMore={entriesHasMore}
             collapsed={infoCollapsed}
+            forceEmpty={view === "stashes-null"}
             onNavigate={setFolderPath}
             onSelect={setSelection}
             onExpandInfo={() => setInfoCollapsed(false)}
@@ -295,7 +297,7 @@ export function AppShell({
           ) : (
             <FileInfoPanel
               locale={locale}
-              path={view === "stages" ? null : selection[0] ?? null}
+              path={stashSidebar ? null : selection[0] ?? null}
               status={status}
               locks={locks}
               onCollapse={() => setInfoCollapsed(true)}

@@ -12,6 +12,7 @@ export type DerivedView =
   | "file-info"
   | "file-more-info"
   | "stages"
+  | "stashes-null"
   | "create-commit"
   | "file-view"
   | "file-history"
@@ -27,6 +28,7 @@ export type ViewInput = {
   infoCollapsed: boolean;
   sidebarTab: SidebarTab;
   commitComposer: "closed" | "open";
+  stashEmpty: boolean;
 };
 
 export function deriveView(input: ViewInput): DerivedView {
@@ -45,11 +47,11 @@ export function deriveView(input: ViewInput): DerivedView {
   if (input.commitComposer === "open") {
     return "create-commit";
   }
+  if (input.sidebarTab === "stages") {
+    return input.stashEmpty ? "stashes-null" : "stages";
+  }
   if (input.folderEmpty && !input.hasCommits && input.selectionCount === 0) {
     return "empty-dfm-project";
-  }
-  if (input.sidebarTab === "stages") {
-    return "stages";
   }
   if (input.selectionCount > 1) {
     return "file-more-info";
@@ -77,6 +79,7 @@ export function showRightColumn(view: DerivedView): boolean {
     view === "file-info" ||
     view === "file-more-info" ||
     view === "stages" ||
+    view === "stashes-null" ||
     view === "create-commit" ||
     view === "file-view"
   );

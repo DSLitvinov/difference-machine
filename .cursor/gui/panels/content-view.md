@@ -74,7 +74,7 @@ nCols = max(1, floor((innerWidth + gap) / (minTrack + gap)))
 |-------|------|---------|
 | Folder - Expanded | `4318:3286` | сетка |
 | Folder - Collapse | `4318:3476` | Collapse=yes у хедера |
-| Folder - Empty | `4382:8708` | [folder-null](../components/placeholders/folder-null.md) |
+| Folder - Empty | `4382:8708` | [folder-null](../components/placeholders/folder-null.md). Также центр [Stashes Null](../views/project-browse.md) `6035:12553`, даже если в workdir есть файлы |
 | File - Expanded | `4318:3980` | [Header File Action](../components/items/header-file-action.md) + [content-view](../components/items/content-view.md) |
 | File - Collapse | `4318:4013` | |
 | History of File | `4318:4176`, `4322:4561` | история + diff items |

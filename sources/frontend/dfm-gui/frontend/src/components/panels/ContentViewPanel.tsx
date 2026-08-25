@@ -27,6 +27,7 @@ type ContentViewPanelProps = {
   changedOnly?: boolean;
   hasMore?: boolean;
   collapsed?: boolean;
+  forceEmpty?: boolean;
   onNavigate: (path: string) => void;
   onSelect: (paths: string[]) => void;
   onExpandInfo?: () => void;
@@ -52,6 +53,7 @@ export function ContentViewPanel({
   changedOnly,
   hasMore,
   collapsed,
+  forceEmpty,
   onNavigate,
   onSelect,
   onExpandInfo,
@@ -160,7 +162,7 @@ export function ContentViewPanel({
     setMenu({ path, x: event.clientX, y: event.clientY });
   }
 
-  const showEmptyFolder = items.length === 0 && !changedOnly && !searching && filter.length === 0;
+  const showEmptyFolder = forceEmpty || (items.length === 0 && !changedOnly && !searching && filter.length === 0);
   const paginate = Boolean(hasMore) && !searching;
 
   return (

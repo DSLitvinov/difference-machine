@@ -256,6 +256,7 @@ export function useDerivedView(): DerivedView {
       infoCollapsed: s.infoCollapsed,
       sidebarTab: s.sidebarTab,
       commitComposer: s.commitComposer,
+      stashEmpty: s.stashes.length === 0,
     }),
   );
 }

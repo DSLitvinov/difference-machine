@@ -1,6 +1,6 @@
 # No Stages Project
 
-Empty вкладки **Stash** (в Figma слой `Stages` / `No Stages Project`). Это **Forester stash**, не git index `staged_*` и не [No History Project](./card-no-history-project.md).
+Empty вкладки **Stash** (в Figma слой `Stages` / `No Stages Project`). Это **Forester stash**, не git index `staged_*` и не [No History Project](./card-no-history-project.md). Кадр окна: [Stashes Null](../../views/project-browse.md) (`6035:12553`).
 
 Figma: [Atom / Cards / No Stages Project](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6020-12733) (`6020:12733`).  
 Код: `NoStagesProject`.

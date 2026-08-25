@@ -63,7 +63,7 @@ Empty-варианты перечислены в спеке каноническ
 | Проект | [project-view](./project-view.md) | обзор папки, стейджи, композер, View Commit |
 | Файл | [file-view](./file-view.md) | File View и History of File |
 
-Вкладки **History / Stash** (Figma Stages) — внутри Project view, не смена контекста.
+Вкладки **History / Stash** (Figma Stages) — внутри Project view. Пустой Stash — [Stashes Null](../views/project-browse.md), не смена на сетку рабочей папки.
 
 ---
 

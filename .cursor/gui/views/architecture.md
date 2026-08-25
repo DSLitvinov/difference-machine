@@ -4,7 +4,7 @@
 Не атом, не колонка и не диалог.
 
 Холст: [DFM 0.8.1 component](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5772) (`4191:5772`).  
-На холсте 22 фрейма с префиксом `View /`.
+На холсте 23 фрейма с префиксом `View /`.
 
 Кирпичи: [../components/architecture.md](../components/architecture.md).  
 Колонки: [../panels/architecture.md](../panels/architecture.md).  
@@ -72,7 +72,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 
 ---
 
-## Каталог `View /` (22)
+## Каталог `View /` (23)
 
 | Figma | Node | Семейство |
 |-------|------|-----------|
@@ -85,6 +85,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | View / Project view / File Info | `4408:11431` | обзор |
 | View / Project view / File More Info | `4408:12671` | обзор |
 | View / Project view / Stages | `4385:12759` | обзор |
+| View / Project view / Stashes Null | `6035:12553` | обзор |
 | View / Project view / Create Commit | `4385:10858` | обзор |
 | View / Project view / File View - IMG | `4246:6471` | файл |
 | View / Project view / File View - IMG ( Collapse ) | `4276:7423` | файл |
@@ -120,6 +121,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | `infoCollapsed` | да \| нет | center 1120, right скрыта |
 | `gridTrack` | 106…360, default 106 | не кадр View; только колонки и 48×48→крупнее. [Сетка](../architecture.md#сетка-рабочей-копии) |
 | `sidebarTab` | history \| stages | список коммитов vs stash (UI: **Stash**) |
+| `stashEmpty` | да \| нет | Stages vs [Stashes Null](./project-browse.md) при вкладке Stash |
 | `commitComposer` | закрыт \| открыт | карточка Create Commit |
 | `fileHasHistory` | да \| нет | File view vs File view History Null |
 
@@ -140,7 +142,7 @@ File View --select commit--> History of File
 History of File --Current preview--> File View
 Project History --select commit--> View Commit
 Uncommitted --Commit All / composer--> Create Commit
-вкладка Stash --> Stash
+вкладка Stash --> Stash | Stashes Null (пусто)
 ```
 
 Детали — в спеках семейств.
@@ -153,6 +155,6 @@ Uncommitted --Commit All / composer--> Create Commit
 
 1. **Empty DFM Folder** (`4385:8956`): в сетке есть файлы, в сайдбаре плейсхолдер «Create repository». Это workdir без `.DFM/` или репозиторий без коммитов?
 2. **First Start vs Empty DFM Project**: оба умеют создать/открыть репо. First Start — только пока нет `[current repo]`?
-3. **Stash** (`View / … / Stages` в Figma): вкладка UI — **Stash** (Forester stash, не `staged_*` из `status.get`). Список — `stash.list`. Пустая вкладка — [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733`. Кэш: [revision-cache.md](../gui_frontend/revision-cache.md).
+3. **Stash** (`View / … / Stages` в Figma): вкладка UI — **Stash** (Forester stash, не `staged_*` из `status.get`). Список — `stash.list`. Пустая вкладка — кадр [Stashes Null](./project-browse.md) `6035:12553`: [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733` слева, [Folder Empty](../panels/content-view.md) по центру, File Info Null справа. Не оставлять сетку рабочей папки. Кэш: [revision-cache.md](../gui_frontend/revision-cache.md).
 4. **View Commit** без выбранного файла в списке коммита — кадра нет. Пока не выбран path в `Content / File list`, какой diff показывать?
 5. **History of File** только Image и Text, binary-ревизии файла нет. Для бинарного файла из File view — оставаться на File View Binary или брать binary stub из View Commit?

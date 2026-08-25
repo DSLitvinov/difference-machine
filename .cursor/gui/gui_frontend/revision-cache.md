@@ -81,7 +81,7 @@ JSON API под глобальный mutex. Бюджет GUI: **1–2** in-fligh
 
 ## Stash (вкладка Stash)
 
-Экран и [StageCard](../components/atoms/card-stage.md) — из Figma (слой Stage). В UI **Stash**. Каталог: `stash.list`. Пустой список — [NoStagesProject](../components/atoms/card-no-stages-project.md) (`6020:12733`).
+Экран и [StageCard](../components/atoms/card-stage.md) — из Figma (слой Stage). В UI **Stash**. Каталог: `stash.list`. Пустой список — кадр [Stashes Null](../views/project-browse.md) (`6035:12553`): [NoStagesProject](../components/atoms/card-no-stages-project.md) (`6020:12733`) слева, Folder Empty в центре.
 
 | Слой | Как у коммита, но |
 |------|-------------------|
