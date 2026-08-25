@@ -41,7 +41,7 @@ Kind центральной области — по типу файла, не п
 2. No History — `fileHasHistory = false` (`log.get` с `path` пуст). Превью файла всё равно показывается. Не подменять центр плейсхолдером истории.
 3. Кадр No History использует Img-превью как пример; kind в продукте остаётся у открытого файла.
 4. Данные left: `log.get` + `path`. Не `workdir.tree`.
-5. Img в центре: Ctrl/Cmd+wheel меняет масштаб картинки, без подписи zoom. Канон: [content-view](../components/items/content-view.md).
+5. Img в центре: полный файл через `workdir.file`, не `workdir.thumbnail`. Превью остаётся только в File Info. Ctrl/Cmd+wheel меняет масштаб картинки, без подписи zoom. Канон: [content-view](../components/items/content-view.md).
 6. Text в центре: подсветка синтаксиса по расширению, без дополнительного chrome.
 
 ---

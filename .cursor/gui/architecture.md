@@ -169,7 +169,7 @@ jsonapi.Close(h)
 | Рабочая копия | `status.get`, `workdir.*`, `index.add` | Project: дерево, сетка default 48×48, dirty |
 | История | `log.get`, `commit.*`, `diff.*`, `blob.get` | History: список коммитов, файлы ревизии; LRU — [revision-cache](./gui_frontend/revision-cache.md) |
 | Ветки | `branch.*`, `repo.switch` | селектор ветки, диалоги |
-| Сравнение | `compare.extract`, `restore.*` | extract в tmp_review, restore |
+| Сравнение | `compare.extract`, `restore.*` | extract в tmp_review; GUI Compare with working tree — `open: true` (файловый менеджер в папке) |
 | Слияние | `merge.*`, `object.*` | диалог merge, конфликты, теги объектов |
 | Блокировки | `lock.*` | индикатор и действия на файле |
 | Настройки | cfg, не JSON API | пути, автор, язык |

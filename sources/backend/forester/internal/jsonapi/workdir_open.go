@@ -2,6 +2,7 @@ package jsonapi
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -32,14 +33,22 @@ func openWithExecutable(editorPath, absPath string) error {
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open file: %w", err)
 	}
+	go func() { _ = cmd.Wait() }()
 	return nil
 }
 
 func openDefaultCommand(absPath, goos string) *exec.Cmd {
+	dir := false
+	if info, err := os.Stat(absPath); err == nil {
+		dir = info.IsDir()
+	}
 	switch goos {
 	case "darwin":
-		return exec.Command("open", absPath)
+		return exec.Command("/usr/bin/open", absPath)
 	case "windows":
+		if dir {
+			return exec.Command("explorer", absPath)
+		}
 		return exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", absPath)
 	default:
 		return exec.Command("xdg-open", absPath)

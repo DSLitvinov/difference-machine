@@ -81,7 +81,7 @@ Frontend не должен знать про `Handle`. Handle живёт тол�
 | Открыть файл в редакторе | `workdir.open` (`path` + опционально `editor`) |
 | Удалить файл | `workdir.delete` (корзина ОС, не `os.Remove` из GUI) |
 | Переименовать | `workdir.rename` |
-| Превью картинки/blend/текста | `workdir.thumbnail` / `blob.get`; кэш — [thumbnails.md](./thumbnails.md) |
+| Превью картинки/blend/текста | сетка и File Info: `workdir.thumbnail`; Content View файла: `workdir.file`; ревизия: `blob.get`; кэш — [thumbnails.md](./thumbnails.md) |
 
 Запрещено:
 

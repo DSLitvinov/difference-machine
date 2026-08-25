@@ -1,6 +1,8 @@
 package jsonapi_test
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"image"
 	"image/png"
@@ -41,6 +43,43 @@ func TestWorkdirMetadataImageDimensions(t *testing.T) {
 	}
 }
 
+func TestWorkdirFileReturnsOriginalImageSize(t *testing.T) {
+	dir, h := initTestRepo(t)
+	imgPath := filepath.Join(dir, "textures", "hero.png")
+	if err := os.MkdirAll(filepath.Dir(imgPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeTestPNG(imgPath, 640, 480); err != nil {
+		t.Fatal(err)
+	}
+
+	raw := mustOK(t, h, "workdir.file", `{"path":"textures/hero.png"}`)
+	var result struct {
+		ContentBase64 string `json:"content_base64"`
+		Mime          string `json:"mime"`
+	}
+	if err := json.Unmarshal(raw, &result); err != nil {
+		t.Fatal(err)
+	}
+	if result.Mime != "image/png" {
+		t.Fatalf("mime = %q", result.Mime)
+	}
+	decoded, err := base64.StdEncoding.DecodeString(result.ContentBase64)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := png.DecodeConfig(bytes.NewReader(decoded))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Width != 640 || cfg.Height != 480 {
+		t.Fatalf("workdir.file dimensions = %dx%d, want 640x480", cfg.Width, cfg.Height)
+	}
+
+	writeFile(t, dir, "notes.txt", "hello")
+	mustFail(t, h, "workdir.file", `{"path":"notes.txt"}`)
+}
+
 func TestWorkdirPreviewEndpointsRejectTraversal(t *testing.T) {
 	dir, h := initTestRepo(t)
 	outsidePath := filepath.Join(filepath.Dir(dir), "outside.txt")
@@ -50,6 +89,7 @@ func TestWorkdirPreviewEndpointsRejectTraversal(t *testing.T) {
 
 	mustFail(t, h, "workdir.metadata", `{"path":"../outside.txt"}`)
 	mustFail(t, h, "workdir.thumbnail", `{"path":"../outside.txt"}`)
+	mustFail(t, h, "workdir.file", `{"path":"../outside.txt"}`)
 }
 
 func TestWorkdirEndpointsRejectSymlinkEscape(t *testing.T) {
@@ -65,6 +105,7 @@ func TestWorkdirEndpointsRejectSymlinkEscape(t *testing.T) {
 
 	mustFail(t, h, "workdir.metadata", `{"path":"outside-link.txt"}`)
 	mustFail(t, h, "workdir.thumbnail", `{"path":"outside-link.txt"}`)
+	mustFail(t, h, "workdir.file", `{"path":"outside-link.txt"}`)
 	mustFail(t, h, "workdir.open", `{"path":"outside-link.txt"}`)
 	mustFail(t, h, "workdir.delete", `{"path":"outside-link.txt"}`)
 

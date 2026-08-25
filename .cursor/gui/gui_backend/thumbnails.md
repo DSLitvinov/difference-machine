@@ -3,13 +3,14 @@
 Источник превью для сетки и info — JSON API Forester, не локальный рендер в React (кроме отображения уже полученных bytes/text).
 
 Метод: `workdir.thumbnail`. Реализация: `handlers_workdir.go`, ffmpeg-пайплайн, `blend_thumbnail.go`.  
-Исторические blob: `blob.get` (байты файла в коммите, не уменьшенный эскиз).
+Исторические blob: `blob.get` (байты файла в коммите, не уменьшенный эскиз).  
+Просмотр файла в центре: `workdir.file` (полный кадр), не thumbnail.
 
 Кэш GUI не заменяет API: miss → `workdir.thumbnail`. Контракт метода не менять ради кэша (0.8.1).
 
 Когда запрашивать и как виртуализировать сетку: [../gui_frontend/virtual-scroll.md](../gui_frontend/virtual-scroll.md).
 
-Квадрат в сетке (default **48×48**, `gridTrack`) — только отображение. Контракт `workdir.thumbnail` **не** принимает размер и не меняется из‑за плотности UI. File Info `L` (312) — другой слот, тот же метод.
+Квадрат в сетке (default **48×48**, `gridTrack`) — только отображение. Контракт `workdir.thumbnail` **не** принимает размер и не меняется из‑за плотности UI. File Info `L` (312) — другой слот, тот же метод. Область Content View на экране файла — не этот слот: грузить `workdir.file`.
 
 ---
 

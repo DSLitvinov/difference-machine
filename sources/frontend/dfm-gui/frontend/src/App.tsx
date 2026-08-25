@@ -463,8 +463,7 @@ export default function App() {
     setBusy(true);
     try {
       if (action === "compare") {
-        await foresterCall("compare.extract", { commit_hash: commit.hash });
-        await foresterCall("workdir.open", { path: ".DFM/tmp_review" });
+        await foresterCall("compare.extract", { commit_hash: commit.hash, open: true });
         return true;
       }
       if (action === "restore-version") {

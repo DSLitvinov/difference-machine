@@ -49,6 +49,23 @@ export function fileKind(name: string): FileKind {
   return "binary";
 }
 
+export function isRasterWorkdirImage(name: string): boolean {
+  switch (fileExtension(name)) {
+    case "png":
+    case "jpg":
+    case "jpeg":
+    case "gif":
+    case "webp":
+    case "bmp":
+    case "tif":
+    case "tiff":
+    case "exr":
+      return true;
+    default:
+      return false;
+  }
+}
+
 export function typeLabel(name: string): string {
   const ext = fileExtension(name);
   return ext ? ext.toUpperCase() : "";

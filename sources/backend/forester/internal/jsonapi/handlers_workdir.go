@@ -15,6 +15,7 @@ import (
 
 const (
 	maxThumbnailBytes   = 5 * 1024 * 1024
+	maxWorkdirFileBytes = 64 * 1024 * 1024
 	maxTextPreviewBytes = 32 * 1024
 	maxTextPreviewRunes = 2000
 )
@@ -238,6 +239,54 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 	})
 }
 
+func handleWorkdirFile(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Path string `json:"path"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	if params.Path == "" {
+		return nil, fmt.Errorf("path is required")
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
+		rel := canonicalRelPath(params.Path)
+		abs, err := scanner.absFile(rel)
+		if err != nil {
+			return nil, err
+		}
+		info, err := os.Stat(abs)
+		if err != nil {
+			return nil, err
+		}
+		if info.IsDir() {
+			return nil, fmt.Errorf("path is a directory")
+		}
+		ext := strings.ToLower(filepath.Ext(rel))
+		if !isImageExt(ext) {
+			return nil, fmt.Errorf("not an image")
+		}
+		if info.Size() > maxThumbnailSourceBytes {
+			return nil, fmt.Errorf("file_too_large")
+		}
+
+		raw, mime, err := readWorkdirImageBytes(abs, ext)
+		if err != nil {
+			return nil, err
+		}
+		if len(raw) > maxWorkdirFileBytes {
+			return nil, fmt.Errorf("file_too_large")
+		}
+		return map[string]interface{}{
+			"content_base64": base64.StdEncoding.EncodeToString(raw),
+			"mime":           mime,
+			"size":           len(raw),
+		}, nil
+	})
+}
+
 func handleWorkdirOpen(workPath string, args json.RawMessage) (interface{}, error) {
 	var params struct {
 		Path   string `json:"path"`
@@ -438,6 +487,8 @@ func guessMime(rel string) string {
 		return "image/gif"
 	case ".webp":
 		return "image/webp"
+	case ".bmp":
+		return "image/bmp"
 	case ".blend":
 		return "application/x-blender"
 	case ".txt", ".md", ".json", ".xml", ".tsx", ".ts", ".go", ".py":

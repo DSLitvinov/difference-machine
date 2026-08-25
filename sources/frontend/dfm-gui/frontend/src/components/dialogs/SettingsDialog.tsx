@@ -125,7 +125,7 @@ export function SettingsDialog({ locale, onClose, onLocale, onProfileSaved, onEr
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="relative flex max-h-[min(1000px,calc(100vh-24px))] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-[16px] border border-border bg-background px-10 pb-16 pt-10 shadow-md"
+        className="relative flex h-[720px] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-[16px] border border-border bg-background px-10 pb-16 pt-10 shadow-md"
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-3 top-3 flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>

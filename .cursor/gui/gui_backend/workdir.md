@@ -8,7 +8,7 @@
 
 ## Границы видимости
 
-`workdir.tree`, `workdir.entries`, `workdir.search`, `workdir.metadata`, `workdir.thumbnail`, `workdir.rename`, `workdir.delete` **не показывают** и не принимают:
+`workdir.tree`, `workdir.entries`, `workdir.search`, `workdir.metadata`, `workdir.thumbnail`, `workdir.file`, `workdir.rename`, `workdir.delete` **не показывают** и не принимают:
 
 - `.DFM/` и всё внутри
 - `.dfmignore`
@@ -81,6 +81,14 @@ Path traversal (`..`) и выход за корень репо — ошибка.
 
 ---
 
+## `workdir.file`
+
+Полный растр для [Content View Img](../components/items/content-view.md) на экране файла. Не эскиз: оригинальные байты (PNG/JPEG/…) или полный кадр через ffmpeg для EXR/TIFF. Лимит 64 MiB.
+
+Не для сетки и не для File Info — там `workdir.thumbnail`.
+
+---
+
 ## `workdir.search`
 
 Поиск по имени/пути. `limit` по умолчанию 200, `capped: true` если обрезали. Пустой query не изобретать на frontend — либо не звать API, либо следовать спеке поля поиска.
@@ -103,7 +111,8 @@ Path traversal (`..`) и выход за корень репо — ошибка.
 - `editor` пустой — приложение по умолчанию (`open` / `xdg-open` / Windows handler).
 - `editor` задан — executable + абсолютный путь файла (`EvalSymlinks`).
 
-Для tmp_review передавать rel вида `.DFM/tmp_review/…`.
+Для tmp_review передавать rel вида `.DFM/tmp_review/…`.  
+Compare with working tree открывает саму папку: `compare.extract` `{open: true}`, не этот метод.
 
 ---
 

@@ -119,6 +119,7 @@ func handleCompareExtract(workPath string, args json.RawMessage) (interface{}, e
 		CommitHash string `json:"commit_hash"`
 		Cleanup    bool   `json:"cleanup"`
 		EditorPath string `json:"editor_path"`
+		Open       bool   `json:"open"`
 	}
 	if err := decodeArgs(args, &params); err != nil {
 		return nil, err
@@ -144,9 +145,15 @@ func handleCompareExtract(workPath string, args json.RawMessage) (interface{}, e
 			if err != nil {
 				return nil, fmt.Errorf("not a Forester repository")
 			}
-			result["path"], err = utils.JoinRepoPath(repoPath, utils.TmpReviewRelPath)
+			tmpPath, err := utils.JoinRepoPath(repoPath, utils.TmpReviewRelPath)
 			if err != nil {
 				return nil, err
+			}
+			result["path"] = tmpPath
+			if params.Open {
+				if err := openWithOSDefault(tmpPath); err != nil {
+					return nil, fmt.Errorf("open tmp_review: %w", err)
+				}
 			}
 		}
 		return result, nil

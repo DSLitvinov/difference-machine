@@ -207,6 +207,7 @@ JSON `repo.switch` не восстанавливает auto-stash при воз�
 | `workdir.entries_by_paths` | `paths[]` | `{entries}` |
 | `workdir.metadata` | `path` | size, mime, timestamps, для изображений width/height |
 | `workdir.thumbnail` | `path` | `kind`: `image` \| `text` \| `placeholder` |
+| `workdir.file` | `path` | полный растр `{content_base64, mime, size}`; только изображения; Content View файла, не сетка/info |
 | `workdir.open` | `path`, опционально `editor` | OS default или указанный executable |
 | `workdir.rename` | `path`, `new_name` (имя без `/` `\`) | `{success, new_path}` |
 | `workdir.delete` | `path` | в корзину ОС |
@@ -251,10 +252,12 @@ GUI: лениво для **видимых** карточек, ключ hash (+ `
 |------|--|
 | `commit_hash` | обязательно |
 | `cleanup` | bool: убрать tmp_review |
-| `editor_path` | опционально |
+| `editor_path` | опционально: открыть .blend из extract в этом executable |
+| `open` | bool: после extract открыть `.DFM/tmp_review` в файловом менеджере ОС. GUI **Compare with working tree**. Не вместе с `cleanup`. Не ставить при Compare **файла** (там `workdir.open` конкретного path) |
 
 Без `cleanup`: `{success, path}` — **абсолютный** filesystem path `.DFM/tmp_review`.  
-Открыть файл оттуда — `workdir.open` с относительным `.DFM/tmp_review/…`.
+Открыть файл оттуда — `workdir.open` с относительным `.DFM/tmp_review/…`.  
+Открыть папку целиком — `open: true` на этом методе (не отдельный диалог).
 
 ### `restore.version`
 

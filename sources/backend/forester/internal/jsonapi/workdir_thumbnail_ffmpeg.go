@@ -18,7 +18,31 @@ const (
 
 func buildImageThumbnail(abs string, ext string) ([]byte, string, error) {
 	_ = ext
+	scale := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=decrease", maxThumbnailEdge, maxThumbnailEdge)
+	return runFFmpegImage(abs, scale)
+}
 
+func readWorkdirImageBytes(abs string, ext string) ([]byte, string, error) {
+	if isBrowserRasterExt(ext) {
+		raw, err := os.ReadFile(abs)
+		if err != nil {
+			return nil, "", err
+		}
+		return raw, guessMime(abs), nil
+	}
+	return runFFmpegImage(abs, "")
+}
+
+func isBrowserRasterExt(ext string) bool {
+	switch ext {
+	case ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp":
+		return true
+	default:
+		return false
+	}
+}
+
+func runFFmpegImage(abs string, scaleFilter string) ([]byte, string, error) {
 	info, err := os.Stat(abs)
 	if err != nil {
 		return nil, "", err
@@ -32,17 +56,12 @@ func buildImageThumbnail(abs string, ext string) ([]byte, string, error) {
 		return nil, "", err
 	}
 
-	scale := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=decrease", maxThumbnailEdge, maxThumbnailEdge)
-	cmd := exec.Command(
-		ffmpeg,
-		"-nostdin", "-hide_banner", "-loglevel", "error",
-		"-i", abs,
-		"-vf", scale,
-		"-frames:v", "1",
-		"-f", "image2pipe",
-		"-vcodec", "png",
-		"pipe:1",
-	)
+	args := []string{"-nostdin", "-hide_banner", "-loglevel", "error", "-i", abs}
+	if scaleFilter != "" {
+		args = append(args, "-vf", scaleFilter)
+	}
+	args = append(args, "-frames:v", "1", "-f", "image2pipe", "-vcodec", "png", "pipe:1")
+	cmd := exec.Command(ffmpeg, args...)
 	configureHiddenExec(cmd)
 	cmd.Dir = filepath.Dir(cmd.Path)
 	return runFFmpegThumbnail(cmd)

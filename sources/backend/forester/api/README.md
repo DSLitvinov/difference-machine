@@ -77,7 +77,7 @@ Method categories are implemented in `sources/forester/internal/jsonapi/dispatch
 - Status and index: `status.get`, `index.add`, `index.drop`
 - Commits and history: `commit.create`, `commit.get`, `commit.files`, `commit.revert`, `commit.reset`, `log.get`
 - Branches: `branch.list`, `branch.create`, `branch.delete`, `branch.rename`
-- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.metadata`, `workdir.thumbnail`, `workdir.open`, `workdir.search`, `workdir.rename`, `workdir.delete` (OS Trash)
+- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.metadata`, `workdir.thumbnail`, `workdir.file`, `workdir.open`, `workdir.search`, `workdir.rename`, `workdir.delete` (OS Trash)
 - Diff and blobs: `diff.name_status`, `diff.stat`, `diff.text`, `blob.get`
 - Merge: `merge.status`, `merge.start`, `merge.continue`, `merge.abort`
 - Locks: `lock.list`, `lock.acquire`, `lock.release`

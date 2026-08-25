@@ -44,8 +44,7 @@ export function CommitCardMenu({ locale, hash, message, onAction }: CommitCardMe
       </DropdownMenuItem>
       <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("reset"), 0)}>
         <FigmaIcon src="icons/refresh-cw.svg" size={16} />
-        <span className="min-w-0 flex-1">{copy.resetBranchToCommit}</span>
-        <FigmaIcon src="icons/chevron-right.svg" size={16} />
+        {copy.resetBranchToCommit}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem className="gap-2" onSelect={() => copyText(hash)}>

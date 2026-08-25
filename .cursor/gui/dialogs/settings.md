@@ -1,7 +1,7 @@
 # Dialog / Settings
 
 Figma: [Dialog / Settings](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4040-5134) (`4040:5134`).  
-Код: `SettingsDialog`. База: shadcn `Dialog`. Кадр набора 1113×1000 на вкладку.
+Код: `SettingsDialog`. База: shadcn `Dialog`. Окно **1113×720**, высота фиксированная.
 
 Property: `Tab`.
 
