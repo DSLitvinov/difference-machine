@@ -7,7 +7,9 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -125,5 +127,59 @@ func TestBuildImageThumbnailWidePNG(t *testing.T) {
 	}
 	if cfg.Width > maxThumbnailEdge || cfg.Height > maxThumbnailEdge {
 		t.Fatalf("thumbnail dimensions = %dx%d, want max edge %d", cfg.Width, cfg.Height, maxThumbnailEdge)
+	}
+}
+
+func writeTestVideo(t *testing.T, path string) {
+	t.Helper()
+	ffmpeg, err := resolveFFmpegPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(
+		ffmpeg,
+		"-nostdin", "-hide_banner", "-loglevel", "error",
+		"-f", "lavfi", "-i", "color=c=red:s=320x240:d=2",
+		"-pix_fmt", "yuv420p",
+		"-y", path,
+	)
+	configureHiddenExec(cmd)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("write test video: %v (%s)", err, strings.TrimSpace(string(out)))
+	}
+}
+
+func TestIsVideoExt(t *testing.T) {
+	if !isVideoExt(".mp4") || !isVideoExt(".mov") || !isVideoExt(".webm") {
+		t.Fatal("expected .mp4, .mov, .webm to be video")
+	}
+	if isVideoExt(".png") || isVideoExt(".blend") || isVideoExt(".txt") {
+		t.Fatal("did not expect image/blend/text as video")
+	}
+}
+
+func TestBuildVideoThumbnailMP4(t *testing.T) {
+	requireFFmpeg(t)
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "clip.mp4")
+	writeTestVideo(t, path)
+
+	thumb, mime, err := buildVideoThumbnail(path)
+	if err != nil {
+		t.Fatalf("buildVideoThumbnail: %v", err)
+	}
+	if mime != "image/png" {
+		t.Fatalf("mime = %q, want image/png", mime)
+	}
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(thumb))
+	if err != nil {
+		t.Fatalf("decode thumbnail: %v", err)
+	}
+	if cfg.Width > maxThumbnailEdge || cfg.Height > maxThumbnailEdge {
+		t.Fatalf("thumbnail dimensions = %dx%d, want max edge %d", cfg.Width, cfg.Height, maxThumbnailEdge)
+	}
+	if cfg.Width < 1 || cfg.Height < 1 {
+		t.Fatalf("thumbnail dimensions = %dx%d", cfg.Width, cfg.Height)
 	}
 }

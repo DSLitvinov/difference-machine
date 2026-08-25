@@ -20,7 +20,7 @@ Args: `{ "path": "rel/path.ext" }` — файл, не директория.
 
 | `kind` | Поля | Когда |
 |--------|------|--------|
-| `image` | `mime`, `content_base64` | Растровое превью готово (картинка через ffmpeg или PNG из .blend) |
+| `image` | `mime`, `content_base64` | Растровое превью готово (картинка/кадр видео через ffmpeg или PNG из .blend) |
 | `text` | `mime`, `text_preview` | Текстовое расширение, UTF-8; читается префикс до 32 KiB, текст обрезан до 2000 рун. Размер файла может быть больше 32 KiB |
 | `placeholder` | `mime` | Нет эскиза: неизвестный тип, битый UTF-8, нет blend-thumb, ffmpeg не смог |
 
@@ -39,6 +39,18 @@ Args: `{ "path": "rel/path.ext" }` — файл, не директория.
 Пайплайн: системный/бандленный ffmpeg → PNG в pipe. Нет ffmpeg или ошибка → `placeholder` (не падение всей сетки).
 
 Дорого: каждый `Call` без кэша снова запускает ffmpeg. Disk-кэш GUI — только для этого `kind: image` с ffmpeg (не для blend, см. ниже).
+
+---
+
+## Видео
+
+Расширения: `.mp4`, `.m4v`, `.mov`, `.webm`, `.mkv`, `.avi`, `.mpg`, `.mpeg`, `.wmv`, `.flv`, `.ogv`, `.3gp`.
+
+Тот же контракт `kind: image` (PNG кадра), что у картинок. ffmpeg берёт кадр около 1 с (если ролик короче — первый кадр), длинная сторона ≤ 512 px. Лимит 64 MiB исходника картинок **не** действует: видео может быть больше.
+
+Нет ffmpeg или ошибка → `placeholder`. Не открывать ролик как `workdir.file` в Content View — там бинарный stub; эскиз только сетка и File Info.
+
+Disk-кэш GUI — как у ffmpeg-картинок (`.DFM/cache/thumbs/`).
 
 ---
 
@@ -127,7 +139,7 @@ repoAbs + commitHash + relPath
 |--|--|
 | Где | `.DFM/cache/thumbs/` (FS: `filepath.Join(repoRoot, ".DFM", "cache", "thumbs")`) |
 | API-путь | `.DFM/cache/thumbs` — скрыт от `workdir.entries` / `tree` как всё `.DFM/` |
-| Что | PNG ответа `kind: image` после ffmpeg |
+| Что | PNG ответа `kind: image` после ffmpeg (картинка или кадр видео) |
 | Имя файла | хэш ключа workdir (например SHA-256 от `relPath + size + mtime`) + `.png` |
 | Кто пишет | **Wails backend**: miss на диске → `workdir.thumbnail` → записать PNG; hit → отдать frontend без повторного ffmpeg |
 | Не писать | text, placeholder, blend (OS/TEST уже на диске ОС), blob ревизии |
@@ -143,7 +155,7 @@ Clean repository удаляет `.DFM/` целиком — кэш уходит �
 ```text
 tile visible
   → memory hit? показать
-  → kind ожидания image (расширение картинки) и disk hit? показать, прогреть memory
+  → kind ожидания image (расширение картинки или видео) и disk hit? показать, прогреть memory
   → workdir.thumbnail
        image (ffmpeg) → memory + disk
        image (blend)  → memory only

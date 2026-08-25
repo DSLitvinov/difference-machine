@@ -1,6 +1,7 @@
 export type FileKind = "image" | "text" | "blend" | "binary";
 
 const IMAGE_EXT = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "tif", "tiff", "ico", "avif", "exr"]);
+const VIDEO_EXT = new Set(["mp4", "m4v", "mov", "webm", "mkv", "avi", "mpg", "mpeg", "wmv", "flv", "ogv", "3gp"]);
 const TEXT_EXT = new Set([
   "txt",
   "md",
@@ -47,6 +48,14 @@ export function fileKind(name: string): FileKind {
     return "text";
   }
   return "binary";
+}
+
+export function isVideoFile(name: string): boolean {
+  return VIDEO_EXT.has(fileExtension(name));
+}
+
+export function usesFFmpegThumbCache(name: string): boolean {
+  return fileKind(name) === "image" || isVideoFile(name);
 }
 
 export function isRasterWorkdirImage(name: string): boolean {

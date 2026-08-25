@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { foresterCall, readThumbCache, writeThumbCache } from "@/lib/bridge";
-import { fileKind } from "@/lib/file-kind";
+import { fileKind, usesFFmpegThumbCache } from "@/lib/file-kind";
 
 export type ThumbRequest = {
   path: string;
@@ -179,7 +179,7 @@ async function hydrate(repoAbs: string, file: ThumbRequest, priority: number) {
   }
   hydrating.add(key);
   try {
-    if (fileKind(file.name) === "image") {
+    if (usesFFmpegThumbCache(file.name)) {
       const cached = await readThumbCache(file.path, file.size, file.mtime);
       if (cached) {
         putImage(key, cached, "image/png");

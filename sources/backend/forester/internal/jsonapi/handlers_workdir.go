@@ -198,6 +198,20 @@ func handleWorkdirThumbnail(workPath string, args json.RawMessage) (interface{},
 			}, nil
 		}
 
+		if isVideoExt(ext) {
+			if thumb, thumbMime, err := buildVideoThumbnail(abs); err == nil && len(thumb) > 0 {
+				return map[string]interface{}{
+					"kind":           "image",
+					"mime":           thumbMime,
+					"content_base64": base64.StdEncoding.EncodeToString(thumb),
+				}, nil
+			}
+			return map[string]interface{}{
+				"kind": "placeholder",
+				"mime": mime,
+			}, nil
+		}
+
 		if ext == ".blend" {
 			if thumb, err := loadBlendThumbnail(abs); err == nil && len(thumb) > 0 {
 				return map[string]interface{}{
@@ -436,6 +450,15 @@ func isImageExt(ext string) bool {
 	}
 }
 
+func isVideoExt(ext string) bool {
+	switch ext {
+	case ".mp4", ".m4v", ".mov", ".webm", ".mkv", ".avi", ".mpg", ".mpeg", ".wmv", ".flv", ".ogv", ".3gp":
+		return true
+	default:
+		return false
+	}
+}
+
 func isTextExt(ext string) bool {
 	switch ext {
 	case ".txt", ".md", ".markdown", ".json", ".xml", ".svg", ".tsx", ".ts", ".js", ".jsx", ".mjs", ".cjs",
@@ -491,6 +514,16 @@ func guessMime(rel string) string {
 		return "image/bmp"
 	case ".blend":
 		return "application/x-blender"
+	case ".mp4", ".m4v":
+		return "video/mp4"
+	case ".mov":
+		return "video/quicktime"
+	case ".webm":
+		return "video/webm"
+	case ".mkv":
+		return "video/x-matroska"
+	case ".avi":
+		return "video/x-msvideo"
 	case ".txt", ".md", ".json", ".xml", ".tsx", ".ts", ".go", ".py":
 		return "text/plain"
 	default:

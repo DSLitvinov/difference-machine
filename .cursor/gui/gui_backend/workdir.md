@@ -85,7 +85,7 @@ Path traversal (`..`) и выход за корень репо — ошибка.
 
 Полный растр для [Content View Img](../components/items/content-view.md) на экране файла. Не эскиз: оригинальные байты (PNG/JPEG/…) или полный кадр через ffmpeg для EXR/TIFF. Лимит 64 MiB.
 
-Не для сетки и не для File Info — там `workdir.thumbnail`.
+Не для сетки и не для File Info — там `workdir.thumbnail` (картинки, кадр видео, blend, текст).
 
 ---
 

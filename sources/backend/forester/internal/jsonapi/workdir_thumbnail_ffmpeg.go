@@ -67,6 +67,40 @@ func runFFmpegImage(abs string, scaleFilter string) ([]byte, string, error) {
 	return runFFmpegThumbnail(cmd)
 }
 
+func buildVideoThumbnail(abs string) ([]byte, string, error) {
+	scale := fmt.Sprintf("scale=%d:%d:force_original_aspect_ratio=decrease", maxThumbnailEdge, maxThumbnailEdge)
+	thumb, mime, err := runFFmpegVideoFrame(abs, scale, "1")
+	if err == nil && len(thumb) > 0 {
+		return thumb, mime, nil
+	}
+	return runFFmpegVideoFrame(abs, scale, "")
+}
+
+func runFFmpegVideoFrame(abs string, scaleFilter string, seekSeconds string) ([]byte, string, error) {
+	if _, err := os.Stat(abs); err != nil {
+		return nil, "", err
+	}
+
+	ffmpeg, err := resolveFFmpegPath()
+	if err != nil {
+		return nil, "", err
+	}
+
+	args := []string{"-nostdin", "-hide_banner", "-loglevel", "error"}
+	if seekSeconds != "" {
+		args = append(args, "-ss", seekSeconds)
+	}
+	args = append(args, "-i", abs)
+	if scaleFilter != "" {
+		args = append(args, "-vf", scaleFilter)
+	}
+	args = append(args, "-an", "-frames:v", "1", "-f", "image2pipe", "-vcodec", "png", "pipe:1")
+	cmd := exec.Command(ffmpeg, args...)
+	configureHiddenExec(cmd)
+	cmd.Dir = filepath.Dir(cmd.Path)
+	return runFFmpegThumbnail(cmd)
+}
+
 func runFFmpegThumbnail(cmd *exec.Cmd) ([]byte, string, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
