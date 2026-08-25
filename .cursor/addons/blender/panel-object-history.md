@@ -33,7 +33,7 @@ History Timeline
 
 ## Data source
 
-1. `compare_object_history(obj.name, file_path, repo_path)`
+1. `schedule_object_history` — кэш + timer; `compare_object_history` **не** вызывается из `draw()`
 2. `log.get(path=file_relative)` — commits touching file
 3. For each commit: `load_object_data(commit_hash)` from `.DFM/objects/{hash}_objects.json`
 4. Diff vs previous → change type

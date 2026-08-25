@@ -25,6 +25,7 @@ type ProjectViewPanelProps = {
   userName: string;
   folderEmpty: boolean;
   hasCommits: boolean;
+  isRepository: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
   stashes: StashSummary[];
@@ -134,6 +135,7 @@ export function ProjectViewPanel({
   userName,
   folderEmpty,
   hasCommits,
+  isRepository,
   status,
   commits,
   stashes,
@@ -211,6 +213,7 @@ export function ProjectViewPanel({
               locale={locale}
               folderEmpty={folderEmpty}
               hasCommits={hasCommits}
+              isRepository={isRepository}
               status={status}
               commits={commits}
               busy={busy}
@@ -255,6 +258,7 @@ function CommitList({
   locale,
   folderEmpty,
   hasCommits,
+  isRepository,
   status,
   commits,
   busy,
@@ -267,6 +271,7 @@ function CommitList({
   locale: Locale;
   folderEmpty: boolean;
   hasCommits: boolean;
+  isRepository: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
   busy?: boolean;
@@ -294,7 +299,8 @@ function CommitList({
     requestVisibleStats(repoPath, visibleHashes.split("\0").filter(Boolean));
   }, [repoPath, visibleHashes]);
 
-  if (!hasCommits && !folderEmpty) {
+  // Create repository tip only when the open folder has no .DFM (not after init).
+  if (!isRepository && !folderEmpty) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
         <NullRepositoryPlaceholder locale={locale} busy={busy} onCreate={onCreateRepository} />

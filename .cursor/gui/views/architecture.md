@@ -116,6 +116,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | `shell` | first-start \| app | First Start vs 1429-окно |
 | `folderPath` | `""` (корень) \| вложенный rel | Root vs SubFolder |
 | `folderEmpty` | да \| нет | Empty Project vs сетка |
+| `isRepository` | да \| нет | Empty DFM Folder (нет `.DFM`) vs History Null после init |
 | `selection` | none \| file \| files | File Info Null / File Info / Select More Files |
 | `contentContext` | folder \| file \| file-revision \| commit | семейство экрана |
 | `fileKind` | image \| text \| binary | IMG / Text / Binary |
@@ -155,7 +156,7 @@ File Info --Add in commit--> Create Commit single file
 
 Зафиксированы, пока нет ответа владельца дизайна. Реализация не выдумывает третье поведение.
 
-1. **Empty DFM Folder** (`4385:8956`): в сетке есть файлы, в сайдбаре плейсхолдер «Create repository». Это workdir без `.DFM/` или репозиторий без коммитов?
+1. **Empty DFM Folder** (`4385:8956`) — **решено:** workdir **без** `.DFM/`. Репозиторий без коммитов (после Create) → History Null / [NoHistoryProject](../components/atoms/card-no-history-project.md), кадр [`6041:15400`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6041-15400), не Create repository.
 2. **First Start vs Empty DFM Project**: оба умеют создать/открыть репо. First Start — только пока нет `[current repo]`?
 3. **Stash** (`View / … / Stages` в Figma): вкладка UI — **Stash** (Forester stash, не `staged_*` из `status.get`). Список — `stash.list`. Пустая вкладка — кадр [Stashes Null](./project-browse.md) `6035:12553`: [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733` слева, [Folder Empty](../panels/content-view.md) по центру, File Info Null справа. Не оставлять сетку рабочей папки. Кэш: [revision-cache.md](../gui_frontend/revision-cache.md).
 4. **View Commit** без выбранного файла в списке коммита — кадра нет. Пока не выбран path в `Content / File list`, какой diff показывать?

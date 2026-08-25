@@ -96,6 +96,12 @@ class DF_OT_refresh_history(Operator):
         if scene.df_commit_list_index >= len(scene.df_commits):
             scene.df_commit_list_index = max(0, len(scene.df_commits) - 1)
 
+        if current_branch:
+            for branch in scene.df_branches:
+                if branch.name == current_branch:
+                    branch.commit_count = len(scene.df_commits_all)
+                    break
+
         self.report(
             {'INFO'},
             f"Loaded {len(scene.df_commits_all)} commits"

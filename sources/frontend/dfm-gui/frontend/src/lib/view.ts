@@ -24,6 +24,8 @@ export type ViewInput = {
   folderPath: string;
   folderEmpty: boolean;
   hasCommits: boolean;
+  /** True when the open folder has `.DFM/` (Forester repo). */
+  isRepository: boolean;
   selectionCount: number;
   contentContext: ContentContext;
   infoCollapsed: boolean;
@@ -51,6 +53,10 @@ export function deriveView(input: ViewInput): DerivedView {
   if (input.sidebarTab === "stages") {
     return input.stashEmpty ? "stashes-null" : "stages";
   }
+  // Workdir open without .DFM — Create repository in History (Empty DFM Folder).
+  if (!input.isRepository && !input.folderEmpty) {
+    return "empty-dfm-folder";
+  }
   if (input.folderEmpty && !input.hasCommits && input.selectionCount === 0) {
     return "empty-dfm-project";
   }
@@ -60,9 +66,7 @@ export function deriveView(input: ViewInput): DerivedView {
   if (input.selectionCount === 1) {
     return input.folderPath ? "subfolder" : "file-info";
   }
-  if (!input.hasCommits) {
-    return "empty-dfm-folder";
-  }
+  // Initialized repo with no commits still uses Root Folder chrome; History shows No History.
   if (input.infoCollapsed) {
     return "root-folder-collapse";
   }

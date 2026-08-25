@@ -9,4 +9,4 @@ Figma: [Item / Placeholder / Null Repository](https://www.figma.com/design/qlwKi
 
 Кнопка `Create repository` → `repo.init` в корне открытой папки. Copy — из node.
 
-Используется панелью Project view empty (`4385:8756`) на экране [Empty DFM Folder](../../views/project-browse.md).
+Используется панелью Project view Folder DFM Null (`4385:8756`) на экране [Empty DFM Folder](../../views/project-browse.md) — только когда открытая папка **не** содержит `.DFM/`. После успешного `repo.init` показывать [NoHistoryProject](../atoms/card-no-history-project.md), не этот плейсхолдер.

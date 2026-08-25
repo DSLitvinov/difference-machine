@@ -10,6 +10,37 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Auto-load branches/commits once per .blend via timer — never from draw().
+_auto_load_keys: set[str] = set()
+
+
+def reset_panel_auto_load() -> None:
+    """Allow Compare auto-refresh to run again (after init)."""
+    _auto_load_keys.clear()
+
+
+def _schedule_df_operator_once(key: str, operator_name: str) -> None:
+    if key in _auto_load_keys:
+        return
+    _auto_load_keys.add(key)
+
+    def _run() -> None:
+        try:
+            ctx = bpy.context
+            if not ctx or not ctx.window_manager or not ctx.window_manager.windows:
+                return None
+            operator = getattr(bpy.ops.df, operator_name)
+            window = ctx.window_manager.windows[0]
+            with ctx.temp_override(window=window):
+                operator()
+        except (RuntimeError, AttributeError, KeyError) as e:
+            logger.debug("Failed to auto-run df.%s: %s", operator_name, e)
+        except Exception as e:
+            logger.warning("Unexpected error auto-running df.%s: %s", operator_name, e)
+        return None
+
+    bpy.app.timers.register(_run, first_interval=0.0)
+
 
 class DF_PT_save_version_panel(Panel):
     """Panel for Save Version - save file and create commit."""
@@ -132,12 +163,7 @@ class DF_PT_compare_panel(Panel):
 
         branches = scene.df_branches
         if len(branches) == 0 and bpy.data.filepath:
-            try:
-                bpy.ops.df.refresh_branches()
-            except (RuntimeError, AttributeError, KeyError) as e:
-                logger.debug(f"Failed to auto-refresh branches: {e}")
-            except Exception as e:
-                logger.warning(f"Unexpected error auto-refreshing branches: {e}")
+            _schedule_df_operator_once(f"{bpy.data.filepath}:branches", "refresh_branches")
 
         if len(branches) == 0:
             box.label(text="No branches found", icon='INFO')
@@ -167,16 +193,9 @@ class DF_PT_compare_panel(Panel):
         box = layout.box()
         box.label(text="Commits", icon='COMMUNITY')
         
-        # Auto-refresh if list is empty and file is saved
         commits = context.scene.df_commits
         if len(commits) == 0 and bpy.data.filepath:
-            # Try to auto-load
-            try:
-                bpy.ops.df.refresh_history()
-            except (RuntimeError, AttributeError, KeyError) as e:
-                logger.debug(f"Failed to auto-refresh history: {e}")
-            except Exception as e:
-                logger.warning(f"Unexpected error auto-refreshing history: {e}")
+            _schedule_df_operator_once(f"{bpy.data.filepath}:commits", "refresh_history")
         
         # Commit list — one for both Project and Selected Object tabs
         if len(commits) == 0:
@@ -411,11 +430,13 @@ class DF_PT_object_history_panel(Panel):
         
         layout.separator()
         
-        # Load object history
-        from ..utils.object_history import compare_object_history
+        # Load object history off the draw path (cached; timer fills on miss)
+        from ..utils.object_history import schedule_object_history
         
         try:
-            versions = compare_object_history(active_obj.name, file_path, repo_path)
+            versions = schedule_object_history(active_obj.name, file_path, repo_path)
+            if versions is None:
+                return
             
             if not versions:
                 box = layout.box()

@@ -5,6 +5,7 @@ Sync object merge marks between Blender scene state and Forester manifests.
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -15,6 +16,9 @@ from .forester_api import get_api
 from .object_data import extract_object_data
 
 logger = logging.getLogger(__name__)
+
+_HEAD_CACHE_TTL = 5.0
+_head_cache: dict[str, tuple[float, str]] = {}
 
 
 def get_target_commit_hash(context: Context, repo_path: Path) -> str:
@@ -27,11 +31,18 @@ def get_target_commit_hash(context: Context, repo_path: Path) -> str:
             commit_hash = getattr(commits[idx], "hash", "") or ""
             if commit_hash.strip():
                 return commit_hash.strip()
+    cache_key = str(repo_path)
+    now = time.monotonic()
+    cached = _head_cache.get(cache_key)
+    if cached is not None and (now - cached[0]) < _HEAD_CACHE_TTL:
+        return cached[1]
     api = get_api()
     success, status_data, _ = api.status(repo_path)
+    head = ""
     if success and status_data:
-        return (status_data.get("head") or "").strip()
-    return ""
+        head = (status_data.get("head") or "").strip()
+    _head_cache[cache_key] = (now, head)
+    return head
 
 
 def get_blend_file_path(repo_path: Path) -> str:

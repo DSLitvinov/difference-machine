@@ -6,7 +6,7 @@ import bpy
 from bpy.types import Operator
 from pathlib import Path
 from ..utils.forester_api import get_api
-from ..utils.helpers import find_repository_root
+from ..utils.helpers import find_repository_root, invalidate_repository_root_cache
 
 
 class DF_OT_init_project(Operator):
@@ -35,6 +35,9 @@ class DF_OT_init_project(Operator):
         success, error_msg = api.init(project_root)
         
         if success:
+            invalidate_repository_root_cache()
+            from ..ui.ui_panels import reset_panel_auto_load
+            reset_panel_auto_load()
             self.report({'INFO'}, f"Repository initialized in {project_root}")
             return {'FINISHED'}
         else:

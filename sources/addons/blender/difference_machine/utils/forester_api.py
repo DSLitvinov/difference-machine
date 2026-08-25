@@ -751,9 +751,13 @@ _api_wrapper_instance: Optional[ForesterAPIWrapper] = None
 
 
 def get_api() -> ForesterAPIWrapper:
-    """Get global ForesterAPIWrapper instance."""
+    """Get global ForesterAPIWrapper instance.
+
+    Failed init is cached: recreating the wrapper on every call would reload
+    the native library during panel poll/draw and freeze the viewport.
+    """
     global _api_wrapper_instance
-    if _api_wrapper_instance is None or not _api_wrapper_instance._use_api:
+    if _api_wrapper_instance is None:
         _api_wrapper_instance = ForesterAPIWrapper()
     return _api_wrapper_instance
 

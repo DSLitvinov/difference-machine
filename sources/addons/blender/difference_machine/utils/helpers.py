@@ -17,6 +17,36 @@ DEFAULT_PATH_CHECK_INTERVAL: float = 0.1  # Default interval in seconds for chec
 # Constants for commit hash validation
 COMMIT_HASH_LENGTH: int = 64  # Full SHA-256 hash length
 
+# Poll/draw run many times per frame — cache FS and API results.
+_REPO_ROOT_CACHE_TTL: float = 2.0
+_LOCK_CACHE_TTL: float = 5.0
+_repo_root_cache: Dict[str, Tuple[float, Optional[str]]] = {}
+_lock_cache: Dict[str, Tuple[float, Dict[Path, Dict[str, Any]]]] = {}
+
+
+def tag_view3d_redraw() -> None:
+    """Request a redraw of all 3D View areas without blocking."""
+    wm = bpy.context.window_manager if bpy.context else None
+    if not wm:
+        return
+    for window in wm.windows:
+        screen = getattr(window, "screen", None)
+        if not screen:
+            continue
+        for area in screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+
+
+def invalidate_repository_root_cache() -> None:
+    """Drop cached .DFM walk results (call after init or path change)."""
+    _repo_root_cache.clear()
+
+
+def invalidate_lock_cache() -> None:
+    """Drop cached lock status (call after lock/unlock)."""
+    _lock_cache.clear()
+
 
 def normalize_commit_hash(commit_hash: Optional[str]) -> Optional[str]:
     """
@@ -91,6 +121,8 @@ def wait_for_path(path: Path, timeout: float = DEFAULT_PATH_WAIT_TIMEOUT, interv
 def find_repository_root(start_path: Path) -> Optional[Path]:
     """
     Find repository root by looking for .DFM directory.
+
+    Results are cached briefly: Panel.poll walks this on every redraw.
     
     Args:
         start_path: Starting directory path
@@ -99,18 +131,27 @@ def find_repository_root(start_path: Path) -> Optional[Path]:
         Path to repository root, or None if not found
     """
     current = Path(start_path).absolute()
-    
+    cache_key = str(current)
+    now = time.monotonic()
+    cached = _repo_root_cache.get(cache_key)
+    if cached is not None and (now - cached[0]) < _REPO_ROOT_CACHE_TTL:
+        return Path(cached[1]) if cached[1] else None
+
+    found: Optional[Path] = None
+    walk = current
     while True:
-        dfm_path = current / ".DFM"
+        dfm_path = walk / ".DFM"
         if dfm_path.exists() and dfm_path.is_dir():
-            return current
-        
-        parent = current.parent
-        if parent == current:
-            # Reached filesystem root
-            return None
-        
-        current = parent
+            found = walk
+            break
+
+        parent = walk.parent
+        if parent == walk:
+            break
+        walk = parent
+
+    _repo_root_cache[cache_key] = (now, str(found) if found else None)
+    return found
 
 
 def is_repository_initialized(context) -> bool:
@@ -309,10 +350,30 @@ def get_blender_files() -> List[Path]:
     return files
 
 
-def check_locked_files(repo_path: Path) -> Dict[Path, Dict[str, Any]]:
+def check_locked_files(repo_path: Path, force: bool = False) -> Dict[Path, Dict[str, Any]]:
     """
     Check which Blender files are locked.
+
+    Results are cached: File Locks panel draw must not call lock.list every frame.
     """
+    try:
+        cache_key = str(Path(repo_path).resolve())
+    except Exception:
+        cache_key = str(repo_path)
+
+    now = time.monotonic()
+    if not force:
+        cached = _lock_cache.get(cache_key)
+        if cached is not None and (now - cached[0]) < _LOCK_CACHE_TTL:
+            return cached[1]
+
+    result = _check_locked_files_uncached(repo_path)
+    _lock_cache[cache_key] = (now, result)
+    return result
+
+
+def _check_locked_files_uncached(repo_path: Path) -> Dict[Path, Dict[str, Any]]:
+    """Query Forester for locks matching the current .blend and textures."""
     try:
         from .forester_api import get_api
 

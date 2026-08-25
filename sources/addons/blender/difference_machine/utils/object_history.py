@@ -5,8 +5,7 @@ Provides functions to track and compare object changes over time.
 
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
+from typing import List, Dict, Any, Optional
 
 from .object_data import (
     load_object_data,
@@ -19,6 +18,74 @@ from .object_data import (
 from ..utils.forester_api import get_api
 
 logger = logging.getLogger(__name__)
+
+_HISTORY_CACHE_MAX = 16
+_history_cache: Dict[str, List[Dict[str, Any]]] = {}
+_history_pending: set[str] = set()
+
+
+def invalidate_object_history_cache() -> None:
+    """Drop cached object-history timelines (call after commit)."""
+    _history_cache.clear()
+    _history_pending.clear()
+
+
+def _history_cache_key(obj_name: str, file_path: Path, repo_path: Path) -> str:
+    return f"{repo_path}|{file_path}|{obj_name}"
+
+
+def _store_history_cache(key: str, versions: List[Dict[str, Any]]) -> None:
+    if key not in _history_cache and len(_history_cache) >= _HISTORY_CACHE_MAX:
+        oldest = next(iter(_history_cache))
+        del _history_cache[oldest]
+    _history_cache[key] = versions
+
+
+def schedule_object_history(
+    obj_name: str,
+    file_path: Path,
+    repo_path: Path,
+) -> Optional[List[Dict[str, Any]]]:
+    """
+    Return cached object history, or None if a load is in flight.
+
+    Must not run compare_object_history during Panel.draw — that walks the
+    commit log and reads JSON for every commit on every viewport redraw.
+    """
+    key = _history_cache_key(obj_name, file_path, repo_path)
+    cached = _history_cache.get(key)
+    if cached is not None:
+        return cached
+    if key in _history_pending:
+        return None
+
+    _history_pending.add(key)
+
+    def _load() -> None:
+        try:
+            versions = compare_object_history(obj_name, file_path, repo_path)
+            _store_history_cache(key, versions)
+        except Exception as exc:
+            logger.error("Failed to load object history: %s", exc, exc_info=True)
+            _store_history_cache(key, [])
+        finally:
+            _history_pending.discard(key)
+        try:
+            from .helpers import tag_view3d_redraw
+            tag_view3d_redraw()
+        except Exception:
+            pass
+        return None
+
+    try:
+        import bpy
+        bpy.app.timers.register(_load, first_interval=0.0)
+    except Exception:
+        _history_pending.discard(key)
+        versions = compare_object_history(obj_name, file_path, repo_path)
+        _store_history_cache(key, versions)
+        return versions
+    return None
 
 
 def compare_object_history(

@@ -95,6 +95,7 @@ type AppState = {
   commitComposerPaths: string[] | null;
   folderEmpty: boolean;
   hasCommits: boolean;
+  isRepository: boolean;
   status: StatusSnapshot | null;
   entries: DirEntry[];
   entriesHasMore: boolean;
@@ -158,6 +159,7 @@ export const useAppStore = create<AppState>((set) => ({
   commitComposerPaths: null,
   folderEmpty: true,
   hasCommits: false,
+  isRepository: false,
   status: null,
   entries: [],
   entriesHasMore: false,
@@ -190,6 +192,7 @@ export const useAppStore = create<AppState>((set) => ({
       sidebarTab: "history",
       folderEmpty: true,
       hasCommits: false,
+      isRepository: Boolean(info.isRepository),
       status: null,
       entries: [],
       entriesHasMore: false,
@@ -267,6 +270,7 @@ export function useDerivedView(): DerivedView {
       folderPath: s.folderPath,
       folderEmpty: s.folderEmpty,
       hasCommits: s.hasCommits,
+      isRepository: s.isRepository,
       selectionCount: s.selection.length,
       contentContext: s.contentContext,
       infoCollapsed: s.infoCollapsed,

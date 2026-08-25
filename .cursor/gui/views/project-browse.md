@@ -25,7 +25,7 @@
 | Figma | Node | Когда | Left | Center | Right |
 |-------|------|-------|------|--------|-------|
 | Empty DFM Project | [`4382:8827`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4382-8827) | папка пустая, истории нет | [Project view - History Null](../panels/project-view.md) | Folder Empty 1120 | нет |
-| Empty DFM Folder | [`4385:8956`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-8956) | в сетке есть файлы; в списке коммитов [Null Repository](../components/items/placeholder-null-repository.md) | Project view - Folder DFM Null | Folder Expanded 788 | File Info Null |
+| Empty DFM Folder | [`4385:8956`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4385-8956) | открыта папка **без** `.DFM/`; в сетке есть файлы; в списке коммитов [Null Repository](../components/items/placeholder-null-repository.md) | Project view - Folder DFM Null | Folder Expanded 788 | File Info Null |
 | Root Folder | [`4224:14140`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4224-14140) | корень, файл не выбран, есть коммиты | Project view | Folder Expanded 788 | File Info Null |
 | Root Folder - Collapse | [`4276:6972`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4276-6972) | корень, info свёрнута | Project view | Folder Collapse 1120 | нет |
 | SubFolder | [`4324:5701`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4324-5701) | вложенная папка (breadcrumb не только `Home`) | Project view | Folder Expanded 788 | File Info |
@@ -37,6 +37,8 @@
 | Stashes Null | [`6035:12553`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6035-12553) | вкладка **Stash**, `stash.list` пуст | Project view, один Disable + [NoStagesProject](../components/atoms/card-no-stages-project.md) `6020:12733` | Folder Empty 788: `No files yet` / **`Create stash`** | File Info Null |
 
 Empty Project: copy центра `No files yet` / `Create or move your files to the repository` — [folder-null](../components/placeholders/folder-null.md).
+
+После `repo.init` (First Start / Create repository) при уже существующих файлах и **нуле** коммитов: экран как Root Folder + History Null ([NoHistoryProject](../components/atoms/card-no-history-project.md)), **не** Empty DFM Folder. Кадр: [`6041:15400`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6041-15400).
 
 ---
 

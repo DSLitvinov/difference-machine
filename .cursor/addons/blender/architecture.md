@@ -141,6 +141,7 @@ Auto Save: `wm.save_mainfile` → `index.add(".")` → `commit.create` с соо
 5. **Compare object** — извлечение в `.DFM/tmp_review`, link через `bpy.data.libraries.load`.
 6. **Mark To** — marks привязаны к коммиту из списка Compare (или HEAD); синхронизация в manifest store немедленная.
 7. **Object history JSON** — `.DFM/objects/{commit_hash}_objects.json` (локальный кэш); manifest store — канон для Mark To.
+8. **Draw/poll не блокируют** — `Panel.draw` / `poll` не вызывают Forester API и не делают `bpy.ops`. Auto-refresh, object history и lock status идут через timer + TTL-кэш.
 
 ---
 

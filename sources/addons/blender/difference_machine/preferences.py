@@ -155,17 +155,13 @@ class DifferenceMachinePreferences(AddonPreferences):
         box = layout.box()
         box.label(text="Garbage Collection", icon='BRUSH_DATA')
 
-        # Check if repository exists using API
+        # Check if repository exists
         from .utils.helpers import find_repository_root
-        from .utils.forester_api import get_api
         blend_file = Path(bpy.data.filepath) if bpy.data.filepath else None
         repo_exists = False
         if blend_file:
             repo_path = find_repository_root(blend_file.parent)
-            if repo_path:
-                api = get_api()
-                success, _, _ = api.status(repo_path)
-                repo_exists = success
+            repo_exists = repo_path is not None
 
         if repo_exists:
             row = box.row()

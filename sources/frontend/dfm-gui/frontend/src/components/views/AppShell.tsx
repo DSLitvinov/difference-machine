@@ -85,6 +85,7 @@ export function AppShell({
   const infoCollapsed = useAppStore((s) => s.infoCollapsed);
   const folderEmpty = useAppStore((s) => s.folderEmpty);
   const hasCommits = useAppStore((s) => s.hasCommits);
+  const isRepository = useAppStore((s) => s.isRepository);
   const locks = useAppStore((s) => s.locks);
   const setSidebarTab = useAppStore((s) => s.setSidebarTab);
   const setChangedOnly = useAppStore((s) => s.setChangedOnly);
@@ -192,6 +193,7 @@ export function AppShell({
             userName={userName}
             folderEmpty={folderEmpty}
             hasCommits={hasCommits}
+            isRepository={isRepository}
             status={status}
             commits={commits}
             stashes={stashes}

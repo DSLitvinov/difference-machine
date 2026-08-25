@@ -13,6 +13,7 @@ from ..utils.helpers import (
     get_lock_author,
     find_lock_for_file,
     is_lock_owner,
+    invalidate_lock_cache,
 )
 
 
@@ -29,7 +30,7 @@ class DF_OT_check_locks(Operator):
             self.report({'ERROR'}, error_msg)
             return {'CANCELLED'}
 
-        locked_files = check_locked_files(repo_path)
+        locked_files = check_locked_files(repo_path, force=True)
         if locked_files:
             self.report({'WARNING'}, f"{len(locked_files)} file(s) locked")
         else:
@@ -95,6 +96,7 @@ class DF_OT_lock_current_blend(Operator):
             self.report({'WARNING'}, f"Some locks failed: {errors[0]}")
             return {'CANCELLED'}
 
+        invalidate_lock_cache()
         self.report({'INFO'}, f"Locked {len(files)} file(s)")
         return {'FINISHED'}
 
@@ -151,6 +153,7 @@ class DF_OT_unlock_current_blend(Operator):
             self.report({'WARNING'}, f"Some unlocks failed: {errors[0]}")
             return {'CANCELLED'}
 
+        invalidate_lock_cache()
         self.report({'INFO'}, f"Unlocked {len(files)} file(s)")
         return {'FINISHED'}
 

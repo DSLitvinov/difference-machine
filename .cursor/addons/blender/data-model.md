@@ -53,7 +53,7 @@
 | Field | Notes |
 |-------|-------|
 | `name` | branch name |
-| `commit_count` | from `log.get` limit 200 |
+| `commit_count` | filled by `load_branch_commits` / `refresh_history` for the current/selected branch (not `log.get` per branch on refresh) |
 | `last_commit_hash` | |
 | `last_commit_message` | |
 | `is_current` | |

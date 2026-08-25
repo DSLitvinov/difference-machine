@@ -64,17 +64,9 @@ class DF_OT_refresh_branches(Operator):
             branch = scene.df_branches.add()
             branch.name = branch_data["name"]
             branch.is_current = branch_data.get("is_current", False)
-            
-            # Get commit count for this branch
-            # Limit history depth to avoid UI freezes on large repos
-            try:
-                success, commits, _ = api.log(repo_path, branch=branch_data["name"], limit=200)
-                branch.commit_count = len(commits) if success and commits else 0
-            except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f"Failed to get commit count for branch {branch_data['name']}: {e}")
-                branch.commit_count = 0
+            branch.commit_count = 0
+            # Commit count is filled by load_branch_commits / refresh_history.
+            # Do not call log.get per branch here — that freezes the UI on large repos.
             
             # Parent branch not needed for compare panel
             branch.parent_branch = ""

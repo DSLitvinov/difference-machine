@@ -57,7 +57,7 @@ Commits
 | `* {name}` + commit count | `is_current` (checked-out branch) |
 | `{name}` + commit count | otherwise |
 
-**Auto-refresh:** если `len(df_branches)==0` и file saved → `bpy.ops.df.refresh_branches()` (best-effort). После refresh выбирается строка с `is_current`.
+**Auto-refresh:** если `len(df_branches)==0` и file saved → одноразовый `bpy.app.timers` вызывает `df.refresh_branches` (не из `draw()`). После refresh выбирается строка с `is_current`. Пустой список не ретраится каждый кадр.
 
 | Control | Operator |
 |---------|----------|
@@ -78,7 +78,7 @@ Commits
 | `HEAD` + message (trunc 50) | `is_head` |
 | message + icon COMMUNITY | otherwise |
 
-**Auto-refresh:** если `len(df_commits)==0` и file saved → `bpy.ops.df.refresh_history()` (best-effort).
+**Auto-refresh:** если `len(df_commits)==0` и file saved → одноразовый timer `df.refresh_history` (не из `draw()`).
 
 **Backup model:** refresh заполняет `df_commits_all`, затем копирует в `df_commits` с учётом `tag_search_filter` (поле фильтра в UI **отсутствует** — prop только).
 

@@ -39,7 +39,7 @@
 
 ## Lock status box
 
-`check_locked_files(repo_path)` при каждом draw:
+`check_locked_files(repo_path)` читается при draw из кэша (TTL ~5 с; `df.check_locks` / lock / unlock сбрасывают кэш). Не вызывать `lock.list` на каждый кадр.
 
 **If locked (Blender-relevant files):**
 

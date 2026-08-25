@@ -96,7 +96,7 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 - OS folder picker. `repo.init` via `CallStateless`, then `Open`.
 - Open: `.DFM/` present → app shell; else stay on First Start, toast API/not-a-repository.
 - Header File → Open Folder; Repository → Create repository. Window hide / min-max / close.
-- After init: empty workdir → Empty DFM Project; files + no commits → Empty DFM Folder.
+- After init: empty workdir → Empty DFM Project; files + no commits → Root Folder + History Null (NoHistoryProject), **not** Empty DFM Folder / Create repository.
 
 **Verify:** Create on an empty folder lands on Empty DFM Project; relaunch restores `[current repo]`.
 
@@ -107,7 +107,8 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 **Specs:** `4385:8956`, `4224:14140`.
 
 - `workdir.entries` (page 0) + `status.get` + `log.get`.
-- Files exist, no commits → Null Repository placeholder in commit list; right = File Info Null.
+- Open folder **without** `.DFM/` → Empty DFM Folder: Null Repository placeholder in commit list; right = File Info Null.
+- Initialized repo, files exist, no commits → Root Folder chrome + History Null ([NoHistoryProject](./components/atoms/card-no-history-project.md)); **not** Create repository.
 - Commits exist, nothing selected → Root Folder + File Info Null.
 - No extra counters.
 

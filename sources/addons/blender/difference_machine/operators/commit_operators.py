@@ -54,6 +54,8 @@ class DF_OT_save_version(Operator):
             self.report({'ERROR'}, f"Failed to commit: {commit_error}")
             return {'CANCELLED'}
 
+        from ..utils.object_history import invalidate_object_history_cache
+        invalidate_object_history_cache()
         self.report({'INFO'}, f"Saved and committed: {commit_message}")
         return {'FINISHED'}
 

@@ -33,6 +33,11 @@ Padding колонки: 12 px горизонталь.
 
 Empty истории и empty репозитория **не** заменяют Card Directory. No History и Null Repository живут только в Commit List.
 
+| Commit List | Когда |
+|-------------|--------|
+| [NullRepositoryPlaceholder](../components/items/placeholder-null-repository.md) | открытая папка **без** `.DFM/` (`!isRepository`) |
+| [NoHistoryProject](../components/atoms/card-no-history-project.md) | `.DFM/` есть, коммитов нет |
+
 Трёхколоночная сборка: [../views/project-browse.md](../views/project-browse.md).
 
 Данные: `branch.list`, `status.get`, `log.get`, `stash.list`. Панель не читает диск.
