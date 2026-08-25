@@ -23,6 +23,7 @@ export type FileWorkdirAction =
 type FilePreviewItemMenuProps = {
   locale: Locale;
   locked?: boolean;
+  disableRename?: boolean;
   align?: "start" | "end";
   onAddInCommit: () => void;
   onRename: () => void;
@@ -35,6 +36,7 @@ type FilePreviewItemMenuProps = {
 export function FilePreviewItemMenu({
   locale,
   locked,
+  disableRename,
   align = "start",
   onAddInCommit,
   onRename,
@@ -61,7 +63,7 @@ export function FilePreviewItemMenu({
         <FigmaIcon src="icons/eye-off.svg" size={16} />
         {copy.ignored}
       </DropdownMenuItem>
-      <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(onRename, 0)}>
+      <DropdownMenuItem disabled={disableRename} className="gap-2" onSelect={() => window.setTimeout(onRename, 0)}>
         <FigmaIcon src="icons/pencil-line.svg" size={16} />
         {copy.rename}
       </DropdownMenuItem>

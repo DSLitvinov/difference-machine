@@ -75,7 +75,7 @@ Empty-варианты перечислены в спеке каноническ
 - Плотность сетки: default иконка/превью **48×48**, колонка min **106 px**. Масштаб — `gridTrack` (Ctrl/Cmd+wheel), без chrome. Не растягивать квадрат на `1fr`. Канон: [content-view](./content-view.md), [architecture.md](../architecture.md#сетка-рабочей-копии).
 - Тулбар: search / sort / filter из макета. Grid/list — нет в 0.8.1.
 - Open / rename / delete — `workdir.open` / `rename` / `delete`.
-- Stage выбранных: меню File Action (пункт сразу) / combobox + Apply на Select More Files → `index.add` (unstage — когда появится `index.drop`).
+- Stage выбранных: меню File Action / More (пункт сразу) или **Create commit** на Select More Files → `index.add` (unstage — когда появится `index.drop`). Create commit также открывает composer.
 - Commit All Files: все dirty path → `index.add` → композер.
 
 Compare extract и restore файла — из History of File ([header-file-commit-action](../components/items/header-file-commit-action.md)), не из сетки workdir.
@@ -100,7 +100,7 @@ Compare extract и restore файла — из History of File ([header-file-com
 
 - Файл workdir: `workdir.metadata`, locks, `log.get` с `path`.
 - Коммит: `commit.get` (сообщение, автор, screenshot).
-- Кнопка «открыть во внешнем редакторе»: `Edit in` в File Info — список из Settings / External editors → `workdir.open` + `editor`.
+- Кнопка «открыть во внешнем редакторе»: **Edit** в File Info — список из Settings / External editors → `workdir.open` + `editor`. More — [Popover (File Preview Item)](../components/popovers/file-preview-item.md). Мультивыбор: **Create commit** + тот же More.
 
 ---
 

@@ -27,15 +27,19 @@ Figma: [Panel / File Info](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 
 Не добавлять строки (path, hash, permissions), которых нет. Источник: `workdir.metadata`, `lock.list`.
 
-4. Низ: слой в Figma `Create commit Button`, **copy `Edit in`** + chevron. Это **не** создание коммита.
+4. Низ: ряд `gap-1` (4px). Outline **Edit** + chevron-down (~264px, слой всё ещё `Create commit Button`) и outline More 40×40 (`ellipsis`, горизонтальное `⋯`). Это **не** создание коммита.
 
 ---
 
-## Edit in
+## Edit
 
-Выпадающий список редакторов из Settings → вкладка External editors (`setup.cfg`, не JSON API).
+Выпадающий список редакторов из Settings → вкладка External editors (`setup.cfg`, не JSON API). Copy кнопки — `Edit`, не меню «Правка».
 
 Клик по пункту: `workdir.open` с текущим rel path и `editor` = абсолютный executable из cfg. Список пуст — не выдумывать IDE; можно только OS default, если такой пункт есть в макете.
+
+## More
+
+Кнопка сразу открывает [Popover (File Preview Item)](../components/popovers/file-preview-item.md) (`4272:6726`). Выбор пункта **выполняет** действие для текущего path — как [Header File Action](../components/items/header-file-action.md).
 
 Мультивыбор — не эта панель, а [select-more-files](./select-more-files.md).
 
@@ -46,5 +50,5 @@ Figma: [Panel / File Info](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 | Figma | Node |
 |-------|------|
 | File Info | `4309:9390` |
-| File Info - Null | `4382:8024` — [not-select-file](../components/placeholders/not-select-file.md); `Edit in` нет |
+| File Info - Null | `4382:8024` — [not-select-file](../components/placeholders/not-select-file.md); футер нет |
 | Select More Files | `4383:9620` — отдельная спека |

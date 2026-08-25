@@ -8,17 +8,19 @@ import { ContentCommitPanel } from "@/components/panels/ContentCommitPanel";
 import { FileInfoPanel } from "@/components/panels/FileInfoPanel";
 import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
 import { foresterCall } from "@/lib/bridge";
+import { parentRel } from "@/lib/folder-query";
 import { showRightColumn } from "@/lib/view";
 import { useAppStore, useDerivedView, type CommitSummary, type StashSummary } from "@/store/app-store";
 import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import type { CommitCardAction } from "@/components/items/CommitCardMenu";
+import type { FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
 import type { StashCardAction } from "@/components/items/StashCardMenu";
 
 type AppShellProps = {
   busy?: boolean;
   onSettings: () => void;
   onCreateRepository: () => void;
-  onApplySelection: (paths: string[]) => void;
+  onCreateCommitFromSelection: (paths: string[]) => void;
   onNeedMore: () => void;
   onCommitAll: () => void;
   onCancelComposer: () => void;
@@ -30,9 +32,9 @@ type AppShellProps = {
   onRenameBranch: () => void;
   onDeleteBranch: (name: string) => void;
   onOpenMerge: () => void;
-  onAddInCommit: (path: string) => void;
+  onAddInCommit: (paths: string[]) => void;
   onRenameFile: (path: string) => void;
-  onDeleteFile: (path: string) => void;
+  onDeleteFile: (paths: string[]) => void;
   onOpenInFolder: (path: string) => void;
   onEditIn: (path: string, editor: string) => void;
   onToggleLock: (path: string) => void;
@@ -45,7 +47,7 @@ export function AppShell({
   busy,
   onSettings,
   onCreateRepository,
-  onApplySelection,
+  onCreateCommitFromSelection,
   onNeedMore,
   onCommitAll,
   onCancelComposer,
@@ -106,6 +108,50 @@ export function AppShell({
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
   const moreFiles = view === "create-commit" || (view !== "stages" && selection.length > 1);
   const mergeLocked = Boolean(mergeStatus.in_progress);
+
+  function applyWorkdirAction(paths: string[], action: FileWorkdirAction) {
+    if (paths.length === 0) {
+      return;
+    }
+    switch (action.kind) {
+      case "addInCommit":
+        onAddInCommit(paths);
+        break;
+      case "rename":
+        onRenameFile(paths[0]);
+        break;
+      case "openInFolder": {
+        const seen = new Set<string>();
+        for (const path of paths) {
+          const parent = parentRel(path);
+          if (seen.has(parent)) {
+            continue;
+          }
+          seen.add(parent);
+          onOpenInFolder(path);
+        }
+        break;
+      }
+      case "editIn":
+        for (const path of paths) {
+          onEditIn(path, action.editor);
+        }
+        break;
+      case "toggleLock": {
+        const allLocked = paths.every((path) => locks.some((item) => item.file_path === path));
+        for (const path of paths) {
+          const locked = locks.some((item) => item.file_path === path);
+          if (allLocked || !locked) {
+            onToggleLock(path);
+          }
+        }
+        break;
+      }
+      case "deleteInProject":
+        onDeleteFile(paths);
+        break;
+    }
+  }
 
   async function openExternal() {
     if (!filePath) {
@@ -196,28 +242,7 @@ export function AppShell({
             collapsed={infoCollapsed}
             locked={locks.some((item) => item.file_path === filePath)}
             onBack={() => setContentContext("folder")}
-            onApply={(action) => {
-              switch (action.kind) {
-                case "addInCommit":
-                  onAddInCommit(filePath);
-                  break;
-                case "rename":
-                  onRenameFile(filePath);
-                  break;
-                case "openInFolder":
-                  onOpenInFolder(filePath);
-                  break;
-                case "editIn":
-                  onEditIn(filePath, action.editor);
-                  break;
-                case "toggleLock":
-                  onToggleLock(filePath);
-                  break;
-                case "deleteInProject":
-                  onDeleteFile(filePath);
-                  break;
-              }
-            }}
+            onApply={(action) => applyWorkdirAction([filePath], action)}
             onExpandInfo={() => setInfoCollapsed(false)}
             onOpenExternal={() => void openExternal()}
           />
@@ -248,9 +273,9 @@ export function AppShell({
             onNeedMore={onNeedMore}
             onChangedOnly={setChangedOnly}
             onOpenFile={openFile}
-            onAddInCommit={onAddInCommit}
+            onAddInCommit={(path) => onAddInCommit([path])}
             onRenameFile={onRenameFile}
-            onDeleteFile={onDeleteFile}
+            onDeleteFile={(path) => onDeleteFile([path])}
             onOpenInFolder={onOpenInFolder}
             onEditIn={onEditIn}
             onToggleLock={onToggleLock}
@@ -262,8 +287,10 @@ export function AppShell({
               locale={locale}
               paths={selection}
               entries={entries}
+              locks={locks}
               onCollapse={() => setInfoCollapsed(true)}
-              onApply={onApplySelection}
+              onCreateCommit={onCreateCommitFromSelection}
+              onFileAction={(action) => applyWorkdirAction(selection, action)}
             />
           ) : (
             <FileInfoPanel
@@ -272,6 +299,7 @@ export function AppShell({
               status={status}
               locks={locks}
               onCollapse={() => setInfoCollapsed(true)}
+              onFileAction={(action) => applyWorkdirAction(selection.slice(0, 1), action)}
             />
           )
         ) : null}

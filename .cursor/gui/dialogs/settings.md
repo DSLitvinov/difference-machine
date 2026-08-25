@@ -9,7 +9,7 @@ Property: `Tab`.
 |-----|--------|--------|
 | Profile | автор | `setup.cfg` `[user] name`, `email`. Тот же `name` даёт инициалы аватара в [Header Settings](../components/items/header-settings.md) |
 | Repositories | список репо | `~/.dfm/repos.cfg` `[repo] path_N`, `[current repo]` |
-| External editors | редакторы | cfg, не JSON API. Тот же список — пункты **Edit in** в [File Info](../panels/file-info.md) |
+| External editors | редакторы | cfg, не JSON API. Тот же список — пункты **Edit** / **Edit in** в [File Info](../panels/file-info.md) |
 | Forester | пути CLI / native / addon | [setup-cfg-api-path](../../rules/setup-cfg-api-path.mdc) |
 
 GUI **только светлая тема**. Вкладку Appearance / выбор Light–Dark не рендерить. `[ui] theme` не читать и при записи cfg удалять. Иконки — `sources/frontend/dfm-gui/frontend/src/assets/light/`.

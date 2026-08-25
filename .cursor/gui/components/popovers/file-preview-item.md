@@ -5,6 +5,8 @@
 Figma: [Popover (File Preview Item)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4272-6726) (`4272:6726`).  
 Код: `FilePreviewItemMenu`. 200 px, как Filters.
 
+Открывается с тайла в сетке, из [Header File Action](../items/header-file-action.md), из [File Info](../../panels/file-info.md) More и из [Select More Files](../../panels/select-more-files.md) More.
+
 ---
 
 ## Секция `Commit`

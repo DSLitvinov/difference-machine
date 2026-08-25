@@ -70,7 +70,7 @@ type BranchDialog =
   | { kind: "delete"; name: string }
   | { kind: "switch"; target: string };
 
-type FileDialog = { kind: "rename"; path: string } | { kind: "delete"; path: string };
+type FileDialog = { kind: "rename"; path: string } | { kind: "delete"; paths: string[] };
 
 function commitMessage(title: string, description: string): string {
   const head = title.trim();
@@ -362,15 +362,19 @@ export default function App() {
     }
   }
 
-  async function onApplySelection(paths: string[]) {
+  async function onCreateCommitFromSelection(paths: string[]) {
     if (paths.length === 0) {
       return;
     }
+    setBusy(true);
     try {
       await foresterCall("index.add", { files: paths });
       await refreshRepoMeta();
+      useAppStore.getState().openCommitComposer();
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -686,9 +690,12 @@ export default function App() {
     }
   }
 
-  async function onAddInCommit(path: string) {
+  async function onAddInCommit(files: string[]) {
+    if (files.length === 0) {
+      return;
+    }
     try {
-      await foresterCall("index.add", { files: [path] });
+      await foresterCall("index.add", { files });
       await refreshRepoMeta();
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
@@ -716,15 +723,18 @@ export default function App() {
   }
 
   async function onDeleteFile() {
-    const path = fileDialog?.kind === "delete" ? fileDialog.path : "";
-    if (!path) {
+    const paths = fileDialog?.kind === "delete" ? fileDialog.paths : [];
+    if (paths.length === 0) {
       return;
     }
     setBusy(true);
     try {
-      await foresterCall("workdir.delete", { path });
+      for (const path of paths) {
+        await foresterCall("workdir.delete", { path });
+      }
+      const gone = new Set(paths);
       const state = useAppStore.getState();
-      state.setSelection(state.selection.filter((item) => item !== path));
+      state.setSelection(state.selection.filter((item) => !gone.has(item)));
       if (state.contentContext === "file" || state.contentContext === "file-revision") {
         state.setContentContext("folder");
       }
@@ -785,7 +795,7 @@ export default function App() {
           busy={busy}
           onSettings={() => setSettingsOpen(true)}
           onCreateRepository={() => void onCreateRepository()}
-          onApplySelection={(paths) => void onApplySelection(paths)}
+          onCreateCommitFromSelection={(paths) => void onCreateCommitFromSelection(paths)}
           onNeedMore={() => void loadMoreEntries()}
           onCommitAll={() => void onCommitAll()}
           onCancelComposer={() => useAppStore.getState().closeCommitComposer()}
@@ -800,9 +810,9 @@ export default function App() {
             setMergeError(null);
             setMergeOpen(true);
           }}
-          onAddInCommit={(path) => void onAddInCommit(path)}
+          onAddInCommit={(paths) => void onAddInCommit(paths)}
           onRenameFile={(path) => setFileDialog({ kind: "rename", path })}
-          onDeleteFile={(path) => setFileDialog({ kind: "delete", path })}
+          onDeleteFile={(paths) => setFileDialog({ kind: "delete", paths })}
           onOpenInFolder={(path) => void onOpenInFolder(path)}
           onEditIn={(path, editor) => void onEditIn(path, editor)}
           onToggleLock={(path) => void onToggleLock(path)}

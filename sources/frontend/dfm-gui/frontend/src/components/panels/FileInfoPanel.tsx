@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { HeaderRightSide } from "@/components/items/HeaderRightSide";
 import { FileInfoPreview } from "@/components/items/FileInfoPreview";
+import { FilePreviewItemMenu, type FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
 import { NoFileSelectedPlaceholder } from "@/components/placeholders/NoFileSelectedPlaceholder";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -30,6 +31,7 @@ type FileInfoPanelProps = {
   status: StatusSnapshot | null;
   locks: FileLock[];
   onCollapse: () => void;
+  onFileAction: (action: FileWorkdirAction) => void;
 };
 
 function basename(path: string): string {
@@ -46,7 +48,7 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileInfoPanelProps) {
+export function FileInfoPanel({ locale, path, status, locks, onCollapse, onFileAction }: FileInfoPanelProps) {
   const copy = t(locale);
   const repoPath = useAppStore((s) => s.repoPath);
   const [meta, setMeta] = useState<FileMetadata | null>(null);
@@ -137,32 +139,41 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
             </div>
           </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="outline" className="w-full">
-              {copy.editIn}
-              <FigmaIcon src="icons/chevron-down.svg" size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="center" className="w-[308px]">
-            {editors.map((editor) => (
-              <DropdownMenuItem
-                key={editor.path}
-                onSelect={() => {
-                  void (async () => {
-                    try {
-                      await foresterCall("workdir.open", { path, editor: editor.path });
-                    } catch (err) {
-                      useAppStore.getState().setToast(err instanceof Error ? err.message : "request failed");
-                    }
-                  })();
-                }}
-              >
-                {editor.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex w-full items-center gap-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" className="min-w-0 flex-1">
+                {copy.fileEdit}
+                <FigmaIcon src="icons/chevron-down.svg" size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[264px]">
+              {editors.map((editor) => (
+                <DropdownMenuItem key={editor.path} onSelect={() => onFileAction({ kind: "editIn", editor: editor.path })}>
+                  {editor.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="icon" aria-label={copy.more}>
+                <FigmaIcon src="icons/ellipsis.svg" size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <FilePreviewItemMenu
+              locale={locale}
+              locked={Boolean(lock)}
+              align="end"
+              onAddInCommit={() => onFileAction({ kind: "addInCommit" })}
+              onRename={() => onFileAction({ kind: "rename" })}
+              onOpenInFolder={() => onFileAction({ kind: "openInFolder" })}
+              onEditIn={(editor) => onFileAction({ kind: "editIn", editor })}
+              onToggleLock={() => onFileAction({ kind: "toggleLock" })}
+              onDeleteInProject={() => onFileAction({ kind: "deleteInProject" })}
+            />
+          </DropdownMenu>
+        </div>
       </div>
     </aside>
   );
