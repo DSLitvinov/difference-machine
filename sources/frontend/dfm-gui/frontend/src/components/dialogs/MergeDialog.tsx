@@ -39,6 +39,7 @@ type MergeDialogProps = {
   merge: MergeStatus;
   error?: string | null;
   onClose: () => void;
+  onClearError?: () => void;
   onStart: (branch: string) => void | Promise<void | boolean>;
   onContinue: () => void | Promise<void | boolean>;
   onAbort: () => void;
@@ -68,6 +69,7 @@ export function MergeDialog({
   merge,
   error,
   onClose,
+  onClearError,
   onStart,
   onContinue,
   onAbort,
@@ -83,6 +85,7 @@ export function MergeDialog({
   const [previewFiles, setPreviewFiles] = useState<MergeFileRow[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [alertDismissed, setAlertDismissed] = useState(false);
   const [backdropArmed, setBackdropArmed] = useState(false);
   const alive = useRef(true);
 
@@ -105,9 +108,13 @@ export function MergeDialog({
   const blend = selected ? fileKind(selected) === "blend" : false;
   const hasConflicts = Boolean(merge.has_conflicts);
   const alertText = error || loadError || (hasConflicts ? conflicts.map((item) => item.path).join(", ") : "");
-  const showAlert = Boolean(alertText) && step === "view objects";
+  const showAlert = Boolean(alertText) && step === "view objects" && !alertDismissed;
   const locked = Boolean(busy) || step === "wait";
   const objectCommit = inProgress ? merge.target_head || merge.to || incomingHash : incomingHash;
+
+  useEffect(() => {
+    setAlertDismissed(false);
+  }, [alertText]);
 
   useEffect(() => {
     alive.current = true;
@@ -242,7 +249,18 @@ export function MergeDialog({
           </p>
           <p className="w-full text-[14px] leading-5 text-foreground-muted">{author || copy.author}</p>
         </div>
-        {error && step === "select branch" ? <AlertBanner variant="destructive" title={copy.error} description={error} /> : null}
+        {error && step === "select branch" && !alertDismissed ? (
+          <AlertBanner
+            variant="destructive"
+            title={copy.error}
+            description={error}
+            closeLabel={copy.close}
+            onClose={() => {
+              setAlertDismissed(true);
+              onClearError?.();
+            }}
+          />
+        ) : null}
 
         {step === "select branch" ? (
           <div className="flex w-full flex-col gap-1">
@@ -274,7 +292,19 @@ export function MergeDialog({
 
         {step === "view objects" ? (
           <div className="flex w-full flex-col gap-2">
-            {showAlert ? <AlertBanner variant="destructive" title={copy.error} description={alertText} /> : null}
+            {showAlert ? (
+              <AlertBanner
+                variant="destructive"
+                title={copy.error}
+                description={alertText}
+                closeLabel={copy.close}
+                onClose={() => {
+                  setAlertDismissed(true);
+                  setLoadError(null);
+                  onClearError?.();
+                }}
+              />
+            ) : null}
             <div className="flex w-full items-center gap-2">
               <Input
                 value={search}

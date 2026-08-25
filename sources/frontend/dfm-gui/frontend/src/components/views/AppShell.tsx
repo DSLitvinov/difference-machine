@@ -1,4 +1,3 @@
-import { RepoStateBanners } from "@/components/items/RepoStateBanners";
 import { ProjectViewPanel } from "@/components/panels/ProjectViewPanel";
 import { FileViewPanel } from "@/components/panels/FileViewPanel";
 import { ContentViewPanel } from "@/components/panels/ContentViewPanel";
@@ -167,7 +166,6 @@ export function AppShell({
 
   return (
     <div className="flex h-full w-full min-h-0 flex-col overflow-hidden bg-background-light">
-      <RepoStateBanners locale={locale} status={status} merge={mergeStatus} onOpenMerge={onOpenMerge} />
       <div className="flex min-h-0 w-full flex-1 items-stretch">
         {fileLeft ? (
           <FileViewPanel

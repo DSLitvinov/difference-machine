@@ -50,7 +50,7 @@ Empty-варианты перечислены в спеке каноническ
 | **Detached banner** | Detached HEAD | `status.get.is_detached` |
 | **Settings** | пути, автор, язык | `setup.cfg` (не JSON API). Без темы |
 
-Баннеров merge/detached на кадрах `View /` нет — полосы по [states](../states/architecture.md), когда API так говорит, не выдумывать chrome.
+Баннеров merge/detached на кадрах `View /` нет — оверлей поверх окна (как toaster), с кнопкой закрыть, по [states](../states/architecture.md). Не выталкивать колонки.
 
 ---
 

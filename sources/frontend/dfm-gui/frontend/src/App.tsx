@@ -15,7 +15,8 @@ import {
   setLocale as persistLocale,
   onWailsEvent,
 } from "@/lib/bridge";
-import { AlertBanner } from "@/components/ui/alert";
+import { AlertBanner, AlertStack } from "@/components/ui/alert";
+import { RepoStateBanners } from "@/components/items/RepoStateBanners";
 import { t, type Locale } from "@/lib/i18n";
 import { dirtyPaths, isDirty } from "@/lib/status";
 import { parentRel } from "@/lib/folder-query";
@@ -856,6 +857,7 @@ export default function App() {
           merge={mergeStatus}
           error={mergeError}
           onClose={() => setMergeOpen(false)}
+          onClearError={() => setMergeError(null)}
           onStart={onMergeStart}
           onContinue={onMergeContinue}
           onAbort={() => void onMergeAbort()}
@@ -947,18 +949,31 @@ export default function App() {
           }}
         />
       ) : null}
-      {toast ? (
-        <div className="pointer-events-none fixed inset-x-0 top-4 z-[200] flex justify-center px-4">
-          <div className="pointer-events-auto w-full max-w-lg shadow-md">
+      {toast || shell === "app" ? (
+        <AlertStack>
+          {shell === "app" ? (
+            <RepoStateBanners
+              locale={locale}
+              status={status}
+              merge={mergeStatus}
+              hideMerge={mergeOpen}
+              onOpenMerge={() => {
+                setMergeError(null);
+                setMergeOpen(true);
+              }}
+            />
+          ) : null}
+          {toast ? (
             <AlertBanner
+              className="shadow-md"
               variant="destructive"
               title={t(locale).error}
               description={toast}
               closeLabel={t(locale).close}
               onClose={() => setToast(null)}
             />
-          </div>
-        </div>
+          ) : null}
+        </AlertStack>
       ) : null}
     </>
   );

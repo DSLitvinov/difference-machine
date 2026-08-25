@@ -100,3 +100,17 @@ export function AlertBanner({ variant, title, description, className, onClick, o
     </Alert>
   );
 }
+
+export function AlertStack({ children }: { children: React.ReactNode }) {
+  const items = React.Children.toArray(children).filter(Boolean);
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-4 z-[200] flex justify-center px-4">
+      <div className="pointer-events-auto flex w-full max-w-lg flex-col gap-2">
+        {items}
+      </div>
+    </div>
+  );
+}

@@ -18,8 +18,8 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | **Not a repository** | `Call` → `not a Forester repository` | First Start или toast + Open; не app shell с сеткой |
 | **Ready / clean** | `status.get` без staged/unstaged/untracked/renamed | обзор папки / файл / коммит по UI-измерениям |
 | **Dirty** | Любой из списков status непустой | бейджи на сетке; композер Create Commit; ограничения switch |
-| **Detached HEAD** | `is_detached: true` | баннер поверх текущего View; switch на ветку возвращает attached |
-| **Merge in progress** | `merge.status.in_progress` | баннер + диалог merge; отдельного `View / Merge` нет |
+| **Detached HEAD** | `is_detached: true` | баннер поверх текущего View, кнопка закрыть; switch на ветку возвращает attached |
+| **Merge in progress** | `merge.status.in_progress` | баннер поверх View + диалог merge; закрытие баннера не abort; отдельного `View / Merge` нет |
 | **Merge conflicts** | `has_conflicts` | список conflicts в диалоге; continue заблокирован пока не разрешено |
 
 `.DFM/` отсутствует и path выбран — это **Not a repository**, не ошибка сети.
