@@ -98,6 +98,8 @@ type AppState = {
   status: StatusSnapshot | null;
   entries: DirEntry[];
   entriesHasMore: boolean;
+  // Bumped on every full entries write so in-flight page loads can drop stale results.
+  entriesToken: number;
   commits: CommitSummary[];
   stashes: StashSummary[];
   branches: BranchSummary[];
@@ -159,6 +161,7 @@ export const useAppStore = create<AppState>((set) => ({
   status: null,
   entries: [],
   entriesHasMore: false,
+  entriesToken: 0,
   commits: [],
   stashes: [],
   branches: [],
@@ -169,7 +172,7 @@ export const useAppStore = create<AppState>((set) => ({
     resetThumbCache();
     resetRevisionCache();
     const locale: Locale = info.locale === "ru" ? "ru" : "en";
-    set({
+    set((state) => ({
       shell: info.shell === "app" ? "app" : "first-start",
       locale,
       repoPath: info.repoPath || "",
@@ -190,13 +193,14 @@ export const useAppStore = create<AppState>((set) => ({
       status: null,
       entries: [],
       entriesHasMore: false,
+      entriesToken: state.entriesToken + 1,
       commits: [],
       stashes: [],
       branches: [],
       mergeStatus: { in_progress: false, conflicts: [] },
       locks: [],
       toast: info.error || null,
-    });
+    }));
   },
   setLocale: (locale) => set({ locale }),
   setSidebarTab: (tab) =>
@@ -245,7 +249,7 @@ export const useAppStore = create<AppState>((set) => ({
   closeCommitComposer: () => set({ commitComposer: "closed", commitComposerPaths: null }),
   setToast: (message) => set({ toast: message }),
   setProfile: (name, email) => set({ userName: name, userEmail: email }),
-  setRepoMeta: (meta) => set(meta),
+  setRepoMeta: (meta) => set((state) => ({ ...meta, entriesToken: state.entriesToken + 1 })),
   appendEntries: (entries, hasMore) =>
     set((state) => {
       const seen = new Set(state.entries.map((entry) => entry.path));

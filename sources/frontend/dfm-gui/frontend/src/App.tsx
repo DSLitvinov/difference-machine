@@ -128,6 +128,8 @@ export default function App() {
   } | null>(null);
   const [stashConfirm, setStashConfirm] = useState<StashSummary | null>(null);
   const loadingMore = useRef(false);
+  const refreshChain = useRef<Promise<void>>(Promise.resolve());
+  const refreshQueued = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     document.documentElement.lang = locale === "ru" ? "ru" : "en";
@@ -220,7 +222,25 @@ export default function App() {
     });
   }, [shell, repoPath]);
 
-  async function refreshRepoMeta() {
+  // Watcher events, navigation effects and mutations all rebuild the same snapshot.
+  // Runs are serialized so a slow one cannot overwrite a newer one, and at most one
+  // run is queued behind the running one, so bursts collapse into a single reload.
+  function refreshRepoMeta(): Promise<void> {
+    if (refreshQueued.current) {
+      return refreshQueued.current;
+    }
+    const queued = refreshChain.current.then(() => {
+      refreshQueued.current = null;
+      return runRefreshRepoMeta();
+    });
+    refreshChain.current = queued;
+    refreshQueued.current = queued;
+    return queued;
+  }
+
+  async function runRefreshRepoMeta() {
+    const startRepo = useAppStore.getState().repoPath;
+    const startFolder = useAppStore.getState().folderPath;
     try {
       const [status, log, locksResult, branchList, stashList, mergeRaw] = await Promise.all([
         foresterCall("status.get") as Promise<StatusSnapshot>,
@@ -247,11 +267,18 @@ export default function App() {
           entries = byPaths.entries ?? [];
         }
       } else {
-        const path = useAppStore.getState().folderPath;
-        const entriesResult = (await foresterCall("workdir.entries", { path, offset: 0, limit: 200 })) as EntriesResult;
+        const entriesResult = (await foresterCall("workdir.entries", {
+          path: startFolder,
+          offset: 0,
+          limit: 200,
+        })) as EntriesResult;
         entries = entriesResult.entries ?? [];
         entriesHasMore = Boolean(entriesResult.has_more);
         folderEmpty = !(entriesResult.total ?? entries.length);
+      }
+      const latest = useAppStore.getState();
+      if (latest.repoPath !== startRepo || latest.folderPath !== startFolder || latest.changedOnly !== showChanged) {
+        return;
       }
       setRepoMeta({
         status,
@@ -266,6 +293,9 @@ export default function App() {
         hasCommits: commits.length > 0,
       });
     } catch {
+      if (useAppStore.getState().repoPath !== startRepo) {
+        return;
+      }
       setRepoMeta({
         status: null,
         folderEmpty: true,
@@ -289,10 +319,11 @@ export default function App() {
     loadingMore.current = true;
     const folder = state.folderPath;
     const offset = state.entries.length;
+    const token = state.entriesToken;
     try {
       const result = (await foresterCall("workdir.entries", { path: folder, offset, limit: 200 })) as EntriesResult;
       const latest = useAppStore.getState();
-      if (latest.folderPath !== folder || latest.changedOnly) {
+      if (latest.entriesToken !== token || latest.folderPath !== folder || latest.changedOnly) {
         return;
       }
       useAppStore.getState().appendEntries(result.entries ?? [], Boolean(result.has_more));
