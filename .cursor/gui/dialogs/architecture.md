@@ -44,7 +44,7 @@
 | Rename branch | Новое имя | `branch.rename` |
 | Delete branch | Не текущая ветка | `branch.delete` |
 | Switch dirty | Грязный worktree | повтор `repo.switch` с `auto_stash: true` |
-| Merge | Выбор ветки, ff-опции, конфликты | `merge.start` / `continue` / `abort`; объекты — `object.*` |
+| Merge | Выбор ветки → файлы/объекты → wait | `merge.start` / `continue` / `abort`; preview — `diff.name_status`, `object.list_by_file` |
 | Restore version | Перезаписать workdir деревом коммита | `restore.version` |
 | Restore files | Вернуть path из коммита | `restore.file`. С [File Commit Action](../components/items/header-file-commit-action.md) — один текущий path |
 | Revert / Reset | История | `commit.revert`, `commit.reset` + `mode` |
@@ -99,11 +99,12 @@
 
 ## Merge
 
-1. `merge.status` до открытия: если `in_progress` — диалог продолжения, не второй `start`.
-2. `merge.start` с именем **другой** ветки.
-3. Если `in_progress` + `has_conflicts` — список `conflicts` (`kind` text/binary).
-4. Пользователь правит файлы (внешний редактор через `workdir.open`) → `index.add` → `merge.continue`.
-5. `merge.abort` сбрасывает MERGE_HEAD.
+1. `merge.status` до открытия: если `in_progress` — сразу step view objects, не второй `start`.
+2. Select branch → **Next** (без `merge.start`) → view objects: `diff.name_status` + `object.list_by_file`.
+3. **Merge** → step wait, затем `merge.start` с именем **другой** ветки (или `merge.continue` если уже `in_progress`).
+4. Если `in_progress` + `has_conflicts` — список `conflicts` (`kind` text/binary) на view objects; continue заблокирован.
+5. Пользователь правит файлы (внешний редактор через `workdir.open`) → `index.add` → `merge.continue`.
+6. `merge.abort` сбрасывает MERGE_HEAD.
 
 Теги объектов DELETE/RENAME/MERGE пишутся в manifest через `object.tag.*` на выбранном коммите/файле; это не замена `merge.start`.
 

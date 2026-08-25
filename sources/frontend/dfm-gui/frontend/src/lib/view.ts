@@ -14,6 +14,7 @@ export type DerivedView =
   | "stages"
   | "stashes-null"
   | "create-commit"
+  | "create-commit-single-file"
   | "file-view"
   | "file-history"
   | "view-commit";
@@ -45,7 +46,7 @@ export function deriveView(input: ViewInput): DerivedView {
     return "view-commit";
   }
   if (input.commitComposer === "open") {
-    return "create-commit";
+    return input.selectionCount === 1 ? "create-commit-single-file" : "create-commit";
   }
   if (input.sidebarTab === "stages") {
     return input.stashEmpty ? "stashes-null" : "stages";
@@ -81,6 +82,7 @@ export function showRightColumn(view: DerivedView): boolean {
     view === "stages" ||
     view === "stashes-null" ||
     view === "create-commit" ||
+    view === "create-commit-single-file" ||
     view === "file-view"
   );
 }

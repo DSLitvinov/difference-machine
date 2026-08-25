@@ -26,6 +26,7 @@ difference_machine/
 ├── preferences.py           # AddonPreferences
 ├── properties/              # Scene PropertyGroups, UIList items
 ├── operators/               # bpy.ops.df.*
+├── scripts/                 # headless helpers (merge_apply_background.py)
 ├── ui/                      # Panels, UILists
 ├── utils/                   # API wrapper, helpers, sync, caches
 └── api/                     # libforester.* + python/python_bindings_json.py
@@ -124,7 +125,7 @@ Auto Save: `wm.save_mainfile` → `index.add(".")` → `commit.create` с соо
 
 | Скрипт | Расположение | Использование |
 |--------|--------------|---------------|
-| `merge_apply_background.py` | `sources/forester/scripts/` | Merge по тегам DELETE → RENAME → MERGE (background Blender) |
+| `merge_apply_background.py` | `scripts/` | Merge по тегам DELETE → RENAME → MERGE (background Blender). Forester берёт путь из `[addons] diffmachine_path` |
 | `object_export_background.py` | `operators/` | Экспорт объектов в background (вспомогательный) |
 
 Аддон **не** содержит `scripts/focus_object.py` (запланировано в roadmap).

@@ -149,11 +149,7 @@ func handleMergeStart(workPath string, args json.RawMessage) (interface{}, error
 		}
 		return successResult(), nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return mergeResultAfterCommand(workPath)
+	return mergeResultOrError(workPath, err)
 }
 
 func handleMergeContinue(workPath string, _ json.RawMessage) (interface{}, error) {
@@ -163,10 +159,7 @@ func handleMergeContinue(workPath string, _ json.RawMessage) (interface{}, error
 		}
 		return successResult(), nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return mergeResultAfterCommand(workPath)
+	return mergeResultOrError(workPath, err)
 }
 
 func handleMergeAbort(workPath string, _ json.RawMessage) (interface{}, error) {
@@ -177,6 +170,24 @@ func handleMergeAbort(workPath string, _ json.RawMessage) (interface{}, error) {
 		return successResult(), nil
 	})
 	return successResult(), err
+}
+
+func mergeResultOrError(workPath string, mergeErr error) (interface{}, error) {
+	result, statusErr := mergeResultAfterCommand(workPath)
+	if mergeErr == nil {
+		if statusErr != nil {
+			return nil, statusErr
+		}
+		return result, nil
+	}
+	if statusErr == nil {
+		if payload, ok := result.(map[string]interface{}); ok {
+			if inProgress, _ := payload["in_progress"].(bool); inProgress {
+				return result, nil
+			}
+		}
+	}
+	return nil, mergeErr
 }
 
 func mergeResultAfterCommand(workPath string) (interface{}, error) {

@@ -85,7 +85,7 @@
 | merge.status banner | ✅ | ❌ |
 | merge.start / continue / abort | ✅ dialog | ❌ |
 | Object tags DELETE/RENAME/MERGE | ✅ merge dialog | ✅ Mark To panel |
-| Background merge apply | — | ✅ `merge_apply_background.py` (forester/scripts) |
+| Background merge apply | — | ✅ `scripts/merge_apply_background.py` (addon; path from `diffmachine_path`) |
 
 ---
 

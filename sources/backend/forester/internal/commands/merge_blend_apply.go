@@ -57,14 +57,18 @@ func blenderConfig() (executable string, mergeScript string) {
 	if blenderSection == nil {
 		blenderSection = map[string]string{}
 	}
-	executable = strings.TrimSpace(blenderSection["path"])
+	executable = resolveBlenderExecutable(strings.TrimSpace(blenderSection["path"]))
 	mergeScript = strings.TrimSpace(blenderSection["merge_apply_script"])
 	foresterCLI := ""
 	if foresterSection != nil {
 		foresterCLI = strings.TrimSpace(foresterSection["path"])
 	}
+	addonPath := ""
+	if addonsSection := config["addons"]; addonsSection != nil {
+		addonPath = strings.TrimSpace(addonsSection["diffmachine_path"])
+	}
 	if mergeScript == "" {
-		mergeScript = resolveMergeApplyScript(executable, foresterCLI)
+		mergeScript = resolveMergeApplyScript(executable, foresterCLI, addonPath)
 	}
 	return executable, mergeScript
 }
@@ -76,6 +80,63 @@ var mergeApplyScriptCandidates = []string{
 	"../scripts/merge_apply_background.py",
 	"../../scripts/merge_apply_background.py",
 	"sources/forester/scripts/merge_apply_background.py",
+	"sources/backend/forester/scripts/merge_apply_background.py",
+	"backend/forester/scripts/merge_apply_background.py",
+	"sources/addons/blender/difference_machine/scripts/merge_apply_background.py",
+	"addons/blender/difference_machine/scripts/merge_apply_background.py",
+}
+
+func resolveBlenderExecutable(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+	info, err := os.Stat(path)
+	if err != nil || !info.IsDir() {
+		return path
+	}
+	macOSDir := filepath.Join(path, "Contents", "MacOS")
+	for _, name := range []string{"Blender", "blender"} {
+		candidate := filepath.Join(macOSDir, name)
+		if st, err := os.Stat(candidate); err == nil && !st.IsDir() {
+			return candidate
+		}
+	}
+	return path
+}
+
+func objectHasBlendMergeTag(obj *models.Object) bool {
+	if obj == nil || !strings.HasSuffix(strings.ToLower(filepath.ToSlash(obj.FilePath)), ".blend") {
+		return false
+	}
+	for _, tag := range obj.Tags {
+		switch strings.ToUpper(strings.TrimSpace(tag)) {
+		case "MERGE", "DELETE", "RENAME":
+			return true
+		}
+	}
+	return false
+}
+
+func repoHasBlendMergeMarks(repo *core.Repository, heads ...string) bool {
+	if repo == nil || repo.Manifests == nil {
+		return false
+	}
+	for _, hash := range heads {
+		if hash == "" {
+			continue
+		}
+		objects, err := repo.Manifests.GetObjectsByCommit(hash)
+		if err != nil {
+			continue
+		}
+		for _, obj := range objects {
+			if objectHasBlendMergeTag(obj) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func resolveMergeApplyScriptFromDir(startDir string) string {
@@ -96,9 +157,35 @@ func resolveMergeApplyScriptFromDir(startDir string) string {
 	return ""
 }
 
-func resolveMergeApplyScript(blenderPath, foresterCLI string) string {
+func mergeApplyScriptInAddon(addonPath string) string {
+	root := strings.TrimSpace(addonPath)
+	if root == "" {
+		return ""
+	}
+	info, err := os.Stat(root)
+	if err == nil && !info.IsDir() {
+		root = filepath.Dir(root)
+	}
+	for _, rel := range []string{
+		filepath.Join("scripts", "merge_apply_background.py"),
+		filepath.Join("operators", "merge_apply_background.py"),
+		"merge_apply_background.py",
+	} {
+		candidate := filepath.Join(root, rel)
+		if utils.Exists(candidate) {
+			return candidate
+		}
+	}
+	return ""
+}
+
+func resolveMergeApplyScript(blenderPath, foresterCLI, addonPath string) string {
 	if env := strings.TrimSpace(os.Getenv("DFM_MERGE_APPLY_SCRIPT")); env != "" && utils.Exists(env) {
 		return env
+	}
+
+	if script := mergeApplyScriptInAddon(addonPath); script != "" {
+		return script
 	}
 
 	if foresterCLI != "" {
@@ -133,7 +220,7 @@ func taggedObjectsForBlendMerge(repo *core.Repository, currentHead, targetHead, 
 	byName := make(map[string]*models.Object)
 	mergeTagged := func(objects []*models.Object) {
 		for _, obj := range objects {
-			if obj == nil || len(obj.Tags) == 0 {
+			if obj == nil || !objectHasBlendMergeTag(obj) {
 				continue
 			}
 			if filepath.ToSlash(obj.FilePath) != filePath {
@@ -243,7 +330,7 @@ func applyBlendMergeMarks(
 		return false, fmt.Errorf("blender.path is not configured in ~/.dfm/setup.cfg")
 	}
 	if mergeScript == "" {
-		return false, fmt.Errorf("merge apply script not found (set blender.merge_apply_script in ~/.dfm/setup.cfg)")
+		return false, fmt.Errorf("merge apply script not found (set addons.diffmachine_path to the Difference Machine addon in ~/.dfm/setup.cfg)")
 	}
 	if !utils.Exists(mergeScript) {
 		return false, fmt.Errorf("merge apply script not found: %s", mergeScript)

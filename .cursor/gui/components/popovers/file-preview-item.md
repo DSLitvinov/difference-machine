@@ -13,7 +13,7 @@ Figma: [Popover (File Preview Item)](https://www.figma.com/design/qlwKiMPZblz96V
 
 | Иконка | Copy | API (панель) |
 |--------|------|----------------|
-| plus | `Add in commit` | `index.add` |
+| plus | `Add in commit` | `index.add`. Один path и композер закрыт — ещё открыть [Create Commit single file](../../views/project-browse.md) |
 | eye-off | `Ignored` | ignore-правило, если есть в продукте; не выдумывать `.gitignore` UI |
 | pencil-line | `Rename` | диалог rename → `workdir.rename` |
 | trash-2 | `Delete in history` | не `workdir.delete`; история — отдельный сценарий |

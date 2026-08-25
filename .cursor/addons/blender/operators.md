@@ -116,8 +116,8 @@
 | `mesh_io.py` | save/load object to .blend |
 | `object_export_background.py` | headless export |
 
-**Forester script:** `sources/forester/scripts/merge_apply_background.py`
+**Merge apply script:** `scripts/merge_apply_background.py` (same folder as the installed addon). Forester resolves it from `[addons] diffmachine_path` in Settings / `~/.dfm/setup.cfg`. Optional override: `[blender] merge_apply_script`.
 
-Args: `--blend_file`, `--objects_json`, `--output_file`
+Args: `--objects_json`, `--theirs_blend`, `--repo_path`, `--output_file`
 
 Order: Delete → Rename → Merge.

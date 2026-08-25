@@ -79,7 +79,8 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | несколько файлов в сетке | File More Info |
 | `sidebarTab = stages`, есть stash | Stash (сетка папки) |
 | `sidebarTab = stages`, `stash.list` пуст | [Stashes Null](../views/project-browse.md): Folder Empty + File Info Null, не сетка workdir |
-| `commitComposer = open` | Create Commit |
+| `commitComposer = open`, один файл | [Create Commit single file](../views/project-browse.md) `6036:14491`: справа File Info |
+| `commitComposer = open`, иначе | Create Commit: справа Select More Files |
 | `contentContext = file` | [file-preview](../views/file-preview.md) |
 | `contentContext = file-revision` | [file-history](../views/file-history.md) |
 | `contentContext = commit` | [commit](../views/commit.md) |

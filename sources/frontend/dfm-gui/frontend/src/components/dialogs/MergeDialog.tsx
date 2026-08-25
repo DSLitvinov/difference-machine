@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertBanner } from "@/components/ui/alert";
@@ -15,12 +16,19 @@ import { FigmaIcon } from "@/components/chrome/FigmaIcon";
 import { foresterCall } from "@/lib/bridge";
 import { fileKind } from "@/lib/file-kind";
 import { t, type Locale } from "@/lib/i18n";
+import type { NameStatusFile } from "@/lib/revision-cache";
 import type { BranchSummary, MergeStatus } from "@/store/app-store";
 
 type BlendObject = {
   object_name?: string;
   tags?: string[];
 };
+
+type MergeFileRow = {
+  path: string;
+};
+
+type MergeStep = "select branch" | "view objects" | "wait";
 
 type MergeDialogProps = {
   locale: Locale;
@@ -31,8 +39,8 @@ type MergeDialogProps = {
   merge: MergeStatus;
   error?: string | null;
   onClose: () => void;
-  onStart: (branch: string) => void;
-  onContinue: () => void;
+  onStart: (branch: string) => void | Promise<void | boolean>;
+  onContinue: () => void | Promise<void | boolean>;
   onAbort: () => void;
 };
 
@@ -41,6 +49,14 @@ export function mergeHeading(current: string, incoming: string, locale: Locale =
   const from = incoming.trim() || copy.commitPlaceholderA;
   const to = current.trim() || copy.commitPlaceholderB;
   return copy.mergeHeading(from, to);
+}
+
+function nextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
 }
 
 export function MergeDialog({
@@ -58,29 +74,47 @@ export function MergeDialog({
 }: MergeDialogProps) {
   const copy = t(locale);
   const others = branches.filter((branch) => branch.name && branch.name !== currentBranch);
+  const inProgress = Boolean(merge.in_progress);
+  const [step, setStep] = useState<MergeStep>(inProgress ? "view objects" : "select branch");
   const [pickedBranch, setPickedBranch] = useState("");
   const [search, setSearch] = useState("");
   const [selectedPath, setSelectedPath] = useState("");
   const [objects, setObjects] = useState<BlendObject[]>([]);
+  const [previewFiles, setPreviewFiles] = useState<MergeFileRow[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [backdropArmed, setBackdropArmed] = useState(false);
+  const alive = useRef(true);
 
-  const inProgress = Boolean(merge.in_progress);
-  const step = inProgress ? "view objects" : "select branch";
   const selectedBranch = pickedBranch || others[0]?.name || "";
   const incoming = inProgress ? (merge.branch ?? selectedBranch) : selectedBranch;
+  const incomingHash = useMemo(() => {
+    const named = incoming ? branches.find((branch) => branch.name === incoming)?.commit_hash : "";
+    return named || merge.target_head || merge.to || "";
+  }, [branches, incoming, merge.target_head, merge.to]);
   const conflicts = merge.conflicts ?? [];
+  const fileRows: MergeFileRow[] = inProgress ? conflicts : previewFiles;
   const query = search.trim().toLowerCase();
   const files = useMemo(() => {
     if (!query) {
-      return conflicts;
+      return fileRows;
     }
-    return conflicts.filter((item) => item.path.toLowerCase().includes(query));
-  }, [conflicts, query]);
+    return fileRows.filter((item) => item.path.toLowerCase().includes(query));
+  }, [fileRows, query]);
   const selected = files.some((item) => item.path === selectedPath) ? selectedPath : (files[0]?.path ?? "");
   const blend = selected ? fileKind(selected) === "blend" : false;
   const hasConflicts = Boolean(merge.has_conflicts);
-  const alertText = error || (hasConflicts ? conflicts.map((item) => item.path).join(", ") : "");
+  const alertText = error || loadError || (hasConflicts ? conflicts.map((item) => item.path).join(", ") : "");
   const showAlert = Boolean(alertText) && step === "view objects";
+  const locked = Boolean(busy) || step === "wait";
+  const objectCommit = inProgress ? merge.target_head || merge.to || incomingHash : incomingHash;
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const id = window.setTimeout(() => setBackdropArmed(true), 0);
@@ -88,12 +122,48 @@ export function MergeDialog({
   }, []);
 
   useEffect(() => {
-    if (!selected || !blend) {
+    if (step !== "view objects" || inProgress) {
+      return;
+    }
+    if (!incomingHash) {
+      setPreviewFiles([]);
+      setPreviewLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setPreviewLoading(true);
+    setLoadError(null);
+    void (async () => {
+      try {
+        const result = (await foresterCall("diff.name_status", {
+          from: "HEAD",
+          to: incomingHash,
+        })) as { files?: NameStatusFile[] };
+        if (!cancelled) {
+          setPreviewFiles((result.files ?? []).map((item) => ({ path: item.path })));
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setPreviewFiles([]);
+          setLoadError(err instanceof Error ? err.message : "request failed");
+        }
+      } finally {
+        if (!cancelled) {
+          setPreviewLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [step, inProgress, incomingHash]);
+
+  useEffect(() => {
+    if (step !== "view objects" || !selected || !blend) {
       setObjects([]);
       return;
     }
-    const commitHash = merge.target_head || merge.to || merge.current_head || merge.from || "";
-    if (!commitHash) {
+    if (!objectCommit) {
       setObjects([]);
       return;
     }
@@ -101,7 +171,7 @@ export function MergeDialog({
     void (async () => {
       try {
         const result = (await foresterCall("object.list_by_file", {
-          commit_hash: commitHash,
+          commit_hash: objectCommit,
           file_path: selected,
         })) as { objects?: BlendObject[] };
         if (!cancelled) {
@@ -116,7 +186,7 @@ export function MergeDialog({
     return () => {
       cancelled = true;
     };
-  }, [selected, blend, merge.target_head, merge.to, merge.current_head, merge.from]);
+  }, [step, selected, blend, objectCommit]);
 
   function onCancel() {
     if (inProgress) {
@@ -126,18 +196,34 @@ export function MergeDialog({
     onClose();
   }
 
+  async function runMerge() {
+    flushSync(() => setStep("wait"));
+    await nextPaint();
+    try {
+      const stayOpen = inProgress ? await onContinue() : await onStart(selectedBranch);
+      if (alive.current && stayOpen !== false) {
+        setStep((current) => (current === "wait" ? "view objects" : current));
+      }
+    } catch {
+      if (alive.current) {
+        setStep("view objects");
+      }
+    }
+  }
+
   const objectHeader = blend && objects.length > 0 ? copy.objectsInBlend(objects.length) : copy.objectsNotDetected;
 
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
       role="presentation"
-      onClick={busy || !backdropArmed ? undefined : onClose}
+      onClick={locked || !backdropArmed ? undefined : onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="merge-dialog-title"
+        aria-busy={step === "wait"}
         className="relative flex w-[796px] flex-col gap-4 overflow-clip rounded-md border border-border bg-background p-6 shadow-lg"
         onClick={(event) => event.stopPropagation()}
       >
@@ -146,7 +232,7 @@ export function MergeDialog({
           className="absolute right-[11px] top-[11px] flex size-6 items-center justify-center"
           aria-label={copy.close}
           onClick={onClose}
-          disabled={busy}
+          disabled={locked}
         >
           <FigmaIcon src="icons/x.svg" size={16} />
         </button>
@@ -162,7 +248,7 @@ export function MergeDialog({
           <div className="flex w-full flex-col gap-1">
             <p className="text-[14px] font-medium leading-5 text-foreground">{copy.branchName}</p>
             <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild disabled={busy || others.length === 0}>
+              <DropdownMenuTrigger asChild disabled={locked || others.length === 0}>
                 <button
                   type="button"
                   className="flex min-h-9 w-full items-center gap-2 rounded-[6px] border border-border bg-background px-3 py-2.5 shadow-sm"
@@ -184,14 +270,16 @@ export function MergeDialog({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        ) : (
+        ) : null}
+
+        {step === "view objects" ? (
           <div className="flex w-full flex-col gap-2">
             {showAlert ? <AlertBanner variant="destructive" title={copy.error} description={alertText} /> : null}
             <div className="flex w-full items-center gap-2">
               <Input
                 value={search}
                 placeholder={copy.typeToSearch}
-                disabled={busy}
+                disabled={locked}
                 onChange={(event) => setSearch(event.target.value)}
               />
               <Button type="button" variant="outline" size="icon" aria-label={copy.filter}>
@@ -201,7 +289,7 @@ export function MergeDialog({
             <div className="flex h-[206px] w-full overflow-clip rounded-md border border-border">
               <div className="flex h-full w-1/2 min-w-0 flex-col overflow-clip border-r border-border">
                 <div className="flex h-[38px] shrink-0 items-center bg-background-muted px-2 py-1.5">
-                  <p className="truncate text-[12px] leading-4 text-foreground">{copy.filesChangedCount(conflicts.length)}</p>
+                  <p className="truncate text-[12px] leading-4 text-foreground">{copy.filesChangedCount(fileRows.length)}</p>
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto">
                   {files.map((item) => (
@@ -236,22 +324,39 @@ export function MergeDialog({
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
-        <div className="flex w-full items-start justify-end gap-2">
-          <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
-            {copy.cancel}
-          </Button>
-          {step === "select branch" ? (
-            <Button type="button" disabled={busy || !selectedBranch} onClick={() => onStart(selectedBranch)}>
-              {copy.next}
+        {step === "wait" ? (
+          <p className="w-full text-[14px] leading-5 text-foreground-muted">{copy.mergePleaseWait}</p>
+        ) : null}
+
+        {step !== "wait" ? (
+          <div className="flex w-full items-start justify-end gap-2">
+            <Button type="button" variant="outline" disabled={locked} onClick={onCancel}>
+              {copy.cancel}
             </Button>
-          ) : (
-            <Button type="button" disabled={busy || hasConflicts} onClick={onContinue}>
-              {copy.merge}
-            </Button>
-          )}
-        </div>
+            {step === "select branch" ? (
+              <Button
+                type="button"
+                disabled={locked || !selectedBranch}
+                onClick={() => {
+                  setPreviewLoading(true);
+                  setStep("view objects");
+                }}
+              >
+                {copy.next}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                disabled={locked || hasConflicts || previewLoading}
+                onClick={() => void runMerge()}
+              >
+                {copy.merge}
+              </Button>
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );

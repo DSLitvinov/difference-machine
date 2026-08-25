@@ -87,6 +87,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | View / Project view / Stages | `4385:12759` | обзор |
 | View / Project view / Stashes Null | `6035:12553` | обзор |
 | View / Project view / Create Commit | `4385:10858` | обзор |
+| View / Project view / Create Commit single file | `6036:14491` | обзор |
 | View / Project view / File View - IMG | `4246:6471` | файл |
 | View / Project view / File View - IMG ( Collapse ) | `4276:7423` | файл |
 | View / Project view / File View - Text | `4290:23880` | файл |
@@ -141,7 +142,8 @@ File View --Back `<`--> обзор папки
 File View --select commit--> History of File
 History of File --Current preview--> File View
 Project History --select commit--> View Commit
-Uncommitted --Commit All / composer--> Create Commit
+Uncommitted --Commit All / composer--> Create Commit | Create Commit single file (один файл выбран)
+File Info --Add in commit--> Create Commit single file
 вкладка Stash --> Stash | Stashes Null (пусто)
 ```
 

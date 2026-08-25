@@ -133,7 +133,7 @@ func Merge(args []string) error {
 			if opts.FFOnly {
 				return performFastForward(repoPath, repo, currentBranch, targetHead)
 			}
-			if opts.NoFF {
+			if opts.NoFF || repoHasBlendMergeMarks(repo, currentHead, targetHead) {
 				return performMergeCommit(repoPath, repo, storage, refs, hooks, currentBranch, currentHead, targetHead, opts.BranchToMerge, opts)
 			}
 			return performFastForward(repoPath, repo, currentBranch, targetHead)

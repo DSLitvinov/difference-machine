@@ -37,6 +37,7 @@
 | `api` | `path` | путь к `libforester.*` / `forester.dll` |
 | `forester` | `path` | CLI path → derive `../lib/` |
 | `blender` | `path` | `get_blender_executable()` (background scripts) |
+| `addons` | `diffmachine_path` | GUI Settings; Forester uses this to find `scripts/merge_apply_background.py` |
 
 Запись из addon:
 

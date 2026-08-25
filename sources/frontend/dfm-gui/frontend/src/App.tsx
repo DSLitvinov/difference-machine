@@ -370,7 +370,7 @@ export default function App() {
     try {
       await foresterCall("index.add", { files: paths });
       await refreshRepoMeta();
-      useAppStore.getState().openCommitComposer();
+      useAppStore.getState().openCommitComposer(paths);
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
     } finally {
@@ -404,7 +404,8 @@ export default function App() {
     const author = useAppStore.getState().userName.trim();
     setBusy(true);
     try {
-      const paths = dirtyPaths(useAppStore.getState().status);
+      const scoped = useAppStore.getState().commitComposerPaths;
+      const paths = scoped ?? dirtyPaths(useAppStore.getState().status);
       if (paths.length > 0) {
         await foresterCall("index.add", { files: paths });
       }
@@ -632,9 +633,9 @@ export default function App() {
     }
   }
 
-  async function onMergeStart(branch: string) {
+  async function onMergeStart(branch: string): Promise<boolean> {
     if (!branch || useAppStore.getState().mergeStatus.in_progress) {
-      return;
+      return true;
     }
     setBusy(true);
     setMergeError(null);
@@ -645,17 +646,21 @@ export default function App() {
       const latest = asMergeStatus(useAppStore.getState().mergeStatus);
       if (!result.in_progress && !latest.in_progress) {
         setMergeOpen(false);
+        return false;
       }
+      return true;
     } catch (err) {
       setMergeError(err instanceof Error ? err.message : "request failed");
+      await refreshRepoMeta();
+      return true;
     } finally {
       setBusy(false);
     }
   }
 
-  async function onMergeContinue() {
+  async function onMergeContinue(): Promise<boolean> {
     if (useAppStore.getState().mergeStatus.has_conflicts) {
-      return;
+      return true;
     }
     setBusy(true);
     setMergeError(null);
@@ -666,10 +671,13 @@ export default function App() {
       const latest = asMergeStatus(useAppStore.getState().mergeStatus);
       if (!result.in_progress && !latest.in_progress) {
         setMergeOpen(false);
+        return false;
       }
+      return true;
     } catch (err) {
       setMergeError(err instanceof Error ? err.message : "request failed");
       await refreshRepoMeta();
+      return true;
     } finally {
       setBusy(false);
     }
@@ -697,6 +705,9 @@ export default function App() {
     try {
       await foresterCall("index.add", { files });
       await refreshRepoMeta();
+      if (files.length === 1 && useAppStore.getState().commitComposer !== "open") {
+        useAppStore.getState().openCommitComposer(files);
+      }
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
     }
@@ -845,8 +856,8 @@ export default function App() {
           merge={mergeStatus}
           error={mergeError}
           onClose={() => setMergeOpen(false)}
-          onStart={(branch) => void onMergeStart(branch)}
-          onContinue={() => void onMergeContinue()}
+          onStart={onMergeStart}
+          onContinue={onMergeContinue}
           onAbort={() => void onMergeAbort()}
         />
       ) : null}

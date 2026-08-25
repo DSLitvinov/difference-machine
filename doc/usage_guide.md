@@ -155,8 +155,8 @@ If records already exist for the same commit and file, the addon refreshes the m
 Requirements:
 
 - `.blend` objects are tagged and synced to manifests before merge.
-- `blender.path` and `blender.merge_apply_script` are configured in `~/.dfm/setup.cfg`.
-- Default merge script: `sources/addons/blender/difference_machine/scripts/merge_apply_background.py`.
+- `blender.path` and `addons.diffmachine_path` are configured in `~/.dfm/setup.cfg` (Settings).
+- Merge script: `{diffmachine_path}/scripts/merge_apply_background.py`. Optional override: `blender.merge_apply_script`.
 
 High-level flow:
 
