@@ -72,8 +72,9 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 |---------|----------------|
 | `shell = first-start` | [First Start](../views/first-start.md) |
 | папка пустая, нет коммитов, вкладка History | Empty DFM Project |
-| файлы есть, нет истории репо в сайдбаре | Empty DFM Folder |
-| корень, selection none | Root Folder (± Collapse) |
+| нет `.DFM/` (`isRepository` = нет) | Empty DFM Folder |
+| репо есть, файлы есть, нет коммитов | Root Folder + History Null ([NoHistoryProject](../components/atoms/card-no-history-project.md)) |
+| корень, selection none, есть история | Root Folder (± Collapse) |
 | вложенный path | SubFolder |
 | один файл в сетке | File Info |
 | несколько файлов в сетке | File More Info |

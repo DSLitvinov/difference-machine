@@ -206,7 +206,7 @@ JSON `repo.switch` не восстанавливает auto-stash при воз�
 | `workdir.entries` | `path`, `offset`, `limit` (default 200); `path: "*"` — все файлы | `{entries, total, has_more}` |
 | `workdir.entries_by_paths` | `paths[]` | `{entries}` |
 | `workdir.metadata` | `path` | size, mime, timestamps, для изображений width/height |
-| `workdir.thumbnail` | `path` | `kind`: `image` \| `text` \| `placeholder` |
+| `workdir.thumbnail` | `path` | `kind`: `image` (растр: картинка, кадр видео, PNG из `.blend`) \| `text` \| `placeholder`. Кадр видео — тот же `kind: image`, не отдельный kind. Подробно: [thumbnails.md](./thumbnails.md) |
 | `workdir.file` | `path` | полный растр `{content_base64, mime, size}`; только изображения; Content View файла, не сетка/info |
 | `workdir.open` | `path`, опционально `editor` | OS default или указанный executable |
 | `workdir.rename` | `path`, `new_name` (имя без `/` `\`) | `{success, new_path}` |

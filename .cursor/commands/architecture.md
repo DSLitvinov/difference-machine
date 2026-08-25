@@ -1,6 +1,8 @@
 # Difference Machine - Project Architecture
 
-Agent-facing overview of the current monorepo. Public user documentation starts at `README.md`; build details live in `builder/README.md`; repository metadata details live in `.cursor/commands/database.md`.
+Agent-facing overview of the current monorepo. **Version:** Forester 0.8 · GUI 0.8.1 · Blender addon 0.8.0.
+
+Public user documentation starts at `README.md`; build details live in `builder/README.md`; repository metadata details live in `.cursor/commands/database.md`.
 
 ## Product Components
 
@@ -104,9 +106,10 @@ The default payload is `builder/dist/payload`:
 
 ```text
 payload/
-├── bin/                 # Forester CLI
+├── bin/                 # Forester CLI + bundled ffmpeg
 ├── lib/                 # Native API library
 ├── apps/                # GUI when built with --gui
+├── share/icons/         # Forester hicolor icons (Linux)
 ├── addons/blender/difference_machine/
 ├── manifest.json
 ├── setup.cfg.template
@@ -117,17 +120,21 @@ Build scripts do not install into system paths and do not write `~/.dfm/setup.cf
 
 ## Configuration
 
-Global configuration is `~/.dfm/setup.cfg`. It can be written by the GUI or by `./builder/build.sh --write-local-config`.
+Global files live in `~/.dfm/`. They can be written by the GUI or by `./builder/build.sh --write-local-config` (`setup.cfg` only).
 
-Common sections:
+`setup.cfg`:
 
-- `[forester] path`
+- `[forester] path`, `ffmpeg_path`
 - `[api] path`
 - `[addons] diffmachine_path`
 - `[blender] path`, `merge_apply_script`
+- `[user] name`, `email`
+- `[ui] theme`, `language`
+
+`repos.cfg`:
+
 - `[current repo] path`
 - `[repo] path_N`
-- `[user] name`, `email`
 
 Repository-local configuration is `.DFM/config` and is created by `forester init`.
 

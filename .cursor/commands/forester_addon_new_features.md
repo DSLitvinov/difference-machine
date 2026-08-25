@@ -16,8 +16,8 @@
 
 #### 1.1 Синхронизация screenshot_hash ↔ screenshot_path ✅
 **Файлы:**
-- `sources/forester/internal/core/storage.go`, `sources/forester/internal/commands/commit.go`
-- `sources/forester/api/capi.go` (если нужно)
+- `sources/backend/forester/internal/core/storage.go`, `sources/backend/forester/internal/commands/commit.go`
+- `sources/backend/forester/api/capi.go` (если нужно)
 
 **Задачи:**
 - [x] Добавить поле `screenshot_path` в структуру Commit (если еще нет) ✅
@@ -34,8 +34,8 @@
 
 #### 1.2 Manifest store `objects` для реестра объектов и Mark To ✅
 **Файлы:**
-- `sources/forester/internal/core/manifest_store.go`
-- `sources/forester/internal/models/object.go` (опционально)
+- `sources/backend/forester/internal/core/manifest_store.go`
+- `sources/backend/forester/internal/models/object.go` (опционально)
 
 **Задачи:**
 
@@ -71,8 +71,8 @@
 
 #### 1.3 Review store для Review системы ✅
 **Файлы:**
-- `sources/forester/internal/core/review_store.go`
-- `sources/forester/internal/models/review.go` (опционально)
+- `sources/backend/forester/internal/core/review_store.go`
+- `sources/backend/forester/internal/models/review.go` (опционально)
 
 **Задачи:**
 

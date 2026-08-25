@@ -156,12 +156,14 @@ JSON API открывает репозиторий как session handle и вы
 
 Ключевые группы методов:
 - Repository: `repo.init`, `repo.switch`, `repo.rebuild`
-- Status/index: `status.get`, `index.add`, `index.drop`
-- Commits/history: `commit.create`, `commit.get`, `commit.files`, `commit.revert`, `commit.reset`, `log.get`
+- Status/index: `status.get`, `index.add` (метода `index.drop` нет)
+- Commits/history: `commit.create`, `commit.get`, `commit.revert`, `commit.reset`, `log.get` (список файлов ревизии — `diff.name_status`, не `commit.files`)
+- Stash: `stash.list`, `stash.apply`, `stash.drop`
 - Branches: `branch.list`, `branch.create`, `branch.delete`, `branch.rename`
+- Compare/restore: `compare.extract`, `restore.version`, `restore.file`
 - Workdir/diff/blob: `workdir.*`, `diff.*`, `blob.get`
 - Merge: `merge.status`, `merge.start`, `merge.continue`, `merge.abort`
-- Locks and objects: `lock.*`, `object.*`
+- Locks and objects: `lock.*`, `object.*` (`object.list_by_commit`, `object.list_by_file`)
 
 Публичные entrypoints:
 - `pkg/jsonapi` — используется GUI напрямую в процессе
@@ -1095,7 +1097,7 @@ Blobs автоматически сжимаются перед сохранен�
 1. **Хуки** - возможность выполнения скриптов на разных этапах
 2. **Модульная архитектура** - легко добавлять новые команды
 3. **Модели данных** - легко расширяемые структуры
-4. **API** - через JSON API и bindings в `sources/forester/api` для интеграции с другими инструментами
+4. **API** - через JSON API и bindings в `sources/backend/forester/api` для интеграции с другими инструментами
 
 ## Полный список команд
 

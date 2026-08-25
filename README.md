@@ -1,6 +1,6 @@
 # Difference Machine
 
-**Version:** 0.8.
+**Version:** Forester 0.8 · GUI 0.8.1 · Blender addon 0.8.0
 
 Difference Machine is a local, Git-like version control system for Blender projects. It tracks ordinary files, branches, commits, and merges, and adds Blender-specific object workflows so `.blend` conflicts can be resolved by choosing which objects to keep, delete, rename, or merge.
 
@@ -17,7 +17,8 @@ Difference Machine is a local, Git-like version control system for Blender proje
 - File-based repository metadata in `.DFM/`; there is no SQLite database layer.
 - Object-level Blender workflows with MERGE, DELETE, and RENAME tags stored in manifests.
 - JSON API for the GUI, Blender addon, native library consumers, and `forester api`.
-- Cross-platform build payload with Forester CLI, native API library, GUI, and Blender addon.
+- Desktop GUI: workdir folder grid with lazy thumbnails (images, video frames, `.blend`, text), commit composer, stash, merge, branches, file compare, Light/Dark theme.
+- Cross-platform build payload with Forester CLI, bundled ffmpeg (previews), native API library, GUI, and Blender addon.
 
 ## Repository Layout
 
@@ -40,6 +41,7 @@ difference-machine/
 |-----------|-------------|
 | Forester CLI | Go 1.22+ |
 | Native API library | Go 1.22+ and a C compiler for cgo |
+| Previews | Bundled `ffmpeg` in the payload (`bin/ffmpeg`). On macOS the build copies ffmpeg from Homebrew or `DFM_FFMPEG_PATH` |
 | GUI | Go 1.22+, Node.js 20+, npm, Wails v2 |
 | Blender addon | Blender 4.5.0+ |
 
@@ -68,7 +70,7 @@ forester add .
 forester commit "Initial commit"
 ```
 
-The global configuration file is `~/.dfm/setup.cfg`. Build scripts can write a development config with `--write-local-config`.
+Global config is `~/.dfm/setup.cfg` (author, Forester/API/addon/Blender paths, UI theme). Known repositories live in `~/.dfm/repos.cfg`. Build scripts can write a development config with `--write-local-config`.
 
 ## Documentation
 
@@ -80,7 +82,9 @@ The global configuration file is `~/.dfm/setup.cfg`. Build scripts can write a d
 | Build and release payloads | `builder/README.md` |
 | Build script internals | `builder/scripts/README.md` |
 | GUI architecture | `.cursor/gui/architecture.md` |
+| GUI JSON API contract | `.cursor/gui/gui_backend/jsonapi.md` |
 | Forester API | `sources/backend/forester/api/README.md` |
+| Blender addon | `sources/addons/blender/difference_machine/README.md` |
 | Blender addon API setup | `sources/addons/blender/difference_machine/API_SETUP.md` |
 
 ## Build
@@ -93,7 +97,19 @@ The canonical build pipeline lives in `builder/`. Platform entry points are:
 ./builder/windows/build.sh --gui --installer
 ```
 
-The default payload is `builder/dist/payload` and contains `bin/`, `lib/`, optional `apps/`, `addons/blender/difference_machine/`, `manifest.json`, `setup.cfg.template`, and `VERSION`.
+The default payload is `builder/dist/payload`:
+
+```text
+payload/
+├── bin/                 # Forester CLI + bundled ffmpeg
+├── lib/                 # Native API library
+├── apps/                # GUI when built with --gui
+├── share/icons/         # Forester hicolor icons (Linux)
+├── addons/blender/difference_machine/
+├── manifest.json
+├── setup.cfg.template
+└── VERSION
+```
 
 ## License
 

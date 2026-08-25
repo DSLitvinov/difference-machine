@@ -20,9 +20,14 @@ path = /Applications/Blender.app
 email = user@example.com
 name = "User Name"
 
+[ui]
+theme = light
+language = en
+
 [forester]
 installed = true
 path = /opt/DiffMachine/bin/forester
+ffmpeg_path = /opt/DiffMachine/bin/ffmpeg
 
 [api]
 installed = true

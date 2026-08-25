@@ -7,19 +7,34 @@ This guide covers the three user-facing entry points: the Forester CLI, the Diff
 ### Requirements
 
 - Forester binary in `PATH` or configured in `~/.dfm/setup.cfg`.
+- Bundled `ffmpeg` next to the CLI (`bin/ffmpeg`) for image and video thumbnails. macOS builds copy ffmpeg from Homebrew or `DFM_FFMPEG_PATH`.
 - Blender 4.5.0+ for `.blend` object workflows.
 - Difference Machine GUI for desktop repository browsing and configuration.
 - Blender addon for object tags, compare, asset, lock, and merge workflows.
 
 ### Global Config
 
-File: `~/.dfm/setup.cfg`
+Two files under `~/.dfm/`:
 
-Common sections:
+| File | Purpose |
+|------|---------|
+| `setup.cfg` | Author, Forester/API/addon/Blender paths, UI theme and language |
+| `repos.cfg` | Current repository and the known-repo list |
+
+`setup.cfg` common sections:
 
 ```ini
+[user]
+name=Name
+email=user@example.com
+
+[ui]
+theme=light
+language=en
+
 [forester]
 path=/path/to/forester
+ffmpeg_path=/path/to/ffmpeg
 
 [api]
 path=/path/to/libforester.so
@@ -30,18 +45,25 @@ diffmachine_path=/path/to/difference_machine/addon
 [blender]
 path=/path/to/blender
 merge_apply_script=/path/to/merge_apply_background.py
-
-[current repo]
-path=/path/to/current/project
 ```
 
-The builder can write a development config:
+`repos.cfg`:
+
+```ini
+[current repo]
+path=/path/to/current/project
+
+[repo]
+path_1=/path/to/current/project
+```
+
+The builder can write a development `setup.cfg`:
 
 ```bash
 ./builder/build.sh --gui --write-local-config
 ```
 
-See `builder/setup.cfg.example` for the full set of sections, including `[gc]`, `[python_bindings]`, `[plugins]`, and `[user]`.
+See `builder/setup.cfg.example` for the full set of sections, including `[gc]`, `[python_bindings]`, and `[plugins]`.
 
 ## 2. Forester CLI
 
@@ -69,9 +91,12 @@ forester switch feature/ui
 forester switch -a main
 ```
 
-Merge and recover:
+Stash, merge, and recover:
 
 ```bash
+forester stash save "WIP"
+forester stash list
+forester stash pop
 forester merge feature/ui
 forester merge --abort
 forester merge --continue
@@ -87,6 +112,7 @@ forester show <commit>
 forester restore <file>
 forester restore-version <commit>
 forester reset --mixed <commit>
+forester compare <full_hash>
 forester api status.get --args '{}'
 ```
 
@@ -97,17 +123,21 @@ References:
 
 ## 3. Difference Machine GUI
 
-The GUI is a Wails desktop application in `sources/frontend/dfm-gui`. Architecture and API contract: `.cursor/gui/architecture.md`.
+The GUI is a Wails desktop application in `sources/frontend/dfm-gui`. Architecture: `.cursor/gui/architecture.md`. JSON API contract: `.cursor/gui/gui_backend/jsonapi.md`.
 
 Typical use:
 
 1. Launch the built app from `builder/dist/payload/apps/` or a release package.
-2. Configure Forester, Blender, addon, and repository paths in Settings.
-3. Open or initialize a repository.
-4. Use the sidebar for branch status and history.
-5. Use preview, info, diff, merge, reset, restore, and commit dialogs for daily work.
+2. First Start: **Create** a repository or **Open** an existing project folder.
+3. Configure author, Light/Dark theme, Forester/API/addon/Blender paths, and known repositories in Settings.
+4. Browse the workdir grid (default 48×48 previews). Thumbnails cover images, video frames, `.blend` files, and text snippets.
+5. Use the sidebar for the current branch, uncommitted files, **History**, and **Stash**.
+6. Create a commit from the Uncommitted composer (not a separate dialog).
+7. Open a file for preview; inspect a commit for text/image/binary diffs.
+8. **Compare with working tree** extracts the commit into `.DFM/tmp_review` and opens that folder in the OS file manager.
+9. Merge, switch, reset, and restore from the window menus and dialogs.
 
-The GUI stores global settings in `~/.dfm/setup.cfg` and calls Forester through the JSON API.
+The GUI stores paths and author in `~/.dfm/setup.cfg`, the open repo in `~/.dfm/repos.cfg`, and talks to Forester in-process through the JSON API.
 
 ## 4. Blender Addon
 
@@ -118,7 +148,7 @@ Install from a built payload:
 3. Select `builder/dist/payload/addons/blender/difference_machine`.
 4. Enable the addon.
 
-For development, use `sources/addons/blender/difference_machine`.
+For development, use `sources/addons/blender/difference_machine`. API library setup: `sources/addons/blender/difference_machine/API_SETUP.md`.
 
 After enabling, panels appear in **3D View -> Sidebar -> Difference Machine**.
 
@@ -185,3 +215,4 @@ If automatic object-level merge cannot resolve a conflict, open ours/theirs in B
 - `.dfmignore` in the project root controls ignored files.
 - Object-level operations require Blender; ordinary file operations do not.
 - `restore-version` fully overwrites the working tree to match a commit but does not touch `.DFM/`.
+- Only `workdir.open` may open `.DFM/tmp_review`; other workdir endpoints still hide `.DFM/`.

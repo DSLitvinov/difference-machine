@@ -353,7 +353,7 @@ Examples:
 
 Notes:
 - The response is a JSON envelope: `{"ok":true,"result":...}` or `{"ok":false,"error":"..."}`.
-- Methods are implemented by `sources/forester/internal/jsonapi/dispatch.go`.
+- Methods are implemented by `sources/backend/forester/internal/jsonapi/dispatch.go`.
 
 lol
 ~~~

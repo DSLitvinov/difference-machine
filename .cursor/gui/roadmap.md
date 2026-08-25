@@ -252,7 +252,7 @@ Tokens (First Start / Empty Project): `#fafafa`, `#ffffff`, `#18181b`, `#09090b`
 
 ## Open design questions (do not invent)
 
-See [views/architecture.md](./views/architecture.md): Empty DFM Folder vs uninitialized folder; First Start vs Empty Project dual Create; Stash API; View Commit with no selected path; binary History of File.
+See [views/architecture.md](./views/architecture.md): First Start vs Empty Project dual Create; View Commit with no selected path; binary History of File.
 
 ---
 

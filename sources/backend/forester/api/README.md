@@ -5,7 +5,9 @@ Forester exposes two native API layers:
 - **JSON API**: the primary integration surface used by the Blender addon, GUI, and `forester api`.
 - **Structured C API**: typed C structs for lower-level integrations that prefer direct function calls.
 
-Prefer the JSON API for new integrations. It stays closest to the GUI/addon contract and covers repository, status, index, commit, branch, workdir, diff, merge, lock, object metadata, and maintenance operations.
+Prefer the JSON API for new integrations. It stays closest to the GUI/addon contract and covers repository, status, index, commit, branch, stash, workdir, diff, merge, lock, object metadata, and maintenance operations.
+
+GUI method contract: `.cursor/gui/gui_backend/jsonapi.md`. Dispatcher: `sources/backend/forester/internal/jsonapi/dispatch.go`.
 
 ## Build
 
@@ -24,7 +26,7 @@ The native library is staged into `builder/dist/payload/lib/`:
 For component-only development:
 
 ```bash
-cd sources/forester
+cd sources/backend/forester
 make build-lib
 ```
 
@@ -38,6 +40,8 @@ char* ForesterCall(int64_t handle, const char* method, const char* argsJSON);
 void ForesterClose(int64_t handle);
 void ForesterFreeCString(char* ptr);
 ```
+
+The GUI uses the same methods in-process via `pkg/jsonapi` (`Open` / `Call` / `Close` / `CallStateless`), not the C library.
 
 The response is always a JSON envelope:
 
@@ -71,18 +75,24 @@ CLI usage:
 forester api status.get --args '{}' -C /path/to/repo
 ```
 
-Method categories are implemented in `sources/forester/internal/jsonapi/dispatch.go`:
+Method categories in `sources/backend/forester/internal/jsonapi/dispatch.go`:
 
 - Repository: `repo.init`, `repo.switch`, `repo.rebuild`
-- Status and index: `status.get`, `index.add`, `index.drop`
-- Commits and history: `commit.create`, `commit.get`, `commit.files`, `commit.revert`, `commit.reset`, `log.get`
+- Status and index: `status.get`, `index.add`
+- Commits and history: `commit.create`, `commit.get`, `commit.revert`, `commit.reset`, `log.get`
+- Stash: `stash.list`, `stash.apply`, `stash.drop`
 - Branches: `branch.list`, `branch.create`, `branch.delete`, `branch.rename`
-- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.metadata`, `workdir.thumbnail`, `workdir.file`, `workdir.open`, `workdir.search`, `workdir.rename`, `workdir.delete` (OS Trash)
+- Compare and restore: `compare.extract`, `restore.version`, `restore.file`
+- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.entries_by_paths`, `workdir.metadata`, `workdir.thumbnail`, `workdir.file`, `workdir.open`, `workdir.search`, `workdir.rename`, `workdir.delete` (OS Trash)
 - Diff and blobs: `diff.name_status`, `diff.stat`, `diff.text`, `blob.get`
 - Merge: `merge.status`, `merge.start`, `merge.continue`, `merge.abort`
 - Locks: `lock.list`, `lock.acquire`, `lock.release`
-- Objects: `object.add`, `object.get`, `object.list`, `object.list_by_file`, `object.delete`, `object.delete_by_file`, tag and metadata methods
+- Objects: `object.add`, `object.get`, `object.list_by_commit`, `object.list_by_file` (alias `objects.by_file`), `object.delete`, `object.delete_by_file`, `object.tag.add`, `object.tag.remove`, `object.metadata.set`
 - Maintenance: `gc.run`
+
+There is no `index.drop` or `commit.files`. Revision file lists come from `diff.name_status`.
+
+Relative paths in args and results use `/` (`utils.NormalizeRepoRelPath`).
 
 ## Structured C API
 

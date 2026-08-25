@@ -13,9 +13,9 @@ Build the library from the project root:
 ./builder/build.sh
 ```
 
-The build copies the native library and JSON bindings into the addon automatically. For manual setup, copy from `builder/dist/payload/lib/` (library) and `sources/forester/api/python_bindings_json.py` (into `api/python/`).
+The build copies the native library and JSON bindings into the addon automatically. For manual setup, copy from `builder/dist/payload/lib/` (library) and `sources/backend/forester/api/python_bindings_json.py` (into `api/python/`).
 
-The addon uses the JSON C API (`ForesterOpen` / `ForesterCall`). Python bindings live in `api/python/python_bindings_json.py` and are kept in sync with `sources/forester/api/python_bindings_json.py`.
+The addon uses the JSON C API (`ForesterOpen` / `ForesterCall`). Python bindings live in `api/python/python_bindings_json.py` and are kept in sync with `sources/backend/forester/api/python_bindings_json.py`.
 
 If the native library is not bundled inside the extension folder, the addon loads it from:
 
@@ -24,19 +24,22 @@ If the native library is not bundled inside the extension folder, the addon load
 
 ## Supported JSON API Areas
 
-The method list is implemented in `sources/forester/internal/jsonapi/dispatch.go`. Current categories include:
+The method list is implemented in `sources/backend/forester/internal/jsonapi/dispatch.go`. Current categories include:
 
 - Repository: `repo.init`, `repo.switch`, `repo.rebuild`
-- Status and index: `status.get`, `index.add`, `index.drop`
-- Commits and history: `commit.create`, `commit.get`, `commit.files`, `commit.revert`, `commit.reset`, `log.get`
+- Status and index: `status.get`, `index.add`
+- Commits and history: `commit.create`, `commit.get`, `commit.revert`, `commit.reset`, `log.get`
+- Stash: `stash.list`, `stash.apply`, `stash.drop`
 - Branches: `branch.list`, `branch.create`, `branch.delete`, `branch.rename`
 - Compare and restore: `compare.extract`, `restore.version`, `restore.file`
-- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.metadata`, `workdir.thumbnail`, `workdir.open`, `workdir.search`
+- Workdir and previews: `workdir.tree`, `workdir.entries`, `workdir.entries_by_paths`, `workdir.metadata`, `workdir.thumbnail`, `workdir.file`, `workdir.open`, `workdir.search`, `workdir.rename`, `workdir.delete`
 - Diff and blobs: `diff.name_status`, `diff.stat`, `diff.text`, `blob.get`
 - Merge: `merge.status`, `merge.start`, `merge.continue`, `merge.abort`
 - Locks: `lock.list`, `lock.acquire`, `lock.release`
-- Object metadata: `object.add`, `object.get`, `object.list`, `object.list_by_file`, `object.delete`, `object.delete_by_file`, object tag methods, and object metadata methods
+- Objects: `object.add`, `object.get`, `object.list_by_commit`, `object.list_by_file` (alias `objects.by_file`), `object.delete`, `object.delete_by_file`, `object.tag.add`, `object.tag.remove`, `object.metadata.set`
 - Maintenance: `gc.run`
+
+There is no `index.drop` or `commit.files`. Canonical GUI/addon contract: `.cursor/gui/gui_backend/jsonapi.md`.
 
 ## Troubleshooting
 

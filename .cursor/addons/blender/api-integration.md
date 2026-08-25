@@ -14,7 +14,7 @@
 2. Sibling `lib/` от `[forester] path` (portable install)
 3. `addon/api/libforester.*` / `forester.dll`
 
-Python bindings: **только** `addon/api/python/python_bindings_json.py` (синхрон с `sources/forester/api/python_bindings_json.py`).
+Python bindings: **только** `addon/api/python/python_bindings_json.py` (синхрон с `sources/backend/forester/api/python_bindings_json.py`).
 
 При `ImportError` — `_API_AVAILABLE = False`; все методы wrapper возвращают ошибку «Forester API not available».
 
@@ -45,7 +45,7 @@ Python bindings: **только** `addon/api/python/python_bindings_json.py` (с
 | `release_lock` | `lock.release` | Unlock Files |
 | `add_object` | `object.add` | Mark To sync |
 | `get_object` | `object.get` | object_mark_sync load |
-| `get_objects_by_commit` | `object.list` | Mark To load |
+| `get_objects_by_commit` | `object.list_by_commit` | Mark To load |
 | `get_objects_by_file` | `object.list_by_file` | wrapper |
 | `add_tag_to_object` | object tag methods | via `add_object` |
 | `remove_tag_from_object` | object tag methods | via sync |
@@ -62,6 +62,7 @@ Python bindings: **только** `addon/api/python/python_bindings_json.py` (с
 | Область | Методы | Примечание |
 |---------|--------|------------|
 | Merge | `merge.status`, `merge.start`, `merge.continue`, `merge.abort` | merge через Mark To + background script |
+| Stash | `stash.list`, `stash.apply`, `stash.drop` | GUI-only; `scene.df_stashes` в addon без панели |
 | Workdir / preview | `workdir.*` | GUI-only |
 | Diff | `diff.*`, `blob.get` | GUI-only |
 | Review | review store API | roadmap 2.8 |

@@ -137,8 +137,8 @@ jsonapi.Close(h)
 
 **Forester (JSON API)**
 
-- Репозиторий, ветки, коммиты, index, status, diff, blob, merge, locks, manifests, GC
-- Сканирование workdir, метаданные файла, thumbnail, rename, удаление в корзину ОС, поиск, open
+- Репозиторий, ветки, коммиты, index, status, diff, blob, stash, merge, locks, manifests, GC, compare, restore
+- Сканирование workdir, метаданные файла, thumbnail (картинка / кадр видео / `.blend` / текст), rename, удаление в корзину ОС, поиск, open
 
 **Wails backend**
 
@@ -168,11 +168,12 @@ jsonapi.Close(h)
 | Репозиторий | `repo.init`, список путей в cfg; Clean = удаление `.DFM/` | меню [Header Window](./components/items/header-window.md), First Start |
 | Рабочая копия | `status.get`, `workdir.*`, `index.add` | Project: дерево, сетка default 48×48, dirty |
 | История | `log.get`, `commit.*`, `diff.*`, `blob.get` | History: список коммитов, файлы ревизии; LRU — [revision-cache](./gui_frontend/revision-cache.md) |
+| Stash | `stash.list`, `stash.apply`, `stash.drop` | вкладка Stash / [Stashes Null](./views/project-browse.md); не `status.get.staged_*` |
 | Ветки | `branch.*`, `repo.switch` | селектор ветки, диалоги |
 | Сравнение | `compare.extract`, `restore.*` | extract в tmp_review; GUI Compare with working tree — `open: true` (файловый менеджер в папке) |
 | Слияние | `merge.*`, `object.*` | диалог merge, конфликты, теги объектов |
 | Блокировки | `lock.*` | индикатор и действия на файле |
-| Настройки | cfg, не JSON API | пути, автор, язык |
+| Настройки | cfg, не JSON API | пути, автор, язык, тема Light/Dark |
 
 Детализация поверхностей: [views](./views/architecture.md). Колонки: [panels](./panels/architecture.md). Модалки: [dialogs](./dialogs/architecture.md). Состояния: [states](./states/architecture.md).
 
@@ -209,9 +210,12 @@ jsonapi.Close(h)
 | `repos.cfg` | `[current repo] path` | Открытый репозиторий |
 | `repos.cfg` | `[repo] path_N` | Список известных репозиториев |
 | `setup.cfg` | `[forester] path` | CLI (экосистема / bootstrap) |
+| `setup.cfg` | `[forester] ffmpeg_path` | ffmpeg для превью (payload `bin/ffmpeg`) |
 | `setup.cfg` | `[api] path` | Native library для Blender addon |
 | `setup.cfg` | `[addons] diffmachine_path` | Путь аддона |
 | `setup.cfg` | `[blender] path` | Исполняемый Blender |
+| `setup.cfg` | `[ui] theme` | `light` \| `dark` |
+| `setup.cfg` | `[ui] language` | язык UI |
 
 Репозиторный `.DFM/config` создаёт `repo.init`, GUI его не подменяет.
 
