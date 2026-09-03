@@ -1,0 +1,61 @@
+package main
+
+import (
+	"embed"
+	"log"
+
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
+)
+
+//go:embed all:frontend/dist
+var assets embed.FS
+
+func main() {
+	app := NewApp()
+
+	width, height := firstStartWidth, firstStartHeight
+	minW, minH := firstStartWidth, firstStartHeight
+	if repos, err := loadRepoState(); err == nil && repos.Current != "" && isForesterRepo(repos.Current) {
+		width, height = loadAppWindowSize()
+		minW, minH = appMinWidth, appMinHeight
+	}
+
+	err := wails.Run(&options.App{
+		Title:            appName,
+		Width:            width,
+		Height:           height,
+		MinWidth:         minW,
+		MinHeight:        minH,
+		Frameless:        false,
+		BackgroundColour: &options.RGBA{R: 250, G: 250, B: 250, A: 255},
+		Menu:             app.applicationMenu(),
+		AssetServer: &assetserver.Options{
+			Assets: assets,
+		},
+		OnStartup:     app.startup,
+		OnBeforeClose: app.beforeClose,
+		OnShutdown:    app.shutdown,
+		Bind: []interface{}{
+			app,
+		},
+		Mac: &mac.Options{
+			TitleBar:             mac.TitleBarDefault(),
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
+			About: &mac.AboutInfo{
+				Title:   appName,
+				Message: "Prototype 0.8.1",
+			},
+		},
+		Windows: &windows.Options{
+			DisableWindowIcon: false,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}

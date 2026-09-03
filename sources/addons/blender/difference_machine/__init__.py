@@ -1,0 +1,88 @@
+"""
+Difference Machine - Version control for Blender projects.
+"""
+
+bl_info = {
+    "name": "Difference Machine",
+    "author": "Dmitry Litvinov",
+    "version": (0, 8, 0),
+    "blender": (4, 5, 0),
+    "location": "View3D > Sidebar > Difference Machine",
+    "description": "Version control for Blender projects using Forester API",
+    "category": "Object",
+    "doc_url": "https://gitflic.ru/project/nopomuk/difference-machine",
+}
+
+import bpy
+import logging
+
+from .utils.logging_config import setup_logging, get_logger
+
+setup_logging(log_level=logging.DEBUG)
+logger = get_logger(__name__)
+
+from . import preferences
+from . import properties
+from . import operators
+from . import ui
+from .utils import auto_save
+
+_modules = [
+    preferences,
+    properties,
+    operators,
+    ui,
+]
+
+
+def register():
+    """Register all addon classes."""
+    preferences.register()
+    properties.register()
+    operators.register()
+    ui.register()
+
+    try:
+        from .utils.helpers import get_addon_preferences
+        prefs = get_addon_preferences(bpy.context)
+        if hasattr(prefs, "load_from_config"):
+            prefs.load_from_config()
+    except (AttributeError, KeyError, TypeError):
+        pass
+
+    # Background merge apply must exit after the script; persistent timers keep Blender alive
+    # and can deadlock Forester (merge waits on Blender while auto-save calls the API).
+    if not getattr(bpy.app, "background", False):
+        bpy.app.timers.register(auto_save.check_scheduled_gc, first_interval=60.0)
+        bpy.app.timers.register(auto_save.check_auto_save_version, first_interval=10.0, persistent=True)
+
+    logger.info("Difference Machine addon registered")
+
+
+def unregister():
+    """Unregister all addon classes."""
+    try:
+        bpy.app.timers.unregister(auto_save.check_scheduled_gc)
+    except (ValueError, KeyError):
+        pass
+    try:
+        bpy.app.timers.unregister(auto_save.check_auto_save_version)
+    except (ValueError, KeyError):
+        pass
+
+    ui.unregister()
+    operators.unregister()
+    properties.unregister()
+    preferences.unregister()
+
+    try:
+        from .utils.forester_api import close_api
+        close_api()
+    except Exception:
+        pass
+
+    logger.info("Difference Machine addon unregistered")
+
+
+if __name__ == "__main__":
+    register()

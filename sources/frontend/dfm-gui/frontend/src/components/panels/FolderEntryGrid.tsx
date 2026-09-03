@@ -1,0 +1,188 @@
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { FolderGridTile } from "@/components/items/FolderGridTile";
+import { FileGridTile } from "@/components/items/FileGridTile";
+import { columnCount, gridPreviewSize, tileRowHeight, wheelZoomDelta, GRID_GAP, GRID_PAD, GRID_TRACK_DEFAULT } from "@/lib/grid";
+import { letterStatus } from "@/lib/status";
+import { peekThumb, scheduleVisibleThumbs, setThumbLruLimit, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
+import { useAppStore, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
+import type { MouseEvent } from "react";
+
+type FolderEntryGridProps = {
+  repoPath: string;
+  entries: DirEntry[];
+  selection: string[];
+  status: StatusSnapshot | null;
+  locks: FileLock[];
+  hasMore?: boolean;
+  onSelect: (path: string, event: MouseEvent) => void;
+  onOpenFolder: (path: string) => void;
+  onOpenFile?: (path: string) => void;
+  onNeedMore?: () => void;
+  onFileMenu?: (path: string, event: MouseEvent) => void;
+  onFolderMenu?: (path: string, event: MouseEvent) => void;
+};
+
+function asThumbRequest(entry: DirEntry): ThumbRequest {
+  return {
+    path: entry.path,
+    name: entry.name,
+    size: entry.size ?? 0,
+    mtime: entry.modified ?? 0,
+  };
+}
+
+export function FolderEntryGrid({
+  repoPath,
+  entries,
+  selection,
+  status,
+  locks,
+  hasMore,
+  onSelect,
+  onOpenFolder,
+  onOpenFile,
+  onNeedMore,
+  onFileMenu,
+  onFolderMenu,
+}: FolderEntryGridProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef(GRID_TRACK_DEFAULT);
+  const [innerWidth, setInnerWidth] = useState(GRID_TRACK_DEFAULT);
+  const minTrack = useAppStore((s) => s.gridTrack);
+  const setGridTrack = useAppStore((s) => s.setGridTrack);
+  useThumbEpoch();
+
+  const nCols = columnCount(innerWidth, minTrack);
+  const previewSize = gridPreviewSize(minTrack);
+  trackRef.current = minTrack;
+
+  const rowCount = Math.ceil(entries.length / nCols) || 0;
+  const rowH = tileRowHeight(minTrack);
+
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => tileRowHeight(trackRef.current) + GRID_GAP,
+    overscan: 2,
+    paddingStart: GRID_PAD,
+    paddingEnd: GRID_PAD,
+  });
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    const measure = () => {
+      setInnerWidth(Math.max(0, el.clientWidth - GRID_PAD * 2));
+      virtualizer.measure();
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [virtualizer]);
+
+  useEffect(() => {
+    virtualizer.measure();
+  }, [nCols, rowH, entries.length, virtualizer]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      return;
+    }
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      setGridTrack(useAppStore.getState().gridTrack - wheelZoomDelta(event) * 0.35);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [setGridTrack]);
+
+  const virtualRows = virtualizer.getVirtualItems();
+  const startRow = virtualRows[0]?.index ?? 0;
+  const endRow = virtualRows[virtualRows.length - 1]?.index ?? 0;
+  const startCell = startRow * nCols;
+  const endCell = Math.min(entries.length, (endRow + 1) * nCols);
+  const visibleFiles = entries.slice(startCell, endCell).filter((entry) => !entry.is_dir && !entry.missing);
+  const visiblePaths = visibleFiles.map((entry) => `${entry.path}:${entry.size ?? 0}:${entry.modified ?? 0}`).join("\0");
+
+  useEffect(() => {
+    setThumbLruLimit(visibleFiles.length);
+    const files = visibleFiles.map(asThumbRequest);
+    const center = Math.max(0, Math.floor((files.length - 1) / 2));
+    scheduleVisibleThumbs(repoPath, files, center);
+  }, [repoPath, visiblePaths]);
+
+  const onNeedMoreRef = useRef(onNeedMore);
+  onNeedMoreRef.current = onNeedMore;
+
+  useEffect(() => {
+    if (hasMore && rowCount > 0 && endRow >= rowCount - 2) {
+      onNeedMoreRef.current?.();
+    }
+  }, [hasMore, endRow, rowCount, entries.length]);
+
+  return (
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4">
+      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+        {virtualRows.map((row) => {
+          const slice = entries.slice(row.index * nCols, row.index * nCols + nCols);
+          return (
+            <div
+              key={row.key}
+              className="absolute left-0 right-0 grid items-start gap-2"
+              style={{
+                transform: `translateY(${row.start}px)`,
+                gridTemplateColumns: `repeat(${nCols}, minmax(0, 1fr))`,
+              }}
+            >
+              {slice.map((entry) => {
+                if (entry.is_dir) {
+                  return (
+                    <FolderGridTile
+                      key={entry.path}
+                      name={entry.name}
+                      itemCount={entry.item_count ?? 0}
+                      ignored={entry.ignored}
+                      selected={selection.includes(entry.path)}
+                      previewSize={previewSize}
+                      onSelect={(event) => onSelect(entry.path, event)}
+                      onOpen={() => onOpenFolder(entry.path)}
+                      onMenu={(event) => onFolderMenu?.(entry.path, event)}
+                    />
+                  );
+                }
+                const thumb = entry.missing ? undefined : peekThumb(repoPath, asThumbRequest(entry));
+                const locked = locks.some((item) => item.file_path === entry.path);
+                return (
+                  <FileGridTile
+                    key={entry.path}
+                    name={entry.name}
+                    selected={selection.includes(entry.path)}
+                    letter={letterStatus(entry.path, status)}
+                    ignored={entry.ignored}
+                    locked={locked}
+                    src={thumb?.kind === "image" ? thumb.blobUrl : undefined}
+                    text={thumb?.kind === "text" ? thumb.text : undefined}
+                    stub={thumb?.kind === "placeholder"}
+                    missing={entry.missing}
+                    previewSize={previewSize}
+                    onSelect={(event) => onSelect(entry.path, event)}
+                    onOpen={() => onOpenFile?.(entry.path)}
+                    onMenu={(event) => onFileMenu?.(entry.path, event)}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

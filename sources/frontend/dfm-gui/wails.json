@@ -1,0 +1,21 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "difference-machine",
+  "outputfilename": "difference-machine",
+  "frontend:dir": "frontend",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "wailsjsdir": "./frontend",
+  "author": {
+    "name": "Difference Machine"
+  },
+  "info": {
+    "companyName": "Difference Machine",
+    "productName": "Difference Machine",
+    "productVersion": "0.8.1",
+    "copyright": "Copyright © 2026",
+    "comments": "Forester graphical client"
+  }
+}

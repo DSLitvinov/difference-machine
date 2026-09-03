@@ -1,0 +1,30 @@
+---
+description: All comments must be written in English
+alwaysApply: true
+---
+
+# Comments in English
+
+All code comments in this project must be written in English.
+
+- Use English for single-line comments (`//`)
+- Use English for multi-line comments (`/* */`)
+- Use English for documentation strings (docstrings)
+- Use English for TODO/FIXME/NOTE annotations
+
+### Examples
+
+```python
+# Good: Load repository configuration on startup
+# Bad: Загрузить конфигурацию репозитория при запуске
+```
+
+```java script, React
+# Good: Load repository configuration on startup
+# Bad: Загрузить конфигурацию репозитория при запуске
+```
+
+```go
+// Good: Load repository configuration on startup
+// Bad: Загрузить конфигурацию репозитория при запуске
+```

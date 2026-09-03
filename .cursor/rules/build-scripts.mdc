@@ -1,0 +1,43 @@
+---
+description: Conventions for builder shell scripts (distribution pipeline)
+globs: builder/**/*
+alwaysApply: false
+---
+
+# Builder scripts
+
+## Purpose
+
+Build scripts produce a **distribution payload** at `DFM_DIST` (default `builder/dist/payload`). They do not install into system paths, Blender, or write `~/.dfm/setup.cfg` unless explicitly requested (`--write-local-config`).
+
+Platform installers (DMG, tar.gz, NSIS) live under `builder/macos/`, `builder/linux/`, `builder/windows/`.
+
+## Layout contract
+
+```
+builder/dist/payload/
+├── bin/           Forester CLI + ffmpeg (+ forester.ico on Windows)
+├── lib/           Native API library
+├── apps/          Forester GUI (macOS .app, Linux binary, Windows .exe, optional --gui)
+├── share/icons/   Forester hicolor icons (Linux)
+├── addons/blender/difference_machine/
+│   └── api/       Native lib + python/ bindings (embedded at build time)
+├── manifest.json
+├── setup.cfg.template
+└── VERSION
+```
+
+Release artifacts: `builder/dist/DifferenceMachine-*`
+
+## Script structure
+
+- **Delegate**: `builder/build.sh` → `builder/{macos,linux,windows}/build.sh`
+- **Payload path**: `builder/scripts/lib/dfm_dist.sh` — `ensure_dfm_dist`
+- **Shared pipeline**: `builder/scripts/lib/build_common.sh`
+- **Staging**: `builder/.staging/` — cleaned by `clean_build.sh`
+- **Comments**: English only
+
+## Avoid
+
+- Monolithic multi-platform `build.sh` with all flags
+- OS install scripts in the build pipeline

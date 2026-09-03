@@ -1,0 +1,36 @@
+---
+description: OS-aware path normalization (relative vs absolute)
+alwaysApply: true
+---
+
+# Path normalization
+
+Two path levels — never mix them. Full spec: `.cursor/interface/paths.md`.
+
+## Relative (API, UI, VCS)
+
+- Always **forward slashes**: `assets/scene.blend`, `.DFM/tmp_review`
+- Normalize on input: `filepath.ToSlash`, trim `./`, trim leading/trailing `/`
+- Go: `utils.NormalizeRepoRelPath` / `canonicalRelPath` in jsonapi
+- Join to filesystem: `filepath.Join(repoRoot, filepath.FromSlash(rel))` or `utils.JoinRepoPath`
+
+## Absolute (filesystem, cfg, OS open)
+
+- **Native OS separators**: `/` on Unix, `\` on Windows
+- Normalize before store/compare: `filepath.Abs` + `filepath.Clean`
+- Before `open` / `xdg-open` / `ShellExecute`: `filepath.EvalSymlinks` on the native abs path
+
+## Rules
+
+| Do | Don't |
+|----|-------|
+| Accept `\` in API input, normalize to `/` for relative (`ReplaceAll` — not only `ToSlash`) | Store relative paths with `\` in JSON/UI |
+| Use `FromSlash(rel)` before `filepath.Dir` / `Join` | Call `filepath.Dir` on slash-only paths without `FromSlash` |
+| Return native abs from FS operations (toast, cfg) | Return mixed `C:/foo\bar` without cleaning |
+| Compare abs paths case-insensitively on Windows | Compare raw strings across platforms |
+
+## Compare / tmp_review
+
+- API path: `.DFM/tmp_review` (relative, `/`)
+- FS path: `filepath.Join(repoPath, ".DFM", "tmp_review")` (native abs)
+- Only `workdir.open` may access `.DFM/tmp_review`; other workdir endpoints still hide `.DFM/`

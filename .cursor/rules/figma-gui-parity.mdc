@@ -1,0 +1,41 @@
+---
+description: GUI must match Figma mockups — no extra UI not in designs
+alwaysApply: true
+---
+
+# Figma / GUI parity
+
+**Rule:** Do not add GUI elements, copy, or chrome that are **not** in the Figma mockups or written interface specs derived from them.
+
+## Before adding UI
+
+1. Pick the **layer** you are implementing:
+   - Screen composition → `.cursor/gui/views/` (`View / …`)
+   - Column slots → `.cursor/gui/panels/` (`Panel / …`)
+   - Geometry / variants → `.cursor/gui/components/` (`Atom /`, `Item /`)
+2. Fetch the linked **variant-set** node (not the whole canvas `4191:5772`).
+3. Do not take colors or extra chrome from a `View /` screenshot when an `Atom /` or `Item /` exists.
+4. If a `View /` hides the right column, do not keep File Info in the layout.
+
+If it is not in the mockup or spec, **do not ship it** in the frontend (no “helpful” counters, hints, badges, or debug-style labels).
+
+## Examples
+
+| Do not add (unless spec/Figma) | OK when in mockup/spec |
+|-------------------------------|------------------------|
+| `showing 2 of 3` pagination hint in grid header | `Files (References)` section title |
+| Extra status lines under section headers | Toolbar controls from `4026:4988` |
+| Ad-hoc tooltips explaining internal pagination | Empty states named in specs |
+| File Info column on Empty DFM Project | File Info Null on Root Folder |
+
+## Specs vs implementation
+
+- **Specs** follow Figma; implementation follows specs.
+- `View /` specs say which panels sit together. Panel specs say slots. Atom specs say pixels.
+- Backend-driven behavior (pagination, virtualization) may exist **without** extra user-visible labels unless the design shows them. How: [virtual-scroll.md](../gui/gui_frontend/virtual-scroll.md).
+- The folder grid **column count** follows the window (CSS `auto-fill` + `minmax(106px, 1fr)`), not the 772-wide Figma frame. Do not paint “N columns”. Gap 8 and padding 16 stay from the mockup. Default preview **48×48**. Spec: [content-view.md](../gui/panels/content-view.md).
+- If a label is needed for a11y only, use `aria-*` / `sr-only`, not visible copy.
+
+## When Figma is unclear
+
+Ask or update the interface spec first — do not invent visible UI and document it later. Open questions live in [views/architecture.md](../gui/views/architecture.md).

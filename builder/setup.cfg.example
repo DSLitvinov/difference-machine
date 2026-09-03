@@ -1,0 +1,37 @@
+[gc]
+interval.day = 90
+reflog.expire.days = 90
+
+[python_bindings]
+installed = true
+path = /opt/DiffMachine/lib/python
+
+[plugins]
+blender_enabled = true
+
+[blender]
+path = /Applications/Blender.app
+# Optional override. Defaults (first match wins):
+#   Forester.app/Contents/Resources/share/scripts/merge_apply_background.py
+#   <install folder>/share/scripts/merge_apply_background.py
+# merge_apply_script = /Applications/Difference Machine/Forester.app/Contents/Resources/share/scripts/merge_apply_background.py
+
+[user]
+email = user@example.com
+name = "User Name"
+
+[ui]
+theme = light
+language = en
+
+[forester]
+installed = true
+path = /opt/DiffMachine/bin/forester
+ffmpeg_path = /opt/DiffMachine/bin/ffmpeg
+
+[api]
+installed = true
+path = /opt/DiffMachine/lib/libforester.so
+
+[addons]
+diffmachine_path = /opt/DiffMachine/addons/blender/difference_machine

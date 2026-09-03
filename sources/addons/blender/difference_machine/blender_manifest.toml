@@ -1,0 +1,21 @@
+schema_version = "1.0.0"
+
+id = "difference_machine"
+version = "0.8.0"
+name = "Difference Machine"
+tagline = "Version control for Blender projects using Forester API"
+maintainer = "Dmitry Litvinov <nopomuk@yandex.ru>"
+type = "add-on"
+
+website = "https://gitflic.ru/project/nopomuk/difference-machine"
+# Tags must come from Blender's allowed list (singular)
+tags = ["Object", "Version Control"]
+
+blender_version_min = "4.5.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+[permissions]
+files = "Import and export assets, versions files"
