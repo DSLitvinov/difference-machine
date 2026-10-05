@@ -70,6 +70,7 @@ interface GoApp {
   ) => Promise<void>;
   RunGarbageCollection: (reflogExpireDays: number) => Promise<GCRunResult>;
   SelectFile: () => Promise<string>;
+  SelectAPILibrary: (cliPath: string) => Promise<string>;
   SelectApplication: () => Promise<string>;
   SetLocale: (locale: string) => Promise<void>;
   SetTheme: (theme: string) => Promise<void>;

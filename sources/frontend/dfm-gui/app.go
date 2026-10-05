@@ -58,6 +58,9 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	defer a.applyWindowTitle()
 	a.startGCScheduler()
+	if err := ensureForesterDefaults(); err != nil {
+		runtime.LogWarningf(ctx, "forester defaults: %v", err)
+	}
 	cfg, err := loadSetupCfg()
 	if err == nil {
 		a.applyWindowTheme(cfg.Theme)
@@ -351,6 +354,9 @@ func settingsFromCfg(cfg setupCfg, repos repoState) SettingsInfo {
 
 // GetSettings returns author, repos, editors, and Forester paths from cfg files.
 func (a *App) GetSettings() (SettingsInfo, error) {
+	if err := ensureForesterDefaults(); err != nil && a.ctx != nil {
+		runtime.LogWarningf(a.ctx, "forester defaults: %v", err)
+	}
 	cfg, err := loadSetupCfg()
 	if err != nil {
 		return SettingsInfo{}, err
@@ -402,11 +408,46 @@ func (a *App) SaveRepos(paths []string) error {
 }
 
 // SaveForester writes [api] path (native library) and [forester] path (CLI).
+// A path that is not a .dylib, .so, or .dll is replaced with the library next to the CLI.
 func (a *App) SaveForester(apiPath, cliPath string) error {
 	return updateSetupCfg(func(cfg *setupCfg) {
-		cfg.APIPath = strings.TrimSpace(apiPath)
-		cfg.ForesterPath = strings.TrimSpace(cliPath)
+		apiPath = strings.TrimSpace(apiPath)
+		cliPath = strings.TrimSpace(cliPath)
+		if apiPath != "" && !validAPILibrary(apiPath) {
+			resolved := resolveAPILibrary(cliPath)
+			if resolved == "" {
+				resolved = resolveAPILibrary(cfg.ForesterPath)
+			}
+			if resolved == "" && validAPILibrary(cfg.APIPath) {
+				resolved = cfg.APIPath
+			}
+			apiPath = resolved
+		}
+		cfg.APIPath = apiPath
+		cfg.ForesterPath = cliPath
+		if validAPILibrary(apiPath) {
+			setSection(cfg.raw, "api", "installed", "true")
+		}
 	})
+}
+
+// SelectAPILibrary opens a picker for the Forester native library (.dylib, .so, or .dll).
+func (a *App) SelectAPILibrary(cliPath string) (string, error) {
+	path, err := runtime.OpenFileDialog(a.ctx, apiLibraryDialogOptions(hostPlatform(), cliPath))
+	if err != nil || path == "" {
+		return "", err
+	}
+	path, err = cleanPickedPath(path)
+	if err != nil {
+		return "", err
+	}
+	if !validAPILibrary(path) {
+		if resolved := resolveAPILibrary(cliPath); resolved != "" {
+			return resolved, nil
+		}
+		return "", err
+	}
+	return path, nil
 }
 
 // SaveEditors writes [blender] path, [addons] diffmachine_path, and [editors] path_N.
@@ -442,13 +483,21 @@ func (a *App) SelectFile() (string, error) {
 }
 
 // SelectApplication opens a native application picker for the host OS.
-// macOS: .app under /Applications. Windows: .exe. Linux: binaries under /usr/bin.
+// macOS: application chooser for .app bundles (a file filter cannot select them).
+// Windows: .exe. Linux: binaries under /usr/bin.
 func (a *App) SelectApplication() (string, error) {
-	path, err := runtime.OpenFileDialog(a.ctx, applicationDialogOptions(hostPlatform()))
+	goos := hostPlatform()
+	var path string
+	var err error
+	if goos == "darwin" {
+		path, err = pickDarwinApplication()
+	} else {
+		path, err = runtime.OpenFileDialog(a.ctx, applicationDialogOptions(goos))
+	}
 	if err != nil || path == "" {
 		return "", err
 	}
-	return cleanPickedPath(path)
+	return cleanPickedPath(normalizeApplicationPath(path, goos))
 }
 
 func cleanPickedPath(path string) (string, error) {

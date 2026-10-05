@@ -15,6 +15,7 @@ import {
   selectDirectory,
   selectFile,
   selectApplication,
+  selectAPILibrary,
   runGarbageCollection,
   foresterCall,
   type SettingsInfo,
@@ -139,6 +140,17 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
     }
   }
 
+  async function pickAPILibrary(cliPath: string, apply: (path: string) => void) {
+    try {
+      const path = await selectAPILibrary(cliPath);
+      if (path) {
+        apply(path);
+      }
+    } catch (err) {
+      onError(err instanceof Error ? err.message : "request failed");
+    }
+  }
+
   async function pickFile(apply: (path: string) => void) {
     try {
       const path = await selectFile();
@@ -252,7 +264,9 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
                   draft={draft}
                   busy={busy}
                   onChange={setDraft}
-                  onPickConfig={() => void pickFile((path) => setDraft((current) => ({ ...current, apiPath: path })))}
+                  onPickConfig={() =>
+                    void pickAPILibrary(draft.foresterPath, (path) => setDraft((current) => ({ ...current, apiPath: path })))
+                  }
                   onPickCli={() => void pickFile((path) => setDraft((current) => ({ ...current, foresterPath: path })))}
                 />
               ) : null}

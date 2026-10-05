@@ -32,6 +32,8 @@ export function SelectApplication():Promise<string>;
 
 export function SelectDirectory():Promise<string>;
 
+export function SelectAPILibrary(arg1:string):Promise<string>;
+
 export function SelectFile():Promise<string>;
 
 export function SetLocale(arg1:string):Promise<void>;

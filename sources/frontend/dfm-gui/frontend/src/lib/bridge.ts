@@ -138,6 +138,10 @@ export async function saveRepos(paths: string[]): Promise<void> {
   await app().SaveRepos(paths);
 }
 
+export async function selectAPILibrary(cliPath: string): Promise<string> {
+  return app().SelectAPILibrary(cliPath);
+}
+
 export async function saveForester(apiPath: string, cliPath: string): Promise<void> {
   await app().SaveForester(apiPath, cliPath);
 }
