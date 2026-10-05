@@ -54,16 +54,16 @@ export function SaveRepos(arg1) {
   return window['go']['main']['App']['SaveRepos'](arg1);
 }
 
+export function SelectAPILibrary(arg1) {
+  return window['go']['main']['App']['SelectAPILibrary'](arg1);
+}
+
 export function SelectApplication() {
   return window['go']['main']['App']['SelectApplication']();
 }
 
 export function SelectDirectory() {
   return window['go']['main']['App']['SelectDirectory']();
-}
-
-export function SelectAPILibrary(arg1) {
-  return window['go']['main']['App']['SelectAPILibrary'](arg1);
 }
 
 export function SelectFile() {

@@ -22,7 +22,7 @@ Copy: **Manage branches**. Chevron-right 16×16.
 
 ## Подменю управления ветками
 
-Figma: [Popover (Manage branches)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6050-12559) (`6050:12559`). Ширина 200. Не дублировать эти пункты в корне dropdown.
+Figma: [Popover (Manage branches)](https://www.figma.com/design/UdzVpYkngLCGzVXFWwq8TJ/Difference-MAchine?node-id=6050-12559) (`6050:12559`). Ширина 200. Контент выпадающего меню: padding по бокам 4 px. Не дублировать эти пункты в корне dropdown.
 
 | Пункт | Поведение |
 |-------|-----------|

@@ -29,7 +29,12 @@ func watchIgnored(repoRoot, abs string) bool {
 	if rel == ".." || strings.HasPrefix(rel, "../") {
 		return true
 	}
-	if rel == ".DFM" || strings.HasPrefix(rel, ".DFM/") {
+	// Watch .DFM itself and .DFM/locks so addon lock files refresh the UI.
+	// Everything else under .DFM (objects, cache, thumbs) stays ignored.
+	if rel == ".DFM" || rel == ".DFM/locks" || strings.HasPrefix(rel, ".DFM/locks/") {
+		return false
+	}
+	if strings.HasPrefix(rel, ".DFM/") {
 		return true
 	}
 	return false

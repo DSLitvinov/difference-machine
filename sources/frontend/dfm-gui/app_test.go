@@ -52,8 +52,15 @@ func TestWatchIgnored(t *testing.T) {
 	if !watchIgnored(root, thumbs) {
 		t.Fatal(".DFM cache should be ignored")
 	}
-	if !watchIgnored(root, filepath.Join(root, ".DFM")) {
-		t.Fatal(".DFM should be ignored")
+	if watchIgnored(root, filepath.Join(root, ".DFM")) {
+		t.Fatal(".DFM directory should be watched so locks/ can appear")
+	}
+	lockFile := filepath.Join(root, ".DFM", "locks", "main", "scene.blend.lock")
+	if watchIgnored(root, lockFile) {
+		t.Fatal(".DFM/locks should refresh the UI")
+	}
+	if !watchIgnored(root, filepath.Join(root, ".DFM", "objects", "ab")) {
+		t.Fatal(".DFM/objects should stay ignored")
 	}
 	if watchIgnored(root, filepath.Join(root, "readme.txt")) {
 		t.Fatal("workdir file should not be ignored")

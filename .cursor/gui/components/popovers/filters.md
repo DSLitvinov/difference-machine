@@ -1,7 +1,7 @@
 # Popover Filters
 
 Figma: [Popover (Filters)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4272-6728) (`4272:6728`).  
-Код: `FiltersMenu`. База: shadcn `DropdownMenu` + `DropdownMenuCheckboxItem`. Ширина **200 px**, radius 8, border `#e4e4e7`, shadow-md, py 4.
+Код: `FiltersMenu`. База: shadcn `DropdownMenu` + `DropdownMenuCheckboxItem`. Ширина **200 px**, radius 8, border `#e4e4e7`, shadow-md, py 4, padding по бокам 4 px.
 
 ---
 

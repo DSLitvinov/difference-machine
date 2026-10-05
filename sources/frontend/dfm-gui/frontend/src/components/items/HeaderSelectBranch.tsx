@@ -98,7 +98,7 @@ export function HeaderSelectBranch({
                 onSelect={() => window.setTimeout(onDelete, 0)}
               >
                 <Icon icon={Trash2} size={16} className="text-[#ef4444]" />
-                {copy.deleteBranch}
+                {copy.deleteBranchMenu}
               </DropdownMenuItem>
             </DropdownMenuSubContent>
           </DropdownMenuSub>

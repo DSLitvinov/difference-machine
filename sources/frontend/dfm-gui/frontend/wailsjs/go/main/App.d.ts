@@ -28,11 +28,11 @@ export function SaveProfile(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function SaveRepos(arg1:Array<string>):Promise<void>;
 
+export function SelectAPILibrary(arg1:string):Promise<string>;
+
 export function SelectApplication():Promise<string>;
 
 export function SelectDirectory():Promise<string>;
-
-export function SelectAPILibrary(arg1:string):Promise<string>;
 
 export function SelectFile():Promise<string>;
 
