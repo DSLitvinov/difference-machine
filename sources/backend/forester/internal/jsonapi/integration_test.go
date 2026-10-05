@@ -809,6 +809,34 @@ func TestLogGetPathFilterAndRestoreFile(t *testing.T) {
 	}
 }
 
+func TestRestoreFileDeletedInCommit(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "dir/gone.txt", "bring-me-back")
+	mustOK(t, h, "index.add", `{"files":["dir/gone.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"add","author":"tester"}`)
+	mustOK(t, h, "workdir.delete", `{"path":"dir/gone.txt"}`)
+	mustOK(t, h, "index.add", `{"files":["dir/gone.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"delete","author":"tester"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{"max_count":1}`), &logResult); err != nil {
+		t.Fatal(err)
+	}
+	mustOK(t, h, "restore.file", `{"commit_hash":"`+logResult.Commits[0].Hash+`","paths":["dir/gone.txt"]}`)
+
+	content, err := os.ReadFile(filepath.Join(dir, "dir", "gone.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(content) != "bring-me-back" {
+		t.Fatalf("content = %q, want bring-me-back", string(content))
+	}
+}
+
 func TestDiffHandlers(t *testing.T) {
 	dir, h := initTestRepo(t)
 	writeFile(t, dir, "tracked.txt", "version-one")

@@ -1,3 +1,4 @@
+import { parentRel } from "@/lib/folder-query";
 import type { DirEntry, StatusSnapshot } from "@/store/app-store";
 
 export type ChangeCounts = {

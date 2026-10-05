@@ -117,8 +117,26 @@ func Restore(args []string) error {
 			// Resolve path
 			absPath := filepath.Join(repoPath, filepath.FromSlash(relPath))
 
-			// Find file in tree
+			// Find file in tree. A deletion commit has no blob for the path;
+			// the file to bring back lives in the parent snapshot.
 			entry, found := treeMap[relPath]
+			if !found && commit.ParentHash != "" {
+				parent, err := repo.GetCommit(commit.ParentHash)
+				if err != nil {
+					return fmt.Errorf("parent commit not found: %w", err)
+				}
+				parentContent, err := storage.GetTreeContent(parent.TreeHash)
+				if err != nil {
+					return fmt.Errorf("failed to get parent tree content: %w", err)
+				}
+				var parentTree models.Tree
+				if err := json.Unmarshal([]byte(parentContent), &parentTree); err != nil {
+					return fmt.Errorf("failed to parse parent tree: %w", err)
+				}
+				parentMap := make(map[string]*models.TreeEntry)
+				buildTreeMapRecursive(storage, &parentTree, "", parentMap)
+				entry, found = parentMap[relPath]
+			}
 			if !found {
 				return fmt.Errorf("file '%s' not found in commit %s", fileArg, sourceCommit[:8])
 			}

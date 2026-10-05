@@ -114,9 +114,17 @@ export function ContentCommitPanel({ locale, repoPath, commit, head, busy, onRef
     setMenu({ path: file.path, status: file.status, x: event.clientX, y: event.clientY });
   }
 
+  function commitForPath(relPath: string): string {
+    const file = files?.find((item) => item.path === relPath);
+    if (file?.status === "D") {
+      return commit.parent_hashes?.[0] || commit.hash;
+    }
+    return commit.hash;
+  }
+
   async function openFromCommit(relPath: string) {
     try {
-      await foresterCall("compare.extract", { commit_hash: commit.hash });
+      await foresterCall("compare.extract", { commit_hash: commitForPath(relPath) });
       await foresterCall("workdir.open", { path: tmpReviewRel(relPath) });
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");

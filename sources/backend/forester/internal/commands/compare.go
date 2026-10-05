@@ -154,21 +154,17 @@ func extractCommitToDir(storage *core.Storage, commit *models.Commit, destDir st
 		return fmt.Errorf("failed to parse tree: %w", err)
 	}
 
-	// Extract all files from tree
-	for _, entry := range tree.Entries {
-		destPath := filepath.Join(destDir, entry.Name)
-
-		if entry.Type == "blob" {
-			// Extract blob to file
-			if err := storage.WriteBlobToFile(entry.Hash, destPath); err != nil {
-				return fmt.Errorf("failed to extract blob %s: %w", entry.Name, err)
-			}
-		} else if entry.Type == "tree" {
-			// Recursive extraction for subtrees
-			if err := utils.CreateDirectories(destPath); err != nil {
-				return fmt.Errorf("failed to create subdirectory: %w", err)
-			}
-			// TODO: Implement recursive tree extraction if needed
+	treeMap := make(map[string]*models.TreeEntry)
+	if err := core.BuildTreeMapRecursive(storage, &tree, "", treeMap); err != nil {
+		return fmt.Errorf("failed to read tree: %w", err)
+	}
+	for relPath, entry := range treeMap {
+		if entry.Type != "blob" {
+			continue
+		}
+		destPath := filepath.Join(destDir, filepath.FromSlash(relPath))
+		if err := storage.WriteBlobToFile(entry.Hash, destPath); err != nil {
+			return fmt.Errorf("failed to extract blob %s: %w", relPath, err)
 		}
 	}
 
