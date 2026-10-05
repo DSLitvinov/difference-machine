@@ -74,7 +74,7 @@ export function FolderActionBar({
           />
         </div>
       ) : (
-        <Button type="button" variant="secondary" size="icon" aria-label={copy.search} onClick={onSearchOpen}>
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.search} onClick={onSearchOpen}>
           <Icon icon={Search} size={16} />
         </Button>
       )}

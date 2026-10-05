@@ -1,8 +1,7 @@
-import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Icon } from "@/components/chrome/Icon";
+import { Dialog } from "@/components/ui/dialog";
 import { foresterCall } from "@/lib/bridge";
 import { t, type Locale } from "@/lib/i18n";
 import type { DirEntry } from "@/store/app-store";
@@ -43,15 +42,9 @@ function CheckRow({
 
 export function AppendFilesDialog({ locale, paths, includedIgnored = [], busy, onCancel, onAppend }: AppendFilesDialogProps) {
   const copy = t(locale);
-  const [backdropArmed, setBackdropArmed] = useState(false);
   const [ignoredPaths, setIgnoredPaths] = useState<string[]>(() => unique(includedIgnored));
   const [appendChecked, setAppendChecked] = useState<string[]>(() => unique(paths.filter((path) => !includedIgnored.includes(path))));
   const [ignoredChecked, setIgnoredChecked] = useState<string[]>(() => unique(includedIgnored));
-
-  useEffect(() => {
-    const id = window.setTimeout(() => setBackdropArmed(true), 0);
-    return () => window.clearTimeout(id);
-  }, []);
 
   const includedKey = includedIgnored.join("\n");
   const pathsKey = paths.join("\n");
@@ -120,28 +113,34 @@ export function AppendFilesDialog({ locale, paths, includedIgnored = [], busy, o
   const canAppend = appendChecked.length + ignoredChecked.length > 0;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
-      role="presentation"
-      onClick={busy || !backdropArmed ? undefined : onCancel}
+    <Dialog
+      className="w-[780px]"
+      title={copy.appendFiles}
+      titleId="append-files-title"
+      closeLabel={copy.close}
+      busy={busy}
+      onClose={onCancel}
+      footer={
+        <>
+          <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
+            {copy.cancel}
+          </Button>
+          <Button
+            type="button"
+            disabled={busy || !canAppend}
+            onClick={() =>
+              onAppend(
+                appendChecked.filter((path) => appendPaths.includes(path)),
+                ignoredChecked.filter((path) => ignoredPaths.includes(path)),
+              )
+            }
+          >
+            {copy.addInCommit}
+          </Button>
+        </>
+      }
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="append-files-title"
-        className="flex w-[780px] max-w-[calc(100vw-32px)] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex h-[52px] w-full items-center justify-between px-4">
-          <p id="append-files-title" className="text-[18px] font-medium leading-[22px] text-[#18181b] dark:text-foreground">
-            {copy.appendFiles}
-          </p>
-          <button type="button" className="flex size-4 items-center justify-center" aria-label={copy.close} disabled={busy} onClick={onCancel}>
-            <Icon icon={X} size={16} />
-          </button>
-        </div>
-        <div className="w-full p-4">
-          <div className="flex w-[748px] max-w-full overflow-hidden rounded-lg border border-border">
+          <div className="flex w-full overflow-hidden rounded-md border border-[#e4e4e7] dark:border-border">
             <div className="flex min-w-0 flex-1 flex-col border-r border-border">
               <div className="flex h-[38px] items-center border-b border-border bg-[#fafafa] px-2 text-[12px] font-normal leading-4 text-[#18181b] dark:bg-background-muted dark:text-foreground">
                 {copy.appendColumn}
@@ -187,31 +186,6 @@ export function AppendFilesDialog({ locale, paths, includedIgnored = [], busy, o
               </div>
             </div>
           </div>
-        </div>
-        <div
-          className="flex w-full items-center justify-end gap-2 border-t border-border px-3 py-3"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.5) 100%), linear-gradient(90deg, rgb(228, 228, 231) 0%, rgb(228, 228, 231) 100%)",
-          }}
-        >
-          <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
-            {copy.cancel}
-          </Button>
-          <Button
-            type="button"
-            disabled={busy || !canAppend}
-            onClick={() =>
-              onAppend(
-                appendChecked.filter((path) => appendPaths.includes(path)),
-                ignoredChecked.filter((path) => ignoredPaths.includes(path)),
-              )
-            }
-          >
-            {copy.addInCommit}
-          </Button>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

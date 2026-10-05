@@ -28,7 +28,8 @@ Property Figma: `type`.
 | `modified` | Pencil | Содержимое изменено | `staged_modified_files` / `unstaged_modified_files`; diff `M` |
 | `new` | FilePlus | Неотслеживаемый | `untracked_files` |
 | `delete` | Trash | Удалён | `staged_deleted_files` / `unstaged_deleted_files`; diff `D` |
-| `rename` | Replace | Переименован | `status.get.renamed_files` (`path` или `old_path`); `diff.name_status` status `R` |
+| `move` | Replace | Перемещенный — родительская папка `old_path` ≠ папке `path` (даже если имя тоже сменилось) | `status.get.renamed_files` (`path` или `old_path`); `diff.name_status` status `R` + `old_path` |
+| `rename` | Replace | Переименован — та же папка, другое имя | то же; без `old_path` в diff → `move` |
 | `ignored` | EyeOff | Попадает в `.dfmignore` | `workdir.entries` / `search` с `include_ignored`: поле `ignored` |
 | `lock` | Lock | Файл заблокирован | `lock.list` — есть запись с этим `file_path` |
 
@@ -43,7 +44,7 @@ Property Figma: `type`.
 | Тайл сетки | `iconOnly`: круг 20×20, иконка 12, внизу превью (отступ 8), по горизонтали по центру |
 | File Info и строка файла в коммите | pill высотой 20, `rounded-full`, иконка 12 и подпись |
 
-Ряд на превью — горизонталь, `gap` 4, прижат к нижнему краю. **Lock слева**, затем ignored или статус файла. `ignored` вытесняет appended/modified/new/delete/rename.
+Ряд на превью — горизонталь, `gap` 4, прижат к нижнему краю. **Lock слева**, затем ignored или статус файла. `ignored` вытесняет appended/modified/new/delete/move/rename.
 
 | `type` | Фон | Знак |
 |--------|-----|------|
@@ -51,6 +52,7 @@ Property Figma: `type`.
 | `modified` | `#fdba74` / `#7c2d12` | Pencil, Modified |
 | `new` | `#60a5fa` / `#1e3a8a` | FilePlus, New |
 | `delete` | `#fca5a5` / `#dc2626` | Trash, Deleted |
+| `move` | `#67e8f9` / `#164e63` (cyan) | Replace, Moved |
 | `rename` | `#c084fc` / `#581c87` | Replace, Renamed |
 | `ignored` | `#cbd5e1` / `#334155` | EyeOff |
 | `lock` | белый, обводка `#d4d4d8`, текст `#18181b` | Lock |
@@ -81,7 +83,7 @@ Property Figma: `type`.
 Один path — один letter-бейдж. `ignored` важнее VCS. Дальше `renamed_files` важнее new/delete: `workdir.rename` даёт untracked + deleted, пока path не в index.
 
 1. `entry.ignored` → `ignored` (**i**)
-2. иначе `renamed_files` (`path` или `old_path`) → `rename`
+2. иначе `renamed_files` (`path` или `old_path`) → `rename` (та же папка) или `move`
 3. иначе `staged_new_files` → `appended`
 4. иначе `untracked_files` → `new`
 5. иначе modified (staged или unstaged) → `modified`

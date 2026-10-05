@@ -1,4 +1,3 @@
-import { basenameRel, parentRel } from "@/lib/folder-query";
 import type { DirEntry, StatusSnapshot } from "@/store/app-store";
 
 export type ChangeCounts = {
@@ -36,14 +35,19 @@ export function dirtyPaths(status: StatusSnapshot | null): string[] {
     ...(status.untracked_files ?? []),
     ...(status.staged_deleted_files ?? []),
     ...(status.unstaged_deleted_files ?? []),
-    ...(status.renamed_files ?? []).map((item) => item.path),
+    ...(status.renamed_files ?? []).flatMap((item) => [item.path, item.old_path].filter((path) => path)),
   ];
   return [...new Set(paths)];
 }
 
-export type LetterStatus = "appended" | "modified" | "new" | "delete" | "rename";
+export type LetterStatus = "appended" | "modified" | "new" | "delete" | "move" | "rename";
 
-export function letterFromDiffStatus(status: string): LetterStatus | null {
+/** Same parent folder means a rename; any folder change counts as a move. */
+function moveOrRename(oldPath: string | undefined, path: string): LetterStatus {
+  return oldPath !== undefined && parentRel(oldPath) === parentRel(path) ? "rename" : "move";
+}
+
+export function letterFromDiffStatus(status: string, path = "", oldPath?: string): LetterStatus | null {
   if (status === "A") {
     return "appended";
   }
@@ -54,7 +58,7 @@ export function letterFromDiffStatus(status: string): LetterStatus | null {
     return "delete";
   }
   if (status === "R") {
-    return "rename";
+    return moveOrRename(oldPath, path);
   }
   return null;
 }
@@ -79,28 +83,6 @@ export function isMissingPath(path: string, status: StatusSnapshot | null, entri
   return Boolean(status?.renamed_files?.some((item) => item.old_path === path));
 }
 
-export function mergeMissingEntries(entries: DirEntry[], status: StatusSnapshot | null, folderPath: string | null): DirEntry[] {
-  const missing = deletedPaths(status);
-  if (missing.length === 0) {
-    return entries;
-  }
-  const seen = new Set(entries.map((entry) => entry.path));
-  const extra: DirEntry[] = [];
-  for (const path of missing) {
-    if (seen.has(path)) {
-      continue;
-    }
-    if (folderPath !== null && parentRel(path) !== folderPath) {
-      continue;
-    }
-    extra.push({ name: basenameRel(path), path, is_dir: false, missing: true });
-  }
-  if (extra.length === 0) {
-    return entries;
-  }
-  return [...entries, ...extra];
-}
-
 export function isStagedPath(path: string, status: StatusSnapshot | null): boolean {
   if (!path || !status) {
     return false;
@@ -116,8 +98,9 @@ export function letterStatus(path: string, status: StatusSnapshot | null): Lette
   if (!status) {
     return null;
   }
-  if (status.renamed_files?.some((item) => item.path === path || item.old_path === path)) {
-    return "rename";
+  const renamed = status.renamed_files?.find((item) => item.path === path || item.old_path === path);
+  if (renamed) {
+    return moveOrRename(renamed.old_path, renamed.path);
   }
   if (status.staged_new_files?.includes(path)) {
     return "appended";

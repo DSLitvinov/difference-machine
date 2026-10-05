@@ -17,6 +17,7 @@ const spec: Record<LetterStatus | "ignored", { icon: LucideIcon; className: stri
   modified: { icon: Pencil, className: "bg-[#fdba74] text-[#7c2d12]" },
   new: { icon: FilePlus, className: "bg-[#60a5fa] text-[#1e3a8a]" },
   delete: { icon: Trash2, className: "bg-[#fca5a5] text-[#dc2626]" },
+  move: { icon: Replace, className: "bg-[#67e8f9] text-[#164e63]" },
   rename: { icon: Replace, className: "bg-[#c084fc] text-[#581c87]" },
   ignored: { icon: EyeOff, className: "bg-[#cbd5e1] text-[#334155]" },
 };
@@ -29,6 +30,7 @@ export function FileStatusBadge({ type, iconOnly, className }: FileStatusBadgePr
     modified: copy.statusModified,
     new: copy.statusNew,
     delete: copy.statusDeleted,
+    move: copy.statusMoved,
     rename: copy.statusRenamed,
     ignored: copy.ignored,
     lock: copy.locked,

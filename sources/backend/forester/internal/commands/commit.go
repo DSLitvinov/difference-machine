@@ -310,6 +310,10 @@ func Commit(args []string) error {
 		}
 		finalMap[filepath.ToSlash(relPath)] = hash
 	}
+	// A staged file with the same blob as a HEAD file that is gone from disk is a
+	// move. Drop the old path; otherwise it stays in the tree and status reports
+	// it as an unstaged deletion after the index is cleared.
+	dropMovedSources(repoPath, baseMap, indexEntries, finalMap)
 
 	// If no changes compared to HEAD, nothing to commit (except amend)
 	if len(finalMap) == 0 {
@@ -414,4 +418,45 @@ func Commit(args []string) error {
 	}
 
 	return nil
+}
+
+// dropMovedSources removes a missing HEAD path when a different staged path
+// carries the same blob. The commit then records a move instead of leaving
+// the old path in the tree.
+func dropMovedSources(repoPath string, baseMap map[string]string, indexEntries map[string]string, finalMap map[string]string) {
+	added := make([]string, 0)
+	indexHash := make(map[string]string, len(indexEntries))
+	for relPath, hash := range indexEntries {
+		rel := filepath.ToSlash(relPath)
+		if core.IsDeletedHash(hash) {
+			continue
+		}
+		indexHash[rel] = hash
+		if baseMap[rel] == hash {
+			continue
+		}
+		added = append(added, rel)
+	}
+	missing := make([]string, 0)
+	for path := range baseMap {
+		if utils.Exists(filepath.Join(repoPath, filepath.FromSlash(path))) {
+			continue
+		}
+		missing = append(missing, path)
+	}
+	hashOf := func(path string) (string, bool) {
+		rel := filepath.ToSlash(path)
+		if hash, ok := indexHash[rel]; ok {
+			return hash, true
+		}
+		hash, ok := baseMap[rel]
+		return hash, ok
+	}
+	renamed, _, _ := pairRenamesByHash(added, missing, hashOf)
+	for _, pair := range renamed {
+		if pair.OldPath == pair.NewPath {
+			continue
+		}
+		delete(finalMap, pair.OldPath)
+	}
 }

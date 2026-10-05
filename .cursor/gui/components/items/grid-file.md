@@ -52,7 +52,7 @@ Gap превью↔лейбл: 8 px.
 
 Thumbnail → `FilePreview` (`src` для картинки, `text` для `text_preview`). Тайл **не** вызывает `workdir.thumbnail`: панель отдаёт `src` / `text` после ленивой загрузки (virtualizer + очередь). Letter/lock — из панели (`status.get`, `lock.list`, `entry.ignored`). Клик — selection, не `workdir.open` (open — действие тулбара/меню). Двойной клик — [File View](../../views/file-preview.md).
 
-Пропавший файл (нет на диске, есть в `staged_deleted_files` / `unstaged_deleted_files`): стаб [Icons / 256 / File / Missing](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6066-12434) (`6066:12434`), `file-types/missing.svg`. Не тип image/text/binary. Thumbnail не грузить. Letter **D** — как обычно.
+Пропавший файл в сетку рабочей папки не добавлять. Letter **D** и стаб Missing — только если path ещё открыт в File View. В коммите удалённый path остаётся строкой списка файлов.
 
 Скролл и кэш: [virtual-scroll.md](../../gui_frontend/virtual-scroll.md).
 

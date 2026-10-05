@@ -1,5 +1,6 @@
-import { EllipsisVertical, Reply, Trash2 } from "lucide-react";
+import { Ellipsis, Reply, Trash2 } from "lucide-react";
 import type { SyntheticEvent } from "react";
+import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
@@ -20,9 +21,9 @@ export function StashCardMoreButton({ locale, onAction }: StashCardMoreButtonPro
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={stopCardClick} onPointerDown={stopCardClick}>
-          <Icon icon={EllipsisVertical} size={16} />
-        </button>
+        <Button type="button" variant="ghost" size="icon" className="shrink-0" aria-label={copy.more} onClick={stopCardClick} onPointerDown={stopCardClick}>
+          <Icon icon={Ellipsis} size={16} />
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[227px] shadow-md" onClick={stopCardClick}>
         <DropdownMenuItem className="gap-2" onSelect={() => window.setTimeout(() => onAction("apply"), 0)}>

@@ -14,7 +14,7 @@ type CommitFileListProps = {
   onFileMenu?: (file: NameStatusFile, event: MouseEvent) => void;
 };
 
-const ROW_H = 40;
+const ROW_H = 38;
 
 export function CommitFileList({ locale, files, selectedPath, onSelect, onFileMenu }: CommitFileListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -24,35 +24,35 @@ export function CommitFileList({ locale, files, selectedPath, onSelect, onFileMe
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_H,
     overscan: 12,
-    paddingStart: 4,
-    paddingEnd: 4,
+    paddingStart: 16,
+    paddingEnd: 16,
   });
 
   if (!files) {
-    return <div className="h-full w-[342px] shrink-0 overflow-y-auto border-r border-border" />;
+    return <div className="h-full w-[308px] shrink-0 overflow-y-auto border-r border-border" />;
   }
   if (files.length === 0) {
     return (
-      <div className="flex h-full w-[342px] shrink-0 items-center justify-center overflow-hidden border-r border-border">
+      <div className="flex h-full w-[308px] shrink-0 items-center justify-center overflow-hidden border-r border-border">
         <DiffFileListPlaceholder locale={locale} />
       </div>
     );
   }
 
   return (
-    <div ref={scrollRef} className="h-full w-[342px] shrink-0 overflow-y-auto border-r border-border">
+    <div ref={scrollRef} className="h-full w-[308px] shrink-0 overflow-y-auto border-r border-border">
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((row) => {
           const file = rows[row.index];
           return (
             <div
               key={file.path}
-              className="absolute left-0 right-0"
+              className="absolute left-4 right-4"
               style={{ height: ROW_H, transform: `translateY(${row.start}px)` }}
             >
               <CommitFileItem
                 path={file.path}
-                letter={letterFromDiffStatus(file.status)}
+                letter={letterFromDiffStatus(file.status, file.path, file.old_path)}
                 selected={file.path === selectedPath}
                 onSelect={() => onSelect(file.path)}
                 onMenu={(event) => onFileMenu?.(file, event)}

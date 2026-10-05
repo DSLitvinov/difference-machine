@@ -1,5 +1,6 @@
-import { Copy, EllipsisVertical, ExternalLink, RefreshCw, Replace, Reply, Trash2 } from "lucide-react";
+import { Copy, Ellipsis, ExternalLink, RefreshCw, Replace, Reply, Trash2 } from "lucide-react";
 import type { SyntheticEvent } from "react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -76,9 +77,9 @@ export function CommitCardMoreButton({ locale, hash, message, onAction }: Commit
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="size-4 shrink-0" aria-label={copy.more} onClick={stopCardClick} onPointerDown={stopCardClick}>
-          <Icon icon={EllipsisVertical} size={16} />
-        </button>
+        <Button type="button" variant="ghost" size="icon" className="shrink-0" aria-label={copy.more} onClick={stopCardClick} onPointerDown={stopCardClick}>
+          <Icon icon={Ellipsis} size={16} />
+        </Button>
       </DropdownMenuTrigger>
       <CommitCardMenu locale={locale} hash={hash} message={message} onAction={onAction} />
     </DropdownMenu>

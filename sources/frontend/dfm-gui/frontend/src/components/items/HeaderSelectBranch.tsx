@@ -57,7 +57,7 @@ export function HeaderSelectBranch({
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          className="w-[217px] shadow-md"
+          className="w-[var(--radix-dropdown-menu-trigger-width)] shadow-md"
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
           {branches.length > 0 ? (

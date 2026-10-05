@@ -2,6 +2,7 @@ import { Circle, GripVertical } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/chrome/Icon";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -35,26 +36,15 @@ function TabBar({
     { id: "overlay", label: copy.tabOverlay },
   ];
   return (
-    <div className="flex items-center rounded-md bg-background-muted p-1">
-      {tabs.map((tab) => (
-        <button
-          type="button"
-          key={tab.id}
-          disabled={disabled}
-          className={cn(
-            "rounded-sm px-3 py-1.5 text-[14px] font-medium leading-5",
-            disabled
-              ? "text-foreground-disabled"
-              : value === tab.id
-                ? "bg-background text-foreground shadow-sm"
-                : "text-foreground-muted",
-          )}
-          onClick={() => onChange(tab.id)}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <Tabs value={value} onValueChange={(next) => onChange(next as ImageTab)}>
+      <TabsList size="sm">
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.id} value={tab.id} disabled={disabled} className="disabled:text-foreground-disabled">
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 }
 

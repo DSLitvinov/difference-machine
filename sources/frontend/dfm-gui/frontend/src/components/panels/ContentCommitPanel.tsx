@@ -153,7 +153,7 @@ export function ContentCommitPanel({ locale, repoPath, commit, head, busy, onRef
   }
 
   return (
-    <section className="flex h-full min-w-0 flex-1 flex-col overflow-hidden pb-3 pl-2 pr-3">
+    <section className="flex h-full min-w-0 flex-1 flex-col gap-2 overflow-hidden py-3 pl-2 pr-3">
       <HeaderCommitInfo
         locale={locale}
         title={title}
@@ -163,7 +163,7 @@ export function ContentCommitPanel({ locale, repoPath, commit, head, busy, onRef
         merge={(commit.parent_hashes?.length ?? 0) > 1}
         stat={stat}
       />
-      <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+      <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-border bg-background shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
         <CommitFileList
           key={commit.hash}
           locale={locale}

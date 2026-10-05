@@ -100,7 +100,7 @@ Take snapshot и Create commit не порождают отдельный `View 
 - Многофайловый selection: только [Select More Files](../panels/select-more-files.md) ([File More Info](../views/project-browse.md)), если в selection есть файл. Только папки — Null.
 - После `workdir.rename` selection переезжает на `new_path`.
 - После `workdir.delete` path исчезает из selection.
-- Файл пропал **снаружи** (удалён / переименован / перемещён), а path ещё в selection или открыт File View — не сбрасывать выбор: [File Missing](../views/file-preview.md), в сетке стаб [grid-file](../components/items/grid-file.md).
+- Файл пропал **снаружи** (удалён / переименован / перемещён), а path ещё открыт в File View — не сбрасывать выбор: [File Missing](../views/file-preview.md). В сетке рабочей папки такого path нет. Удалённые path видны в списке файлов коммита.
 
 ---
 

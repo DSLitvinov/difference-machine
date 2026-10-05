@@ -12,7 +12,7 @@ export function HeaderRightSide({ locale, onCollapse }: HeaderRightSideProps) {
   const copy = t(locale);
   return (
     <div className="flex w-full items-center justify-end pb-2 pr-3 pt-3">
-      <Button type="button" variant="secondary" size="icon" aria-label={copy.collapse} onClick={onCollapse}>
+      <Button type="button" variant="ghost" size="icon" aria-label={copy.collapse} onClick={onCollapse}>
         <Icon icon={PanelRightClose} size={16} />
       </Button>
     </div>

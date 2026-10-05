@@ -10,6 +10,7 @@ import { CommitCardMoreButton, type CommitCardAction } from "@/components/items/
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Icon } from "@/components/chrome/Icon";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useExternalEditors } from "@/lib/editors";
 import { t, type Locale } from "@/lib/i18n";
 import { foresterCall } from "@/lib/bridge";
@@ -121,12 +122,14 @@ export function FileViewPanel({
       />
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-3 pt-1">
         <div className="flex w-full shrink-0 flex-col">
-          <SidebarCard state={revisionOpen ? "default" : "selected"} onClick={onCurrentPreview}>
-            <div className="flex w-full flex-col gap-2">
-              <p className="truncate text-[14px] font-semibold leading-5 text-foreground">{fileName}</p>
-              {fileDirty ? null : <p className="truncate text-[12px] leading-4 text-foreground-muted">{copy.noChangesFile}</p>}
-              {fileDirty ? (
-                <div className="flex w-full items-center gap-2">
+          <SidebarCard state={revisionOpen ? "default" : "selected"} className="overflow-hidden p-0" onClick={onCurrentPreview}>
+            <div className="flex w-full flex-col gap-2 p-4">
+              <p className="truncate text-[14px] font-semibold leading-5 text-[#18181b] dark:text-foreground">{fileName}</p>
+              {fileDirty ? null : <p className="truncate text-[12px] leading-4 text-[#71717a] dark:text-foreground-muted">{copy.noChangesFile}</p>}
+            </div>
+            {fileDirty ? (
+              <div className="w-full border-t border-[#e5e5e5] bg-[linear-gradient(90deg,rgba(255,255,255,0.5),rgba(255,255,255,0.5)),linear-gradient(90deg,#e4e4e7,#e4e4e7)] p-4 dark:border-border dark:bg-background-muted">
+                <div className="flex w-full items-start gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -158,10 +161,20 @@ export function FileViewPanel({
                     {copy.takeSnapshot}
                   </Button>
                 </div>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </SidebarCard>
         </div>
+        <Tabs value="history" className="w-full shrink-0">
+          <TabsList size="sm" className="w-full">
+            <TabsTrigger value="history" className="flex-1">
+              {copy.history}
+            </TabsTrigger>
+            <TabsTrigger value="stages" disabled className="flex-1">
+              {copy.stages}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         {empty ? (
           <div className="flex min-h-0 w-full flex-1 flex-col">
             <SidebarCard state="disabled">

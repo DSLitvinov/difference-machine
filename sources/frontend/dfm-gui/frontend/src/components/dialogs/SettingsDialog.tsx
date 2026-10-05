@@ -1,8 +1,7 @@
-import { ChevronsUpDown, Trash2, X } from "lucide-react";
+import { ChevronsUpDown, Minus, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import type { UiTheme } from "@/assets/themed";
@@ -181,7 +180,7 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="relative flex h-[720px] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-2xl border border-[#e4e4e7] bg-white p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] dark:border-border dark:bg-background"
+        className="relative flex h-[min(1000px,calc(100vh-24px))] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-2xl border border-[#e4e4e7] bg-white p-6 shadow-[0_4px_3px_rgba(0,0,0,0.1),0_2px_2px_rgba(0,0,0,0.06)] dark:border-border dark:bg-background"
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-[13px] top-[11px] flex size-6 items-center justify-center p-0.5 text-[#18181b] dark:text-foreground" aria-label={copy.close} onClick={onClose}>
@@ -217,7 +216,6 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
               <div className="flex w-full shrink-0 flex-col gap-2">
                 <p className="text-[18px] font-medium leading-7 text-[#18181b] dark:text-foreground">{heading.title}</p>
                 <p className="text-sm font-normal leading-5 text-[#71717a]">{heading.body}</p>
-                <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
               </div>
               {tab === "profile" ? (
                 <ProfileFields locale={locale} draft={draft} busy={busy} onChange={setDraft} onLocale={onLocale} />
@@ -254,6 +252,7 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
                   draft={draft}
                   busy={busy}
                   onChange={setDraft}
+                  onPickConfig={() => void pickFile((path) => setDraft((current) => ({ ...current, apiPath: path })))}
                   onPickCli={() => void pickFile((path) => setDraft((current) => ({ ...current, foresterPath: path })))}
                 />
               ) : null}
@@ -314,9 +313,9 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
                   onClick={() =>
                     void run(() =>
                       saveGC(
-                        draft.gcEnabled,
+                        true,
                         draft.gcReflogExpireDays,
-                        draft.gcScheduleEnabled,
+                        true,
                         draft.gcIntervalDays,
                         draft.gcScheduleHour,
                         draft.gcScheduleMinute,
@@ -408,21 +407,23 @@ function ProfileFields({
         <Input className={settingsInputClass} value={draft.userEmail} disabled={busy} onChange={(event) => onChange({ ...draft, userEmail: event.target.value })} />
       </Field>
       <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
-      <div className="flex w-full flex-col gap-1 px-5">
+      <div className="flex w-full flex-col gap-3 px-5">
         <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.language}</p>
-        <div className="relative w-full">
-          <select
-            className="flex h-7 w-full appearance-none rounded-md border border-[#d4d4d8] bg-white pl-2.5 pr-8 text-sm leading-5 text-[#18181b] shadow-[0_1px_2px_rgba(0,0,0,0.05)] focus-visible:border-[#60a5fa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a0c9fc] disabled:cursor-not-allowed disabled:border-[#e4e4e7] disabled:text-[#a1a1aa] disabled:shadow-none dark:border-border dark:bg-background dark:text-foreground"
-            value={draft.locale === "ru" ? "ru" : "en"}
-            disabled={busy}
-            onChange={(event) => pickLocale(event.target.value === "ru" ? "ru" : "en")}
-          >
-            <option value="en">English</option>
-            <option value="ru">Русский</option>
-          </select>
-          <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#18181b] dark:text-foreground" />
+        <div className="flex w-full flex-col gap-1">
+          <div className="relative w-full">
+            <select
+              className="flex min-h-[22px] w-full appearance-none rounded-md border border-[#d4d4d8] bg-white py-1 pl-2 pr-[26px] text-xs leading-4 text-[#18181b] shadow-[0_1px_2px_rgba(0,0,0,0.05)] focus-visible:border-[#60a5fa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a0c9fc] disabled:cursor-not-allowed disabled:border-[#e4e4e7] disabled:text-[#a1a1aa] disabled:shadow-none dark:border-border dark:bg-background dark:text-foreground"
+              value={draft.locale === "ru" ? "ru" : "en"}
+              disabled={busy}
+              onChange={(event) => pickLocale(event.target.value === "ru" ? "ru" : "en")}
+            >
+              <option value="en">English</option>
+              <option value="ru">Русский</option>
+            </select>
+            <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#18181b] dark:text-foreground" />
+          </div>
+          <p className="text-sm font-normal leading-5 text-[#71717a]">{copy.languageHintSettings}</p>
         </div>
-        <p className="text-sm font-normal leading-5 text-[#71717a]">{copy.languageHintSettings}</p>
       </div>
     </div>
   );
@@ -482,41 +483,44 @@ function EditorFields({
   const copy = t(locale);
   return (
     <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
-      <PathRow
-        locale={locale}
-        label={copy.blender}
-        value={draft.blenderPath}
-        busy={busy}
-        onChange={(value) => onChange({ ...draft, blenderPath: value })}
-        onSelect={() => onPickFile((path) => onChange({ ...draft, blenderPath: path }))}
-        onRemove={() => onChange({ ...draft, blenderPath: "" })}
-      />
+      <div className="flex w-full flex-col gap-3">
+        <PathRow
+          locale={locale}
+          label={copy.blender}
+          value={draft.blenderPath}
+          busy={busy}
+          onChange={(value) => onChange({ ...draft, blenderPath: value })}
+          onSelect={() => onPickFile((path) => onChange({ ...draft, blenderPath: path }))}
+          onRemove={() => onChange({ ...draft, blenderPath: "" })}
+        />
+        <PathRow
+          locale={locale}
+          label={copy.blenderAddon}
+          value={draft.addonPath}
+          busy={busy}
+          onChange={(value) => onChange({ ...draft, addonPath: value })}
+          onSelect={() => onPickDir((path) => onChange({ ...draft, addonPath: path }))}
+          onRemove={() => onChange({ ...draft, addonPath: "" })}
+        />
+      </div>
       <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
-      <PathRow
-        locale={locale}
-        label={copy.blenderAddon}
-        value={draft.addonPath}
-        busy={busy}
-        onChange={(value) => onChange({ ...draft, addonPath: value })}
-        onSelect={() => onPickDir((path) => onChange({ ...draft, addonPath: path }))}
-        onRemove={() => onChange({ ...draft, addonPath: "" })}
-      />
-      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
-      <p className="px-5 text-[18px] font-medium leading-7 text-[#18181b] dark:text-foreground">{copy.otherEditors}</p>
-      {(draft.editors.length > 0 ? draft.editors : [""]).map((path, index) => {
-        const rows = draft.editors.length > 0 ? draft.editors : [""];
-        return (
-          <PathRow
-            key={index}
-            locale={locale}
-            value={path}
-            busy={busy}
-            onChange={(value) => onChange({ ...draft, editors: rows.map((item, i) => (i === index ? value : item)) })}
-            onSelect={() => onPickFile((next) => onChange({ ...draft, editors: rows.map((item, i) => (i === index ? next : item)) }))}
-            onRemove={() => onChange({ ...draft, editors: rows.filter((_, i) => i !== index) })}
-          />
-        );
-      })}
+      <div className="flex w-full flex-col gap-1">
+        {(draft.editors.length > 0 ? draft.editors : [""]).map((path, index) => {
+          const rows = draft.editors.length > 0 ? draft.editors : [""];
+          return (
+            <PathRow
+              key={index}
+              locale={locale}
+              label={index === 0 ? copy.otherEditors : undefined}
+              value={path}
+              busy={busy}
+              onChange={(value) => onChange({ ...draft, editors: rows.map((item, i) => (i === index ? value : item)) })}
+              onSelect={() => onPickFile((next) => onChange({ ...draft, editors: rows.map((item, i) => (i === index ? next : item)) }))}
+              onRemove={() => onChange({ ...draft, editors: rows.filter((_, i) => i !== index) })}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -526,29 +530,37 @@ function ForesterFields({
   draft,
   busy,
   onChange,
+  onPickConfig,
   onPickCli,
 }: {
   locale: Locale;
   draft: SettingsInfo;
   busy: boolean;
   onChange: (next: SettingsInfo) => void;
+  onPickConfig: () => void;
   onPickCli: () => void;
 }) {
   const copy = t(locale);
   return (
     <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
-      <Field label={copy.configFile}>
-        <Input className={settingsInputClass} value={draft.apiPath} disabled={busy} onChange={(event) => onChange({ ...draft, apiPath: event.target.value })} />
-      </Field>
+      <PathRow
+        locale={locale}
+        label={copy.configFile}
+        value={draft.apiPath}
+        busy={busy}
+        onChange={(value) => onChange({ ...draft, apiPath: value })}
+        onSelect={onPickConfig}
+        onRemove={() => onChange({ ...draft, apiPath: "" })}
+      />
       <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
       <PathRow
         locale={locale}
         label={copy.foresterCli}
         value={draft.foresterPath}
         busy={busy}
-        showRemove={false}
         onChange={(value) => onChange({ ...draft, foresterPath: value })}
         onSelect={onPickCli}
+        onRemove={() => onChange({ ...draft, foresterPath: "" })}
       />
     </div>
   );
@@ -663,9 +675,9 @@ function IgnoreFields({
   }
 
   return (
-    <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
+    <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-[#e4e4e7] bg-white p-4 shadow-[0_1px_1px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background">
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        <div className="w-10 shrink-0 overflow-hidden border-r border-border" aria-hidden>
+        <div className="w-10 shrink-0 overflow-hidden border-r border-[#e4e4e7] dark:border-border" aria-hidden>
           <div ref={gutterRef}>
             {Array.from({ length: lineCount }, (_, index) => (
               <div key={index} className="flex h-6 w-full shrink-0 items-center justify-center px-4 text-[16px] leading-6 text-foreground-muted">
@@ -683,7 +695,7 @@ function IgnoreFields({
           wrap="off"
           disabled={disabled}
           value={value}
-          className="min-h-0 min-w-0 flex-1 resize-none overflow-auto whitespace-pre bg-transparent p-0 pl-1 font-normal text-[16px] leading-6 text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-0 min-w-0 flex-1 resize-none overflow-auto whitespace-pre bg-transparent p-0 pl-4 font-normal text-[16px] leading-6 text-[#18181b] dark:text-foreground outline-none disabled:cursor-not-allowed disabled:opacity-50"
           onChange={(event) => {
             record(event.currentTarget);
             onChange(event.currentTarget.value);
@@ -729,51 +741,37 @@ function GCFields({
 
   return (
     <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
-      <div className="flex flex-col gap-3 px-5">
-        <label className="flex items-center gap-2">
-          <Switch
-            checked={draft.gcEnabled}
-            disabled={busy}
-            className="border-0"
-            onCheckedChange={(checked) => onChange({ ...draft, gcEnabled: checked })}
-          />
-          <span className="whitespace-nowrap text-sm font-normal leading-5 text-[#18181b] dark:text-foreground">{copy.gcEnabled}</span>
-        </label>
+      <div className="flex flex-col gap-1 px-5">
+        <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcEnabled}</p>
         <GCNumberField
-          className="w-[284px]"
+          min={1}
+          max={3650}
           value={draft.gcReflogExpireDays}
-          disabled={busy || !draft.gcEnabled}
+          disabled={busy}
           onChange={(value) => onChange({ ...draft, gcReflogExpireDays: value })}
         />
       </div>
       <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
-      <div className="flex flex-col gap-3 px-5">
-        <label className="flex items-center gap-2">
-          <Switch
-            checked={draft.gcScheduleEnabled}
-            disabled={busy}
-            className="border-0"
-            onCheckedChange={(checked) => onChange({ ...draft, gcScheduleEnabled: checked })}
-          />
-          <span className="whitespace-nowrap text-sm font-normal leading-5 text-[#18181b] dark:text-foreground">{copy.gcScheduleEnabled}</span>
-        </label>
-        <div className="flex w-[284px] shrink-0 flex-col gap-1">
-          <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcIntervalDays}</p>
-          <GCNumberField
-            value={draft.gcIntervalDays}
-            disabled={busy || !draft.gcScheduleEnabled}
-            onChange={(value) => onChange({ ...draft, gcIntervalDays: value })}
-          />
-        </div>
-        <div className="flex w-[284px] shrink-0 flex-col gap-1">
-          <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcScheduleTime}</p>
+      <div className="flex flex-col gap-1 px-5">
+        <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcIntervalDays}</p>
+        <GCNumberField
+          min={1}
+          max={365}
+          value={draft.gcIntervalDays}
+          disabled={busy}
+          onChange={(value) => onChange({ ...draft, gcIntervalDays: value })}
+        />
+      </div>
+      <div className="flex flex-col gap-1 px-5">
+        <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcScheduleTime}</p>
+        <div className="flex">
           <Input
-            className={settingsInputClass}
+            className={cn(settingsInputClass, "w-[136px]")}
             type="text"
             autoComplete="off"
             spellCheck={false}
             value={timeText}
-            disabled={busy || !draft.gcScheduleEnabled}
+            disabled={busy}
             onChange={(event) => {
               const raw = event.target.value;
               setTimeText(raw);
@@ -792,25 +790,38 @@ function GCFields({
 
 function GCNumberField({
   value,
+  min,
+  max,
   disabled,
   onChange,
-  className,
 }: {
   value: number;
+  min: number;
+  max: number;
   disabled: boolean;
   onChange: (value: number) => void;
-  className?: string;
 }) {
+  const clamp = (n: number) => Math.min(max, Math.max(min, n));
+  const stepClass =
+    "flex w-9 shrink-0 items-center justify-center border border-[#d4d4d8] bg-white p-1 text-[#18181b] shadow-[0_1px_1px_rgba(0,0,0,0.05)] hover:bg-[#e4e4e7] disabled:pointer-events-none disabled:text-[#a1a1aa] dark:border-border dark:bg-background dark:text-foreground";
   return (
-    <Input
-      className={cn(settingsInputClass, className)}
-      type="text"
-      inputMode="numeric"
-      autoComplete="off"
-      value={String(value)}
-      disabled={disabled}
-      onChange={(event) => onChange(parseIntField(event.target.value, value))}
-    />
+    <div className="flex h-8 items-stretch">
+      <button type="button" className={cn(stepClass, "rounded-l-lg")} disabled={disabled || value <= min} aria-label="-" onClick={() => onChange(clamp(value - 1))}>
+        <Icon icon={Minus} size={16} />
+      </button>
+      <input
+        className="w-16 min-w-0 border-y border-[#d4d4d8] bg-white px-2.5 py-1.5 text-center text-sm leading-5 text-[#18181b] shadow-[0_1px_2px_rgba(0,0,0,0.05)] outline-none disabled:text-[#a1a1aa] dark:border-border dark:bg-background dark:text-foreground"
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        value={String(value)}
+        disabled={disabled}
+        onChange={(event) => onChange(clamp(parseIntField(event.target.value, value)))}
+      />
+      <button type="button" className={cn(stepClass, "rounded-r-lg")} disabled={disabled || value >= max} aria-label="+" onClick={() => onChange(clamp(value + 1))}>
+        <Icon icon={Plus} size={16} />
+      </button>
+    </div>
   );
 }
 
@@ -860,7 +871,6 @@ function PathRow({
   onChange,
   onSelect,
   onRemove,
-  showRemove = true,
 }: {
   locale: Locale;
   label?: string;
@@ -868,24 +878,21 @@ function PathRow({
   busy: boolean;
   onChange: (value: string) => void;
   onSelect: () => void;
-  onRemove?: () => void;
-  showRemove?: boolean;
+  onRemove: () => void;
 }) {
   const copy = t(locale);
   return (
-    <div className={cn("flex w-full gap-2 px-5", label ? "items-end" : "items-center")}>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        {label ? <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{label}</p> : null}
-        <Input className={settingsInputClass} value={value} disabled={busy} onChange={(event) => onChange(event.target.value)} />
-      </div>
-      <Button type="button" variant="outline" disabled={busy} onClick={onSelect}>
-        {copy.select}
-      </Button>
-      {showRemove && onRemove ? (
-        <Button type="button" variant="outline" size="icon" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
+    <div className="flex w-full flex-col gap-1 px-5">
+      {label ? <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{label}</p> : null}
+      <div className="flex w-full items-center gap-2">
+        <Input className={cn(settingsInputClass, "min-w-0 flex-1")} value={value} disabled={busy} onChange={(event) => onChange(event.target.value)} />
+        <Button type="button" variant="outline" className="border-[#e4e4e7] shadow-[0_1px_2px_rgba(0,0,0,0.05)]" disabled={busy} onClick={onSelect}>
+          {copy.select}
+        </Button>
+        <Button type="button" variant="outline" size="icon" className="text-[#dc2626] dark:text-[#dc2626]" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
           <Icon icon={Trash2} size={16} />
         </Button>
-      ) : null}
+      </div>
     </div>
   );
 }

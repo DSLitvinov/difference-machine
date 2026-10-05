@@ -13,7 +13,7 @@ export function HeaderFileCommitAction({ locale, fileName, onBack }: HeaderFileC
   const copy = t(locale);
   return (
     <div className="flex w-full items-center pb-2 pt-3">
-      <Button type="button" variant="outline" size="icon" aria-label={copy.back} onClick={onBack}>
+      <Button type="button" variant="ghost" size="icon" aria-label={copy.back} onClick={onBack}>
         <Icon icon={ChevronRight} size={16} className="-scale-x-100" />
       </Button>
       <p className="min-w-0 flex-1 truncate text-center text-[14px] font-medium leading-5 text-foreground">{fileName}</p>

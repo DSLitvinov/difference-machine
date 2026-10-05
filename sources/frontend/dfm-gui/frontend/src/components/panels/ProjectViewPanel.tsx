@@ -171,8 +171,8 @@ export function ProjectViewPanel({
         onDelete={onDeleteBranch}
         onMerge={onMerge}
       />
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-3 pt-1">
+        <div className="shrink-0">
           <SidebarCardDirectory
             state={directoryState(commitOpen)}
             onClick={commitOpen && !stagingCommit ? onLeaveCommit : undefined}
@@ -186,9 +186,9 @@ export function ProjectViewPanel({
             />
           </SidebarCardDirectory>
         </div>
-        <div className="flex w-full items-center p-3">
+        <div className="flex w-full shrink-0 items-center">
           <Tabs value={sidebarTab} onValueChange={(v) => onSidebarTab(v as SidebarTab)} className="w-full">
-            <TabsList size="lg" className="w-full">
+            <TabsList size="sm" className="w-full">
               <TabsTrigger value="history" className="flex-1">
                 {copy.history}
               </TabsTrigger>
@@ -198,7 +198,7 @@ export function ProjectViewPanel({
             </TabsList>
           </Tabs>
         </div>
-        <div className="flex min-h-0 w-[309px] flex-1 flex-col px-3">
+        <div className="flex min-h-0 w-full flex-1 flex-col">
           {sidebarTab === "history" ? (
             <CommitList
               locale={locale}

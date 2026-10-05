@@ -1,4 +1,5 @@
-import { Copy, GitMerge } from "lucide-react";
+import { Copy, Flag, Merge } from "lucide-react";
+import { IconBadge } from "@/components/atoms/CommitProjectCard";
 import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 
@@ -21,18 +22,14 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
     <div className="flex w-full items-center justify-center pb-2 pt-3">
       <div className="flex min-w-0 flex-1 flex-col gap-2 px-2">
         <div className="flex w-full items-center gap-1">
-          {merge ? <Icon icon={GitMerge} size={16} /> : null}
-          {head ? (
-            <span className="inline-flex h-[22px] shrink-0 items-center rounded-full bg-background-primary px-3 text-[12px] font-semibold leading-4 text-foreground-primary">
-              {copy.head}
-            </span>
-          ) : null}
-          <p className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-5 text-foreground">{title}</p>
+          {merge ? <IconBadge icon={Merge} label={copy.merge} /> : null}
+          {head ? <IconBadge icon={Flag} label={copy.head} /> : null}
+          <p className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-5 text-[#18181b] dark:text-foreground">{title}</p>
         </div>
-        <p className="text-[12px] leading-4 text-foreground">{author}</p>
+        <p className="text-[12px] leading-4 text-[#18181b] dark:text-foreground">{author}</p>
         <div className="flex w-full items-center gap-2">
           <div className="flex items-center gap-2">
-            <p className="text-[12px] leading-4 text-foreground">{shortHash}</p>
+            <p className="text-[12px] leading-4 text-[#18181b] dark:text-foreground">{shortHash}</p>
             <button
               type="button"
               className="size-4 shrink-0"
@@ -43,12 +40,12 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
             </button>
           </div>
           {stat ? (
-            <p className="flex min-w-0 flex-1 items-center justify-end gap-1 text-[12px] leading-4">
-              <span className="text-foreground">
+            <p className="flex min-w-0 flex-1 items-center justify-end gap-1 whitespace-nowrap text-[12px] leading-4">
+              <span className="text-[#18181b] dark:text-foreground">
                 {copy.filesChangedLabel} {stat.files_changed}
               </span>
-              <span className="text-[#047857]">+ {stat.insertions}</span>
-              <span className="text-[#ef4444]">- {stat.deletions}</span>
+              <span className="text-[#166534] dark:text-[#4ade80]">+ {stat.insertions}</span>
+              <span className="text-[#dc2626]">- {stat.deletions}</span>
             </p>
           ) : null}
         </div>

@@ -1,51 +1,9 @@
-import { X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { basenameRel } from "@/lib/folder-query";
-
-type DialogShellProps = {
-  locale: Locale;
-  title: string;
-  titleId: string;
-  busy?: boolean;
-  onClose: () => void;
-  children: ReactNode;
-};
-
-function DialogShell({ locale, title, titleId, busy, onClose, children }: DialogShellProps) {
-  const copy = t(locale);
-  const [backdropArmed, setBackdropArmed] = useState(false);
-  useEffect(() => {
-    const id = window.setTimeout(() => setBackdropArmed(true), 0);
-    return () => window.clearTimeout(id);
-  }, []);
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
-      role="presentation"
-      onClick={busy || !backdropArmed ? undefined : onClose}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="relative flex w-[451px] flex-col gap-4 rounded-2xl border border-border bg-background p-6 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button type="button" className="absolute right-[11px] top-[11px] flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose} disabled={busy}>
-          <Icon icon={X} size={16} />
-        </button>
-        <p id={titleId} className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
-          {title}
-        </p>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 type FileRenameDialogProps = {
   locale: Locale;
@@ -61,7 +19,24 @@ export function FileRenameDialog({ locale, path, busy, onCancel, onRename }: Fil
   const trimmed = name.trim();
   const canRename = Boolean(trimmed) && trimmed !== basenameRel(path) && !trimmed.includes("/") && !trimmed.includes("\\");
   return (
-    <DialogShell locale={locale} title={copy.rename} titleId="rename-file-title" busy={busy} onClose={onCancel}>
+    <Dialog
+      className="w-[430px]"
+      title={copy.rename}
+      titleId="rename-file-title"
+      closeLabel={copy.close}
+      busy={busy}
+      onClose={onCancel}
+      footer={
+        <>
+          <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
+            {copy.cancel}
+          </Button>
+          <Button type="button" disabled={busy || !canRename} onClick={() => onRename(trimmed)}>
+            {copy.rename}
+          </Button>
+        </>
+      }
+    >
       <Input
         value={name}
         disabled={busy}
@@ -73,15 +48,7 @@ export function FileRenameDialog({ locale, path, busy, onCancel, onRename }: Fil
           }
         }}
       />
-      <div className="flex w-full items-start justify-end gap-2">
-        <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
-          {copy.cancel}
-        </Button>
-        <Button type="button" disabled={busy || !canRename} onClick={() => onRename(trimmed)}>
-          {copy.rename}
-        </Button>
-      </div>
-    </DialogShell>
+    </Dialog>
   );
 }
 
@@ -100,16 +67,25 @@ export function FileDeleteDialog({ locale, title, body, confirmLabel, busy, onCa
   const heading = title ?? copy.deleteInProject;
   const confirm = confirmLabel ?? copy.deleteInProject;
   return (
-    <DialogShell locale={locale} title={heading} titleId="delete-file-title" busy={busy} onClose={onCancel}>
-      {body ? <p className="text-[13px] leading-normal text-foreground-muted">{body}</p> : null}
-      <div className="flex w-full items-start justify-end gap-2">
-        <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
-          {copy.cancel}
-        </Button>
-        <Button type="button" variant="destructive" disabled={busy} onClick={onDelete}>
-          {confirm}
-        </Button>
-      </div>
-    </DialogShell>
+    <Dialog
+      className="w-[430px]"
+      title={heading}
+      titleId="delete-file-title"
+      closeLabel={copy.close}
+      busy={busy}
+      onClose={onCancel}
+      footer={
+        <>
+          <Button type="button" variant="outline" disabled={busy} onClick={onCancel}>
+            {copy.cancel}
+          </Button>
+          <Button type="button" variant="destructive" disabled={busy} onClick={onDelete}>
+            {confirm}
+          </Button>
+        </>
+      }
+    >
+      {body ? <p className="text-[13px] leading-normal text-[#18181b] dark:text-foreground">{body}</p> : null}
+    </Dialog>
   );
 }

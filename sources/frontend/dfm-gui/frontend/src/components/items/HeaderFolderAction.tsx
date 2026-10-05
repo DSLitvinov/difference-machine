@@ -102,7 +102,7 @@ export function HeaderFolderAction({
         {collapsed ? (
           <>
             <div className="h-5 w-px bg-border" />
-            <Button type="button" variant="secondary" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
+            <Button type="button" variant="ghost" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
               <Icon icon={PanelRightOpen} size={16} />
             </Button>
           </>

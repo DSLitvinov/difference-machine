@@ -63,7 +63,7 @@ export function SelectMoreFilesPanel({
         <div className="flex w-full shrink-0 items-center justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="icon" aria-label={copy.more}>
+                <Button type="button" variant="ghost" size="icon" aria-label={copy.more}>
                   <Icon icon={Ellipsis} size={16} />
                 </Button>
               </DropdownMenuTrigger>

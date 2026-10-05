@@ -1,5 +1,7 @@
 import type { MouseEvent } from "react";
+import { ChevronRight } from "lucide-react";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
+import { Icon } from "@/components/chrome/Icon";
 import { cn } from "@/lib/utils";
 import type { LetterStatus } from "@/lib/status";
 
@@ -17,14 +19,15 @@ export function displayCommitPath(path: string): string {
 
 export function CommitFileItem({ path, letter, selected, onSelect, onMenu }: CommitFileItemProps) {
   const className = cn(
-    "flex w-full flex-col items-start overflow-clip rounded-sm px-4 py-2 text-left",
-    selected ? "bg-background-muted" : "hover:bg-background-muted",
+    "flex w-full items-center gap-2 overflow-clip rounded-[10px] px-2.5 py-2 text-left",
+    selected ? "bg-[#e4e4e7]" : "hover:bg-[#f4f4f5]",
   );
   const body = (
-    <div className="flex w-full items-center gap-2">
-      {letter ? <FileStatusBadge type={letter} /> : null}
-      <p className="min-w-0 flex-1 truncate text-[16px] leading-6 text-foreground">{displayCommitPath(path)}</p>
-    </div>
+    <>
+      {letter ? <FileStatusBadge type={letter} iconOnly /> : null}
+      <p className="min-w-0 flex-1 truncate text-[14px] font-medium leading-5 text-[#18181b]">{displayCommitPath(path)}</p>
+      <Icon icon={ChevronRight} size={16} className="shrink-0 text-[#18181b]" />
+    </>
   );
   if (onSelect) {
     return (

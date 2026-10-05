@@ -171,3 +171,73 @@ func TestStatusGetRenameAfterWorkdirRename(t *testing.T) {
 		t.Fatalf("unstaged_deleted_files = %v, want empty after rename pairing", statusPayload.UnstagedDeleted)
 	}
 }
+
+func TestStatusCleanAfterCommitOfDeletion(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "dir/gone.txt", "payload")
+	mustOK(t, h, "index.add", `{"files":["dir/gone.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"seed","author":"tester"}`)
+	mustOK(t, h, "workdir.delete", `{"path":"dir/gone.txt"}`)
+
+	// The GUI stages exactly the dirty paths, then commits.
+	mustOK(t, h, "index.add", `{"files":["dir/gone.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"delete","author":"tester"}`)
+
+	var statusPayload struct {
+		StagedDeleted   []string `json:"staged_deleted_files"`
+		UnstagedDeleted []string `json:"unstaged_deleted_files"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &statusPayload); err != nil {
+		t.Fatalf("decode status.get: %v", err)
+	}
+	if len(statusPayload.StagedDeleted) != 0 || len(statusPayload.UnstagedDeleted) != 0 {
+		t.Fatalf("deleted files still in status: staged=%v unstaged=%v", statusPayload.StagedDeleted, statusPayload.UnstagedDeleted)
+	}
+}
+
+func TestStatusCleanAfterCommitOfMove(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "dir/old.txt", "payload")
+	mustOK(t, h, "index.add", `{"files":["dir/old.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"seed","author":"tester"}`)
+	mustOK(t, h, "workdir.rename", `{"path":"dir/old.txt","new_name":"new.txt"}`)
+
+	// dirtyPaths only includes the new path of a rename.
+	mustOK(t, h, "index.add", `{"files":["dir/new.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"move","author":"tester"}`)
+
+	var statusPayload struct {
+		RenamedFiles    []map[string]string `json:"renamed_files"`
+		UnstagedDeleted []string            `json:"unstaged_deleted_files"`
+		StagedDeleted   []string            `json:"staged_deleted_files"`
+		UntrackedFiles  []string            `json:"untracked_files"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "status.get", `{}`), &statusPayload); err != nil {
+		t.Fatalf("decode status.get: %v", err)
+	}
+	if len(statusPayload.UnstagedDeleted) != 0 || len(statusPayload.StagedDeleted) != 0 || len(statusPayload.RenamedFiles) != 0 || len(statusPayload.UntrackedFiles) != 0 {
+		t.Fatalf("status after move commit = %+v", statusPayload)
+	}
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{"max_count":1}`), &logResult); err != nil {
+		t.Fatalf("decode log.get: %v", err)
+	}
+	var nameStatus struct {
+		Files []struct {
+			Status  string `json:"status"`
+			Path    string `json:"path"`
+			OldPath string `json:"old_path"`
+		} `json:"files"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "diff.name_status", `{"to":"`+logResult.Commits[0].Hash+`"}`), &nameStatus); err != nil {
+		t.Fatalf("decode diff.name_status: %v", err)
+	}
+	if len(nameStatus.Files) != 1 || nameStatus.Files[0].Status != "R" || nameStatus.Files[0].Path != "dir/new.txt" || nameStatus.Files[0].OldPath != "dir/old.txt" {
+		t.Fatalf("name_status = %+v, want a rename", nameStatus.Files)
+	}
+}

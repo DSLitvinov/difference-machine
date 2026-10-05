@@ -55,7 +55,7 @@ export function FiltersMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="secondary" size="icon" aria-label={copy.filter}>
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.filter}>
           <Icon icon={Filter} size={16} />
         </Button>
       </DropdownMenuTrigger>

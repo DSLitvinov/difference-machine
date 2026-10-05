@@ -11,7 +11,7 @@ export function SidebarCardDirectory({ state = "default", children, onClick }: S
   return (
     <div
       className={cn(
-        "flex w-full items-start gap-2 rounded-[14px] border border-solid p-4",
+        "flex w-full flex-col overflow-hidden rounded-[14px] border border-solid",
         state === "selected" && "border-border-accent bg-background shadow-sm",
         state === "default" && "border-border bg-background shadow-sm hover:border-border-accent",
         state === "disabled" && "border-border bg-[#f8f8f9] dark:bg-background-muted",

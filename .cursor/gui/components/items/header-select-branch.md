@@ -9,7 +9,7 @@ Figma: [Item / Panel / Header / Select Branch](https://www.figma.com/design/qlwK
 
 ## Dropdown выбора веток
 
-Figma: [Popover (Branch)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6050-12558) (`6050:12558`). Ширина 217. **Только** список веток и пункт-триггер подменю.
+Figma: [Popover (Branch)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6050-12558) (`6050:12558`). Ширина = ширине комбобокса (`--radix-dropdown-menu-trigger-width`, 285 px в колонке 309). **Только** список веток и пункт-триггер подменю.
 
 | Пункт | Поведение |
 |-------|-----------|

@@ -1,7 +1,8 @@
-import { ChevronDown, Filter, X } from "lucide-react";
+import { ChevronDown, Filter } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { AlertBanner } from "@/components/ui/alert";
 import {
@@ -87,7 +88,6 @@ export function MergeDialog({
   const [previewLoading, setPreviewLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [alertDismissed, setAlertDismissed] = useState(false);
-  const [backdropArmed, setBackdropArmed] = useState(false);
   const alive = useRef(true);
 
   const selectedBranch = pickedBranch || others[0]?.name || "";
@@ -122,11 +122,6 @@ export function MergeDialog({
     return () => {
       alive.current = false;
     };
-  }, []);
-
-  useEffect(() => {
-    const id = window.setTimeout(() => setBackdropArmed(true), 0);
-    return () => window.clearTimeout(id);
   }, []);
 
   useEffect(() => {
@@ -222,34 +217,40 @@ export function MergeDialog({
   const objectHeader = blend && objects.length > 0 ? copy.objectsInBlend(objects.length) : copy.objectsNotDetected;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40"
-      role="presentation"
-      onClick={locked || !backdropArmed ? undefined : onClose}
+    <Dialog
+      className="w-[780px]"
+      title={mergeHeading(currentBranch, incoming, locale)}
+      titleId="merge-dialog-title"
+      closeLabel={copy.close}
+      busy={locked}
+      onClose={onClose}
+      footer={
+        step !== "wait" ? (
+          <>
+            <Button type="button" variant="outline" disabled={locked} onClick={onCancel}>
+              {copy.cancel}
+            </Button>
+            {step === "select branch" ? (
+              <Button
+                type="button"
+                disabled={locked || !selectedBranch}
+                onClick={() => {
+                  setPreviewLoading(true);
+                  setStep("view objects");
+                }}
+              >
+                {copy.next}
+              </Button>
+            ) : (
+              <Button type="button" disabled={locked || hasConflicts || previewLoading} onClick={() => void runMerge()}>
+                {copy.merge}
+              </Button>
+            )}
+          </>
+        ) : undefined
+      }
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="merge-dialog-title"
-        aria-busy={step === "wait"}
-        className="relative flex w-[796px] flex-col gap-4 overflow-clip rounded-2xl border border-border bg-background p-6 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          className="absolute right-[11px] top-[11px] flex size-6 items-center justify-center"
-          aria-label={copy.close}
-          onClick={onClose}
-          disabled={locked}
-        >
-          <Icon icon={X} size={16} />
-        </button>
-        <div className="flex w-full flex-col">
-          <p id="merge-dialog-title" className="pr-6 text-[18px] font-semibold leading-7 text-foreground">
-            {mergeHeading(currentBranch, incoming, locale)}
-          </p>
-          <p className="w-full text-[14px] leading-5 text-foreground-muted">{author || copy.author}</p>
-        </div>
+        <p className="w-full text-sm font-normal leading-5 text-[#71717a] dark:text-foreground-muted">{author || copy.author}</p>
         {error && step === "select branch" && !alertDismissed ? (
           <AlertBanner
             variant="destructive"
@@ -270,12 +271,12 @@ export function MergeDialog({
               <DropdownMenuTrigger asChild disabled={locked || others.length === 0}>
                 <button
                   type="button"
-                  className="flex min-h-9 w-full items-center gap-2 rounded-[6px] border border-border bg-background px-3 py-2.5 shadow-sm"
+                  className="flex h-7 w-full items-center gap-2 rounded-md border border-[#d4d4d8] bg-white px-2.5 text-sm leading-5 text-[#18181b] shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background dark:text-foreground"
                 >
-                  <span className="min-w-0 flex-1 truncate text-left text-[14px] leading-5 text-foreground">
+                  <span className="min-w-0 flex-1 truncate text-left">
                     {selectedBranch || copy.branchName}
                   </span>
-                  <Icon icon={ChevronDown} size={20} />
+                  <Icon icon={ChevronDown} size={16} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-[748px]">
@@ -361,34 +362,6 @@ export function MergeDialog({
           <p className="w-full text-[14px] leading-5 text-foreground-muted">{copy.mergePleaseWait}</p>
         ) : null}
 
-        {step !== "wait" ? (
-          <div className="flex w-full items-start justify-end gap-2">
-            <Button type="button" variant="outline" disabled={locked} onClick={onCancel}>
-              {copy.cancel}
-            </Button>
-            {step === "select branch" ? (
-              <Button
-                type="button"
-                disabled={locked || !selectedBranch}
-                onClick={() => {
-                  setPreviewLoading(true);
-                  setStep("view objects");
-                }}
-              >
-                {copy.next}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                disabled={locked || hasConflicts || previewLoading}
-                onClick={() => void runMerge()}
-              >
-                {copy.merge}
-              </Button>
-            )}
-          </div>
-        ) : null}
-      </div>
-    </div>
+    </Dialog>
   );
 }

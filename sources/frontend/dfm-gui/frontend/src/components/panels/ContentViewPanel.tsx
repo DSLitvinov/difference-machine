@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu
 import { foresterCall } from "@/lib/bridge";
 import { applyFolderQuery, fileSelection, folderExtensions, inCurrentFolder, type GridFilter, type GridSort } from "@/lib/folder-query";
 import type { Locale } from "@/lib/i18n";
-import { isDirty, isStagedPath, mergeMissingEntries } from "@/lib/status";
+import { isDirty, isStagedPath } from "@/lib/status";
 import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
 
 type EntryMenu = {
@@ -128,9 +128,8 @@ export function ContentViewPanel({
     };
   }, [debounced, folderPath, viewIgnored]);
 
-  const source = searchEntries ?? entries;
+  const listed = searchEntries ?? entries;
   const searching = searchEntries !== null;
-  const listed = searching ? source : mergeMissingEntries(source, status, changedOnly ? null : folderPath);
   const visible = viewIgnored ? listed : listed.filter((entry) => !entry.ignored);
   const extensions = useMemo(() => folderExtensions(visible), [visible]);
   const folders = visible.filter((entry) => entry.is_dir);
