@@ -84,6 +84,7 @@ Frontend не должен знать про `Handle`. Handle живёт тол�
 | Открыть файл в редакторе | `workdir.open` (`path` + опционально `editor`) |
 | Удалить файл | `workdir.delete` (корзина ОС, не `os.Remove` из GUI) |
 | Переименовать | `workdir.rename` |
+| Переместить файлы в папку | drag на [grid-folder](../components/items/grid-folder.md) → `workdir.move` |
 | Превью картинки/видео/blend/текста | сетка и File Info: `workdir.thumbnail`; Content View файла: `workdir.file` для растра и SVG; ревизия: `blob.get`; кэш — [thumbnails.md](./thumbnails.md) |
 | Garbage collection | `setup.cfg` `[gc]` (`enabled`, `reflog.expire.days`, `schedule.enabled`, `interval.day`, `schedule.hour`, `schedule.minute`, `last.run`) + `gc.run`. Тот же файл у аддона |
 | Ignored files and folders | корневой `.dfmignore` через `workdir.dfmignore.get` / `set` |

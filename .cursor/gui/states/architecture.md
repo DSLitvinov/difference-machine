@@ -98,7 +98,7 @@ Take snapshot и Create commit не порождают отдельный `View 
 - Пустой selection: info — File Info Null / empty из макета ([not-select-file](../components/placeholders/not-select-file.md)), не произвольный «выберите файл».
 - Клик по папке: path в selection, тайл Selected. Кадра File Info для папки нет — Null, пока не выбран файл. Двойной клик — `folderPath` = path, selection сброс.
 - Многофайловый selection: только [Select More Files](../panels/select-more-files.md) ([File More Info](../views/project-browse.md)), если в selection есть файл. Только папки — Null.
-- После `workdir.rename` selection переезжает на `new_path`.
+- После `workdir.rename` и `workdir.move` selection переезжает на `new_path`.
 - После `workdir.delete` path исчезает из selection.
 - Файл пропал **снаружи** (удалён / переименован / перемещён), а path ещё открыт в File View — не сбрасывать выбор: [File Missing](../views/file-preview.md). В сетке рабочей папки такого path нет. Удалённые path видны в списке файлов коммита.
 
@@ -111,7 +111,7 @@ Take snapshot и Create commit не порождают отдельный `View 
 - Sidebar считает dirty по своему запросу, preview — по другому, старше чем N секунд без причины.
 - History показывает ветку A, branch selector — B.
 
-После любого успешного `repo.switch`, `commit.*`, `merge.*`, `index.add`, `index.drop`, `restore.*` — обязательный refresh `status.get` и инвалидация зависимых запросов (tree, log, entries).
+После любого успешного `repo.switch`, `commit.*`, `merge.*`, `index.add`, `index.drop`, `restore.*`, `workdir.move` — обязательный refresh `status.get` и инвалидация зависимых запросов (tree, log, entries).
 
 Watcher workdir: тот же путь, с дебаунсом; не плодить параллельные `status.get`.
 

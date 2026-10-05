@@ -34,6 +34,8 @@ Gap превью↔лейбл: 8 px.
 
 Правый клик открывает [Popover (File Preview Item)](../popovers/file-preview-item.md).
 
+Перетаскивание (`draggable`) — только файл, который есть на диске. Пропавший path не тащится. Если тащат файл из текущего selection, в жест входят все выделенные файлы (не папки). Иначе — только этот path. Тип данных `application/x-dfm-move`, пути через `\n`. Drop — на [grid-folder](./grid-folder.md) → `workdir.move`.
+
 ---
 
 ## State

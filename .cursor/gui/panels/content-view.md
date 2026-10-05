@@ -13,7 +13,7 @@ Figma-канон: [Folder - Expanded](https://www.figma.com/design/qlwKiMPZblz96
 1. [Header Folder Action](../components/items/header-folder-action.md) 772×60, offset x=8.
 2. Content: область скролла. На кадре 772×648 (center 788) или шире при collapse (center 1120). Padding **16**. Сетка — **отзывчивая** (ниже), не фиксированные 7 колонок по 106.
 
-Порядок: сначала [FolderGridTile](../components/items/grid-folder.md), затем [FileGridTile](../components/items/grid-file.md) рядами. Клик по файлу или папке — selection. Двойной клик по файлу — [File View](../views/file-preview.md); по папке — зайти (`folderPath`). Правый клик по файлу — [File Preview Item](../components/popovers/file-preview-item.md); по папке — [Folder Preview Item](../components/popovers/folder-preview-item.md).
+Порядок: сначала [FolderGridTile](../components/items/grid-folder.md), затем [FileGridTile](../components/items/grid-file.md) рядами. Клик по файлу или папке — selection. Двойной клик по файлу — [File View](../views/file-preview.md); по папке — зайти (`folderPath`). Правый клик по файлу — [File Preview Item](../components/popovers/file-preview-item.md); по папке — [Folder Preview Item](../components/popovers/folder-preview-item.md). Файл (или выделенные файлы) можно перетащить на тайл папки — `workdir.move`.
 
 Сетка **виртуализируется**: в DOM — viewport + 1–2 ряда overscan. `workdir.entries` догружается по `has_more`; `workdir.thumbnail` — только для видимых тайлов. Канон: [virtual-scroll.md](../gui_frontend/virtual-scroll.md), [thumbnails.md](../gui_backend/thumbnails.md).
 

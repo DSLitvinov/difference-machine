@@ -46,6 +46,7 @@ type ContentViewPanelProps = {
   onIgnore?: (path: string) => void;
   onUnignore?: (path: string) => void;
   onVerify?: () => void;
+  onMoveFiles?: (paths: string[], dest: string) => void;
 };
 
 export function ContentViewPanel({
@@ -74,6 +75,7 @@ export function ContentViewPanel({
   onIgnore,
   onUnignore,
   onVerify,
+  onMoveFiles,
 }: ContentViewPanelProps) {
   const [anchor, setAnchor] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -249,6 +251,7 @@ export function ContentViewPanel({
             onNeedMore={onNeedMore}
             onFileMenu={onFileMenu}
             onFolderMenu={onFolderMenu}
+            onMoveFiles={onMoveFiles}
           />
         )}
       </div>

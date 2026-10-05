@@ -43,6 +43,7 @@ type AppShellProps = {
   onStashAction: (action: StashCardAction, stash: StashSummary) => void;
   onRefresh: () => Promise<void>;
   onVerify?: () => void;
+  onMoveFiles?: (paths: string[], dest: string) => void;
 };
 
 export function AppShell({
@@ -73,6 +74,7 @@ export function AppShell({
   onStashAction,
   onRefresh,
   onVerify,
+  onMoveFiles,
 }: AppShellProps) {
   const locale = useAppStore((s) => s.locale);
   const userName = useAppStore((s) => s.userName);
@@ -308,6 +310,7 @@ export function AppShell({
             onIgnore={(path) => onIgnore([path])}
             onUnignore={(path) => onUnignore([path])}
             onVerify={onVerify}
+            onMoveFiles={onMoveFiles}
           />
         )}
         {showRight ? (

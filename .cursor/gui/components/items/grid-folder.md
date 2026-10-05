@@ -21,7 +21,9 @@ Gap иконка↔тексты: 2 px. Padding: Default `space-100` 4 px; Hover/
 
 Клик — selection (`state=Selected`), как у [grid-file](./grid-file.md). Двойной клик — зайти в папку: `folderPath` = path тайла, selection сброс. Не `workdir.open` (это «Open in folder» у файла).
 
-Правый клик открывает [Popover Folder Preview Item](../popovers/folder-preview-item.md). Папка не вызывает `workdir.thumbnail` — иконка SVG из атома.
+Правый клик открывает [Popover Folder Preview Item](../popovers/folder-preview-item.md). Папка не вызывает `workdir.thumbnail` — иконка SVG из атома. Папку не тащат.
+
+Drop файлов с [grid-file](./grid-file.md): `dragover` принимает только `application/x-dfm-move`. Пока курсор над тайлом — тот же вид, что Selected (`#eff6ff`, обводка `#60a5fa`). `drop` → `workdir.move` `{paths, dest: path тайла}`. Имена сохраняются. Уже лежащие в этой папке не едут. Занятое имя — ошибка, toast, ничего не переносится. После успеха selection переезжает на `new_path`, затем refresh `status.get` и entries.
 
 ---
 

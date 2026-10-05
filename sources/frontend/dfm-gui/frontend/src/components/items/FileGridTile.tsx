@@ -6,7 +6,7 @@ import { GRID_PREVIEW_DEFAULT } from "@/lib/grid";
 import type { LetterStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/app-store";
-import type { MouseEvent } from "react";
+import type { DragEvent, MouseEvent } from "react";
 
 type FileGridTileProps = {
   name: string;
@@ -22,7 +22,11 @@ type FileGridTileProps = {
   onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
   onOpen?: () => void;
   onMenu?: (event: MouseEvent<HTMLButtonElement>) => void;
+  /** Paths dragged together. Empty disables dragging. */
+  dragPaths?: string[];
 };
+
+export const DFM_MOVE_TYPE = "application/x-dfm-move";
 
 function stubSrc(name: string, theme: "light" | "dark", missing?: boolean): string {
   if (missing) {
@@ -52,14 +56,25 @@ export function FileGridTile({
   onSelect,
   onOpen,
   onMenu,
+  dragPaths,
 }: FileGridTileProps) {
   const theme = useAppStore((s) => s.theme);
+  const canDrag = Boolean(dragPaths && dragPaths.length > 0 && !missing);
   return (
     <button
       type="button"
+      draggable={canDrag}
       onClick={onSelect}
       onDoubleClick={() => onOpen?.()}
       onContextMenu={onMenu}
+      onDragStart={
+        canDrag
+          ? (event: DragEvent<HTMLButtonElement>) => {
+              event.dataTransfer.effectAllowed = "move";
+              event.dataTransfer.setData(DFM_MOVE_TYPE, dragPaths!.join("\n"));
+            }
+          : undefined
+      }
       className={cn(
         "flex w-full min-w-0 flex-col items-center gap-2 rounded-md border p-2",
         selected ? "border-border-accent bg-foreground-accent" : "border-transparent hover:bg-foreground-accent",

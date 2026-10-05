@@ -59,6 +59,7 @@ var handlers = map[string]handlerFunc{
 	"workdir.file":             handleWorkdirFile,
 	"workdir.open":             handleWorkdirOpen,
 	"workdir.rename":           handleWorkdirRename,
+	"workdir.move":             handleWorkdirMove,
 	"workdir.delete":           handleWorkdirDelete,
 	"workdir.search":           handleWorkdirSearch,
 	"workdir.ignore":           handleWorkdirIgnore,

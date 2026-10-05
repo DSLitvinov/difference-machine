@@ -394,6 +394,105 @@ func handleWorkdirRename(workPath string, args json.RawMessage) (interface{}, er
 	})
 }
 
+func handleWorkdirMove(workPath string, args json.RawMessage) (interface{}, error) {
+	var params struct {
+		Paths []string `json:"paths"`
+		Dest  string   `json:"dest"`
+	}
+	if err := decodeArgs(args, &params); err != nil {
+		return nil, err
+	}
+	if len(params.Paths) == 0 {
+		return nil, fmt.Errorf("paths is required")
+	}
+
+	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
+		scanner := newWorkdirScanner(repoPath)
+		destRel := canonicalRelPath(params.Dest)
+		destAbs, err := scanner.absDir(destRel)
+		if err != nil {
+			return nil, err
+		}
+		info, err := os.Stat(destAbs)
+		if err != nil {
+			return nil, err
+		}
+		if !info.IsDir() {
+			return nil, fmt.Errorf("destination is not a folder")
+		}
+
+		type movedPath struct {
+			From string
+			To   string
+		}
+		planned := make([]movedPath, 0, len(params.Paths))
+		seen := make(map[string]bool)
+		taken := make(map[string]bool)
+		for _, raw := range params.Paths {
+			rel := canonicalRelPath(raw)
+			if rel == "" || seen[rel] {
+				continue
+			}
+			seen[rel] = true
+			parent := parentRepoRelPath(rel)
+			if parent == "." {
+				parent = ""
+			}
+			if parent == destRel {
+				continue
+			}
+			abs, err := scanner.absFile(rel)
+			if err != nil {
+				return nil, err
+			}
+			base := filepath.Base(abs)
+			newRel := base
+			if destRel != "" {
+				newRel = destRel + "/" + base
+			}
+			newAbs, err := scanner.absFilePath(newRel)
+			if err != nil {
+				return nil, err
+			}
+			if taken[newRel] {
+				return nil, fmt.Errorf("a file already exists at %s", newRel)
+			}
+			if _, err := os.Stat(newAbs); err == nil {
+				return nil, fmt.Errorf("a file already exists at %s", newRel)
+			} else if !os.IsNotExist(err) {
+				return nil, err
+			}
+			taken[newRel] = true
+			planned = append(planned, movedPath{From: abs, To: newAbs})
+		}
+		if len(planned) == 0 {
+			return nil, fmt.Errorf("nothing to move")
+		}
+		moved := make([]map[string]string, 0, len(planned))
+		for _, item := range planned {
+			if err := os.Rename(item.From, item.To); err != nil {
+				return nil, fmt.Errorf("workdir.move: %w", err)
+			}
+			fromRel, err := filepath.Rel(repoPath, item.From)
+			if err != nil {
+				return nil, err
+			}
+			toRel, err := filepath.Rel(repoPath, item.To)
+			if err != nil {
+				return nil, err
+			}
+			moved = append(moved, map[string]string{
+				"path":     filepath.ToSlash(fromRel),
+				"new_path": filepath.ToSlash(toRel),
+			})
+		}
+		return map[string]interface{}{
+			"success": true,
+			"moved":   moved,
+		}, nil
+	})
+}
+
 func handleWorkdirDelete(workPath string, args json.RawMessage) (interface{}, error) {
 	var params struct {
 		Path string `json:"path"`

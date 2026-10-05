@@ -104,6 +104,10 @@ Path traversal (`..`) и выход за корень репо — ошибка.
 
 `new_name` — только имя (без разделителей, не `.` / `..`). Результат содержит `new_path`. После успеха обновить selection и status.
 
+### `workdir.move`
+
+`paths[]` — файлы, `dest` — папка назначения (rel). Имя сохраняется. Уже лежащие в `dest` пропускаются. Занятое имя → ошибка, ничего не переносится. `{success, moved: [{path, new_path}]}`. GUI: drag файла (или выделенных файлов) на плитку папки.
+
 ### `workdir.delete`
 
 Перенос в корзину ОС (Trash / Recycle Bin), не безвозвратное удаление. GUI не вызывает `os.Remove`.
@@ -140,4 +144,4 @@ Settings → **Ignored files and folders**: весь файл, не точечн
 
 Бейджи VCS на тайлах — пересечение path из entries со списками status (`appended` / `new` / `modified` / `delete` / `rename`). Бейдж **i** — поле `ignored` у entry, не status. Не вычислять хеши файлов на frontend.
 
-Пропавшие файлы (`staged_deleted_files` / `unstaged_deleted_files`) **нет** в `workdir.entries` (их нет на диске). GUI подмешивает их в сетку текущей папки и в **Only changed** со стабом [File Missing](../components/items/grid-file.md). `entries_by_paths` по-прежнему пропускает not found.
+Пропавшие файлы (`staged_deleted_files` / `unstaged_deleted_files`) **нет** в `workdir.entries` (их нет на диске). В сетку рабочей папки и в **Only changed** их не добавлять. `entries_by_paths` пропускает not found. File Missing — только открытый File View, если path исчез, пока его смотрели. В коммите удалённый path остаётся строкой списка файлов.

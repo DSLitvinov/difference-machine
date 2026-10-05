@@ -39,7 +39,7 @@ GUI показывает `error` как есть (toast или диалог). П
 | `cannot delete current branch` | `branch.delete` | UI блокирует заранее |
 | `branch '…' already exists` / `branch '…' not found` / `invalid branch name` | `branch.*` | toast, диалог открыт |
 | `no commits to branch from` | `branch.create` | toast |
-| `a file already exists at …` / `new_name must not contain path separators` / `invalid new_name` | `workdir.rename` | toast |
+| `a file already exists at …` / `new_name must not contain path separators` / `invalid new_name` | `workdir.rename`; занятое имя также у `workdir.move` | toast |
 | `path is a directory` / `not an image` / `file_too_large` | `workdir.file` / thumbnail | панель превью |
 | `screenshot_too_large` | `commit.get` | без скрина |
 | `failed to acquire lock. File may be already locked` | `lock.acquire` | toast |
@@ -283,6 +283,7 @@ JSON `repo.switch` не восстанавливает auto-stash при воз�
 | `workdir.file` | `path` | полный кадр `{content_base64, mime, size}`; только изображения (растр и SVG); Content View файла, не сетка/info |
 | `workdir.open` | `path`, опционально `editor` | OS default или указанный executable; macOS `.app` — `open -a` |
 | `workdir.rename` | `path`, `new_name` (имя без `/` `\`) | `{success, new_path}` |
+| `workdir.move` | `paths[]`, `dest` (папка) | `{success, moved: [{path, new_path}]}` |
 | `workdir.delete` | `path` | в корзину ОС |
 | `workdir.search` | `query`, `limit` (default 200), `include_ignored` (bool) | `{entries, total, capped}` |
 | `workdir.ignore` | `paths[]` | дописать path в `.dfmignore` (папка — с `/`); `{success: true}` |

@@ -962,6 +962,24 @@ export default function App() {
     }
   }
 
+  async function onMoveFiles(paths: string[], dest: string) {
+    if (paths.length === 0) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const result = (await foresterCall("workdir.move", { paths, dest })) as { moved?: { path: string; new_path: string }[] };
+      const next = new Map((result.moved ?? []).map((item) => [item.path, item.new_path]));
+      const state = useAppStore.getState();
+      state.setSelection(state.selection.map((item) => next.get(item) ?? item));
+      await refreshRepoMeta();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : "request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onOpenInFolder(path: string) {
     try {
       await foresterCall("workdir.open", { path: parentRel(path) });
@@ -1070,6 +1088,7 @@ export default function App() {
           onStashAction={onStashAction}
           onRefresh={() => refreshRepoMeta()}
           onVerify={() => void openVerify()}
+          onMoveFiles={(paths, dest) => void onMoveFiles(paths, dest)}
         />
       ) : (
         <FirstStartView locale={locale} busy={busy} onCreate={() => void onCreate()} onOpen={() => void onOpen()} onLocale={onLocale} />

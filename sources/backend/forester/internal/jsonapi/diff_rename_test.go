@@ -172,6 +172,35 @@ func TestStatusGetRenameAfterWorkdirRename(t *testing.T) {
 	}
 }
 
+func TestWorkdirMoveIntoFolder(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "a.txt", "a")
+	writeFile(t, dir, "b.txt", "b")
+	if err := os.Mkdir(filepath.Join(dir, "img"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	var moved struct {
+		Moved []struct {
+			Path    string `json:"path"`
+			NewPath string `json:"new_path"`
+		} `json:"moved"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.move", `{"paths":["a.txt","b.txt"],"dest":"img"}`), &moved); err != nil {
+		t.Fatal(err)
+	}
+	if len(moved.Moved) != 2 || moved.Moved[0].NewPath != "img/a.txt" || moved.Moved[1].NewPath != "img/b.txt" {
+		t.Fatalf("moved = %+v", moved.Moved)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "a.txt")); !os.IsNotExist(err) {
+		t.Fatalf("a.txt still in place: %v", err)
+	}
+	body, err := os.ReadFile(filepath.Join(dir, "img", "b.txt"))
+	if err != nil || string(body) != "b" {
+		t.Fatalf("img/b.txt = %q, %v", body, err)
+	}
+	mustFail(t, h, "workdir.move", `{"paths":["img/a.txt"],"dest":"img"}`)
+}
+
 func TestStatusCleanAfterCommitOfDeletion(t *testing.T) {
 	dir, h := initTestRepo(t)
 	writeFile(t, dir, "dir/gone.txt", "payload")

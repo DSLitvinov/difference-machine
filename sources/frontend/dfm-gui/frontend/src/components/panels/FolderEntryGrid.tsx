@@ -21,7 +21,16 @@ type FolderEntryGridProps = {
   onNeedMore?: () => void;
   onFileMenu?: (path: string, event: MouseEvent) => void;
   onFolderMenu?: (path: string, event: MouseEvent) => void;
+  onMoveFiles?: (paths: string[], dest: string) => void;
 };
+
+function dragPathsFor(path: string, entries: DirEntry[], selection: string[]): string[] {
+  const selectedFiles = selection.filter((item) => entries.some((entry) => entry.path === item && !entry.is_dir && !entry.missing));
+  if (selectedFiles.includes(path)) {
+    return selectedFiles;
+  }
+  return [path];
+}
 
 function asThumbRequest(entry: DirEntry): ThumbRequest {
   return {
@@ -45,6 +54,7 @@ export function FolderEntryGrid({
   onNeedMore,
   onFileMenu,
   onFolderMenu,
+  onMoveFiles,
 }: FolderEntryGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef(GRID_TRACK_DEFAULT);
@@ -155,6 +165,7 @@ export function FolderEntryGrid({
                       onSelect={(event) => onSelect(entry.path, event)}
                       onOpen={() => onOpenFolder(entry.path)}
                       onMenu={(event) => onFolderMenu?.(entry.path, event)}
+                      onDropPaths={onMoveFiles ? (paths) => onMoveFiles(paths, entry.path) : undefined}
                     />
                   );
                 }
@@ -176,6 +187,7 @@ export function FolderEntryGrid({
                     onSelect={(event) => onSelect(entry.path, event)}
                     onOpen={() => onOpenFile?.(entry.path)}
                     onMenu={(event) => onFileMenu?.(entry.path, event)}
+                    dragPaths={dragPathsFor(entry.path, entries, selection)}
                   />
                 );
               })}
