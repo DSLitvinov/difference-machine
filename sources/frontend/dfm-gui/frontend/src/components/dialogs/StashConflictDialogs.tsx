@@ -102,7 +102,7 @@ function StashConflictDialog({
         aria-labelledby="stash-conflict-dialog-title"
         aria-describedby="stash-conflict-dialog-description"
         aria-busy={busy}
-        className="relative flex w-[796px] flex-col gap-4 overflow-clip rounded-md border border-border bg-background p-6 shadow-lg"
+        className="relative flex w-[796px] flex-col gap-4 overflow-clip rounded-2xl border border-border bg-background p-6 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
         onClick={(event) => event.stopPropagation()}
       >
         <button

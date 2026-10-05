@@ -58,12 +58,12 @@ export function FolderActionBar({
     <div className="flex items-center gap-1">
       {searchOpen ? (
         <div className="relative w-[300px]">
-          <Icon icon={Search} size={20} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted" />
+          <Icon icon={Search} size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#71717a]" />
           <Input
             ref={inputRef}
             value={query}
             placeholder={copy.searchPlaceholder}
-            className="pl-10"
+            className="pl-[38px]"
             onChange={(event) => onQuery(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape") {

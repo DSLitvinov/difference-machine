@@ -9,18 +9,29 @@ type CheckboxProps = {
   className?: string;
 };
 
-/** 16×16 Nova checkbox: empty #d4d4d8 square, checked fill #18181b with a 14px tick. */
+/** Nova checkbox: 16×16 hit target, empty box 14×14, checked fill 16×16 with a 14px tick. */
 export function Checkbox({ checked, disabled, onChange, className }: CheckboxProps) {
   return (
-    <span className={cn("relative flex size-4 shrink-0 items-center justify-center", className)}>
+    <span className={cn("relative inline-flex size-4 shrink-0 items-center justify-center", disabled && "opacity-50", className)}>
       <input
         type="checkbox"
-        className="size-4 appearance-none rounded border border-[#d4d4d8] bg-white checked:border-[#18181b] checked:bg-[#18181b] disabled:opacity-50 dark:bg-background"
+        className="absolute inset-0 size-4 cursor-pointer appearance-none disabled:cursor-not-allowed"
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
       />
-      {checked ? <Icon icon={Check} size={14} className="pointer-events-none absolute text-white" /> : null}
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none rounded border bg-white dark:bg-background",
+          checked
+            ? "size-4 border-[#18181b] bg-[#18181b] dark:border-foreground dark:bg-foreground"
+            : "size-3.5 border-[#d4d4d8] dark:border-border",
+        )}
+      />
+      {checked ? (
+        <Icon icon={Check} size={14} className="pointer-events-none absolute text-white dark:text-background" />
+      ) : null}
     </span>
   );
 }

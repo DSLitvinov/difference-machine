@@ -23,7 +23,7 @@ export function RestoreFileDialog({ locale, title, fileName, confirmLabel, busy,
         role="dialog"
         aria-modal="true"
         aria-labelledby="restore-file-title"
-        className="relative w-[451px] rounded-md border border-border bg-background p-6 shadow-lg"
+        className="relative w-[451px] rounded-2xl border border-border bg-background p-6 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
         onClick={(event) => event.stopPropagation()}
       >
         <button type="button" className="absolute right-[11px] top-[11px] flex size-6 items-center justify-center" aria-label={copy.close} onClick={onCancel}>

@@ -1,4 +1,4 @@
-import { Trash2, X } from "lucide-react";
+import { ChevronsUpDown, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -181,30 +181,30 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
-        className="relative flex h-[720px] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-[16px] border border-border bg-background px-10 pb-16 pt-10 shadow-md"
+        className="relative flex h-[720px] w-[min(1113px,calc(100vw-24px))] flex-col gap-6 overflow-hidden rounded-2xl border border-[#e4e4e7] bg-white p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] dark:border-border dark:bg-background"
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" className="absolute right-3 top-3 flex size-6 items-center justify-center" aria-label={copy.close} onClick={onClose}>
+        <button type="button" className="absolute right-[13px] top-[11px] flex size-6 items-center justify-center p-0.5 text-[#18181b] dark:text-foreground" aria-label={copy.close} onClick={onClose}>
           <Icon icon={X} size={16} />
         </button>
-        <div className="flex w-full shrink-0 flex-col gap-6">
-          <div className="flex flex-col gap-1 pl-4">
-            <p id="settings-title" className="text-[24px] font-semibold leading-8 tracking-[-0.144px] text-foreground">
+        <div className="flex w-full shrink-0 flex-col gap-6 pl-4">
+          <div className="flex flex-col gap-1">
+            <p id="settings-title" className="text-[24px] font-semibold leading-8 tracking-[-0.144px] text-[#18181b] dark:text-foreground">
               {copy.settings}
             </p>
-            <p className="text-[16px] leading-6 text-foreground-muted">{copy.settingsManage}</p>
+            <p className="text-base font-normal leading-6 text-[#71717a]">{copy.settingsManage}</p>
           </div>
-          <div className="h-px w-full bg-border" />
+          <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
         </div>
-        <div className="flex min-h-0 w-full flex-1 gap-10">
-          <nav className="flex w-[184px] shrink-0 flex-col gap-1">
+        <div className="flex min-h-0 w-full flex-1 gap-[18px]">
+          <nav className="flex w-[190px] shrink-0 flex-col gap-1">
             {tabs.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 className={cn(
-                  "flex h-10 w-full items-center rounded-md px-4 text-left text-[14px] font-medium leading-5 text-foreground",
-                  tab === item.id && "bg-background-muted",
+                  "flex w-full items-center rounded-[10px] px-2.5 py-2 text-left text-sm font-medium leading-5 text-[#18181b] dark:text-foreground",
+                  tab === item.id && "bg-[#e4e4e7] dark:bg-background-muted",
                 )}
                 onClick={() => setTab(item.id)}
               >
@@ -213,11 +213,11 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSave
             ))}
           </nav>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
-            <div className={cn("flex min-h-0 flex-1 flex-col gap-8", tab === "ignored" ? "overflow-hidden" : "overflow-y-auto")}>
-              <div className="flex w-full shrink-0 flex-col gap-3">
-                <p className="text-[18px] font-semibold leading-7 text-foreground">{heading.title}</p>
-                <p className="text-[14px] leading-5 text-foreground-muted">{heading.body}</p>
-                <div className="h-px w-full bg-border" />
+            <div className={cn("flex min-h-0 flex-1 flex-col gap-2", tab === "ignored" ? "overflow-hidden" : "overflow-y-auto")}>
+              <div className="flex w-full shrink-0 flex-col gap-2">
+                <p className="text-[18px] font-medium leading-7 text-[#18181b] dark:text-foreground">{heading.title}</p>
+                <p className="text-sm font-normal leading-5 text-[#71717a]">{heading.body}</p>
+                <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
               </div>
               {tab === "profile" ? (
                 <ProfileFields locale={locale} draft={draft} busy={busy} onChange={setDraft} onLocale={onLocale} />
@@ -399,25 +399,30 @@ function ProfileFields({
     onLocale(next);
   }
   return (
-    <div className="flex w-full flex-col gap-8">
+    <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
       <Field label={copy.username}>
-        <Input value={draft.userName} disabled={busy} onChange={(event) => onChange({ ...draft, userName: event.target.value })} />
+        <Input className={settingsInputClass} value={draft.userName} disabled={busy} onChange={(event) => onChange({ ...draft, userName: event.target.value })} />
       </Field>
+      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
       <Field label={copy.email} hint={copy.emailHint}>
-        <Input value={draft.userEmail} disabled={busy} onChange={(event) => onChange({ ...draft, userEmail: event.target.value })} />
+        <Input className={settingsInputClass} value={draft.userEmail} disabled={busy} onChange={(event) => onChange({ ...draft, userEmail: event.target.value })} />
       </Field>
-      <div className="flex w-full flex-col gap-2">
-        <p className="text-[14px] font-medium leading-5 text-foreground">{copy.language}</p>
-        <select
-          className="flex h-9 w-full rounded-md border border-border bg-background px-3 text-[14px] leading-5 text-foreground disabled:opacity-50"
-          value={draft.locale === "ru" ? "ru" : "en"}
-          disabled={busy}
-          onChange={(event) => pickLocale(event.target.value === "ru" ? "ru" : "en")}
-        >
-          <option value="en">English</option>
-          <option value="ru">Русский</option>
-        </select>
-        <p className="text-[14px] leading-5 text-foreground-muted">{copy.languageHintSettings}</p>
+      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
+      <div className="flex w-full flex-col gap-1 px-5">
+        <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.language}</p>
+        <div className="relative w-full">
+          <select
+            className="flex h-7 w-full appearance-none rounded-md border border-[#d4d4d8] bg-white pl-2.5 pr-8 text-sm leading-5 text-[#18181b] shadow-[0_1px_2px_rgba(0,0,0,0.05)] focus-visible:border-[#60a5fa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a0c9fc] disabled:cursor-not-allowed disabled:border-[#e4e4e7] disabled:text-[#a1a1aa] disabled:shadow-none dark:border-border dark:bg-background dark:text-foreground"
+            value={draft.locale === "ru" ? "ru" : "en"}
+            disabled={busy}
+            onChange={(event) => pickLocale(event.target.value === "ru" ? "ru" : "en")}
+          >
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+          </select>
+          <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#18181b] dark:text-foreground" />
+        </div>
+        <p className="text-sm font-normal leading-5 text-[#71717a]">{copy.languageHintSettings}</p>
       </div>
     </div>
   );
@@ -438,20 +443,22 @@ function RepositoryFields({
 }) {
   const rows = repos.length > 0 ? repos : [""];
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
       {rows.map((path, index) => (
-        <PathRow
-          key={index}
-          locale={locale}
-          value={path}
-          busy={busy}
-          onChange={(value) => {
-            const next = rows.map((item, i) => (i === index ? value : item));
-            onChange(next);
-          }}
-          onSelect={() => onPick(index)}
-          onRemove={() => onChange(rows.filter((_, i) => i !== index))}
-        />
+        <div key={index} className="flex w-full flex-col gap-5">
+          {index > 0 ? <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" /> : null}
+          <PathRow
+            locale={locale}
+            value={path}
+            busy={busy}
+            onChange={(value) => {
+              const next = rows.map((item, i) => (i === index ? value : item));
+              onChange(next);
+            }}
+            onSelect={() => onPick(index)}
+            onRemove={() => onChange(rows.filter((_, i) => i !== index))}
+          />
+        </div>
       ))}
     </div>
   );
@@ -474,29 +481,28 @@ function EditorFields({
 }) {
   const copy = t(locale);
   return (
-    <div className="flex w-full flex-col gap-4">
-      <div className="flex w-full flex-col gap-3">
-        <PathRow
-          locale={locale}
-          label={copy.blender}
-          value={draft.blenderPath}
-          busy={busy}
-          onChange={(value) => onChange({ ...draft, blenderPath: value })}
-          onSelect={() => onPickFile((path) => onChange({ ...draft, blenderPath: path }))}
-          onRemove={() => onChange({ ...draft, blenderPath: "" })}
-        />
-        <PathRow
-          locale={locale}
-          label={copy.blenderAddon}
-          value={draft.addonPath}
-          busy={busy}
-          onChange={(value) => onChange({ ...draft, addonPath: value })}
-          onSelect={() => onPickDir((path) => onChange({ ...draft, addonPath: path }))}
-          onRemove={() => onChange({ ...draft, addonPath: "" })}
-        />
-        <div className="h-px w-full bg-border" />
-      </div>
-      <p className="text-[18px] font-semibold leading-7 text-foreground">{copy.otherEditors}</p>
+    <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
+      <PathRow
+        locale={locale}
+        label={copy.blender}
+        value={draft.blenderPath}
+        busy={busy}
+        onChange={(value) => onChange({ ...draft, blenderPath: value })}
+        onSelect={() => onPickFile((path) => onChange({ ...draft, blenderPath: path }))}
+        onRemove={() => onChange({ ...draft, blenderPath: "" })}
+      />
+      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
+      <PathRow
+        locale={locale}
+        label={copy.blenderAddon}
+        value={draft.addonPath}
+        busy={busy}
+        onChange={(value) => onChange({ ...draft, addonPath: value })}
+        onSelect={() => onPickDir((path) => onChange({ ...draft, addonPath: path }))}
+        onRemove={() => onChange({ ...draft, addonPath: "" })}
+      />
+      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
+      <p className="px-5 text-[18px] font-medium leading-7 text-[#18181b] dark:text-foreground">{copy.otherEditors}</p>
       {(draft.editors.length > 0 ? draft.editors : [""]).map((path, index) => {
         const rows = draft.editors.length > 0 ? draft.editors : [""];
         return (
@@ -530,10 +536,11 @@ function ForesterFields({
 }) {
   const copy = t(locale);
   return (
-    <div className="flex w-full flex-col gap-3">
+    <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
       <Field label={copy.configFile}>
-        <Input value={draft.apiPath} disabled={busy} onChange={(event) => onChange({ ...draft, apiPath: event.target.value })} />
+        <Input className={settingsInputClass} value={draft.apiPath} disabled={busy} onChange={(event) => onChange({ ...draft, apiPath: event.target.value })} />
       </Field>
+      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
       <PathRow
         locale={locale}
         label={copy.foresterCli}
@@ -656,7 +663,7 @@ function IgnoreFields({
   }
 
   return (
-    <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-border bg-background p-4 shadow-sm">
+    <div className="flex min-h-0 w-full flex-1 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <div className="w-10 shrink-0 overflow-hidden border-r border-border" aria-hidden>
           <div ref={gutterRef}>
@@ -721,8 +728,8 @@ function GCFields({
   }
 
   return (
-    <div className="flex w-full flex-col gap-8">
-      <div className="flex flex-col gap-3">
+    <div className="flex w-full flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
+      <div className="flex flex-col gap-3 px-5">
         <label className="flex items-center gap-2">
           <Switch
             checked={draft.gcEnabled}
@@ -730,7 +737,7 @@ function GCFields({
             className="border-0"
             onCheckedChange={(checked) => onChange({ ...draft, gcEnabled: checked })}
           />
-          <span className="whitespace-nowrap text-[14px] font-normal leading-5 text-foreground">{copy.gcEnabled}</span>
+          <span className="whitespace-nowrap text-sm font-normal leading-5 text-[#18181b] dark:text-foreground">{copy.gcEnabled}</span>
         </label>
         <GCNumberField
           className="w-[284px]"
@@ -739,7 +746,8 @@ function GCFields({
           onChange={(value) => onChange({ ...draft, gcReflogExpireDays: value })}
         />
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="h-px w-full bg-[#e4e4e7] dark:bg-border" />
+      <div className="flex flex-col gap-3 px-5">
         <label className="flex items-center gap-2">
           <Switch
             checked={draft.gcScheduleEnabled}
@@ -747,10 +755,10 @@ function GCFields({
             className="border-0"
             onCheckedChange={(checked) => onChange({ ...draft, gcScheduleEnabled: checked })}
           />
-          <span className="whitespace-nowrap text-[14px] font-normal leading-5 text-foreground">{copy.gcScheduleEnabled}</span>
+          <span className="whitespace-nowrap text-sm font-normal leading-5 text-[#18181b] dark:text-foreground">{copy.gcScheduleEnabled}</span>
         </label>
         <div className="flex w-[284px] shrink-0 flex-col gap-1">
-          <p className="text-[14px] font-medium leading-5 text-foreground">{copy.gcIntervalDays}</p>
+          <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcIntervalDays}</p>
           <GCNumberField
             value={draft.gcIntervalDays}
             disabled={busy || !draft.gcScheduleEnabled}
@@ -758,8 +766,9 @@ function GCFields({
           />
         </div>
         <div className="flex w-[284px] shrink-0 flex-col gap-1">
-          <p className="text-[14px] font-medium leading-5 text-foreground">{copy.gcScheduleTime}</p>
+          <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{copy.gcScheduleTime}</p>
           <Input
+            className={settingsInputClass}
             type="text"
             autoComplete="off"
             spellCheck={false}
@@ -794,7 +803,7 @@ function GCNumberField({
 }) {
   return (
     <Input
-      className={className}
+      className={cn(settingsInputClass, className)}
       type="text"
       inputMode="numeric"
       autoComplete="off"
@@ -830,12 +839,15 @@ function parseIntField(raw: string, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+const settingsInputClass =
+  "h-7 rounded-md py-1";
+
 function Field({ label, hint, className, children }: { label: string; hint?: string; className?: string; children: ReactNode }) {
   return (
-    <div className={cn("flex w-full flex-col gap-1", className ?? "max-w-[672px]")}>
-      <p className="text-[14px] font-medium leading-5 text-foreground">{label}</p>
+    <div className={cn("flex w-full flex-col gap-1 px-5", className)}>
+      <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{label}</p>
       {children}
-      {hint ? <p className="text-[14px] leading-5 text-foreground-muted">{hint}</p> : null}
+      {hint ? <p className="text-sm font-normal leading-5 text-[#71717a]">{hint}</p> : null}
     </div>
   );
 }
@@ -861,16 +873,16 @@ function PathRow({
 }) {
   const copy = t(locale);
   return (
-    <div className="flex w-full items-end gap-2">
-      <div className="flex min-w-0 max-w-[672px] flex-1 flex-col gap-1">
-        {label ? <p className="text-[14px] font-medium leading-5 text-foreground">{label}</p> : null}
-        <Input value={value} disabled={busy} onChange={(event) => onChange(event.target.value)} />
+    <div className={cn("flex w-full gap-2 px-5", label ? "items-end" : "items-center")}>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {label ? <p className="text-sm font-medium leading-5 text-[#18181b] dark:text-foreground">{label}</p> : null}
+        <Input className={settingsInputClass} value={value} disabled={busy} onChange={(event) => onChange(event.target.value)} />
       </div>
       <Button type="button" variant="outline" disabled={busy} onClick={onSelect}>
         {copy.select}
       </Button>
       {showRemove && onRemove ? (
-        <Button type="button" variant="destructive" size="icon" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
+        <Button type="button" variant="outline" size="icon" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
           <Icon icon={Trash2} size={16} />
         </Button>
       ) : null}

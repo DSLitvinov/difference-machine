@@ -6,13 +6,13 @@ import { Icon } from "@/components/chrome/Icon";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative flex w-full flex-col gap-3 overflow-clip rounded-lg border bg-background p-4",
+  "relative flex w-full items-center gap-4 overflow-clip rounded-[10px] border border-[#e4e4e7] bg-white px-3 py-2 dark:border-border dark:bg-background",
   {
     variants: {
       variant: {
-        default: "border-border text-foreground",
-        destructive: "border-[#ef4444] text-[#ef4444]",
-        warning: "border-[#ca8a04] text-[#a16207]",
+        default: "text-[#18181b] dark:text-foreground",
+        destructive: "text-[#dc2626]",
+        warning: "text-[#a16207]",
       },
     },
     defaultVariants: {
@@ -23,7 +23,7 @@ const alertVariants = cva(
 
 function CircleAlertIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className={cn("size-5 shrink-0", className)}>
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden className={cn("size-4 shrink-0", className)}>
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -43,14 +43,14 @@ Alert.displayName = "Alert";
 
 export const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h5 ref={ref} className={cn("min-w-0 flex-1 text-[16px] font-medium leading-6", className)} {...props} />
+    <h5 ref={ref} className={cn("min-w-0 flex-1 text-sm font-medium leading-5", className)} {...props} />
   ),
 );
 AlertTitle.displayName = "AlertTitle";
 
 export const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("min-w-0 flex-1 text-[14px] font-normal leading-5", className)} {...props} />
+    <p ref={ref} className={cn("min-w-0 flex-1 text-sm font-normal leading-5", className)} {...props} />
   ),
 );
 AlertDescription.displayName = "AlertDescription";
@@ -72,32 +72,32 @@ export function AlertBanner({ variant, title, description, className, onClick, o
       className={cn(onClick && "cursor-pointer text-left", className)}
       onClick={onClick}
     >
-      <div className="flex w-full items-start gap-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex w-full items-center gap-3">
-            <CircleAlertIcon />
-            <AlertTitle>{title}</AlertTitle>
-          </div>
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span className="pt-0.5">
+          <CircleAlertIcon />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <AlertTitle>{title}</AlertTitle>
           {description ? (
-            <div className="flex w-full items-center pl-8">
-              <AlertDescription>{description}</AlertDescription>
-            </div>
+            <AlertDescription className={variant === "destructive" || variant === "warning" ? "text-inherit" : "text-[#737373]"}>
+              {description}
+            </AlertDescription>
           ) : null}
         </div>
-        {onClose ? (
-          <button
-            type="button"
-            className="flex size-6 shrink-0 items-center justify-center text-inherit"
-            aria-label={closeLabel}
-            onClick={(event) => {
-              event.stopPropagation();
-              onClose();
-            }}
-          >
-            <Icon icon={X} size={16} />
-          </button>
-        ) : null}
       </div>
+      {onClose ? (
+        <button
+          type="button"
+          className="flex size-4 shrink-0 items-center justify-center text-inherit"
+          aria-label={closeLabel}
+          onClick={(event) => {
+            event.stopPropagation();
+            onClose();
+          }}
+        >
+          <Icon icon={X} size={16} />
+        </button>
+      ) : null}
     </Alert>
   );
 }

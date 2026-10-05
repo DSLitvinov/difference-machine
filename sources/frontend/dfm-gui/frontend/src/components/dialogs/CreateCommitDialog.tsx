@@ -42,7 +42,7 @@ export function CreateCommitDialog({ locale, busy, onCancel, onCreate }: CreateC
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-commit-title"
-        className="flex w-[430px] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-lg"
+        className="flex w-[430px] flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.05)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex h-[52px] items-center justify-between px-4">

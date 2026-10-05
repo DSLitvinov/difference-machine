@@ -188,9 +188,13 @@ export function ProjectViewPanel({
         </div>
         <div className="flex w-full items-center p-3">
           <Tabs value={sidebarTab} onValueChange={(v) => onSidebarTab(v as SidebarTab)} className="w-full">
-            <TabsList>
-              <TabsTrigger value="history">{copy.history}</TabsTrigger>
-              <TabsTrigger value="stages">{copy.stages}</TabsTrigger>
+            <TabsList size="lg" className="w-full">
+              <TabsTrigger value="history" className="flex-1">
+                {copy.history}
+              </TabsTrigger>
+              <TabsTrigger value="stages" className="flex-1">
+                {copy.stages}
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
