@@ -16,7 +16,6 @@ import {
   selectDirectory,
   selectFile,
   selectApplication,
-  setTheme as persistTheme,
   runGarbageCollection,
   foresterCall,
   type SettingsInfo,
@@ -24,14 +23,13 @@ import {
 import { rememberEditorsFromSettings } from "@/lib/editors";
 import { cn } from "@/lib/utils";
 
-type SettingsTab = "profile" | "appearance" | "repositories" | "editors" | "forester" | "gc" | "ignored";
+type SettingsTab = "profile" | "repositories" | "editors" | "forester" | "gc" | "ignored";
 
 type SettingsDialogProps = {
   locale: Locale;
   theme: UiTheme;
   onClose: () => void;
   onLocale: (locale: Locale) => void;
-  onThemeSaved: (theme: UiTheme) => void;
   onProfileSaved: (name: string, email: string, locale: Locale) => void;
   onIgnoreSaved?: () => void;
   onError: (message: string) => void;
@@ -60,11 +58,10 @@ function emptySettings(theme: UiTheme = "light"): SettingsInfo {
   };
 }
 
-export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved, onProfileSaved, onIgnoreSaved, onError }: SettingsDialogProps) {
+export function SettingsDialog({ locale, theme, onClose, onLocale, onProfileSaved, onIgnoreSaved, onError }: SettingsDialogProps) {
   const copy = t(locale);
   const tabs: { id: SettingsTab; label: string }[] = [
     { id: "profile", label: copy.tabProfile },
-    { id: "appearance", label: copy.tabAppearance },
     { id: "repositories", label: copy.tabRepositories },
     { id: "editors", label: copy.tabEditors },
     { id: "forester", label: copy.tabForester },
@@ -166,9 +163,7 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved,
   }
 
   const heading =
-    tab === "appearance"
-      ? { title: copy.appearanceTitle, body: copy.appearanceBody }
-      : tab === "repositories"
+    tab === "repositories"
         ? { title: copy.repositoriesTitle, body: copy.repositoriesBody }
         : tab === "editors"
           ? { title: copy.editorsTitle, body: copy.editorsBody }
@@ -179,8 +174,6 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved,
               : tab === "ignored"
                 ? { title: copy.ignoredTitle, body: copy.ignoredBody }
                 : { title: copy.profileTitle, body: copy.profileBody };
-
-  const draftTheme: UiTheme = draft.theme === "dark" ? "dark" : "light";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="presentation" onClick={busy ? undefined : onClose}>
@@ -228,9 +221,6 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved,
               </div>
               {tab === "profile" ? (
                 <ProfileFields locale={locale} draft={draft} busy={busy} onChange={setDraft} onLocale={onLocale} />
-              ) : null}
-              {tab === "appearance" ? (
-                <AppearanceFields locale={locale} theme={draftTheme} busy={busy} onChange={(next) => setDraft({ ...draft, theme: next })} />
               ) : null}
               {tab === "repositories" ? (
                 <RepositoryFields
@@ -294,22 +284,6 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved,
                   }
                 >
                   {copy.saveProfile}
-                </Button>
-              </div>
-            ) : null}
-            {tab === "appearance" ? (
-              <div className="flex shrink-0 justify-end">
-                <Button
-                  type="button"
-                  disabled={busy}
-                  onClick={() =>
-                    void run(async () => {
-                      await persistTheme(draftTheme);
-                      onThemeSaved(draftTheme);
-                    })
-                  }
-                >
-                  {copy.saveAppearance}
                 </Button>
               </div>
             ) : null}
@@ -406,72 +380,6 @@ export function SettingsDialog({ locale, theme, onClose, onLocale, onThemeSaved,
   );
 }
 
-function AppearanceFields({
-  locale,
-  theme,
-  busy,
-  onChange,
-}: {
-  locale: Locale;
-  theme: UiTheme;
-  busy: boolean;
-  onChange: (theme: UiTheme) => void;
-}) {
-  const copy = t(locale);
-  return (
-    <div className="flex w-full flex-col gap-1">
-      <p className="text-[14px] leading-5 text-foreground-muted">{copy.themeSelectHint}</p>
-      <div className="flex flex-wrap items-start gap-6 pt-2">
-        <ThemeCard locale={locale} mode="light" selected={theme === "light"} disabled={busy} onSelect={() => onChange("light")} />
-        <ThemeCard locale={locale} mode="dark" selected={theme === "dark"} disabled={busy} onSelect={() => onChange("dark")} />
-      </div>
-    </div>
-  );
-}
-
-function ThemeCard({
-  locale,
-  mode,
-  selected,
-  disabled,
-  onSelect,
-}: {
-  locale: Locale;
-  mode: UiTheme;
-  selected: boolean;
-  disabled?: boolean;
-  onSelect: () => void;
-}) {
-  const copy = t(locale);
-  const dark = mode === "dark";
-  return (
-    <button type="button" disabled={disabled} className="flex flex-col items-center gap-2" onClick={onSelect}>
-      <div className={cn("rounded-md border-2 p-1", selected ? "border-foreground-disabled" : "border-border")}>
-        <div className={cn("flex flex-col gap-2.5 overflow-hidden rounded-md p-2", dark ? "bg-[#09090b]" : "bg-[#e4e4e7]")}>
-          <ThemeSkeleton dark={dark} wide />
-          <ThemeSkeleton dark={dark} />
-          <ThemeSkeleton dark={dark} />
-        </div>
-      </div>
-      <span className="text-[14px] leading-5 text-foreground-muted">{dark ? copy.themeDark : copy.themeLight}</span>
-    </button>
-  );
-}
-
-function ThemeSkeleton({ dark, wide }: { dark: boolean; wide?: boolean }) {
-  const bar = dark ? "bg-[#52525b]" : "bg-[#fafafa]";
-  const card = dark ? "bg-[#27272a]" : "bg-white";
-  return (
-    <div className={cn("flex items-center gap-4 rounded p-2", card, wide && "w-full")}>
-      {wide ? null : <div className={cn("size-6 shrink-0 rounded-full", bar)} />}
-      <div className="flex flex-col gap-2">
-        <div className={cn("h-4 rounded-full", bar, wide ? "w-[112px]" : "w-[200px]")} />
-        {wide ? <div className={cn("h-4 w-[140px] rounded-full", bar)} /> : null}
-      </div>
-    </div>
-  );
-}
-
 function ProfileFields({
   locale,
   draft,
@@ -500,14 +408,15 @@ function ProfileFields({
       </Field>
       <div className="flex w-full flex-col gap-2">
         <p className="text-[14px] font-medium leading-5 text-foreground">{copy.language}</p>
-        <div className="flex gap-2">
-          <Button type="button" variant={draft.locale === "en" ? "primary" : "outline"} disabled={busy} onClick={() => pickLocale("en")}>
-            English
-          </Button>
-          <Button type="button" variant={draft.locale === "ru" ? "primary" : "outline"} disabled={busy} onClick={() => pickLocale("ru")}>
-            Русский
-          </Button>
-        </div>
+        <select
+          className="flex h-9 w-full rounded-md border border-border bg-background px-3 text-[14px] leading-5 text-foreground disabled:opacity-50"
+          value={draft.locale === "ru" ? "ru" : "en"}
+          disabled={busy}
+          onChange={(event) => pickLocale(event.target.value === "ru" ? "ru" : "en")}
+        >
+          <option value="en">English</option>
+          <option value="ru">Русский</option>
+        </select>
         <p className="text-[14px] leading-5 text-foreground-muted">{copy.languageHintSettings}</p>
       </div>
     </div>

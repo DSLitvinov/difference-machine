@@ -64,7 +64,13 @@ func handleWorkdirEntries(workPath string, args json.RawMessage) (interface{}, e
 		var all []dirEntry
 		var err error
 		if params.Path == "*" {
-			all, err = scanner.listAllFiles()
+			// include_ignored with "*" is the ignored-file list (Append dialog).
+			// Without it, "*" stays every non-ignored file.
+			if params.IncludeIgnored {
+				all, err = scanner.listIgnoredFiles()
+			} else {
+				all, err = scanner.listAllFiles()
+			}
 		} else {
 			all, err = scanner.listEntries(params.Path, params.IncludeIgnored)
 		}

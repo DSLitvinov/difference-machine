@@ -74,6 +74,40 @@ func TestWorkdirIgnoreWritesDfmignore(t *testing.T) {
 		t.Fatalf("include_ignored entries = %+v, want secret.blend and cache_dir", shown.Entries)
 	}
 
+	var starIgnored struct {
+		Entries []struct {
+			Path    string `json:"path"`
+			IsDir   bool   `json:"is_dir"`
+			Ignored bool   `json:"ignored"`
+		} `json:"entries"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.entries", `{"path":"*","offset":0,"limit":50,"include_ignored":true}`), &starIgnored); err != nil {
+		t.Fatal(err)
+	}
+	foundSecret, foundNested := false, false
+	for _, entry := range starIgnored.Entries {
+		if entry.IsDir || !entry.Ignored {
+			t.Fatalf("star ignored listing = %+v, want ignored files only", entry)
+		}
+		if entry.Path == "secret.blend" {
+			foundSecret = true
+		}
+		if entry.Path == "cache_dir/keep.txt" {
+			foundNested = true
+		}
+	}
+	if !foundSecret || !foundNested {
+		t.Fatalf("star ignored listing = %+v, want secret.blend and cache_dir/keep.txt", starIgnored.Entries)
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.entries", `{"path":"*","offset":0,"limit":50}`), &starIgnored); err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range starIgnored.Entries {
+		if entry.Path == "secret.blend" || entry.Path == "cache_dir/keep.txt" {
+			t.Fatalf("star without include_ignored listed %q", entry.Path)
+		}
+	}
+
 	var search struct {
 		Entries []struct {
 			Path    string `json:"path"`

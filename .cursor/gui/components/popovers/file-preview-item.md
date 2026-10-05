@@ -15,7 +15,7 @@ Figma: [Popover (File Preview Item)](https://www.figma.com/design/qlwKiMPZblz96V
 
 | Иконка | Copy | API (панель) |
 |--------|------|----------------|
-| plus | `Create commit` | `index.add` этих path → открыть композер. Не путать с Append |
+| plus | `Create commit` | [Append files](../../dialogs/commit.md) этих path, затем Create Commit. Не путать с Append |
 
 Separator.
 

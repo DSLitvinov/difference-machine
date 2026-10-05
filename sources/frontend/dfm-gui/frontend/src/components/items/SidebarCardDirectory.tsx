@@ -11,10 +11,10 @@ export function SidebarCardDirectory({ state = "default", children, onClick }: S
   return (
     <div
       className={cn(
-        "flex w-full items-start gap-2 rounded-md border border-dashed p-3",
-        state === "selected" && "border-border-accent bg-foreground-accent",
+        "flex w-full items-start gap-2 rounded-[14px] border border-solid p-4",
+        state === "selected" && "border-border-accent bg-background shadow-sm",
         state === "default" && "border-border bg-background shadow-sm hover:border-border-accent",
-        state === "disabled" && "border-border bg-muted",
+        state === "disabled" && "border-border bg-[#f8f8f9] dark:bg-background-muted",
         onClick && state !== "disabled" && "cursor-pointer",
       )}
       onClick={state === "disabled" ? undefined : onClick}

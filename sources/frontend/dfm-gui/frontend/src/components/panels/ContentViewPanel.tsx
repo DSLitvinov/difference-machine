@@ -8,7 +8,7 @@ import { DamagedPlaceholder } from "@/components/placeholders/DamagedPlaceholder
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { foresterCall } from "@/lib/bridge";
 import { applyFolderQuery, fileSelection, folderExtensions, inCurrentFolder, type GridFilter, type GridSort } from "@/lib/folder-query";
-import { t, type Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { isDirty, isStagedPath, mergeMissingEntries } from "@/lib/status";
 import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
 
@@ -231,7 +231,7 @@ export function ContentViewPanel({
           </div>
         ) : showEmptyFolder ? (
           <div className="flex min-h-0 flex-1 flex-col items-center overflow-hidden p-4">
-            <FolderNullPlaceholder locale={locale} body={forceEmpty ? t(locale).createStash : undefined} />
+            <FolderNullPlaceholder locale={locale} body={forceEmpty ? null : undefined} />
           </div>
         ) : items.length === 0 ? (
           <div className="min-h-0 flex-1" />

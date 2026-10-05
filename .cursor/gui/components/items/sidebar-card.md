@@ -2,7 +2,7 @@
 
 Оболочка карточки в **списке** (коммиты, стейджи, empty history, back to file). Рамка + слот. В Figma слот — [Swapper](../atoms/swapper.md); в коде — атом из таблицы ниже.
 
-**Не** для блока Uncommitted files: там [Item / Card Directory](./sidebar-card-directory.md) — у той оболочки border **всегда dashed**.
+**Не** для блока Worked directory: там [Item / Card Directory](./sidebar-card-directory.md). У обеих оболочек border **solid**. Selected — сплошная синяя обводка.
 
 Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-5809) (`4191:5809`).  
 Код: `SidebarCard`. Property: `state` (Default \| Hover \| Selected \| Disable).
@@ -19,9 +19,9 @@ Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for
 | Список истории файла | [CommitFileCard](../atoms/card-commit-file.md) |
 | Stash | [StageCard](../atoms/card-stage.md) |
 | Empty stash | [NoStagesProject](../atoms/card-no-stages-project.md) |
-| Форма коммита | не этот item: [CreateCommitCard](../atoms/card-create-commit.md) в Card Directory (слева all files / справа selection) |
+| Форма коммита | не этот item: [Dialog / Append и Create Commit](../../dialogs/commit.md) |
 | Empty истории | [NoHistoryProject](../atoms/card-no-history-project.md) / [NoHistoryFile](../atoms/card-no-history-file.md) |
-| File view, верх | [BackToFileRow](../atoms/card-back-to-file.md) |
+| File view, верх | карточка файла: basename, см. [file-view](../../panels/file-view.md). `BackToFileRow` снят |
 
 Не дублировать padding shadcn `Card` внутри атома и item.
 
@@ -40,7 +40,7 @@ Disable в наборе — не кликабелен. Не снижать opaci
 
 Hover сетки (`#eff6ff` без обязательного border на Hover) — другой item.
 
-**Исключение — Current preview** в [File view](../../panels/file-view.md): Selected с **dashed** border. Карточки коммитов и No History File остаются solid. Current preview **никогда** не Disable (серая заливка выглядит как «нельзя нажать»); кадр History Null `4309:9019` с Disable — отклонение Figma.
+Карточка файла в [File view](../../panels/file-view.md) и карточки коммитов — solid. Selected — сплошная синяя обводка. Карточка файла **никогда** не Disable.
 
 ---
 

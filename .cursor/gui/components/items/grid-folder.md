@@ -15,7 +15,7 @@ Figma: [Item / Grid View / Folder](https://www.figma.com/design/qlwKiMPZblz96VSM
 |------|--------|
 | Имя | `Folder name`, 12/16 `#09090b`, center, ellipsis |
 | Счёт | `5 Files`, 12/16 `#71717a`, center. Формат и plural — как в макете (`5 Files`), не «5 files» / «5» |
-| Ignored | [FileStatusBadge](../badge-file-status.md) `type=ignored` (**i**), если `entry.ignored`. Слева внизу иконки папки, как letter на [grid-file](./grid-file.md). Нет — не рендерить |
+| Ignored | [FileStatusBadge](../badge-file-status.md) `type=ignored`, если `entry.ignored`. Внизу иконки папки, по горизонтали по центру, отступ 8 — как letter на [grid-file](./grid-file.md). Нет — не рендерить |
 
 Gap иконка↔тексты: 2 px. Padding: Default `space-100` 4 px; Hover/Selected горизонталь `spacing-xs` 4 px.
 

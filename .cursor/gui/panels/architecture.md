@@ -62,7 +62,7 @@ Empty-варианты перечислены в спеке каноническ
 
 | Контекст | Left | Когда |
 |----------|------|--------|
-| Проект | [project-view](./project-view.md) | обзор папки, стейджи, композер, View Commit |
+| Проект | [project-view](./project-view.md) | обзор папки, стейджи, View Commit |
 | Файл | [file-view](./file-view.md) | File View и History of File |
 
 Вкладки **History / Stash** (Figma Stages) — внутри Project view. Пустой Stash — [Stashes Null](../views/project-browse.md), не смена на сетку рабочей папки.
@@ -73,16 +73,16 @@ Empty-варианты перечислены в спеке каноническ
 
 - Источник списка: по умолчанию `workdir.entries` текущей папки.
 - Фильтр **Only changed**: все dirty файлы проекта, не текущая папка.
-- Фильтр **View ignored**: `include_ignored` на `workdir.entries` / `search`; бейдж **i** на файлах и папках.
-- Status нужен для VCS-бейджей и фильтра Only changed. Бейдж **i** — `entry.ignored`, не status.
+- Фильтр **View ignored**: `include_ignored` на `workdir.entries` / `search`; иконка ignored на файлах и папках.
+- Status нужен для VCS-бейджей и фильтра Only changed. Бейдж ignored — `entry.ignored`, не status.
 - Плотность сетки: default иконка/превью **48×48**, колонка min **106 px**. Масштаб — `gridTrack` (Ctrl/Cmd+wheel), без chrome. Не растягивать квадрат на `1fr`. Канон: [content-view](./content-view.md), [architecture.md](../architecture.md#сетка-рабочей-копии).
 - Тулбар: search / sort / filter из макета. Grid/list — нет в 0.8.1.
 - Клик по папке — selection; двойной клик — зайти (`folderPath`). Open файла — `workdir.open` / rename / delete.
-- Append выбранных: меню File Action / More → `index.add`. Композер не открывать.
-- **Create commit** в том же popover: `index.add` path меню → композер. На Select More Files то же для всех выбранных.
+- Append выбранных: меню File Action / More → только `index.add`. Диалог не открывать.
+- **Create commit** в том же popover: [Append files](../dialogs/commit.md) для path меню, затем Create Commit. На Select More Files — все выбранные пути.
 - Unstage: тот же popover, пункт **Undo append** → `index.drop`. Disabled вне `staged_*`.
 - Ignored: один пункт в popover файла и [Folder Preview Item](../components/popovers/folder-preview-item.md). Не ignored → `workdir.ignore`; already ignored — copy **Don't ignore** / **Не игнорировать** → `workdir.unignore`.
-- Commit All Files: все dirty path → `index.add` → композер.
+- Take snapshot: все dirty path → Append, затем Create Commit. Кнопка скрыта, если dirty path нет.
 
 Compare extract и restore файла — из шапки diff в History of File и View Commit ([commit-diff-text](../components/items/commit-diff-text.md) / [commit-diff-image](../components/items/commit-diff-image.md) / [commit-diff-binary](../components/items/commit-diff-binary.md)), не из сетки workdir.
 
@@ -106,7 +106,7 @@ Compare extract и restore файла — из шапки diff в History of Fil
 
 - Файл workdir: `workdir.metadata`, locks, `log.get` с `path`.
 - Коммит: `commit.get` (сообщение, автор, screenshot).
-- Кнопка «открыть во внешнем редакторе»: **Edit** в File Info — список из Settings / External editors → `workdir.open` + `editor`. More — [Popover (File Preview Item)](../components/popovers/file-preview-item.md). Мультивыбор: **Create commit** + тот же More. Пока открыт композер **selection** — футер заменяется [CreateCommitCard](../components/atoms/card-create-commit.md). Композер **all files** живёт слева, правая колонка — File Info Null.
+- Кнопка «открыть во внешнем редакторе»: **Edit in** на карточке файла в File view — список из Settings / External editors → `workdir.open` + `editor`. More — [Popover (File Preview Item)](../components/popovers/file-preview-item.md). Мультивыбор: только ⋯, Create commit внутри меню. Форма коммита — [диалоги](../dialogs/commit.md), не футер колонки.
 
 ---
 

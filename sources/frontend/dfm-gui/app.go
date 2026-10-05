@@ -16,8 +16,8 @@ import (
 
 const (
 	appName          = "Difference Machine"
-	firstStartWidth  = 640
-	firstStartHeight = 656
+	firstStartWidth  = 833
+	firstStartHeight = 768
 	appWidth         = 1429
 	appHeight        = 768
 	appMinWidth      = 1024

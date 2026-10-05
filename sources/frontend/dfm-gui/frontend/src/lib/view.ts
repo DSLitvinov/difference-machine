@@ -1,7 +1,6 @@
 export type Shell = "first-start" | "app";
 export type SidebarTab = "history" | "stages";
 export type ContentContext = "folder" | "file" | "file-revision" | "commit";
-export type CommitComposer = "closed" | "selection" | "all";
 
 export type DerivedView =
   | "first-start"
@@ -14,9 +13,6 @@ export type DerivedView =
   | "file-more-info"
   | "stages"
   | "stashes-null"
-  | "create-commit"
-  | "create-commit-single-file"
-  | "create-commit-all-files"
   | "file-view"
   | "file-history"
   | "view-commit"
@@ -37,7 +33,6 @@ export type ViewInput = {
   contentContext: ContentContext;
   infoCollapsed: boolean;
   sidebarTab: SidebarTab;
-  commitComposer: CommitComposer;
   stashEmpty: boolean;
 };
 
@@ -56,12 +51,6 @@ export function deriveView(input: ViewInput): DerivedView {
   }
   if (input.contentContext === "commit") {
     return "view-commit";
-  }
-  if (input.commitComposer === "all") {
-    return "create-commit-all-files";
-  }
-  if (input.commitComposer === "selection") {
-    return input.fileSelectionCount === 1 && input.selectionCount === 1 ? "create-commit-single-file" : "create-commit";
   }
   if (input.sidebarTab === "stages") {
     return input.stashEmpty ? "stashes-null" : "stages";
@@ -98,9 +87,6 @@ export function showRightColumn(view: DerivedView): boolean {
     view === "file-more-info" ||
     view === "stages" ||
     view === "stashes-null" ||
-    view === "create-commit" ||
-    view === "create-commit-single-file" ||
-    view === "create-commit-all-files" ||
     view === "file-view"
   );
 }

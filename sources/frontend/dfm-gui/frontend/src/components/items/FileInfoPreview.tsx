@@ -39,8 +39,12 @@ export function FileInfoPreview({ name, src, text, letter, ignored, locked }: Fi
           <Icon icon={kindIcon[kind]} size={20} />
         </div>
       )}
-      {ignored ? <FileStatusBadge type="ignored" className="absolute left-3 top-[276px]" /> : letter ? <FileStatusBadge type={letter} className="absolute left-3 top-[276px]" /> : null}
-      {locked ? <FileStatusBadge type="lock" className="absolute left-[276px] top-[276px]" /> : null}
+      {locked || ignored || letter ? (
+        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 flex-col items-center gap-1">
+          {locked ? <FileStatusBadge type="lock" /> : null}
+          {ignored ? <FileStatusBadge type="ignored" /> : letter ? <FileStatusBadge type={letter} /> : null}
+        </div>
+      ) : null}
     </div>
   );
 }

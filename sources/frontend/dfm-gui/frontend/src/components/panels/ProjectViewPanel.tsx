@@ -8,7 +8,6 @@ import { CommitProjectCard } from "@/components/atoms/CommitProjectCard";
 import { StageCard } from "@/components/atoms/StageCard";
 import { NoStagesProject } from "@/components/atoms/NoStagesProject";
 import { UncommittedFilesCard } from "@/components/atoms/UncommittedFilesCard";
-import { CreateCommitCard, type CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import { NoHistoryProject } from "@/components/atoms/NoHistoryProject";
 import { NullRepositoryPlaceholder } from "@/components/placeholders/NullRepositoryPlaceholder";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +16,7 @@ import { changeCounts, isDirty } from "@/lib/status";
 import { requestVisibleStats, useStat } from "@/lib/revision-cache";
 import { CommitCardMoreButton, type CommitCardAction } from "@/components/items/CommitCardMenu";
 import { StashCardMoreButton, type StashCardAction } from "@/components/items/StashCardMenu";
-import type { CommitComposer, SidebarTab } from "@/lib/view";
+import type { SidebarTab } from "@/lib/view";
 import type { BranchSummary, CommitSummary, StashSummary, StatusSnapshot } from "@/store/app-store";
 
 type ProjectViewPanelProps = {
@@ -34,17 +33,14 @@ type ProjectViewPanelProps = {
   busy?: boolean;
   repoPath: string;
   selectedCommit?: string | null;
-  commitComposer?: CommitComposer;
-  /** Card Directory Load while staging files for the commit composer. */
+  /** Load on Worked directory while `index.add` runs. */
   stagingCommit?: boolean;
   onSidebarTab: (tab: SidebarTab) => void;
   onSettings: () => void;
   onCreateRepository: () => void;
   onSelectCommit: (hash: string) => void;
   onLeaveCommit: () => void;
-  onCommitAll: () => void;
-  onCancelComposer: () => void;
-  onCreateCommit: (fields: CreateCommitFields) => void;
+  onTakeSnapshot: () => void;
   onSwitchBranch: (name: string) => void;
   onCreateBranch: () => void;
   onRenameBranch: () => void;
@@ -64,14 +60,8 @@ function splitMessage(message: string): { title: string; description: string } {
   return { title: trimmed.slice(0, nl).trim(), description: trimmed.slice(nl + 1).trim() };
 }
 
-function directoryState(commitOpen: boolean, composer: CommitComposer): "default" | "selected" | "disabled" {
-  if (composer === "selection") {
-    return "disabled";
-  }
-  if (commitOpen) {
-    return "default";
-  }
-  return "selected";
+function directoryState(commitOpen: boolean): "default" | "selected" {
+  return commitOpen ? "default" : "selected";
 }
 
 function StageList({
@@ -148,16 +138,13 @@ export function ProjectViewPanel({
   busy,
   repoPath,
   selectedCommit,
-  commitComposer = "closed",
   stagingCommit,
   onSidebarTab,
   onSettings,
   onCreateRepository,
   onSelectCommit,
   onLeaveCommit,
-  onCommitAll,
-  onCancelComposer,
-  onCreateCommit,
+  onTakeSnapshot,
   onSwitchBranch,
   onCreateBranch,
   onRenameBranch,
@@ -171,7 +158,6 @@ export function ProjectViewPanel({
   const dirty = isDirty(status);
   const counts = changeCounts(status);
   const commitOpen = Boolean(selectedCommit);
-  const allComposer = commitComposer === "all";
   return (
     <aside className="flex h-full w-[309px] shrink-0 flex-col overflow-hidden">
       <HeaderSelectBranch
@@ -188,21 +174,16 @@ export function ProjectViewPanel({
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="flex w-[309px] shrink-0 flex-col gap-2 overflow-y-auto px-3">
           <SidebarCardDirectory
-            state={directoryState(commitOpen, commitComposer)}
-            onClick={commitOpen && commitComposer === "closed" && !stagingCommit ? onLeaveCommit : undefined}
+            state={directoryState(commitOpen)}
+            onClick={commitOpen && !stagingCommit ? onLeaveCommit : undefined}
           >
-            {allComposer ? (
-              <CreateCommitCard locale={locale} busy={busy} onCancel={onCancelComposer} onCreate={onCreateCommit} />
-            ) : (
-              <UncommittedFilesCard
-                locale={locale}
-                dirty={dirty}
-                counts={counts}
-                loading={stagingCommit}
-                disabled={commitComposer === "selection"}
-                onCommitAll={onCommitAll}
-              />
-            )}
+            <UncommittedFilesCard
+              locale={locale}
+              dirty={dirty}
+              counts={counts}
+              loading={stagingCommit}
+              onTakeSnapshot={onTakeSnapshot}
+            />
           </SidebarCardDirectory>
         </div>
         <div className="flex w-full items-center p-3">

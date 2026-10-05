@@ -48,14 +48,14 @@ export function FirstStartView({ locale, busy, onCreate, onOpen, onLocale }: Fir
           <div className="h-px w-full bg-border" />
           <div className="flex w-full flex-col gap-2">
             <p className="text-[14px] font-medium leading-5 text-foreground">{copy.language}</p>
-            <div className="flex gap-2">
-              <Button type="button" variant={locale === "en" ? "primary" : "outline"} onClick={() => onLocale("en")}>
-                English
-              </Button>
-              <Button type="button" variant={locale === "ru" ? "primary" : "outline"} onClick={() => onLocale("ru")}>
-                Русский
-              </Button>
-            </div>
+            <select
+              className="flex h-9 w-full rounded-md border border-border bg-background px-3 text-[14px] leading-5 text-foreground"
+              value={locale}
+              onChange={(event) => onLocale(event.target.value === "ru" ? "ru" : "en")}
+            >
+              <option value="en">English</option>
+              <option value="ru">Русский</option>
+            </select>
             <p className="text-[14px] leading-5 text-foreground-muted">{copy.languageHint}</p>
           </div>
         </div>

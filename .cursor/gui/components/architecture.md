@@ -126,9 +126,9 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 | Atom / Cards / Commit Project | `4279:11417` | [atoms/card-commit-project.md](./atoms/card-commit-project.md) | `CommitProjectCard` |
 | Atom / Cards / Commit File | `4306:3082` | [atoms/card-commit-file.md](./atoms/card-commit-file.md) | `CommitFileCard` |
 | Atom / Cards / Stage | `4402:9877` | [atoms/card-stage.md](./atoms/card-stage.md) | `StageCard` |
-| Atom / Cards / Create Commit | `4385:9476` | [atoms/card-create-commit.md](./atoms/card-create-commit.md) | `CreateCommitCard` |
+| Atom / Cards / Create Commit | снят | [dialogs/commit.md](../dialogs/commit.md) | `CreateCommitDialog` / `AppendFilesDialog` |
 | Atom / Cards / Directory | `4309:9126` | [atoms/card-directory.md](./atoms/card-directory.md) | `UncommittedFilesCard` |
-| Atom / Cards / Back to file | `4279:11427` | [atoms/card-back-to-file.md](./atoms/card-back-to-file.md) | `BackToFileRow` |
+| Atom / Cards / Back to file | снят | [atoms/card-back-to-file.md](./atoms/card-back-to-file.md) | нет: карточка файла в File view |
 | Atom / Cards / No History File | `4279:11870` | [atoms/card-no-history-file.md](./atoms/card-no-history-file.md) | `NoHistoryFile` |
 | Atom / Cards / No History Project | `4382:9003` | [atoms/card-no-history-project.md](./atoms/card-no-history-project.md) | `NoHistoryProject` |
 | Atom / Cards / No Stages Project | `6020:12733` | [atoms/card-no-stages-project.md](./atoms/card-no-stages-project.md) | `NoStagesProject` |

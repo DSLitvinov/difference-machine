@@ -41,7 +41,11 @@ export function FolderGridTile({
     >
       <div className="relative shrink-0" style={{ width: previewSize, height: previewSize }}>
         <ThemeImg src={asset("file-types/folder.svg", theme)} alt="" width={previewSize} height={previewSize} className="size-full object-contain" />
-        {ignored ? <FileStatusBadge type="ignored" className="absolute bottom-1 left-1" /> : null}
+        {ignored ? (
+          <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-2">
+            <FileStatusBadge type="ignored" iconOnly />
+          </div>
+        ) : null}
       </div>
       <div className="flex h-[34px] w-full flex-col items-center gap-0.5 text-center text-[12px] leading-4">
         <p className="w-full truncate text-foreground">{name}</p>

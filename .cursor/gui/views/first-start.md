@@ -3,7 +3,7 @@
 Окно первого запуска. Не трёхколоночный app shell.
 
 Figma: [View / First Start](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4382-9252) (`4382:9252`).  
-**640×656**.
+**833×768**. Крестик на кадре — системная кнопка окна, не элемент страницы.
 
 Обзор экранов: [architecture.md](./architecture.md).
 
@@ -11,7 +11,7 @@ Figma: [View / First Start](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/
 
 ## Когда
 
-Пока нет открытого репозитория в `[current repo]` (и, по смыслу макета, пользователь ещё не в app shell). То же после удаления **всех** path в [Settings → Repositories](../dialogs/settings.md): список пуст, сессия закрыта, окно снова 640×656.
+Пока нет открытого репозитория в `[current repo]` (и, по смыслу макета, пользователь ещё не в app shell). То же после удаления **всех** path в [Settings → Repositories](../dialogs/settings.md): список пуст, сессия закрыта, окно снова 833×768.
 
 Не показывать поверх уже открытого проекта. После успешного Create / Open — перейти на экран обзора ([project-browse.md](./project-browse.md)).
 
@@ -28,7 +28,7 @@ Title bar: `Difference Machine` без скобок — репозиторий �
 | Hero | `Appicon / 512` 128 + название `Difference Machine` + `Prototype 0.8.1` |
 | Create repository | заголовок `Create repository`, пояснение `Create a new Difference Machine repository inside the specified folder`, кнопка `Create` |
 | Open repository | заголовок `Open repository`, пояснение `Select the folder containing the repository`, кнопка `Open` |
-| Language | `Language`, сегменты `English` / `Русский`, подпись `This is the language that will be used in the application` |
+| Language | `Language`, выпадающий список `English` / `Русский`, не сегменты. Тот же список — Settings → Profile |
 
 Copy — только из этого node (`get_design_context` на `4382:9252`). Не подменять «Init Forester» и т.п.
 

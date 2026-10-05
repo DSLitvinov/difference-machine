@@ -24,58 +24,38 @@ Property Figma: `type`.
 
 | `type` | Знак | Смысл | Данные Forester |
 |--------|------|--------|-----------------|
-| `appended` | **A** | Добавлен в VCS (есть в index, не было в HEAD) | `status.get.staged_new_files`; `diff.name_status` status `A` |
-| `modified` | **M** | Содержимое изменено | `staged_modified_files` / `unstaged_modified_files`; diff `M` |
-| `new` | **N** | Неотслеживаемый | `untracked_files` |
-| `delete` | **D** | Удалён | `staged_deleted_files` / `unstaged_deleted_files`; diff `D` |
-| `rename` | **R** | Переименован | `status.get.renamed_files` (`path` или `old_path`); `diff.name_status` status `R` |
-| `ignored` | **i** | Попадает в `.dfmignore` | `workdir.entries` / `search` с `include_ignored`: поле `ignored` |
-| `lock` | иконка замка 16×16 | Файл заблокирован | `lock.list` — есть запись с этим `file_path` |
+| `appended` | Plus | Добавлен в VCS (есть в index, не было в HEAD) | `status.get.staged_new_files`; `diff.name_status` status `A` |
+| `modified` | Pencil | Содержимое изменено | `staged_modified_files` / `unstaged_modified_files`; diff `M` |
+| `new` | FilePlus | Неотслеживаемый | `untracked_files` |
+| `delete` | Trash | Удалён | `staged_deleted_files` / `unstaged_deleted_files`; diff `D` |
+| `rename` | Replace | Переименован | `status.get.renamed_files` (`path` или `old_path`); `diff.name_status` status `R` |
+| `ignored` | EyeOff | Попадает в `.dfmignore` | `workdir.entries` / `search` с `include_ignored`: поле `ignored` |
+| `lock` | Lock | Файл заблокирован | `lock.list` — есть запись с этим `file_path` |
 
 ---
 
 ## Внешний вид
 
-Общее для всех `type`:
+Два вида одного атома. Букв A/M/N/D/R/i нет.
 
-| Свойство | Значение | Токен Figma |
-|----------|----------|-------------|
-| Размер | **20×20 px**, квадрат | `size-[20px]` |
-| Радиус | 4 px | `Radius/radius-sm` |
-| Шрифт буквы | Inter Semi Bold, 12 / 16, letter-spacing 0 | `text-xs/semibold` |
-| Выравнивание | flex, center | |
-| Текст | одна буква, `whitespace-nowrap`. Letter A/M/N/D/R — uppercase. `ignored` — строчная **i** (Figma `6074:12677`) | |
+| Где | Вид |
+|-----|-----|
+| Тайл сетки | `iconOnly`: круг 20×20, иконка 12, внизу превью (отступ 8), по горизонтали по центру |
+| File Info и строка файла в коммите | pill высотой 20, `rounded-full`, иконка 12 и подпись |
 
-### Letter (`appended` \| `modified` \| `new` \| `delete` \| `rename` \| `ignored`)
+Ряд на превью — горизонталь, `gap` 4, прижат к нижнему краю. **Lock слева**, затем ignored или статус файла. `ignored` вытесняет appended/modified/new/delete/rename.
 
-| Свойство | Значение |
-|----------|----------|
-| Padding | горизонталь 4 px (`Spacing/spacing-xs`); верх 3 px, низ 1 px |
-| Обводка | `1px solid rgba(0, 0, 0, 0.08)` |
-| Цвет знака | `#fafafa` (`Foreground/Primary/default`) |
+| `type` | Фон | Знак |
+|--------|-----|------|
+| `appended` | `#86efac` / `#166534` | Plus, подпись Appended |
+| `modified` | `#fdba74` / `#7c2d12` | Pencil, Modified |
+| `new` | `#60a5fa` / `#1e3a8a` | FilePlus, New |
+| `delete` | `#fca5a5` / `#dc2626` | Trash, Deleted |
+| `rename` | `#c084fc` / `#581c87` | Replace, Renamed |
+| `ignored` | `#cbd5e1` / `#334155` | EyeOff |
+| `lock` | белый, обводка `#d4d4d8`, текст `#18181b` | Lock |
 
-| `type` | Фон |
-|--------|-----|
-| `appended` | `#16a34a` |
-| `modified` | `#f97316` |
-| `new` | `#2563eb` |
-| `delete` | `#dc2626` |
-| `rename` | `#a855f7` |
-| `ignored` | `#a1a1aa` |
-
-Цвета заливки в макете — абсолютные hex, не semantic `destructive` shadcn. Завести CSS-переменные атома (`--badge-file-appended` …) и не подменять на `bg-green-600` «на глаз», если hex не совпадает.
-
-### `lock`
-
-| Свойство | Значение | Токен |
-|----------|----------|--------|
-| Фон | `#ffffff` | `Background/default` |
-| Обводка | `1px solid #e4e4e7` | `Border/default` |
-| Padding вертикаль | 0 | `Padding/padding-none` |
-| Иконка | замок, **16×16**, в центре | node icon `4191:5890` |
-| Цвет иконки | `#3f3f46` | `Icon/Secondary/default` |
-
-Иконку брать экспортом из Figma (SVG), не рисовать path вручную. Lucide `Lock` — только если глиф совпадает с макетом при 16 px.
+Бейдж объекта внутри `.blend` — отдельный атом. Не сливать его с File Status.
 
 ---
 
@@ -92,7 +72,7 @@ Property Figma: `type`.
 | loading | VCS-letter — пока нет `status.get`; **i** — пока нет `entry.ignored`; lock — пока нет `lock.list`. Не ставить spinner внутрь 20×20 |
 | отсутствие статуса | **не рендерить** атом (нет «пустого» квадрата) |
 
-`lock` и letter — разные экземпляры. Если файл и изменён, и залочен, родитель ставит **два** бейджа (порядок — из макета тайла, не выдумывать третий `type`). `ignored` вытесняет letter A/M/N/D/R: один letter-слот, **i** слева, lock справа если есть.
+`lock` и статус — разные экземпляры. Если файл и изменён, и залочен, родитель ставит **два** бейджа в один ряд внизу превью: lock слева, статус справа. `ignored` вытесняет VCS-статус.
 
 ---
 
@@ -112,21 +92,9 @@ Property Figma: `type`.
 
 ---
 
-## shadcn/ui
+## Код
 
-База: `Badge` + `cva` + `cn`.
-
-Не использовать дефолтные варианты shadcn (`default`, `secondary`, `destructive`, `outline`, `rounded-full`): у них другая геометрия (pill, auto-height, другой padding).
-
-```text
-Badge
-  → className фиксирует size 20×20, rounded-[4px], p по спеке
-  → variant / type = cva map на семь type
-```
-
-- `asChild` не нужен.
-- Не добавлять `title` / tooltip, если его нет в макете. Для a11y: `aria-label` полным словом (`Added`, `Modified`, `New`, `Deleted`, `Renamed`, `Ignored`, `Locked`) — видимый текст остаётся A/M/N/D/R/i.
-- Тёмная тема: пока в Figma нет dark-варианта атома, не перекрашивать hex «инверсией». Тема оболочки не меняет зелёный A на другой смысл.
+`FileStatusBadge` — `span`, не shadcn `Badge`. `iconOnly` на тайлах сетки. Подпись видна на pill. `aria-label` — то же слово, что на pill. Не добавлять tooltip.
 
 ---
 

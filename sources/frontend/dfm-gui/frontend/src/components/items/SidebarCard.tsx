@@ -10,10 +10,10 @@ type SidebarCardProps = {
 
 export function SidebarCard({ state = "default", className, children, onClick }: SidebarCardProps) {
   const classes = cn(
-    "flex w-full flex-col rounded-md border p-3",
-    state === "default" && "border-solid border-border bg-background shadow-sm hover:border-border-accent",
-    state === "selected" && "border-solid border-border-accent bg-foreground-accent",
-    state === "disabled" && "border-solid border-border bg-background-muted",
+    "flex w-full flex-col rounded-[14px] border border-solid p-4",
+    state === "default" && "border-border bg-background shadow-sm hover:border-border-accent",
+    state === "selected" && "border-border-accent bg-background shadow-sm",
+    state === "disabled" && "border-border bg-[#f8f8f9] shadow-none dark:bg-background-muted",
     onClick && "cursor-pointer text-left",
     className,
   );

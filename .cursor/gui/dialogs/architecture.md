@@ -59,12 +59,13 @@
 | Recover commit | `RecoverCommitDialog` | [maintenance.md](./maintenance.md) | `reflog.get` / `reflog.restore` | в диалоге |
 | Clean repository | `FileDeleteDialog` | [maintenance.md](./maintenance.md) | не JSON API: Close + удалить `.DFM/` | toast (`SessionInfo.error`) |
 | Init repository | OS picker, не модалка | ниже | `repo.init`; меню Create; First Start Create | toast |
-| Create commit | **не** `Dialog /` | [project-browse](../views/project-browse.md) | `index.add` → `commit.create` | toast |
+| Append files | `AppendFilesDialog` | [commit.md](./commit.md) | `workdir.entries` `path:"*"` `include_ignored`; отмеченные ignored → `workdir.unignore`, затем `index.add` | toast |
+| Create commit | `CreateCommitDialog` | [commit.md](./commit.md) | `index.add` → `commit.create` | toast |
 | Remove repo from list | вкладка Settings | [settings.md](./settings.md) | `repos.cfg`; не удаляет `.DFM/` | toast |
 
 Нет JSON-метода — нет пункта «сделать как в git CLI». Исключение: **Clean repository**.
 
-Help в [Header Settings](../components/items/header-settings.md) — disabled, диалога нет.
+Help в [Header Settings](../components/items/header-settings.md) снят. Диалога справки нет.
 
 ---
 
@@ -103,8 +104,8 @@ Help в [Header Settings](../components/items/header-settings.md) — disabled, 
 ## Commit
 
 - Кнопка недоступна, если index пуст **и** нет сценария «add then commit» в макете.
-- Композер — карточка в File Info / Select More Files (selection) или в левой Card Directory (all files), кадры [Create Commit](../views/project-browse.md) / [Create Commit all files](../views/project-browse.md), не модалка Settings.
-- Если макет коммитит выбранные/все изменения: сначала `index.add` с path (или `["."]`), затем `commit.create`.
+- Коммит — [Append files и Create Commit](./commit.md), не карточка в колонке и не модалка Settings.
+- Take snapshot и Create commit из меню сначала открывают Append. Отмеченные ignored: `workdir.unignore`, затем `index.add`, затем Create Commit и `commit.create`.
 - `amend` только когда это действие есть в UI и HEAD не пустой.
 - Ошибка → toast.
 
@@ -128,6 +129,6 @@ Help в [Header Settings](../components/items/header-settings.md) — disabled, 
 Поля путей — абсолютные native path.  
 `[api] path` — библиотека, не CLI ([setup-cfg-api-path](../../rules/setup-cfg-api-path.mdc)).
 
-Список репозиториев можно очистить полностью. Save пустого списка: `SaveRepos` → пустой `repos.cfg` (без `[current repo]`), закрыть сессию, окно [First Start](../views/first-start.md) 640×656, закрыть Settings. Не оставлять последний path из-за `knownRepos(current)`.
+Список репозиториев можно очистить полностью. Save пустого списка: `SaveRepos` → пустой `repos.cfg` (без `[current repo]`), закрыть сессию, окно [First Start](../views/first-start.md) 833×768, закрыть Settings. Не оставлять последний path из-за `knownRepos(current)`.
 
 Кнопка удаления строки — destructive icon, белый `trash-2`: [settings.md](./settings.md), [Button UI kit](../components/architecture.md#button-ui-kit). Ошибка save / `gc.run` → toast, диалог открыт.

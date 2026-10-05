@@ -17,7 +17,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | **No repo** | Нет `[current repo]` / список пуст | [First Start](../views/first-start.md); не вызывать workdir API |
 | **Not a repository** | `Call` → `not a Forester repository` | First Start или toast + Open; не app shell с сеткой |
 | **Ready / clean** | `status.get` без staged/unstaged/untracked/renamed | обзор папки / файл / коммит по UI-измерениям |
-| **Dirty** | Любой из списков status непустой | бейджи на сетке; композер Create Commit; ограничения switch |
+| **Dirty** | Любой из списков status непустой | бейджи на сетке; Take snapshot; ограничения switch |
 | **Detached HEAD** | `is_detached: true` | баннер поверх текущего View, кнопка закрыть; switch на ветку возвращает attached |
 | **Merge in progress** | `merge.status.in_progress` | баннер поверх View + диалог merge; закрытие баннера не abort; отдельного `View / Merge` нет |
 | **Merge conflicts** | `has_conflicts` | список conflicts в диалоге; continue заблокирован пока не разрешено |
@@ -58,7 +58,6 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | changedOnly | bool (фильтр Only changed) | нет |
 | viewIgnored | bool (фильтр View ignored; `include_ignored` на entries/search) | нет |
 | sidebarTab | history \| stages | на сессию |
-| commitComposer | closed \| selection \| all | нет |
 | gridTrack | 106…360 px; default **106** → превью **48×48** | сессия процесса (не cfg). List-view **нет** в 0.8.1 |
 | Open dialog | id или null | нет |
 
@@ -66,7 +65,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 
 `gridTrack` не входит в селектор `View /`: плотность сетки не меняет кадр, только `nCols` и `previewSize`. Канон: [architecture.md](../architecture.md#сетка-рабочей-копии).
 
-Смена repo сбрасывает folder/selection/commit/composer. `gridTrack` сессии может сохраняться. Рестарт приложения возвращает default 106 / 48. Тема Light/Dark из `[ui] theme` (`html.dark`).
+Смена repo сбрасывает folder/selection/commit. `gridTrack` сессии может сохраняться. Рестарт приложения возвращает default 106 / 48. Тема Light/Dark из `[ui] theme` (`html.dark`), без вкладки Appearance.
 
 ### Производный экран (кратко)
 
@@ -84,12 +83,11 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | несколько файлов в сетке | File More Info |
 | `sidebarTab = stages`, есть stash | Stash (сетка папки) |
 | `sidebarTab = stages`, `stash.list` пуст | [Stashes Null](../views/project-browse.md): Folder Empty + File Info Null, не сетка workdir |
-| `commitComposer = selection`, один файл | [Create Commit single file](../views/project-browse.md) `6036:14491`: слева Card Directory Disable; справа File Info + CreateCommitCard |
-| `commitComposer = selection`, иначе | Create Commit `4385:10858`: слева Disable; справа Select More Files + CreateCommitCard |
-| `commitComposer = all` | [Create Commit all files](../views/project-browse.md) `6076:15959`: слева Card Directory Selected + CreateCommitCard; справа File Info Null; selection сброшен |
 | `contentContext = file` | [file-preview](../views/file-preview.md) |
 | `contentContext = file-revision` | [file-history](../views/file-history.md) |
 | `contentContext = commit` | [commit](../views/commit.md) |
+
+Take snapshot и Create commit не порождают отдельный `View /`. См. [dialogs/commit.md](../dialogs/commit.md).
 
 Полные слоты колонок — в спеках семейств, не дублировать здесь.
 

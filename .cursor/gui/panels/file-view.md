@@ -12,8 +12,8 @@ Figma: [Panel / File view](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 | Слот | Кирпич |
 |------|--------|
 | Header Select Branch 309×64 | [header-select-branch](../components/items/header-select-branch.md) |
-| Current preview 285×44 | [SidebarCard](../components/items/sidebar-card.md) + [BackToFileRow](../components/atoms/card-back-to-file.md) |
-| Заголовок секции | `History of file` — Inter Semi Bold 16/24 `#18181b`, padding 12 |
+| Карточка файла | [SidebarCard](../components/items/sidebar-card.md): basename. Грязный файл — **Edit in** и **Take snapshot**. Чистый — `No changes file`, без кнопок. Строки Back to file и заголовка `History of file` нет |
+| Вкладки | History активна. Stashes видна и **disabled** — список стэшей файла не строить |
 | Commit List 285 | см. варианты |
 | Header Settings 309×60 | [header-settings](../components/items/header-settings.md) |
 
@@ -25,12 +25,10 @@ Padding колонки: 12 px горизонталь. Content: `gap` **0** пр�
 
 | Figma | Node | Current preview | Commit List |
 |-------|------|-----------------|-------------|
-| File view | [`4309:7530`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-7530) | Selected, **dashed** `#60a5fa` / `#eff6ff` | стек [SidebarCard](../components/items/sidebar-card.md) Default + [CommitFileCard](../components/atoms/card-commit-file.md) |
-| File view - History Null | [`4309:9019`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-9019) | Selected, **dashed** `#60a5fa` / `#eff6ff` (кадр Figma Disable — отклонение) | один SidebarCard Disable (solid) + [NoHistoryFile](../components/atoms/card-no-history-file.md) **сверху** списка, не по центру колонки |
+| File view | [`4309:7530`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-7530) | Selected, **solid** `#60a5fa` / `#eff6ff` | стек [SidebarCard](../components/items/sidebar-card.md) Default + [CommitFileCard](../components/atoms/card-commit-file.md) |
+| File view - History Null | [`4309:9019`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4309-9019) | Selected, **solid** `#60a5fa` | один SidebarCard Disable (solid) + [NoHistoryFile](../components/atoms/card-no-history-file.md) **сверху** списка, не по центру колонки |
 
-Пунктир Current preview — override инстанса в этих панелях. Канон [Item / Card](../components/items/sidebar-card.md) Selected/Disable — solid. Не делать dashed все Selected карточки коммитов.
-
-Current preview **никогда** не Disable: серая заливка выглядит как «карточку нельзя нажать». History Null и просмотр workdir — Selected; выбран коммит в истории — Default. Клик всегда активен.
+Selected — сплошная синяя обводка. Карточка файла **никогда** не Disable. History Null и просмотр workdir — Selected; выбран коммит в истории — Default. Клик всегда активен. Take snapshot этой карточки открывает Append, затем Create Commit, только для этого файла.
 
 В инстансах `4309:7530` в Swapper сейчас [Commit Project](../components/atoms/card-commit-project.md) (есть «7 files changed»). Продукт — атом [Commit File](../components/atoms/card-commit-file.md) (`4306:3082`): stats только `+` / `−`. Не копировать «N files changed» со скрина панели.
 

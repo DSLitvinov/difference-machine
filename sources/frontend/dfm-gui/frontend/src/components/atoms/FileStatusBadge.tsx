@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react";
+import { EyeOff, FilePlus, Lock, Pencil, Plus, Replace, Trash2, type LucideIcon } from "lucide-react";
 import { Icon } from "@/components/chrome/Icon";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -7,50 +7,60 @@ import { useAppStore } from "@/store/app-store";
 
 type FileStatusBadgeProps = {
   type: LetterStatus | "lock" | "ignored";
+  /** Grid tiles use the icon circle. File Info uses the labeled pill. */
+  iconOnly?: boolean;
   className?: string;
 };
 
-const letter = {
-  appended: { glyph: "A", className: "bg-[#16a34a] text-foreground-primary" },
-  modified: { glyph: "M", className: "bg-[#f97316] text-foreground-primary" },
-  new: { glyph: "N", className: "bg-[#2563eb] text-foreground-primary" },
-  delete: { glyph: "D", className: "bg-[#dc2626] text-foreground-primary" },
-  rename: { glyph: "R", className: "bg-[#a855f7] text-foreground-primary" },
-  ignored: { glyph: "i", className: "bg-[#a1a1aa] text-foreground-primary" },
-} as const;
+const spec: Record<LetterStatus | "ignored", { icon: LucideIcon; className: string }> = {
+  appended: { icon: Plus, className: "bg-[#86efac] text-[#166534]" },
+  modified: { icon: Pencil, className: "bg-[#fdba74] text-[#7c2d12]" },
+  new: { icon: FilePlus, className: "bg-[#60a5fa] text-[#1e3a8a]" },
+  delete: { icon: Trash2, className: "bg-[#fca5a5] text-[#dc2626]" },
+  rename: { icon: Replace, className: "bg-[#c084fc] text-[#581c87]" },
+  ignored: { icon: EyeOff, className: "bg-[#cbd5e1] text-[#334155]" },
+};
 
-export function FileStatusBadge({ type, className }: FileStatusBadgeProps) {
+export function FileStatusBadge({ type, iconOnly, className }: FileStatusBadgeProps) {
   const locale = useAppStore((s) => s.locale);
   const copy = t(locale);
+  const labels = {
+    appended: copy.statusAppended,
+    modified: copy.statusModified,
+    new: copy.statusNew,
+    delete: copy.statusDeleted,
+    rename: copy.statusRenamed,
+    ignored: copy.ignored,
+    lock: copy.locked,
+  } as const;
   if (type === "lock") {
     return (
       <span
-        aria-label={copy.locked}
-        className={cn("inline-flex size-5 items-center justify-center rounded-sm border border-border bg-background", className)}
+        aria-label={labels.lock}
+        className={cn(
+          "inline-flex items-center justify-center gap-1 rounded-full border border-[#d4d4d8] bg-background text-[12px] font-semibold leading-4 text-[#18181b] dark:text-foreground",
+          iconOnly ? "p-1" : "px-2 py-0.5",
+          className,
+        )}
       >
-        <Icon icon={Lock} size={16} />
+        <Icon icon={Lock} size={12} />
+        {iconOnly ? null : labels.lock}
       </span>
     );
   }
-  const spec = letter[type];
-  const labels = {
-    appended: copy.statusAdded,
-    modified: copy.modified,
-    new: copy.statusNew,
-    delete: copy.deleted,
-    rename: copy.statusRenamed,
-    ignored: copy.ignored,
-  } as const;
+  const item = spec[type];
   return (
     <span
       aria-label={labels[type]}
       className={cn(
-        "inline-flex size-5 items-center justify-center rounded-sm border border-black/[0.08] pb-px pt-[3px] text-[12px] font-semibold leading-4",
-        spec.className,
+        "inline-flex items-center justify-center gap-1 rounded-full text-[12px] font-semibold leading-4",
+        iconOnly ? "p-1" : "px-2 py-0.5",
+        item.className,
         className,
       )}
     >
-      {spec.glyph}
+      <Icon icon={item.icon} size={12} />
+      {iconOnly ? null : labels[type]}
     </span>
   );
 }

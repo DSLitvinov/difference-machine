@@ -7,4 +7,4 @@ Figma: [Content / Placeholder / Folder Null](https://www.figma.com/design/qlwKiM
 
 Вставляется в [Panel / Content View / Folder - Empty](../../panels/content-view.md). Copy — из node: `No files yet` / `Create or move your files to the repository`.
 
-Центр [Stashes Null](../../views/project-browse.md) (`6035:12553`) — тот же атом и заголовок, body **`Create stash`**, не copy пустой папки.
+Центр [Stashes Null](../../views/project-browse.md) (`6035:12553`) — тот же заголовок `No files yet`. Подзаголовок скрыт: строки `Create stash` нет, это не действие.

@@ -12,9 +12,9 @@ Figma: [Item / Panel / Header / Settings](https://www.figma.com/design/qlwKiMPZb
 | Слот | Node | Размер | Смысл |
 |------|------|--------|--------|
 | Avatar | [`4335:20298`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4335-20298) | 40×40 (глиф/инициалы 24×24 внутри) | инициалы автора |
-| Actions | `4335:20071` | 82×40, x=215 | две кнопки 40×40 |
-| Help | [`4335:20065`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4335-20065) | 40×40, ghost icon `circle-help` | справка, **disabled** |
 | Settings | [`4335:19972`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4335-19972) | 40×40, ghost icon `settings` | открыть настройки приложения |
+
+Help снят. В футере только аватар и шестерёнка. Не возвращать кнопку справки.
 
 Иконки — экспорт из node, не Lucide «по имени».
 
@@ -46,12 +46,6 @@ Figma: [Item / Panel / Header / Settings](https://www.figma.com/design/qlwKiMPZb
 
 ---
 
-## Help
-
-Видна, как в макете. **Disabled:** клик ничего не делает, диалог и URL не открывать. Не скрывать. Не добавлять tooltip «coming soon». Пока нет отдельной спеки справки.
-
----
-
 ## Settings
 
 Клик открывает [Dialog / Settings](../../dialogs/settings.md). Один диалог на окно; повторный клик не плодит вторую модалку.
@@ -62,4 +56,4 @@ Figma: [Item / Panel / Header / Settings](https://www.figma.com/design/qlwKiMPZb
 
 - Подпись «Settings» / имя пользователя рядом с аватаром — в кадре нет.
 - Четвёртая кнопка, бейдж непрочитанного, меню по клику на аватар.
-- Help как активный пункт, пока нет отдельной спеки справки.
+- Кнопка Help. Её нет в продукте.

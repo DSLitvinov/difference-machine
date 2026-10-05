@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { ChevronDown } from "lucide-react";
 import { HeaderSelectBranch } from "@/components/items/HeaderSelectBranch";
 import { HeaderSettings } from "@/components/items/HeaderSettings";
 import { SidebarCard } from "@/components/items/SidebarCard";
-import { BackToFileRow } from "@/components/atoms/BackToFileRow";
 import { CommitFileCard } from "@/components/atoms/CommitFileCard";
 import { NoHistoryFile } from "@/components/atoms/NoHistoryFile";
 import { CommitCardMoreButton, type CommitCardAction } from "@/components/items/CommitCardMenu";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Icon } from "@/components/chrome/Icon";
+import { useExternalEditors } from "@/lib/editors";
 import { t, type Locale } from "@/lib/i18n";
 import { foresterCall } from "@/lib/bridge";
-import { cn } from "@/lib/utils";
+import { dirtyPaths } from "@/lib/status";
 import type { BranchSummary, CommitSummary, StatusSnapshot } from "@/store/app-store";
 
 type FileViewPanelProps = {
@@ -28,6 +32,8 @@ type FileViewPanelProps = {
   onDeleteBranch: () => void;
   onMerge: () => void;
   onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
+  onTakeSnapshot: () => void;
+  onEditIn: (editor: string) => void;
   switchLocked?: boolean;
 };
 
@@ -60,9 +66,14 @@ export function FileViewPanel({
   onDeleteBranch,
   onMerge,
   onCommitAction,
+  onTakeSnapshot,
+  onEditIn,
   switchLocked,
 }: FileViewPanelProps) {
   const copy = t(locale);
+  const editors = useExternalEditors();
+  const fileName = path.split("/").filter(Boolean).pop() ?? path;
+  const fileDirty = dirtyPaths(status).includes(path);
   const [commits, setCommits] = useState<CommitSummary[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
@@ -108,27 +119,57 @@ export function FileViewPanel({
         onDelete={onDeleteBranch}
         onMerge={onMerge}
       />
-      <div className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", empty && "gap-2")}>
-        <div className="flex w-[309px] shrink-0 flex-col gap-2 px-3">
-          <SidebarCard
-            state={revisionOpen ? "default" : "selected"}
-            className={revisionOpen ? undefined : "border-dashed"}
-            onClick={onCurrentPreview}
-          >
-            <BackToFileRow locale={locale} />
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-3 pt-1">
+        <div className="flex w-full shrink-0 flex-col">
+          <SidebarCard state={revisionOpen ? "default" : "selected"} onClick={onCurrentPreview}>
+            <div className="flex w-full flex-col gap-2">
+              <p className="truncate text-[14px] font-semibold leading-5 text-foreground">{fileName}</p>
+              {fileDirty ? null : <p className="truncate text-[12px] leading-4 text-foreground-muted">{copy.noChangesFile}</p>}
+              {fileDirty ? (
+                <div className="flex w-full items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-w-0 flex-1"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {copy.editIn}
+                        <Icon icon={ChevronDown} size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-[200px]">
+                      {editors.map((editor) => (
+                        <DropdownMenuItem key={editor.path} onSelect={() => onEditIn(editor.path)}>
+                          {editor.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button
+                    type="button"
+                    className="min-w-0 flex-1"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onTakeSnapshot();
+                    }}
+                  >
+                    {copy.takeSnapshot}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
           </SidebarCard>
         </div>
-        <div className="flex w-full shrink-0 items-center p-3">
-          <p className="text-[16px] font-semibold leading-6 text-background-primary">{copy.historyOfFile}</p>
-        </div>
         {empty ? (
-          <div className="flex min-h-0 w-[309px] flex-1 flex-col px-3">
+          <div className="flex min-h-0 w-full flex-1 flex-col">
             <SidebarCard state="disabled">
               <NoHistoryFile locale={locale} />
             </SidebarCard>
           </div>
         ) : (
-          <div ref={scrollRef} className="min-h-0 w-[309px] flex-1 overflow-y-auto px-3">
+          <div ref={scrollRef} className="min-h-0 w-full flex-1 overflow-y-auto">
             <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
               {virtualizer.getVirtualItems().map((row) => {
                 const commit = commits[row.index];

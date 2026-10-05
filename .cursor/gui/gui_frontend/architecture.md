@@ -50,7 +50,7 @@ Frontend не импортирует Go и не читает диск. Нет `f
 - **Center** — сетка папки, превью файла, diff ревизии или состав коммита.
 - **Right** — File Info / Select More Files, либо скрыта (center 1120).
 
-First Start — отдельное окно 640×656, [first-start](../views/first-start.md).
+First Start — отдельное окно 833×768, [first-start](../views/first-start.md).
 
 Размеры колонок — из спеки View; persist splitter только если не ломает 309 / 788|1120 / 332. Сетка папки внутри center — [продуктовое правило](../architecture.md#сетка-рабочей-копии): CSS Grid `auto-fill` / `minmax(106px, 1fr)`, default превью **48×48**, не фиксированные 7×106 с кадра и не Size=Max как посадка.
 
@@ -65,7 +65,7 @@ Zustand (или эквивалент) хранит:
 | Срез | Примеры | Источник истины |
 |------|---------|-----------------|
 | App | текущий repo path, first-start vs app | cfg + local |
-| Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, viewIgnored, sidebarTab, commitComposer | UI; экран из [views](../views/architecture.md) |
+| Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, viewIgnored, sidebarTab | UI; экран из [views](../views/architecture.md). Коммит — локальное состояние диалогов, не store |
 | Grid zoom | `gridTrack` 106…360, default **106** → `previewSize` **48** | сессия; не Forester, не cfg. Формула: [architecture.md](../architecture.md#сетка-рабочей-копии) |
 | History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*`; LRU payload — [revision-cache.md](./revision-cache.md) |
 | VCS | snapshot `status.get`, `merge.status` | API; не путать со вкладкой Stash |
@@ -119,7 +119,7 @@ Selection живёт на frontend (клик, range, marquee — если в м�
 
 ## Токены и a11y
 
-Токены — дизайн-система Figma: светлая в `:root`, тёмная в `html.dark`. Тема из `[ui] theme` (`light` \| `dark`), вкладка Appearance в Settings. Immutable illustrations: `assets/{light,dark}/{brand,placeholders,file-types,previews}/` через `asset()`. Chrome-иконки — Lucide (`currentColor` с родителя). Цвет на кнопках — таблица UI kit Button в [components/architecture.md](../components/architecture.md): primary и destructive — светлый глиф (`#fafafa` на destructive всегда); outline / ghost / secondary — `Foreground/default`. Не `text-foreground` на `Icon` и не `filter: invert(1)`.
+Токены — дизайн-система Figma: светлая в `:root`, тёмная в `html.dark`. Тема из `[ui] theme` (`light` \| `dark`). Вкладки Appearance в Settings нет. Immutable illustrations: `assets/{light,dark}/{brand,placeholders,file-types,previews}/` через `asset()`. Chrome-иконки — Lucide (`currentColor` с родителя). Цвет на кнопках — таблица UI kit Button в [components/architecture.md](../components/architecture.md): primary и destructive — светлый глиф (`#fafafa` на destructive всегда); outline / ghost / secondary — `Foreground/default`. Не `text-foreground` на `Icon` и не `filter: invert(1)`.
 
 Для скрытого текста только `sr-only` / `aria-*`, не видимые «подсказки для агента».
 

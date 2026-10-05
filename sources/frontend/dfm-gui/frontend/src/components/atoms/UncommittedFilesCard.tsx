@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import type { ChangeCounts } from "@/lib/status";
@@ -8,46 +9,22 @@ type UncommittedFilesCardProps = {
   locale: Locale;
   dirty: boolean;
   counts?: ChangeCounts;
-  /** Atom Directory state `3) Load` while `index.add` runs before the composer. */
+  /** Shown while `index.add` runs before the commit dialog. */
   loading?: boolean;
-  /** Create Commit: button stays in Changed copy but is inactive. */
-  disabled?: boolean;
-  onCommitAll: () => void;
+  onTakeSnapshot: () => void;
 };
 
-export function UncommittedFilesCard({
-  locale,
-  dirty,
-  counts,
-  loading,
-  disabled,
-  onCommitAll,
-}: UncommittedFilesCardProps) {
+export function UncommittedFilesCard({ locale, dirty, counts, loading, onTakeSnapshot }: UncommittedFilesCardProps) {
   const copy = t(locale);
-  if (loading) {
-    return (
-      <div className="flex w-full flex-col gap-2">
-        <p className="min-w-0 text-[14px] font-semibold leading-5 text-foreground-muted">{copy.appendFiles}</p>
-        <p className="truncate text-[12px] leading-4 text-foreground-muted">{copy.pleaseWait}</p>
-        <button
-          type="button"
-          disabled
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border text-[14px] font-medium leading-5 text-foreground opacity-50"
-        >
-          <Icon icon={Loader2} size={16} className="animate-spin" />
-          {copy.commitAllFiles}
-        </button>
-      </div>
-    );
-  }
   const stats = dirty && counts && counts.append + counts.new + counts.modified + counts.deleted > 0 ? counts : null;
-  const commitEnabled = dirty && !disabled;
   return (
     <div className="flex w-full flex-col gap-2">
-      <p className={cn("min-w-0 text-[14px] font-semibold leading-5", dirty ? "text-foreground" : "text-foreground-muted")}>
-        {copy.uncommittedFiles}
+      <p className={cn("min-w-0 text-[14px] font-semibold leading-5", stats ? "text-foreground" : "text-foreground-muted")}>
+        {copy.workedDirectory}
       </p>
-      {stats ? (
+      {loading ? (
+        <p className="truncate text-[12px] leading-4 text-foreground-muted">{copy.pleaseWait}</p>
+      ) : stats ? (
         <p className="flex gap-1 truncate text-[12px] leading-4">
           {stats.append > 0 ? <span className="text-[#047857]">{stats.append} {copy.append}</span> : null}
           {stats.new > 0 ? <span className="text-[#2563eb]">{stats.new} {copy.newFiles}</span> : null}
@@ -57,22 +34,22 @@ export function UncommittedFilesCard({
       ) : (
         <p className="truncate text-[12px] leading-4 text-foreground-muted">{copy.noChangedFiles}</p>
       )}
-      <button
-        type="button"
-        disabled={!commitEnabled}
-        className={cn(
-          "flex h-10 w-full items-center justify-center rounded-md border border-border text-[14px] font-medium leading-5 text-foreground",
-          commitEnabled ? "bg-background shadow-sm" : "opacity-50",
-        )}
-        onClick={(event) => {
-          event.stopPropagation();
-          if (commitEnabled) {
-            onCommitAll();
-          }
-        }}
-      >
-        {copy.commitAllFiles}
-      </button>
+      {stats || loading ? (
+        <Button
+          type="button"
+          disabled={loading || !stats}
+          className="w-full"
+          onClick={(event) => {
+            event.stopPropagation();
+            if (!loading && stats) {
+              onTakeSnapshot();
+            }
+          }}
+        >
+          {loading ? <Icon icon={Loader2} size={16} className="animate-spin" /> : null}
+          {copy.takeSnapshot}
+        </Button>
+      ) : null}
     </div>
   );
 }

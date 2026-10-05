@@ -1,21 +1,13 @@
-import { ChevronDown, Ellipsis } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CreateCommitCard, type CreateCommitFields } from "@/components/atoms/CreateCommitCard";
+import { useEffect, useState } from "react";
 import { HeaderRightSide } from "@/components/items/HeaderRightSide";
 import { FileInfoPreview } from "@/components/items/FileInfoPreview";
-import { FilePreviewItemMenu, type FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
-import { SidebarCardDirectory } from "@/components/items/SidebarCardDirectory";
 import { NoFileSelectedPlaceholder } from "@/components/placeholders/NoFileSelectedPlaceholder";
 import { MissingFilePlaceholder } from "@/components/placeholders/MissingFilePlaceholder";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Icon } from "@/components/chrome/Icon";
 import { t, type Locale } from "@/lib/i18n";
 import { formatDateTime, formatSize } from "@/lib/format";
-import { letterStatus, isMissingPath, isStagedPath } from "@/lib/status";
+import { letterStatus, isMissingPath } from "@/lib/status";
 import { typeLabel } from "@/lib/file-kind";
 import { foresterCall } from "@/lib/bridge";
-import { useExternalEditors } from "@/lib/editors";
 import { peekThumb, releaseThumb, requestThumb, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
 import { useAppStore, type FileLock, type StatusSnapshot } from "@/store/app-store";
 
@@ -34,12 +26,7 @@ type FileInfoPanelProps = {
   path: string | null;
   status: StatusSnapshot | null;
   locks: FileLock[];
-  composerOpen?: boolean;
-  busy?: boolean;
   onCollapse: () => void;
-  onFileAction: (action: FileWorkdirAction) => void;
-  onCancelComposer: () => void;
-  onCreateCommit: (fields: CreateCommitFields) => void;
 };
 
 function basename(path: string): string {
@@ -56,38 +43,15 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function FileInfoPanel({
-  locale,
-  path,
-  status,
-  locks,
-  composerOpen,
-  busy,
-  onCollapse,
-  onFileAction,
-  onCancelComposer,
-  onCreateCommit,
-}: FileInfoPanelProps) {
+export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileInfoPanelProps) {
   const copy = t(locale);
   const repoPath = useAppStore((s) => s.repoPath);
   const ignored = useAppStore((s) => Boolean(path && s.entries.some((entry) => entry.path === path && entry.ignored)));
   const [meta, setMeta] = useState<FileMetadata | null>(null);
   const [failedPath, setFailedPath] = useState<string | null>(null);
-  const editors = useExternalEditors();
-  const scrollRef = useRef<HTMLDivElement>(null);
   useThumbEpoch();
   const knownMissing = Boolean(path && isMissingPath(path, status));
   const gone = Boolean(path && failedPath === path);
-
-  useLayoutEffect(() => {
-    if (!composerOpen) {
-      return;
-    }
-    const el = scrollRef.current;
-    if (el) {
-      el.scrollTop = el.scrollHeight;
-    }
-  }, [composerOpen]);
 
   useEffect(() => {
     if (!path || knownMissing) {
@@ -140,17 +104,8 @@ export function FileInfoPanel({
     return (
       <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
         <HeaderRightSide locale={locale} onCollapse={onCollapse} />
-        <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3">
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
-            <MissingFilePlaceholder locale={locale} />
-          </div>
-          {composerOpen ? (
-            <div className="w-full shrink-0">
-              <SidebarCardDirectory state="selected">
-                <CreateCommitCard locale={locale} busy={busy} onCancel={onCancelComposer} onCreate={onCreateCommit} />
-              </SidebarCardDirectory>
-            </div>
-          ) : null}
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-3">
+          <MissingFilePlaceholder locale={locale} />
         </div>
       </aside>
     );
@@ -168,7 +123,7 @@ export function FileInfoPanel({
     <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
       <HeaderRightSide locale={locale} onCollapse={onCollapse} />
       <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pb-3">
-        <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
           <FileInfoPreview
             name={name}
             src={thumb?.kind === "image" ? thumb.blobUrl : undefined}
@@ -192,55 +147,6 @@ export function FileInfoPanel({
             </div>
           </div>
         </div>
-        {composerOpen ? (
-          <div className="w-full shrink-0">
-            <SidebarCardDirectory state="selected">
-              <CreateCommitCard locale={locale} busy={busy} onCancel={onCancelComposer} onCreate={onCreateCommit} />
-            </SidebarCardDirectory>
-          </div>
-        ) : (
-          <div className="flex w-full shrink-0 items-center gap-1">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" className="min-w-0 flex-1">
-                  {copy.fileEdit}
-                  <Icon icon={ChevronDown} size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[264px]">
-                {editors.map((editor) => (
-                  <DropdownMenuItem key={editor.path} onSelect={() => onFileAction({ kind: "editIn", editor: editor.path })}>
-                    {editor.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="icon" aria-label={copy.more}>
-                  <Icon icon={Ellipsis} size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-              <FilePreviewItemMenu
-                locale={locale}
-                locked={Boolean(lock)}
-                ignored={ignored}
-                disableUnstage={!isStagedPath(path, status)}
-                align="end"
-                onCreateCommit={() => onFileAction({ kind: "createCommit" })}
-                onAddInCommit={() => onFileAction({ kind: "addInCommit" })}
-                onUnstage={() => onFileAction({ kind: "unstage" })}
-                onIgnore={() => onFileAction({ kind: "ignore" })}
-                onUnignore={() => onFileAction({ kind: "unignore" })}
-                onRename={() => onFileAction({ kind: "rename" })}
-                onOpenInFolder={() => onFileAction({ kind: "openInFolder" })}
-                onEditIn={(editor) => onFileAction({ kind: "editIn", editor })}
-                onToggleLock={() => onFileAction({ kind: "toggleLock" })}
-                onDeleteInProject={() => onFileAction({ kind: "deleteInProject" })}
-              />
-            </DropdownMenu>
-          </div>
-        )}
       </div>
     </aside>
   );

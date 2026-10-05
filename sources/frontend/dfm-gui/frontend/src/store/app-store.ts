@@ -6,7 +6,7 @@ import { resetThumbCache } from "@/lib/thumb-cache";
 import { resetRevisionCache } from "@/lib/revision-cache";
 import { clampGridTrack, GRID_TRACK_DEFAULT } from "@/lib/grid";
 import { fileSelection } from "@/lib/folder-query";
-import { deriveView, type CommitComposer, type ContentContext, type DerivedView, type Shell, type SidebarTab } from "@/lib/view";
+import { deriveView, type ContentContext, type DerivedView, type Shell, type SidebarTab } from "@/lib/view";
 
 export type StatusSnapshot = {
   current_branch?: string;
@@ -102,8 +102,6 @@ type AppState = {
   changedOnly: boolean;
   viewIgnored: boolean;
   sidebarTab: SidebarTab;
-  commitComposer: CommitComposer;
-  commitComposerPaths: string[] | null;
   folderEmpty: boolean;
   hasCommits: boolean;
   isRepository: boolean;
@@ -135,9 +133,6 @@ type AppState = {
   leaveCommit: () => void;
   openFileRevision: (commit: CommitSummary) => void;
   leaveFileRevision: () => void;
-  openCommitComposer: (paths?: string[]) => void;
-  openCommitAllComposer: () => void;
-  closeCommitComposer: () => void;
   setToast: (message: string | null) => void;
   setProfile: (name: string, email: string) => void;
   setRepoMeta: (meta: {
@@ -174,8 +169,6 @@ export const useAppStore = create<AppState>((set) => ({
   changedOnly: false,
   viewIgnored: false,
   sidebarTab: "history",
-  commitComposer: "closed",
-  commitComposerPaths: null,
   folderEmpty: true,
   hasCommits: false,
   isRepository: false,
@@ -212,8 +205,6 @@ export const useAppStore = create<AppState>((set) => ({
       infoCollapsed: false,
       changedOnly: false,
       viewIgnored: false,
-      commitComposer: "closed",
-      commitComposerPaths: null,
       sidebarTab: "history",
       folderEmpty: true,
       hasCommits: false,
@@ -253,7 +244,7 @@ export const useAppStore = create<AppState>((set) => ({
   setContentContext: (context) =>
     set({
       contentContext: context,
-      ...(context === "folder" ? { selectedCommit: null, fileRevision: null } : { commitComposer: "closed", commitComposerPaths: null }),
+      ...(context === "folder" ? { selectedCommit: null, fileRevision: null } : {}),
     }),
   openFile: (path) =>
     set({
@@ -262,36 +253,12 @@ export const useAppStore = create<AppState>((set) => ({
       infoCollapsed: false,
       selectedCommit: null,
       fileRevision: null,
-      commitComposer: "closed",
-      commitComposerPaths: null,
     }),
-  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit", commitComposer: "closed", commitComposerPaths: null, fileRevision: null }),
+  openCommit: (hash) => set({ selectedCommit: hash, contentContext: "commit", fileRevision: null }),
   leaveCommit: () => set({ selectedCommit: null, contentContext: "folder", selection: [] }),
   openFileRevision: (commit) =>
-    set({ fileRevision: commit, selectedCommit: commit.hash, contentContext: "file-revision", commitComposer: "closed", commitComposerPaths: null }),
+    set({ fileRevision: commit, selectedCommit: commit.hash, contentContext: "file-revision" }),
   leaveFileRevision: () => set({ fileRevision: null, selectedCommit: null, contentContext: "file" }),
-  openCommitComposer: (paths) =>
-    set({
-      commitComposer: "selection",
-      commitComposerPaths: paths && paths.length > 0 ? paths : null,
-      contentContext: "folder",
-      selectedCommit: null,
-      fileRevision: null,
-      infoCollapsed: false,
-      sidebarTab: "history",
-    }),
-  openCommitAllComposer: () =>
-    set({
-      commitComposer: "all",
-      commitComposerPaths: null,
-      selection: [],
-      contentContext: "folder",
-      selectedCommit: null,
-      fileRevision: null,
-      infoCollapsed: false,
-      sidebarTab: "history",
-    }),
-  closeCommitComposer: () => set({ commitComposer: "closed", commitComposerPaths: null }),
   setToast: (message) => set({ toast: message }),
   setProfile: (name, email) => set({ userName: name, userEmail: email }),
   setRepoMeta: (meta) =>
@@ -324,7 +291,6 @@ export function useDerivedView(): DerivedView {
       contentContext: s.contentContext,
       infoCollapsed: s.infoCollapsed,
       sidebarTab: s.sidebarTab,
-      commitComposer: s.commitComposer,
       stashEmpty: s.stashes.length === 0,
     }),
   );

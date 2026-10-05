@@ -8,10 +8,9 @@ import { FileInfoPanel } from "@/components/panels/FileInfoPanel";
 import { SelectMoreFilesPanel } from "@/components/panels/SelectMoreFilesPanel";
 import { foresterCall } from "@/lib/bridge";
 import { fileSelection, parentRel } from "@/lib/folder-query";
-import { isMissingPath, isStagedPath } from "@/lib/status";
+import { dirtyPaths, isMissingPath, isStagedPath } from "@/lib/status";
 import { showRightColumn } from "@/lib/view";
 import { useAppStore, useDerivedView, type CommitSummary, type StashSummary } from "@/store/app-store";
-import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import type { CommitCardAction } from "@/components/items/CommitCardMenu";
 import type { FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
 import type { StashCardAction } from "@/components/items/StashCardMenu";
@@ -22,10 +21,8 @@ type AppShellProps = {
   onCreateRepository: () => void;
   onCreateCommitFromSelection: (paths: string[]) => void;
   onNeedMore: () => void;
-  onCommitAll: () => void;
+  onTakeSnapshot: (paths: string[]) => void;
   stagingCommit?: boolean;
-  onCancelComposer: () => void;
-  onCreateCommit: (fields: CreateCommitFields) => void;
   onCompareFile: () => void;
   onRestoreFile: () => Promise<boolean>;
   onSwitchBranch: (name: string) => void;
@@ -54,10 +51,8 @@ export function AppShell({
   onCreateRepository,
   onCreateCommitFromSelection,
   onNeedMore,
-  onCommitAll,
+  onTakeSnapshot,
   stagingCommit,
-  onCancelComposer,
-  onCreateCommit,
   onCompareFile,
   onRestoreFile,
   onSwitchBranch,
@@ -112,7 +107,6 @@ export function AppShell({
   const leaveCommit = useAppStore((s) => s.leaveCommit);
   const selectedCommit = useAppStore((s) => s.selectedCommit);
   const fileRevision = useAppStore((s) => s.fileRevision);
-  const commitComposer = useAppStore((s) => s.commitComposer);
   const view = useDerivedView();
   const showRight = showRightColumn(view) && !infoCollapsed;
   const files = fileSelection(selection, entries);
@@ -120,12 +114,9 @@ export function AppShell({
   const fileMissing = isMissingPath(filePath, status);
   const fileLeft = (view === "file-view" || view === "file-history") && Boolean(filePath);
   const commitInspect = view === "view-commit" ? commits.find((item) => item.hash === selectedCommit) : undefined;
-  const moreFiles =
-    view === "create-commit" ||
-    (view !== "stages" && view !== "stashes-null" && (files.length > 1 || (files.length > 0 && selection.length > 1)));
+  const moreFiles = view !== "stages" && view !== "stashes-null" && (files.length > 1 || (files.length > 0 && selection.length > 1));
   const stashSidebar = view === "stages" || view === "stashes-null";
   const mergeLocked = Boolean(mergeStatus.in_progress);
-  const selectionComposer = commitComposer === "selection";
 
   function applyWorkdirAction(paths: string[], action: FileWorkdirAction) {
     if (paths.length === 0) {
@@ -219,6 +210,8 @@ export function AppShell({
             onDeleteBranch={onDeleteBranch}
             onMerge={onOpenMerge}
             onCommitAction={onCommitAction}
+            onTakeSnapshot={() => onTakeSnapshot([filePath])}
+            onEditIn={(editor) => onEditIn(filePath, editor)}
           />
         ) : (
           <ProjectViewPanel
@@ -235,7 +228,6 @@ export function AppShell({
             busy={busy}
             repoPath={repoPath}
             selectedCommit={selectedCommit}
-            commitComposer={commitComposer}
             stagingCommit={stagingCommit}
             switchLocked={mergeLocked}
             onSidebarTab={setSidebarTab}
@@ -243,9 +235,7 @@ export function AppShell({
             onCreateRepository={onCreateRepository}
             onSelectCommit={openCommit}
             onLeaveCommit={leaveCommit}
-            onCommitAll={onCommitAll}
-            onCancelComposer={onCancelComposer}
-            onCreateCommit={onCreateCommit}
+            onTakeSnapshot={() => onTakeSnapshot(dirtyPaths(status))}
             onSwitchBranch={onSwitchBranch}
             onCreateBranch={onCreateBranch}
             onRenameBranch={onRenameBranch}
@@ -328,12 +318,7 @@ export function AppShell({
               entries={entries}
               locks={locks}
               disableUnstage={!selection.some((path) => isStagedPath(path, status))}
-              composerOpen={selectionComposer}
-              busy={busy}
               onCollapse={() => setInfoCollapsed(true)}
-              onCreateCommit={onCreateCommitFromSelection}
-              onCancelComposer={onCancelComposer}
-              onComposerCreate={onCreateCommit}
               onFileAction={(action) => applyWorkdirAction(selection, action)}
             />
           ) : (
@@ -342,12 +327,7 @@ export function AppShell({
               path={stashSidebar || selection.length !== 1 || files.length !== 1 ? null : filePath || null}
               status={status}
               locks={locks}
-              composerOpen={selectionComposer}
-              busy={busy}
               onCollapse={() => setInfoCollapsed(true)}
-              onFileAction={(action) => applyWorkdirAction(selection.slice(0, 1), action)}
-              onCancelComposer={onCancelComposer}
-              onCreateCommit={onCreateCommit}
             />
           )
         ) : null}

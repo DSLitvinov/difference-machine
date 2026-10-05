@@ -73,8 +73,12 @@ export function FileGridTile({
           className="size-auto"
           style={{ width: previewSize, height: previewSize }}
         />
-        {ignored ? <FileStatusBadge type="ignored" className="absolute bottom-1 left-1" /> : letter ? <FileStatusBadge type={letter} className="absolute bottom-1 left-1" /> : null}
-        {locked ? <FileStatusBadge type="lock" className="absolute bottom-1 right-1" /> : null}
+        {locked || ignored || letter ? (
+          <div className="pointer-events-none absolute inset-0 flex items-end justify-center gap-1 pb-2">
+            {locked ? <FileStatusBadge type="lock" iconOnly /> : null}
+            {ignored ? <FileStatusBadge type="ignored" iconOnly /> : letter ? <FileStatusBadge type={letter} iconOnly /> : null}
+          </div>
+        ) : null}
       </div>
       <div className="flex h-[34px] w-full flex-col justify-start">
         <p className="w-full truncate text-center text-[12px] leading-4 text-foreground">{name}</p>

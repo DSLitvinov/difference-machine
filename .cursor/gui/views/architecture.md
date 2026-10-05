@@ -54,7 +54,7 @@ Shell читает **производный** экран из store. Панел�
 
 Исключение макета: `Histpry of File - Image` рисует left 333 и center 1096. Канон колонок — **309 / 788|1120 / 332** из панельных спек, не этот кадр.
 
-First Start — другое окно: [first-start.md](./first-start.md) (640×656), без трёх колонок.
+First Start — другое окно: [first-start.md](./first-start.md) (833×768), без трёх колонок.
 
 ---
 
@@ -87,9 +87,9 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | View / Project view / File More Info | `4408:12671` | обзор |
 | View / Project view / Stages | `4385:12759` | обзор |
 | View / Project view / Stashes Null | `6035:12553` | обзор |
-| View / Project view / Create Commit | `4385:10858` | обзор |
-| View / Project view / Create Commit single file | `6036:14491` | обзор |
-| View / Project view / Create Commit all file | `6076:15959` | обзор |
+| View / Project view / Create Commit | снят | диалоги [Append / Create Commit](../dialogs/commit.md), не экран |
+| View / Project view / Create Commit single file | снят | то же |
+| View / Project view / Create Commit all file | снят | то же |
 | View / Project view / File View - IMG | `4246:6471` | файл |
 | View / Project view / File View - IMG ( Collapse ) | `4276:7423` | файл |
 | View / Project view / File View - Text | `4290:23880` | файл |
@@ -128,8 +128,9 @@ First Start — другое окно: [first-start.md](./first-start.md) (640×
 | `gridTrack` | 106…360, default 106 | не кадр View; только колонки и 48×48→крупнее. [Сетка](../architecture.md#сетка-рабочей-копии) |
 | `sidebarTab` | history \| stages | список коммитов vs stash (UI: **Stash**) |
 | `stashEmpty` | да \| нет | Stages vs [Stashes Null](./project-browse.md) при вкладке Stash |
-| `commitComposer` | закрыт \| selection \| all | selection — CreateCommitCard в File Info / Select More Files; all — в левой Card Directory |
 | `fileHasHistory` | да \| нет | File view vs File view History Null |
+
+Коммит не измерение экрана. Take snapshot и Create commit открывают [диалоги](../dialogs/commit.md) поверх текущего `View /`.
 
 Не путать `sidebarTab` с исчезнувшим «режимом окна Project | History». В макете один app shell; контекст файла — замена left на [Panel / File view](../panels/file-view.md), не вторая страница.
 
@@ -149,8 +150,8 @@ File View --Back `<`--> обзор папки
 File View --select commit--> History of File
 History of File --Current preview--> File View
 Project History --select commit--> View Commit
-Uncommitted --Commit All Files--> Create Commit all files (форма слева)
-File Info / Select More Files --Create commit--> Create Commit | Create Commit single file (форма справа)
+Worked directory --Take snapshot--> Dialog Append files --> Dialog Create Commit (все dirty path)
+меню Create commit --> Dialog Append files --> Dialog Create Commit (только выбранные пути)
 вкладка Stash --> Stash | Stashes Null (пусто)
 ```
 

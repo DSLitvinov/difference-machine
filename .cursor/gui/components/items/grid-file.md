@@ -2,7 +2,7 @@
 
 Тайл файла в сетке. Собирает [FilePreview](../atoms/file-preview.md) + [FileStatusBadge](../badge-file-status.md).
 
-Figma: [Item / Grid View / File](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4191-6507) (`4191:6507`).  
+Figma: [Item / Grid View / File](https://www.figma.com/design/UdzVpYkngLCGzVXFWwq8TJ/Difference-MAchine?node-id=4191-6507) (`4191:6507`).  
 Код: `FileGridTile`. Properties: `state` (Default \| Hover \| Selected), `Size` (Min \| Max), `Lock` (No \| Yes). Boolean `status` — letter-бейдж (включая `ignored`).
 
 Не путать с [list-file](./list-file.md) и с [preview-file-info](./preview-file-info.md).
@@ -30,12 +30,7 @@ Gap превью↔лейбл: 8 px.
 
 Слой `Status` поверх превью, не внутри `FilePreview`.
 
-| Lock | Letter | Раскладка |
-|------|--------|-----------|
-| No | один letter, если `status` **или** `ignored` | Min: left 14 / top 24 на 48-превью; Max: ближе к низу (top 100 на 128) |
-| Yes | letter + lock, **два** экземпляра FileStatusBadge | Min: gap 2, слева внизу превью; Max / отзывчивый трек: letter слева внизу превью, lock справа по ширине превью (не хардкод 112, если квадрат шире 128) |
-
-Нет статуса — не рендерить letter. `entry.ignored` → letter **i** (`type=ignored`), вместо A/M/N/D/R. Lock=Yes без letter — только lock. Порядок: letter затем lock.
+Слой на весь квадрат превью: `items-end justify-center`, отступ снизу 8, `gap` 4. Ряд горизонтальный. Lock слева, затем ignored или letter. Нет статуса — не рендерить letter. `entry.ignored` → `type=ignored` вместо A/M/N/D/R. Lock без letter — только lock.
 
 Правый клик открывает [Popover (File Preview Item)](../popovers/file-preview-item.md).
 

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { FirstStartView } from "@/components/views/FirstStartView";
 import { AppShell } from "@/components/views/AppShell";
+import { AppendFilesDialog } from "@/components/dialogs/AppendFilesDialog";
+import { CreateCommitDialog, type CreateCommitFields } from "@/components/dialogs/CreateCommitDialog";
 import { SettingsDialog } from "@/components/dialogs/SettingsDialog";
 import { MergeDialog } from "@/components/dialogs/MergeDialog";
 import { FileDeleteDialog, FileRenameDialog } from "@/components/dialogs/FileDialogs";
@@ -25,7 +27,6 @@ import { fileSelection, parentRel } from "@/lib/folder-query";
 import { loadExternalEditors } from "@/lib/editors";
 import { resetRevisionCache } from "@/lib/revision-cache";
 import { useAppStore, type BranchSummary, type CommitSummary, type DirEntry, type FileLock, type MergeStatus, type StashSummary, type StatusSnapshot } from "@/store/app-store";
-import type { CreateCommitFields } from "@/components/atoms/CreateCommitCard";
 import type { CommitCardAction } from "@/components/items/CommitCardMenu";
 import type { StashCardAction } from "@/components/items/StashCardMenu";
 
@@ -121,6 +122,9 @@ export default function App() {
   const setRepoMeta = useAppStore((s) => s.setRepoMeta);
   const [busy, setBusy] = useState(false);
   const [stagingCommit, setStagingCommit] = useState(false);
+  const [commitPaths, setCommitPaths] = useState<string[] | null>(null);
+  const [appendPaths, setAppendPaths] = useState<string[] | null>(null);
+  const [appendIncluded, setAppendIncluded] = useState<string[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mergeOpen, setMergeOpen] = useState(false);
   const [mergeError, setMergeError] = useState<string | null>(null);
@@ -548,36 +552,35 @@ export default function App() {
     }
   }
 
-  async function onCreateCommitFromSelection(paths: string[]) {
-    const files = fileSelection(paths, useAppStore.getState().entries);
+  function onTakeSnapshot(paths: string[]) {
+    onCreateCommitFromSelection(paths);
+  }
+
+  function onCreateCommitFromSelection(paths: string[]) {
+    const state = useAppStore.getState();
+    const files = fileSelection(paths, state.entries);
+    if (files.length === 0) {
+      return;
+    }
+    setAppendIncluded(files.filter((path) => state.entries.some((entry) => entry.path === path && entry.ignored)));
+    setAppendPaths(files);
+  }
+
+  async function onAppendFiles(staged: string[], ignoredIncluded: string[]) {
+    const files = [...new Set([...staged, ...ignoredIncluded])];
     if (files.length === 0) {
       return;
     }
     setBusy(true);
     setStagingCommit(true);
     try {
+      if (ignoredIncluded.length > 0) {
+        await foresterCall("workdir.unignore", { paths: ignoredIncluded });
+      }
       await foresterCall("index.add", { files });
       await refreshRepoMeta();
-      useAppStore.getState().openCommitComposer(files);
-    } catch (err) {
-      setToast(err instanceof Error ? err.message : "request failed");
-    } finally {
-      setStagingCommit(false);
-      setBusy(false);
-    }
-  }
-
-  async function onCommitAll() {
-    const paths = dirtyPaths(useAppStore.getState().status);
-    if (paths.length === 0) {
-      return;
-    }
-    setBusy(true);
-    setStagingCommit(true);
-    try {
-      await foresterCall("index.add", { files: paths });
-      await refreshRepoMeta();
-      useAppStore.getState().openCommitAllComposer();
+      setAppendPaths(null);
+      setCommitPaths(files);
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
     } finally {
@@ -593,10 +596,10 @@ export default function App() {
     }
     const tag = firstTag(fields.tag);
     const author = useAppStore.getState().userName.trim();
+    const paths = commitPaths ?? [];
     setBusy(true);
+    setStagingCommit(true);
     try {
-      const scoped = useAppStore.getState().commitComposerPaths;
-      const paths = scoped ?? dirtyPaths(useAppStore.getState().status);
       if (paths.length > 0) {
         await foresterCall("index.add", { files: paths });
       }
@@ -608,11 +611,12 @@ export default function App() {
         args.tag = tag;
       }
       await foresterCall("commit.create", args);
-      useAppStore.getState().closeCommitComposer();
+      setCommitPaths(null);
       await refreshRepoMeta();
     } catch (err) {
       setToast(err instanceof Error ? err.message : "request failed");
     } finally {
+      setStagingCommit(false);
       setBusy(false);
     }
   }
@@ -1039,12 +1043,10 @@ export default function App() {
           busy={busy}
           onSettings={() => setSettingsOpen(true)}
           onCreateRepository={() => void onCreateRepository()}
-          onCreateCommitFromSelection={(paths) => void onCreateCommitFromSelection(paths)}
+          onCreateCommitFromSelection={onCreateCommitFromSelection}
           onNeedMore={() => void loadMoreEntries()}
-          onCommitAll={() => void onCommitAll()}
+          onTakeSnapshot={onTakeSnapshot}
           stagingCommit={stagingCommit}
-          onCancelComposer={() => useAppStore.getState().closeCommitComposer()}
-          onCreateCommit={(fields) => void onCreateCommit(fields)}
           onCompareFile={() => void onCompareFile()}
           onRestoreFile={onRestoreFile}
           onSwitchBranch={onSwitchBranch}
@@ -1078,13 +1080,39 @@ export default function App() {
           theme={theme}
           onClose={() => setSettingsOpen(false)}
           onLocale={onLocale}
-          onThemeSaved={(next) => useAppStore.getState().setTheme(next)}
           onProfileSaved={(name, email, nextLocale) => {
             useAppStore.getState().setProfile(name, email);
             setLocale(nextLocale);
           }}
           onIgnoreSaved={() => void refreshRepoMeta()}
           onError={(message) => setToast(message)}
+        />
+      ) : null}
+      {appendPaths ? (
+        <AppendFilesDialog
+          locale={locale}
+          paths={appendPaths}
+          includedIgnored={appendIncluded}
+          busy={busy}
+          onCancel={() => {
+            if (!busy) {
+              setAppendPaths(null);
+              setAppendIncluded([]);
+            }
+          }}
+          onAppend={(staged, ignored) => void onAppendFiles(staged, ignored)}
+        />
+      ) : null}
+      {commitPaths && !appendPaths ? (
+        <CreateCommitDialog
+          locale={locale}
+          busy={busy}
+          onCancel={() => {
+            if (!stagingCommit) {
+              setCommitPaths(null);
+            }
+          }}
+          onCreate={(fields) => void onCreateCommit(fields)}
         />
       ) : null}
       {mergeOpen && shell === "app" ? (

@@ -26,8 +26,8 @@ Combobox 200×40 и кнопка **Apply** в этом хедере **нет**.
 
 | Выбор | API |
 |-------|-----|
-| Create commit | `index.add` с этим path → открыть композер |
-| Append | `index.add` с этим path. Композер не открывать |
+| Create commit | [Append files](../../dialogs/commit.md) с этим path, затем Create Commit |
+| Append | `index.add` с этим path. Диалог не открывать |
 | Undo append | `index.drop` с этим path. Disabled, если файл не в index (`staged_*`) |
 | Ignored / Don't ignore | один пункт, как в popover. Не ignored → `workdir.ignore`; ignored — copy `Don't ignore` / `Не игнорировать` → `workdir.unignore` |
 | Rename | диалог rename → `workdir.rename` |

@@ -155,7 +155,7 @@ GUI: меню Repository → **Recover commit** (группа с Verify). Диа
 
 Ставит пути в index. Коммит без непустого index невозможен (бизнес-правило Forester).
 
-GUI: пункт **Append** в [Popover (File Preview Item)](../components/popovers/file-preview-item.md) — только `index.add`, композер не открывать. Композер открывают **Commit All Files**, **Create commit** в том же popover и кнопка Create commit на Select More Files.
+GUI: пункт **Append** в [Popover (File Preview Item)](../components/popovers/file-preview-item.md) — только `index.add`, диалог не открывать. **Create commit** и **Take snapshot** сначала открывают Append files, затем Create Commit. См. [dialogs/commit.md](../dialogs/commit.md).
 
 ### `index.drop`
 
@@ -276,7 +276,7 @@ JSON `repo.switch` не восстанавливает auto-stash при воз�
 | Метод | Args | Результат |
 |-------|------|-----------|
 | `workdir.tree` | `path`, `depth` (default 1) | узел дерева папок |
-| `workdir.entries` | `path`, `offset`, `limit` (default 200); `include_ignored` (bool); `path: "*"` — все файлы | `{entries, total, has_more}` |
+| `workdir.entries` | `path`, `offset`, `limit` (default 200); `include_ignored` (bool); `path: "*"` — все не игнорируемые файлы; `path: "*"` + `include_ignored` — только игнорируемые файлы (включая файлы внутри игнорируемых папок) | `{entries, total, has_more}` |
 | `workdir.entries_by_paths` | `paths[]` | `{entries}` |
 | `workdir.metadata` | `path` | size, mime, timestamps, для изображений width/height |
 | `workdir.thumbnail` | `path` | `kind`: `image` (картинка, в т.ч. SVG как `image/svg+xml`; кадр видео; PNG из `.blend`) \| `text` \| `placeholder`. Кадр видео — тот же `kind: image`, не отдельный kind. Подробно: [thumbnails.md](./thumbnails.md) |
