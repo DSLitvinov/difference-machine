@@ -52,7 +52,7 @@ func nativeMenuCopyFor(locale string) nativeMenuCopy {
 			addRepository:    "Добавить репозиторий",
 			cleanRepository:  "Очистить репозиторий",
 			verifyRepository: "Проверить репозиторий",
-			recoverCommit:    "Восстановить коммит",
+			recoverCommit:    "Восстановить снимок",
 			branches:         "Ветки",
 			createBranch:     "Создать новую",
 			renameBranch:     "Переименовать",

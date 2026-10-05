@@ -76,7 +76,7 @@ func TestNativeMenuCopy(t *testing.T) {
 		t.Fatalf("english menu = %+v", en)
 	}
 	ru := nativeMenuCopyFor("ru")
-	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.addRepository != "Добавить репозиторий" || ru.cleanRepository != "Очистить репозиторий" || ru.verifyRepository != "Проверить репозиторий" || ru.recoverCommit != "Восстановить коммит" || ru.branches != "Ветки" || ru.merge != "Слить ветки" || ru.createBranch != "Создать новую" || ru.deleteBranch != "Удалить ветку" {
+	if ru.file != "Файл" || ru.openFolder != "Открыть папку" || ru.addRepository != "Добавить репозиторий" || ru.cleanRepository != "Очистить репозиторий" || ru.verifyRepository != "Проверить репозиторий" || ru.recoverCommit != "Восстановить снимок" || ru.branches != "Ветки" || ru.merge != "Слить ветки" || ru.createBranch != "Создать новую" || ru.deleteBranch != "Удалить ветку" {
 		t.Fatalf("russian menu = %+v", ru)
 	}
 }
