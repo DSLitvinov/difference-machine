@@ -1,6 +1,7 @@
 import { FilePreview } from "@/components/atoms/FilePreview";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
 import { asset } from "@/assets/themed";
+import { ThemeImg } from "@/components/chrome/ThemeImg";
 import { fileKind } from "@/lib/file-kind";
 import { GRID_PREVIEW_DEFAULT } from "@/lib/grid";
 import type { LetterStatus } from "@/lib/status";
@@ -16,7 +17,6 @@ type FileGridTileProps = {
   locked?: boolean;
   src?: string;
   text?: string;
-  stub?: boolean;
   missing?: boolean;
   previewSize?: number;
   onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -50,7 +50,6 @@ export function FileGridTile({
   locked,
   src,
   text,
-  stub,
   missing,
   previewSize = GRID_PREVIEW_DEFAULT,
   onSelect,
@@ -60,6 +59,8 @@ export function FileGridTile({
 }: FileGridTileProps) {
   const theme = useAppStore((s) => s.theme);
   const canDrag = Boolean(dragPaths && dragPaths.length > 0 && !missing);
+  const hasPreview = Boolean(!missing && (src || text));
+  const typeIcon = missing ? stubSrc(name, theme, true) : stubSrc(name, theme);
   return (
     <button
       type="button"
@@ -80,14 +81,18 @@ export function FileGridTile({
         selected ? "border-border-accent bg-foreground-accent" : "border-transparent hover:bg-foreground-accent",
       )}
     >
-      <div className="relative" style={{ width: previewSize, height: previewSize }}>
-        <FilePreview
-          src={missing ? stubSrc(name, theme, true) : src ?? (stub && !text ? stubSrc(name, theme) : undefined)}
-          text={missing ? undefined : text}
-          size="S"
-          className="size-auto"
-          style={{ width: previewSize, height: previewSize }}
-        />
+      <div className="relative shrink-0" style={{ width: previewSize, height: previewSize }}>
+        {hasPreview ? (
+          <FilePreview
+            src={src}
+            text={text}
+            size="S"
+            className="size-auto"
+            style={{ width: previewSize, height: previewSize }}
+          />
+        ) : (
+          <ThemeImg src={typeIcon} alt="" width={previewSize} height={previewSize} className="size-full object-contain" />
+        )}
         {locked || ignored || letter ? (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-center gap-1 pb-2">
             {locked ? <FileStatusBadge type="lock" iconOnly /> : null}

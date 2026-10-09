@@ -181,7 +181,6 @@ export function FolderEntryGrid({
                     locked={locked}
                     src={thumb?.kind === "image" ? thumb.blobUrl : undefined}
                     text={thumb?.kind === "text" ? thumb.text : undefined}
-                    stub={thumb?.kind === "placeholder"}
                     missing={entry.missing}
                     previewSize={previewSize}
                     onSelect={(event) => onSelect(entry.path, event)}
