@@ -85,7 +85,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 
 Канон: страница [↳ Button](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=139-288) (`139:288`), набор `210:4202`. Иконка 16×16 в слоте, `size=icon` 40×40 (`Icon Style=True`). Код: `components/ui/button.tsx` + `Icon`.
 
-Хромовые глифы — `Content/content-secondary` `#71717a` (`text-foreground-muted`). `text-current` только когда цвет родителя и есть цвет макета: primary/destructive, статусный бейдж, красный пункт меню. Не красить Lucide вручную и не `filter: invert(1)`.
+Хромовые глифы — `Content/content-secondary` `#71717a` (`text-foreground-muted`). `text-current` только когда цвет родителя и есть цвет макета: primary/destructive, статусный бейдж, красный пункт меню. Pressed (`:active`) у всех вариантов: текст и иконка `Content/content-on-solid` `#fafafa` (в dark не инвертируется). Не красить Lucide вручную и не `filter: invert(1)`.
 
 | Variant | Фон | Иконка / текст |
 |---------|-----|----------------|
@@ -93,7 +93,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 | Destructive | `Background/destructive/default` `#dc2626` (не инвертируется) | `#fafafa` всегда, в т.ч. dark. Пример: delete 40×40 [`6044:13347`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6044-13347) |
 | Secondary | `Background/primary/light` `#fafafa` | `Foreground/default` |
 | Outline | `Background/default` + `Border/default` | `Foreground/default` |
-| Ghost | прозрачный | `Foreground/default` |
+| Ghost | прозрачный; hover `interactive/layer-secondary-hovered` `#e4e4e7` (dark `#3f3f46`) | `Foreground/default` |
 
 Пункты меню (Delete branch, Clean filters) — не эта таблица: красный глиф `#ef4444` на светлом фоне, см. [header-select-branch](./items/header-select-branch.md), [filters](./popovers/filters.md).
 
