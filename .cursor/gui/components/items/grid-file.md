@@ -52,7 +52,7 @@ Gap превью↔лейбл: 8 px.
 
 ## Данные
 
-Thumbnail → `FilePreview` (`src` для картинки, `text` для `text_preview`). Тайл **не** вызывает `workdir.thumbnail`: панель отдаёт `src` / `text` после ленивой загрузки (virtualizer + очередь). Letter/lock — из панели (`status.get`, `lock.list`, `entry.ignored`). Клик — selection, не `workdir.open` (open — действие тулбара/меню). Двойной клик — [File View](../../views/file-preview.md).
+Есть эскиз (`src` картинки или `text` `text_preview`) → `FilePreview` с рамкой. Нет эскиза — только иконка типа (`file-types/image|text|binary|missing`), как папка: без второй рамки `FilePreview`. Тайл **не** вызывает `workdir.thumbnail`: панель отдаёт `src` / `text` после ленивой загрузки (virtualizer + очередь). Letter/lock — из панели (`status.get`, `lock.list`, `entry.ignored`). Клик — selection, не `workdir.open` (open — действие тулбара/меню). Двойной клик — [File View](../../views/file-preview.md).
 
 Пропавший файл в сетку рабочей папки не добавлять. Letter **D** и стаб Missing — только если path ещё открыт в File View. В коммите удалённый path остаётся строкой списка файлов.
 

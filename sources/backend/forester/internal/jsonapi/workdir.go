@@ -30,6 +30,19 @@ func withWorkDir(workPath string, fn func() (interface{}, error)) (interface{}, 
 	return fn()
 }
 
+// workRoot is the Forester root when one exists, otherwise the open folder.
+// Clean repository deletes .DFM but the project files stay listable.
+func workRoot() (string, error) {
+	if root, err := utils.FindRepositoryRoot("."); err == nil {
+		return root, nil
+	}
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("not a Forester repository")
+	}
+	return wd, nil
+}
+
 func withRepo(workPath string, fn func(repo *core.Repository, repoPath string) (interface{}, error)) (interface{}, error) {
 	return withWorkDir(workPath, func() (interface{}, error) {
 		repoPath, err := utils.FindRepositoryRoot(".")

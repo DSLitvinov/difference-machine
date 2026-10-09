@@ -405,6 +405,24 @@ func TestStatusDamagedWhenHeadObjectMissing(t *testing.T) {
 	}
 }
 
+func TestWorkdirEntriesWithoutRepository(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, dir, "scene.blend", "data")
+	h := openRepo(t, dir)
+	var result struct {
+		Entries []struct {
+			Name string `json:"name"`
+		} `json:"entries"`
+		Total int `json:"total"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "workdir.entries", `{"path":""}`), &result); err != nil {
+		t.Fatalf("decode entries: %v", err)
+	}
+	if result.Total != 1 || len(result.Entries) != 1 || result.Entries[0].Name != "scene.blend" {
+		t.Fatalf("entries = %+v total %d, want scene.blend", result.Entries, result.Total)
+	}
+}
+
 func TestReflogGetAndRestore(t *testing.T) {
 	dir, h := initTestRepo(t)
 	writeFile(t, dir, "a.txt", "one")

@@ -59,10 +59,13 @@ func handleWorkdirEntries(workPath string, args json.RawMessage) (interface{}, e
 		offset = 0
 	}
 
-	return withRepo(workPath, func(_ *core.Repository, repoPath string) (interface{}, error) {
-		scanner := newWorkdirScanner(repoPath)
+	return withWorkDir(workPath, func() (interface{}, error) {
+		root, err := workRoot()
+		if err != nil {
+			return nil, err
+		}
+		scanner := newWorkdirScanner(root)
 		var all []dirEntry
-		var err error
 		if params.Path == "*" {
 			// include_ignored with "*" is the ignored-file list (Append dialog).
 			// Without it, "*" stays every non-ignored file.
