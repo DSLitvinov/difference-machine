@@ -14,12 +14,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useExternalEditors } from "@/lib/editors";
 import { t, type Locale } from "@/lib/i18n";
 import { foresterCall } from "@/lib/bridge";
+import { requestVisibleStats, useStat } from "@/lib/revision-cache";
 import { dirtyPaths } from "@/lib/status";
 import type { BranchSummary, CommitSummary, StatusSnapshot } from "@/store/app-store";
 
 type FileViewPanelProps = {
   locale: Locale;
   userName: string;
+  repoPath: string;
   path: string;
   status: StatusSnapshot | null;
   branches: BranchSummary[];
@@ -54,6 +56,7 @@ function splitMessage(message: string): { title: string; description: string } {
 export function FileViewPanel({
   locale,
   userName,
+  repoPath,
   path,
   status,
   branches,
@@ -103,6 +106,16 @@ export function FileViewPanel({
       cancelled = true;
     };
   }, [path, status?.current_branch]);
+
+  const rows = virtualizer.getVirtualItems();
+  const visibleHashes = rows.map((row) => commits[row.index]?.hash ?? "").join("\0");
+
+  useEffect(() => {
+    if (!repoPath || !visibleHashes) {
+      return;
+    }
+    requestVisibleStats(repoPath, visibleHashes.split("\0").filter(Boolean));
+  }, [repoPath, visibleHashes]);
 
   const empty = commits.length === 0;
   const revisionOpen = Boolean(selectedHash);
@@ -184,7 +197,7 @@ export function FileViewPanel({
         ) : (
           <div ref={scrollRef} className="min-h-0 w-full flex-1 overflow-y-auto">
             <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
-              {virtualizer.getVirtualItems().map((row) => {
+              {rows.map((row) => {
                 const commit = commits[row.index];
                 const { title, description } = splitMessage(commit.message ?? "");
                 return (
@@ -195,29 +208,17 @@ export function FileViewPanel({
                     className="absolute left-0 right-0"
                     style={{ transform: `translateY(${row.start}px)` }}
                   >
-                    <SidebarCard
-                      state={commit.hash === selectedHash ? "selected" : "default"}
-                      onClick={() => onSelectCommit(commit)}
-                    >
-                      <CommitFileCard
-                        locale={locale}
-                        title={title}
-                        author={commit.author ?? ""}
-                        description={description}
-                        timestamp={commit.timestamp ?? 0}
-                        head={Boolean(commit.hash && commit.hash === status?.head_commit)}
-                        merge={(commit.parent_hashes?.length ?? 0) > 1}
-                        tag={commit.tag}
-                        more={
-                          <CommitCardMoreButton
-                            locale={locale}
-                            hash={commit.hash}
-                            message={commit.message ?? ""}
-                            onAction={(action) => onCommitAction(action, commit)}
-                          />
-                        }
-                      />
-                    </SidebarCard>
+                    <FileCommitCard
+                      locale={locale}
+                      repoPath={repoPath}
+                      commit={commit}
+                      title={title}
+                      description={description}
+                      selected={commit.hash === selectedHash}
+                      head={Boolean(commit.hash && commit.hash === status?.head_commit)}
+                      onSelect={() => onSelectCommit(commit)}
+                      onCommitAction={onCommitAction}
+                    />
                   </div>
                 );
               })}
@@ -227,5 +228,53 @@ export function FileViewPanel({
       </div>
       <HeaderSettings locale={locale} userName={userName} onSettings={onSettings} />
     </aside>
+  );
+}
+
+function FileCommitCard({
+  locale,
+  repoPath,
+  commit,
+  title,
+  description,
+  selected,
+  head,
+  onSelect,
+  onCommitAction,
+}: {
+  locale: Locale;
+  repoPath: string;
+  commit: CommitSummary;
+  title: string;
+  description: string;
+  selected: boolean;
+  head: boolean;
+  onSelect: () => void;
+  onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
+}) {
+  const stat = useStat(repoPath, commit.hash);
+  return (
+    <SidebarCard state={selected ? "selected" : "default"} onClick={onSelect}>
+      <CommitFileCard
+        locale={locale}
+        title={title}
+        author={commit.author ?? ""}
+        description={description}
+        timestamp={commit.timestamp ?? 0}
+        head={head}
+        merge={(commit.parent_hashes?.length ?? 0) > 1}
+        tag={commit.tag}
+        added={stat?.added}
+        deleted={stat?.deleted}
+        more={
+          <CommitCardMoreButton
+            locale={locale}
+            hash={commit.hash}
+            message={commit.message ?? ""}
+            onAction={(action) => onCommitAction(action, commit)}
+          />
+        }
+      />
+    </SidebarCard>
   );
 }

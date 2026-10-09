@@ -32,7 +32,7 @@
 | Список path | `diff.name_status` (`to` = hash) | Когда открыт inspect коммита | `repoAbs + from + to` (`from` по умолчанию — родитель) |
 | Payload path | `diff.text` или `blob.get` | **Выбранный** path (+ 0–1 сосед в file list) | `repoAbs + from + to + path` |
 
-`log.get` отдаёт hash, message, author, timestamp, tag — этого достаточно нарисовать карточку **без** `diff.stat`. Stats (`7 files changed`, `+` / `−`) — второй запрос, ленивый.
+`log.get` отдаёт hash, message, author, timestamp, tag — этого достаточно нарисовать карточку **без** `diff.stat`. Stats (`7 files changed`, `+` добавленные файлы / `−` удалённые) — второй запрос, ленивый.
 
 Не делать после `log.get(max_count=100)` сто вызовов `diff.stat`.
 

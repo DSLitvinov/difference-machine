@@ -333,8 +333,8 @@ function CommitList({
                     merge={(commit.parent_hashes?.length ?? 0) > 1}
                     tag={commit.tag}
                     filesChanged={stat?.files_changed}
-                    insertions={stat?.insertions}
-                    deletions={stat?.deletions}
+                    added={stat?.added}
+                    deleted={stat?.deleted}
                     more={
                       <CommitCardMoreButton
                         locale={locale}

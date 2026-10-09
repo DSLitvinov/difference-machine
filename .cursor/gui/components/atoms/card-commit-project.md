@@ -19,7 +19,7 @@ Figma: [Atom / Cards / Commit Project](https://www.figma.com/design/qlwKiMPZblz9
 | More | 16×16 `ellipsis-vertical` | открывает [popovers/commit-card](../popovers/commit-card.md) |
 | Author | Inter Regular 12/16, `#09090b` | строка под header, gap 4 |
 | Description | 12/16, `#71717a`, 2 строки, ellipsis, высота 32 | |
-| Stats | `7 files changed` muted; `+ 12` `#047857`; `- 12` `#ef4444`; gap 4 | из `diff.stat` |
+| Stats | `7 files changed` muted; `+ 2` добавленные файлы `#047857`; `- 1` удалённые файлы `#ef4444`; gap 4 | из `diff.stat` (`added` / `deleted`), не строки текста |
 | Date | Badge secondary pill `#f4f4f5`, текст `#3f3f46`, «1 week ago» | height 22 |
 | Tag | Badge outline pill, border `#e4e4e7`, «Tag» | только если `tag` |
 

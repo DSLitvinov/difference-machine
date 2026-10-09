@@ -44,8 +44,8 @@ export function HeaderCommitInfo({ locale, title, author, hash, head, merge, sta
               <span className="text-[#18181b] dark:text-foreground">
                 {copy.filesChangedLabel} {stat.files_changed}
               </span>
-              <span className="text-[#166534] dark:text-[#4ade80]">+ {stat.insertions}</span>
-              <span className="text-[#dc2626]">- {stat.deletions}</span>
+              <span className="text-[#166534] dark:text-[#4ade80]">+ {stat.added}</span>
+              <span className="text-[#dc2626]">- {stat.deleted}</span>
             </p>
           ) : null}
         </div>

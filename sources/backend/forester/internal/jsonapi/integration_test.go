@@ -969,6 +969,41 @@ type folderNodeResult struct {
 	Children  []folderNodeResult `json:"children"`
 }
 
+func TestDiffStatCountsAddedAndDeletedFiles(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "keep.txt", "keep")
+	writeFile(t, dir, "gone.txt", "gone")
+	mustOK(t, h, "index.add", `{"files":["keep.txt","gone.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"first"}`)
+	writeFile(t, dir, "new.txt", "new")
+	mustOK(t, h, "workdir.delete", `{"path":"gone.txt"}`)
+	mustOK(t, h, "index.add", `{"files":["new.txt","gone.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"second"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{"max_count":2}`), &logResult); err != nil {
+		t.Fatal(err)
+	}
+	if len(logResult.Commits) < 1 {
+		t.Fatal("expected a commit")
+	}
+	var stat struct {
+		FilesChanged int `json:"files_changed"`
+		Added        int `json:"added"`
+		Deleted      int `json:"deleted"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "diff.stat", `{"to":"`+logResult.Commits[0].Hash+`"}`), &stat); err != nil {
+		t.Fatal(err)
+	}
+	if stat.Added != 1 || stat.Deleted != 1 || stat.FilesChanged != 2 {
+		t.Fatalf("stat = %+v, want added 1, deleted 1, files_changed 2", stat)
+	}
+}
+
 func TestMergeStatusIdle(t *testing.T) {
 	_, h := initTestRepo(t)
 	var status struct {

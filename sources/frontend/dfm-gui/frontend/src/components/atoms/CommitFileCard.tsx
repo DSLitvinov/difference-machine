@@ -13,8 +13,8 @@ type CommitFileCardProps = {
   head?: boolean;
   merge?: boolean;
   tag?: string;
-  insertions?: number;
-  deletions?: number;
+  added?: number;
+  deleted?: number;
   more?: ReactNode;
 };
 
@@ -27,12 +27,12 @@ export function CommitFileCard({
   head,
   merge,
   tag,
-  insertions,
-  deletions,
+  added,
+  deleted,
   more,
 }: CommitFileCardProps) {
   const copy = t(locale);
-  const hasStats = insertions != null || deletions != null;
+  const hasStats = added != null || deleted != null;
   return (
     <div className="flex w-full flex-col gap-0.5">
       <div className="flex w-full flex-col gap-1">
@@ -49,8 +49,8 @@ export function CommitFileCard({
       ) : null}
       {hasStats ? (
         <p className="flex gap-1 whitespace-nowrap text-[12px] leading-4">
-          {insertions != null ? <span className="text-[#166534] dark:text-[#4ade80]">+ {insertions}</span> : null}
-          {deletions != null ? <span className="text-[#dc2626]">- {deletions}</span> : null}
+          <span className="text-[#166534] dark:text-[#4ade80]">+ {added ?? 0}</span>
+          <span className="text-[#dc2626]">- {deleted ?? 0}</span>
         </p>
       ) : null}
       <div className="flex items-center gap-2">

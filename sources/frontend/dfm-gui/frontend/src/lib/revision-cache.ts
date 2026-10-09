@@ -5,6 +5,8 @@ export type DiffStat = {
   files_changed: number;
   insertions: number;
   deletions: number;
+  added: number;
+  deleted: number;
 };
 
 export type NameStatusFile = {
@@ -229,6 +231,8 @@ export function requestStat(repoAbs: string, hash: string, priority = 10) {
           files_changed: result.files_changed ?? 0,
           insertions: result.insertions ?? 0,
           deletions: result.deletions ?? 0,
+          added: result.added ?? 0,
+          deleted: result.deleted ?? 0,
         },
       });
     } catch {

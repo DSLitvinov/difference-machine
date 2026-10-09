@@ -198,6 +198,7 @@ export function AppShell({
           <FileViewPanel
             locale={locale}
             userName={userName}
+            repoPath={repoPath}
             path={filePath}
             status={status}
             branches={branches}

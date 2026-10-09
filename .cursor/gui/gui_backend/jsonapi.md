@@ -308,7 +308,7 @@ JSON `repo.switch` не восстанавливает auto-stash при воз�
 
 ### `diff.stat`
 
-`{files_changed, insertions, deletions}` — insertions/deletions только по текстовым blob.  
+`{files_changed, insertions, deletions, added, deleted}` — `added` / `deleted` число файлов. insertions/deletions только по текстовым blob. Карточка снимка показывает `added` и `deleted`.  
 GUI: лениво для **видимых** карточек, ключ hash (+ `path` в File view). Не после `log.get` на всю страницу.
 
 ### `diff.text`

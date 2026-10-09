@@ -311,6 +311,8 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 		insertions := 0
 		deletions := 0
 		filesChanged := 0
+		addedFiles := 0
+		deletedFiles := 0
 		storage := repo.Storage
 		for _, file := range diff.modified {
 			if utils.IsDfmignoreRelPath(file) {
@@ -331,6 +333,7 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 				continue
 			}
 			filesChanged++
+			addedFiles++
 			if skipStatText(file) {
 				continue
 			}
@@ -341,6 +344,7 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 				continue
 			}
 			filesChanged++
+			deletedFiles++
 			if skipStatText(file) {
 				continue
 			}
@@ -358,6 +362,8 @@ func handleDiffStat(workPath string, args json.RawMessage) (interface{}, error) 
 			"files_changed": filesChanged,
 			"insertions":    insertions,
 			"deletions":     deletions,
+			"added":         addedFiles,
+			"deleted":       deletedFiles,
 		}, nil
 	})
 }

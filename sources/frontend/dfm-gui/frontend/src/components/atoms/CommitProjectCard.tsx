@@ -14,8 +14,8 @@ type CommitProjectCardProps = {
   merge?: boolean;
   tag?: string;
   filesChanged?: number;
-  insertions?: number;
-  deletions?: number;
+  added?: number;
+  deleted?: number;
   more?: ReactNode;
 };
 
@@ -37,8 +37,8 @@ export function CommitProjectCard({
   merge,
   tag,
   filesChanged,
-  insertions,
-  deletions,
+  added,
+  deleted,
   more,
 }: CommitProjectCardProps) {
   const copy = t(locale);
@@ -59,8 +59,8 @@ export function CommitProjectCard({
       {filesChanged != null ? (
         <p className="flex gap-1 whitespace-nowrap text-[12px] leading-4">
           <span className="text-[#18181b] dark:text-foreground">{copy.filesChangedCount(filesChanged)}:</span>
-          {insertions != null ? <span className="text-[#166534] dark:text-[#4ade80]">+ {insertions}</span> : null}
-          {deletions != null ? <span className="text-[#dc2626]">- {deletions}</span> : null}
+          <span className="text-[#166534] dark:text-[#4ade80]">+ {added ?? 0}</span>
+          <span className="text-[#dc2626]">- {deleted ?? 0}</span>
         </p>
       ) : null}
       <div className="flex items-center gap-2">
