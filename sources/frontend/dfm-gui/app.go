@@ -241,11 +241,15 @@ func (a *App) CleanRepository() SessionInfo {
 func (a *App) ForesterCall(method, argsJSON string) string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if !a.hasSession {
-		return `{"ok":false,"error":"invalid session handle"}`
-	}
 	if argsJSON == "" {
 		argsJSON = "{}"
+	}
+	if !a.hasSession {
+		// Clean repository closes the handle but leaves the folder open.
+		if a.workPath == "" {
+			return `{"ok":false,"error":"invalid session handle"}`
+		}
+		return string(jsonapi.CallStateless(a.workPath, method, argsJSON))
 	}
 	return string(jsonapi.Call(a.handle, method, argsJSON))
 }

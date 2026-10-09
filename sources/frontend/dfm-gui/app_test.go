@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -189,5 +190,28 @@ func TestCleanRepositoryRemovesDfm(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "scene.txt")); err != nil {
 		t.Fatalf("project file missing: %v", err)
+	}
+	var listed struct {
+		OK     bool `json:"ok"`
+		Result struct {
+			Entries []struct {
+				Name string `json:"name"`
+			} `json:"entries"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(app.ForesterCall("workdir.entries", `{"path":""}`)), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if !listed.OK {
+		t.Fatalf("entries after clean: %s", app.ForesterCall("workdir.entries", `{"path":""}`))
+	}
+	found := false
+	for _, entry := range listed.Result.Entries {
+		if entry.Name == "scene.txt" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("entries = %+v, want scene.txt", listed.Result.Entries)
 	}
 }

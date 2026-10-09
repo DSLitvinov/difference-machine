@@ -112,6 +112,7 @@ export default function App() {
   const folderPath = useAppStore((s) => s.folderPath);
   const changedOnly = useAppStore((s) => s.changedOnly);
   const viewIgnored = useAppStore((s) => s.viewIgnored);
+  const isRepository = useAppStore((s) => s.isRepository);
   const status = useAppStore((s) => s.status);
   const userName = useAppStore((s) => s.userName);
   const branches = useAppStore((s) => s.branches);
@@ -267,7 +268,7 @@ export default function App() {
       return;
     }
     void refreshRepoMeta();
-  }, [shell, repoPath, folderPath, changedOnly, viewIgnored]);
+  }, [shell, repoPath, folderPath, changedOnly, viewIgnored, isRepository]);
 
   useEffect(() => {
     if (shell !== "app") {
@@ -301,13 +302,37 @@ export default function App() {
       if (useAppStore.getState().repoPath !== startRepo) {
         return;
       }
+      // .DFM is gone, but project files stay on disk and still belong in the grid.
+      let entries: DirEntry[] = [];
+      let entriesHasMore = false;
+      let folderEmpty = true;
+      const includeIgnored = useAppStore.getState().viewIgnored;
+      try {
+        const entriesResult = (await foresterCall("workdir.entries", {
+          path: startFolder,
+          offset: 0,
+          limit: 200,
+          include_ignored: includeIgnored,
+        })) as EntriesResult;
+        entries = entriesResult.entries ?? [];
+        entriesHasMore = Boolean(entriesResult.has_more);
+        folderEmpty = !(entriesResult.total ?? entries.length);
+      } catch {
+        entries = [];
+        entriesHasMore = false;
+        folderEmpty = true;
+      }
+      const latest = useAppStore.getState();
+      if (latest.repoPath !== startRepo || latest.folderPath !== startFolder || latest.viewIgnored !== includeIgnored || latest.isRepository) {
+        return;
+      }
       setRepoMeta({
         status: null,
-        folderEmpty: true,
+        folderEmpty,
         hasCommits: false,
         repoDamaged: false,
-        entries: [],
-        entriesHasMore: false,
+        entries,
+        entriesHasMore,
         commits: [],
         stashes: [],
         branches: [],
