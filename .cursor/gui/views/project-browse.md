@@ -48,7 +48,7 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 3. **Ничего не выбрано** и **клик по папке** (тайл Selected, не заход) — [File Info Null](../panels/file-info.md) + [not-select-file](../components/placeholders/not-select-file.md), если right видна. На Empty Project right нет. Заход в папку — **двойной клик**.
 4. **Один файл в сетке** — File Info, сетка остаётся. Открытие превью файла — переход в [file-preview.md](./file-preview.md), не замена только info. Папка в selection File Info не открывает.
 5. **Несколько файлов** — Select More Files, не стек File Info.
-6. **Collapse** — `infoCollapsed`: right нет, center 1120, хедер Folder Action `Collapse=yes`. То же правило для file-preview collapse.
+6. **Collapse** рабочей папки — `infoCollapsed`: right нет, center 1120, хедер Folder Action `Collapse=yes`. Просмотр файла держит свой `fileInfoCollapsed` и его не читает.
 7. **Take snapshot** и **Create snapshot** не меняют колонки. Формы — [Dialog / Append files и Create snapshot](../dialogs/commit.md). Кадры `4385:10858`, `6036:14491`, `6076:15959` не собирать. Take snapshot скрыт, когда нет изменённых файлов.
 8. **Create snapshot** и **Take snapshot** сначала открывают Append, затем Create snapshot. Меню — только выбранные пути. Take snapshot на Worked directory — все dirty path. Take snapshot открытого файла — только этот файл.
 9. **Stash** — вкладка того же Project view (Figma: Stages). Forester stash, не git `staged_*`. Каталог: `stash.list`. Непустой список: кадр **Stages**, сетка папки как обычно. Пустой список: кадр **Stashes Null** (`6035:12553`) — [NoStagesProject](../components/atoms/card-no-stages-project.md) слева и Folder Empty в центре (`No files yet`, без `Create stash`). Не оставлять сетку рабочей папки и не уходить на Root Folder / Empty Project. Virtualizer как у коммитов ([revision-cache.md](../gui_frontend/revision-cache.md)).
@@ -66,7 +66,7 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 | Breadcrumb Home | Root Folder |
 | Клик по файлу (выбор) | File Info (корень) или кадр SubFolder (вложенный path) |
 | Range / multi-select | File More Info, если в selection есть файл |
-| Open / двойной клик файла | [file-preview](./file-preview.md) по kind |
+| Open / двойной клик файла | [file-preview](./file-preview.md) по kind. `infoCollapsed` папки не менять; колонка просмотра — по `fileInfoCollapsed` |
 | Клик коммита в History | [commit](./commit.md) |
 | Вкладка Stash | Stash, если есть записи; иначе [Stashes Null](./project-browse.md) |
 | Take snapshot (Worked directory) | [Append files](../dialogs/commit.md), затем Create snapshot, на все dirty path |

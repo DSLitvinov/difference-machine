@@ -17,4 +17,4 @@
 
 Спеки по файлам ниже — один набор = один `get_design_context` при вёрстке. Не добавлять title колонки, которого нет в хедере.
 
-Collapse: `infoCollapsed` — прячет правую колонку, не меняет JSON API.
+Collapse: `infoCollapsed` в рабочей папке и `fileInfoCollapsed` в просмотре файла. Слои не копируют друг друга. JSON API не меняется.

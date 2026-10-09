@@ -11,6 +11,6 @@ Figma: [Item / Panel / Header / Right Side](https://www.figma.com/design/qlwKiMP
 
 Справа icon-button 40×40, `panel-right-close`, Variant Secondary.
 
-Клик: свернуть правую колонку (`infoCollapsed = true`), center 1120. Парная кнопка открытия — `panel-right-open` в [header-folder-action](./header-folder-action.md) / [header-file-action](./header-file-action.md) при Collapse=yes.
+Клик: свернуть правую колонку текущего слоя (`infoCollapsed` в рабочей папке, `fileInfoCollapsed` в просмотре файла), center 1120. Парная кнопка открытия — `panel-right-open` в [header-folder-action](./header-folder-action.md) / [header-file-action](./header-file-action.md) при Collapse=yes.
 
 Не закрывать репозиторий и не сбрасывать selection.

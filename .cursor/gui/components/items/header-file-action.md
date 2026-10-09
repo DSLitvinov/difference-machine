@@ -14,7 +14,7 @@ Figma: [Item / Panel / Header / File Action](https://www.figma.com/design/qlwKiM
 | Back | outline 40×40, `chevron-left` | назад в сетку папки |
 | Имя | `file_name.png` в кадре | basename текущего path, по центру оставшегося трека, не редактируется здесь |
 | More | outline 40×40, `ellipsis` (горизонтальное `⋯`) | открывает контекстное меню файла. **File Missing:** `disabled` / opacity 50, меню не открывать ([file-preview](../../views/file-preview.md) `6066:13219`) |
-| Collapse | только `Collapse=yes`: separator 20 + `panel-right-open` secondary 40×40 | показать File Info (`infoCollapsed = false`) |
+| Collapse | только `Collapse=yes`: separator 20 + `panel-right-open` secondary 40×40 | показать File Info (`fileInfoCollapsed = false`) |
 
 Combobox 200×40 и кнопка **Apply** в этом хедере **нет**.
 

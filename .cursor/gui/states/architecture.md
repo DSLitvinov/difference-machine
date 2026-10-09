@@ -54,7 +54,8 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | selection | none \| paths[] | на сессию |
 | contentContext | folder \| file \| file-revision \| commit | на сессию |
 | fileKind | image \| text \| binary | на сессию, от выбранного path |
-| infoCollapsed | bool | local, если в макете |
+| infoCollapsed | bool | local, слой рабочей папки |
+| fileInfoCollapsed | bool | local, слой просмотра файла |
 | changedOnly | bool (фильтр Only changed) | нет |
 | viewIgnored | bool (фильтр View ignored; `include_ignored` на entries/search) | нет |
 | sidebarTab | history \| stages | на сессию |

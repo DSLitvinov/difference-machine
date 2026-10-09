@@ -65,7 +65,7 @@ Zustand (или эквивалент) хранит:
 | Срез | Примеры | Источник истины |
 |------|---------|-----------------|
 | App | текущий repo path, first-start vs app | cfg + local |
-| Shell UI | folderPath, selection, contentContext, infoCollapsed, changedOnly, viewIgnored, sidebarTab | UI; экран из [views](../views/architecture.md). Коммит — локальное состояние диалогов, не store |
+| Shell UI | folderPath, selection, contentContext, infoCollapsed, fileInfoCollapsed, changedOnly, viewIgnored, sidebarTab | UI; экран из [views](../views/architecture.md). Коммит — локальное состояние диалогов, не store |
 | Grid zoom | `gridTrack` 106…360, default **106** → `previewSize` **48** | сессия; не Forester, не cfg. Формула: [architecture.md](../architecture.md#сетка-рабочей-копии) |
 | History | ветка, выбранный commit, файлы diff | `log.get`, `diff.*`; LRU payload — [revision-cache.md](./revision-cache.md) |
 | VCS | snapshot `status.get`, `merge.status` | API; не путать со вкладкой Stash |

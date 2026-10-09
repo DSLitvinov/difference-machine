@@ -124,7 +124,8 @@ First Start — другое окно: [first-start.md](./first-start.md) (833×
 | `selection` | none \| file \| files \| folder tiles | File Info только если выбран **один файл**. Папка в selection — Null; смесь/несколько файлов — Select More Files |
 | `contentContext` | folder \| file \| file-revision \| commit | семейство экрана |
 | `fileKind` | image \| text \| binary | IMG / Text / Binary |
-| `infoCollapsed` | да \| нет | center 1120, right скрыта |
+| `infoCollapsed` | да \| нет | обзор папки: center 1120, right скрыта |
+| `fileInfoCollapsed` | да \| нет | просмотр файла: свой collapse, не копирует папку |
 | `gridTrack` | 106…360, default 106 | не кадр View; только колонки и 48×48→крупнее. [Сетка](../architecture.md#сетка-рабочей-копии) |
 | `sidebarTab` | history \| stages | список коммитов vs stash (UI: **Stash**) |
 | `stashEmpty` | да \| нет | Stages vs [Stashes Null](./project-browse.md) при вкладке Stash |

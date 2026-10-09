@@ -99,7 +99,10 @@ type AppState = {
   contentContext: ContentContext;
   selectedCommit: string | null;
   fileRevision: CommitSummary | null;
+  /** Right column collapsed on the working-folder layer. */
   infoCollapsed: boolean;
+  /** Right column collapsed on the file-view layer. Independent of the folder. */
+  fileInfoCollapsed: boolean;
   gridTrack: number;
   folderView: FolderViewMode;
   changedOnly: boolean;
@@ -129,6 +132,7 @@ type AppState = {
   setFolderPath: (path: string) => void;
   setSelection: (paths: string[]) => void;
   setInfoCollapsed: (value: boolean) => void;
+  setFileInfoCollapsed: (value: boolean) => void;
   setGridTrack: (value: number) => void;
   setFolderView: (value: FolderViewMode) => void;
   setContentContext: (context: ContentContext) => void;
@@ -169,6 +173,7 @@ export const useAppStore = create<AppState>((set) => ({
   selectedCommit: null,
   fileRevision: null,
   infoCollapsed: false,
+  fileInfoCollapsed: false,
   gridTrack: GRID_TRACK_DEFAULT,
   folderView: "grid",
   changedOnly: false,
@@ -208,6 +213,7 @@ export const useAppStore = create<AppState>((set) => ({
       selectedCommit: null,
       fileRevision: null,
       infoCollapsed: false,
+      fileInfoCollapsed: false,
       changedOnly: false,
       viewIgnored: false,
       sidebarTab: "history",
@@ -245,6 +251,7 @@ export const useAppStore = create<AppState>((set) => ({
     set({ folderPath: path, selection: [], contentContext: "folder", selectedCommit: null, fileRevision: null }),
   setSelection: (paths) => set({ selection: paths }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
+  setFileInfoCollapsed: (value) => set({ fileInfoCollapsed: value }),
   setGridTrack: (value) => set({ gridTrack: clampGridTrack(value) }),
   setFolderView: (value) => set({ folderView: value }),
   setContentContext: (context) =>
@@ -256,7 +263,6 @@ export const useAppStore = create<AppState>((set) => ({
     set({
       selection: [path],
       contentContext: "file",
-      infoCollapsed: false,
       selectedCommit: null,
       fileRevision: null,
     }),

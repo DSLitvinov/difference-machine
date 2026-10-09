@@ -92,6 +92,7 @@ export function AppShell({
   const folderPath = useAppStore((s) => s.folderPath);
   const selection = useAppStore((s) => s.selection);
   const infoCollapsed = useAppStore((s) => s.infoCollapsed);
+  const fileInfoCollapsed = useAppStore((s) => s.fileInfoCollapsed);
   const hasCommits = useAppStore((s) => s.hasCommits);
   const isRepository = useAppStore((s) => s.isRepository);
   const locks = useAppStore((s) => s.locks);
@@ -101,6 +102,7 @@ export function AppShell({
   const setFolderPath = useAppStore((s) => s.setFolderPath);
   const setSelection = useAppStore((s) => s.setSelection);
   const setInfoCollapsed = useAppStore((s) => s.setInfoCollapsed);
+  const setFileInfoCollapsed = useAppStore((s) => s.setFileInfoCollapsed);
   const setContentContext = useAppStore((s) => s.setContentContext);
   const openFile = useAppStore((s) => s.openFile);
   const openCommit = useAppStore((s) => s.openCommit);
@@ -110,7 +112,8 @@ export function AppShell({
   const selectedCommit = useAppStore((s) => s.selectedCommit);
   const fileRevision = useAppStore((s) => s.fileRevision);
   const view = useDerivedView();
-  const showRight = showRightColumn(view) && !infoCollapsed;
+  const fileView = view === "file-view";
+  const showRight = showRightColumn(view) && !(fileView ? fileInfoCollapsed : infoCollapsed);
   const files = fileSelection(selection, entries);
   const filePath = files[0] ?? "";
   const fileMissing = isMissingPath(filePath, status);
@@ -266,13 +269,13 @@ export function AppShell({
             repoPath={repoPath}
             path={filePath}
             entries={entries}
-            collapsed={infoCollapsed}
+            collapsed={fileInfoCollapsed}
             locked={locks.some((item) => item.file_path === filePath)}
             missing={fileMissing}
             disableUnstage={!isStagedPath(filePath, status)}
             onBack={() => setContentContext("folder")}
             onApply={(action) => applyWorkdirAction([filePath], action)}
-            onExpandInfo={() => setInfoCollapsed(false)}
+            onExpandInfo={() => setFileInfoCollapsed(false)}
             onOpenExternal={() => void openExternal()}
           />
         ) : commitInspect ? (
@@ -331,7 +334,7 @@ export function AppShell({
               path={stashSidebar || selection.length !== 1 || files.length !== 1 ? null : filePath || null}
               status={status}
               locks={locks}
-              onCollapse={() => setInfoCollapsed(true)}
+              onCollapse={() => (fileView ? setFileInfoCollapsed(true) : setInfoCollapsed(true))}
             />
           )
         ) : null}
