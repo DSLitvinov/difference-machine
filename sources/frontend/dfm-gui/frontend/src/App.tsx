@@ -680,7 +680,7 @@ export default function App() {
         await refreshRepoMeta();
         return true;
       }
-      await foresterCall("commit.reset", { commit_hash: commit.hash, mode: "mixed" });
+      await foresterCall("commit.reset", { commit_hash: commit.hash, mode: "hard" });
       afterBranchChange();
       await refreshRepoMeta();
       return true;
