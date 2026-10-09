@@ -26,6 +26,8 @@ export default {
           DEFAULT: "var(--border-default)",
           accent: "var(--border-accent)",
         },
+        "layer-secondary-hovered": "var(--layer-secondary-hovered)",
+        "content-on-solid": "var(--content-on-solid)",
       },
       borderRadius: {
         sm: "var(--radius-sm)",

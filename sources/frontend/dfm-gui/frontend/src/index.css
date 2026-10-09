@@ -15,9 +15,11 @@
   --foreground-muted: #71717a;
   --foreground-secondary: #3f3f46;
   --foreground-primary-default: #fafafa;
+  --content-on-solid: #fafafa;
   --foreground-disabled: #a1a1aa;
   --foreground-accent-light: #eff6ff;
   --border-default: #e4e4e7;
+  --layer-secondary-hovered: #e4e4e7;
   --border-accent: #60a5fa;
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -35,9 +37,11 @@ html.dark {
   --foreground-muted: #a1a1aa;
   --foreground-secondary: #d4d4d8;
   --foreground-primary-default: #18181b;
+  --content-on-solid: #fafafa;
   --foreground-disabled: #71717a;
   --foreground-accent-light: #1e293b;
   --border-default: #3f3f46;
+  --layer-secondary-hovered: #3f3f46;
   --border-accent: #60a5fa;
   color-scheme: dark;
 }
