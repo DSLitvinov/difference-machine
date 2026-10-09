@@ -195,6 +195,8 @@ GUI: пункт **Undo append** в [Popover (File Preview Item)](../components/p
 | `commit_hash` | обязательно |
 | `mode` | только reset: `soft` \| `mixed` (default) \| `hard` |
 
+GUI «Reset branch to commit» вызывает `hard`: рабочая папка совпадает со снимком. `soft` и `mixed` файлы на диске не меняют.
+
 ### `commit.delete_file`
 
 Убрать path из снимка коммита и всех потомков на текущей ветке. Workdir не трогает (не `workdir.delete`).

@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -131,80 +130,14 @@ func Reset(args []string) error {
 		return nil
 	}
 
-	// mode == "hard": update working directory
-	// Get tree from target commit
-	treeContent, err := storage.GetTreeContent(targetCommit.TreeHash)
-	if err != nil {
-		return fmt.Errorf("failed to get tree content: %w", err)
+	// mode == "hard": working directory matches the target commit.
+	// Nested trees are expanded; files absent from that commit are removed.
+	// Ignored paths stay. Unchanged blobs keep their mtime.
+	if err := core.RestoreTreeToWorkdir(storage, repoPath, targetCommit.TreeHash); err != nil {
+		return fmt.Errorf("failed to restore files: %w", err)
 	}
-
-	var tree models.Tree
-	if err := json.Unmarshal([]byte(treeContent), &tree); err != nil {
-		return fmt.Errorf("failed to parse tree: %w", err)
-	}
-
-	// Build map of files in target commit
-	targetFiles := make(map[string]bool)
-	for _, entry := range tree.Entries {
-		targetFiles[entry.Name] = true
-	}
-
-	// Restore files from target commit
-	for _, entry := range tree.Entries {
-		if entry.Type == "blob" {
-			filePath, err := utils.JoinRepoPath(repoPath, entry.Name)
-			if err != nil {
-				return fmt.Errorf("invalid tree path %s: %w", entry.Name, err)
-			}
-			if err := storage.WriteBlobToFile(entry.Hash, filePath); err != nil {
-				return fmt.Errorf("failed to restore file %s: %w", entry.Name, err)
-			}
-		} else if entry.Type == "tree" {
-			// Recursively restore tree
-			if err := restoreTreeFromCommit(storage, repoPath, entry.Hash); err != nil {
-				return fmt.Errorf("failed to restore tree %s: %w", entry.Name, err)
-			}
-		}
-	}
-
-	// Delete files that are not in target commit but exist in working directory
-	// Get all files in working directory
-	allFiles, err := utils.ListFiles(repoPath, true)
-	if err == nil {
-		// Load .dfmignore
-		patterns := utils.NewPatterns()
-		ignorePath := filepath.Join(repoPath, ".dfmignore")
-		if utils.Exists(ignorePath) {
-			patterns.LoadFromFile(ignorePath)
-		}
-
-		for _, filePath := range allFiles {
-			// Skip .DFM directory
-			if strings.Contains(filePath, ".DFM") {
-				continue
-			}
-
-			relPath, err := utils.GetRelativePath(repoPath, filePath)
-			if err != nil {
-				continue
-			}
-			relPath = filepath.ToSlash(relPath)
-
-			// Skip ignored files
-			if patterns.Matches(relPath) {
-				continue
-			}
-
-			// If file is not in target commit, delete it
-			if !targetFiles[relPath] {
-				if utils.Exists(filePath) {
-					if err := utils.RemoveRecursive(filePath); err != nil {
-						// Log warning but continue
-						fmt.Fprintf(os.Stderr, "Warning: failed to delete file %s: %v\n", relPath, err)
-					}
-				}
-			}
-		}
+	if err := removeWorkdirPathsNotInTree(repoPath, storage, targetCommit.TreeHash); err != nil {
+		return fmt.Errorf("failed to update working directory: %w", err)
 	}
 
 	hashShort := targetHash

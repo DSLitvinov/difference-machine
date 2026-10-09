@@ -67,6 +67,15 @@ func initTestRepo(t *testing.T) (string, jsonapi.Handle) {
 	return dir, h
 }
 
+func mustRead(t *testing.T, path string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	return data
+}
+
 func writeFile(t *testing.T, dir, relPath, content string) {
 	t.Helper()
 	full := filepath.Join(dir, relPath)
@@ -442,6 +451,54 @@ func TestReflogGetAndRestore(t *testing.T) {
 	}
 	if logResult.Commits[0].Hash != second {
 		t.Fatalf("head after restore = %s, want %s", logResult.Commits[0].Hash, second)
+	}
+}
+
+func TestCommitResetHardMatchesWorkdir(t *testing.T) {
+	dir, h := initTestRepo(t)
+	writeFile(t, dir, "a.txt", "one")
+	writeFile(t, dir, filepath.Join("nested", "keep.txt"), "keep")
+	mustOK(t, h, "index.add", `{"files":["a.txt","nested/keep.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"first"}`)
+
+	var logResult struct {
+		Commits []struct {
+			Hash string `json:"hash"`
+		} `json:"commits"`
+	}
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{}`), &logResult); err != nil {
+		t.Fatalf("decode log: %v", err)
+	}
+	first := logResult.Commits[0].Hash
+
+	writeFile(t, dir, "a.txt", "two")
+	writeFile(t, dir, "b.txt", "added")
+	mustOK(t, h, "index.add", `{"files":["a.txt","b.txt"]}`)
+	mustOK(t, h, "commit.create", `{"message":"second"}`)
+
+	writeFile(t, dir, "a.txt", "dirty")
+	writeFile(t, dir, "extra.txt", "untracked")
+
+	mustOK(t, h, "commit.reset", fmt.Sprintf(`{"commit_hash":%q,"mode":"hard"}`, first))
+
+	if got := string(mustRead(t, filepath.Join(dir, "a.txt"))); got != "one" {
+		t.Fatalf("a.txt = %q, want one", got)
+	}
+	if got := string(mustRead(t, filepath.Join(dir, "nested", "keep.txt"))); got != "keep" {
+		t.Fatalf("nested/keep.txt = %q, want keep", got)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "b.txt")); !os.IsNotExist(err) {
+		t.Fatalf("b.txt still present: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "extra.txt")); !os.IsNotExist(err) {
+		t.Fatalf("extra.txt still present: %v", err)
+	}
+
+	if err := json.Unmarshal(mustOK(t, h, "log.get", `{}`), &logResult); err != nil {
+		t.Fatalf("decode log after reset: %v", err)
+	}
+	if logResult.Commits[0].Hash != first {
+		t.Fatalf("head = %s, want %s", logResult.Commits[0].Hash, first)
 	}
 }
 
