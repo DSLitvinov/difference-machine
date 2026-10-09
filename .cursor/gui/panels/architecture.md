@@ -17,9 +17,9 @@ Frontend shell: [../gui_frontend/architecture.md](../gui_frontend/architecture.m
 | Project view | `4246:5052` | [project-view.md](./project-view.md) |
 | File view | `4309:7530` | [file-view.md](./file-view.md) |
 | File Info | `4309:9390` | [file-info.md](./file-info.md) |
-| File Info - single file create commit | `6075:13103` | [file-info.md](./file-info.md) |
+| File Info - single file create snapshot | `6075:13103` | [file-info.md](./file-info.md) |
 | Select More Files | `4383:9620` | [select-more-files.md](./select-more-files.md) |
-| File Info - more file create commit | `6075:13789` | [select-more-files.md](./select-more-files.md) |
+| File Info - more file create snapshot | `6075:13789` | [select-more-files.md](./select-more-files.md) |
 | Content View (folder/file/history) | `4318:3286` и варианты | [content-view.md](./content-view.md) |
 
 Empty-варианты перечислены в спеке канонической панели.
@@ -79,10 +79,10 @@ Empty-варианты перечислены в спеке каноническ
 - Тулбар: search / sort / filter из макета. Grid/list — нет в 0.8.1.
 - Клик по папке — selection; двойной клик — зайти (`folderPath`). Open файла — `workdir.open` / rename / delete.
 - Append выбранных: меню File Action / More → только `index.add`. Диалог не открывать.
-- **Create commit** в том же popover: [Append files](../dialogs/commit.md) для path меню, затем Create Commit. На Select More Files — все выбранные пути.
+- **Create snapshot** в том же popover: [Append files](../dialogs/commit.md) для path меню, затем Create snapshot. На Select More Files — все выбранные пути.
 - Unstage: тот же popover, пункт **Undo append** → `index.drop`. Disabled вне `staged_*`.
 - Ignored: один пункт в popover файла и [Folder Preview Item](../components/popovers/folder-preview-item.md). Не ignored → `workdir.ignore`; already ignored — copy **Don't ignore** / **Не игнорировать** → `workdir.unignore`.
-- Take snapshot: все dirty path → Append, затем Create Commit. Кнопка скрыта, если dirty path нет.
+- Take snapshot: все dirty path → Append, затем Create snapshot. Кнопка скрыта, если dirty path нет.
 
 Compare extract и restore файла — из шапки diff в History of File и View Commit ([commit-diff-text](../components/items/commit-diff-text.md) / [commit-diff-image](../components/items/commit-diff-image.md) / [commit-diff-binary](../components/items/commit-diff-binary.md)), не из сетки workdir.
 
@@ -106,7 +106,7 @@ Compare extract и restore файла — из шапки diff в History of Fil
 
 - Файл workdir: `workdir.metadata`, locks, `log.get` с `path`.
 - Коммит: `commit.get` (сообщение, автор, screenshot).
-- Кнопка «открыть во внешнем редакторе»: **Edit in** на карточке файла в File view — список из Settings / External editors → `workdir.open` + `editor`. More — [Popover (File Preview Item)](../components/popovers/file-preview-item.md). Мультивыбор: только ⋯, Create commit внутри меню. Форма коммита — [диалоги](../dialogs/commit.md), не футер колонки.
+- Кнопка «открыть во внешнем редакторе»: **Edit in** на карточке файла в File view — список из Settings / External editors → `workdir.open` + `editor`. More — [Popover (File Preview Item)](../components/popovers/file-preview-item.md). Мультивыбор: только ⋯, Create snapshot внутри меню. Форма коммита — [диалоги](../dialogs/commit.md), не футер колонки.
 
 ---
 

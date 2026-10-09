@@ -8,9 +8,9 @@ import type { DirEntry } from "@/store/app-store";
 
 type AppendFilesDialogProps = {
   locale: Locale;
-  /** Paths chosen by Create commit. Non-ignored ones start in the Append column. */
+  /** Paths chosen by Create snapshot. Non-ignored ones start in the Append column. */
   paths: string[];
-  /** Ignored paths already known to be part of this commit. */
+  /** Ignored paths already known to be part of this snapshot. */
   includedIgnored?: string[];
   busy?: boolean;
   onCancel: () => void;
@@ -83,7 +83,7 @@ export function AppendFilesDialog({ locale, paths, includedIgnored = [], busy, o
         const allIgnored = unique([...fromRepo, ...seeded]);
         const ignoredSet = new Set(allIgnored);
         setIgnoredPaths(allIgnored);
-        // Selected ignored paths start checked: they are included in this commit.
+        // Selected ignored paths start checked: they are included in this snapshot.
         setIgnoredChecked((current) => unique([...current, ...selected.filter((path) => ignoredSet.has(path))]));
       } catch {
         if (!cancelled) {

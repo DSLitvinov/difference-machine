@@ -13,8 +13,8 @@ Figma: [Popover (File in Commit)](https://www.figma.com/design/qlwKiMPZblz96VSM2
 
 | Иконка | Copy | |
 |--------|------|--|
-| external-link | `Open file from commit` | `compare.extract` + `workdir.open` `.DFM/tmp_review/…` |
-| replace | `Revert file from commit` | `restore.file` с `paths: [path]`. Destructive — подтверждение |
+| external-link | `Open file from snapshot` | `compare.extract` + `workdir.open` `.DFM/tmp_review/…` |
+| replace | `Revert file from snapshot` | `restore.file` с `paths: [path]`. Destructive — подтверждение |
 | copy + chevron-right | `Copy path` | подменю [file-in-commit-copy](./file-in-commit-copy.md) |
 
 ## После separator

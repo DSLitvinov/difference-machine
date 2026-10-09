@@ -32,7 +32,7 @@ Figma: [Item / Card Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2F3D
 
 Пока пользователь смотрит сетку папки (не inspect коммита проекта), Card Directory **Selected**. Inspect коммита снимает Selected (клик по карточке возвращает в обзор).
 
-Не класть Uncommitted files в `SidebarCard` (`4191:5809`). Не класть Commit Project / No History / Null Repository внутрь Card Directory.
+Не класть Unsnapshotted files в `SidebarCard` (`4191:5809`). Не класть Commit Project / No History / Null Repository внутрь Card Directory.
 
 No History и Null Repository — только Commit List, см. [project-view](../../panels/project-view.md).
 

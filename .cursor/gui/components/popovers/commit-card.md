@@ -10,8 +10,8 @@ Figma: [Popover (Commit Card)](https://www.figma.com/design/qlwKiMPZblz96VSM2F3D
 | Compare with working tree | `compare.extract` с `open: true`: выгрузка коммита в `.DFM/tmp_review`, затем открыть **эту папку** в файловом менеджере ОС (Finder / Explorer). Не `editor_path` |
 | Clean temporary folder | `compare.extract` с `cleanup: true`: удалить `.DFM/tmp_review`. Без confirm. Сразу под Compare |
 | Restore this version | confirm → `restore.version` |
-| Revert commit | confirm → `commit.revert` |
-| Reset branch to commit | confirm → `commit.reset` `mode: hard` (рабочая папка совпадает со снимком). **Без** chevron `>` — submenu нет |
+| Revert snapshot | confirm → `commit.revert` |
+| Reset branch to snapshot | confirm → `commit.reset` `mode: hard` (рабочая папка совпадает со снимком). **Без** chevron `>` — submenu нет |
 | Copy hash / Copy message | clipboard |
 
 Compare файла в истории — другой поток: extract без `open`, затем `workdir.open` конкретного `.DFM/tmp_review/…`. GUI: шапка [commit-diff-*](../items/commit-diff-text.md), не этот popover.

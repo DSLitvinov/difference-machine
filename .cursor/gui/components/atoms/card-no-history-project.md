@@ -10,6 +10,6 @@ Figma: [Atom / Cards / No History Project](https://www.figma.com/design/qlwKiMPZ
 | Строка | Копирайт |
 |--------|----------|
 | Title | `No history of project` |
-| Body | `The project is not added to any commit` |
+| Body | `The project is not added to any snapshot` |
 
 Два отдельных компонента или `variant="file" | "project"` с **разным** текстом из этой таблицы, не один универсальный «No history».

@@ -112,7 +112,7 @@ GUI: меню Repository → **Verify repository** (группа с Recover, п�
 
 Результат: `entries[]` с `commit_hash`, `ref_name`, `operation`, `old_value`, `new_value`, `timestamp`, `exists` (объект коммита ещё в store).
 
-GUI: меню Repository → **Recover commit** (группа с Verify). Диалог: [maintenance](../dialogs/maintenance.md).
+GUI: меню Repository → **Recover snapshot** (группа с Verify). Диалог: [maintenance](../dialogs/maintenance.md).
 
 ### `reflog.restore`
 
@@ -155,7 +155,7 @@ GUI: меню Repository → **Recover commit** (группа с Verify). Диа
 
 Ставит пути в index. Коммит без непустого index невозможен (бизнес-правило Forester).
 
-GUI: пункт **Append** в [Popover (File Preview Item)](../components/popovers/file-preview-item.md) — только `index.add`, диалог не открывать. **Create commit** и **Take snapshot** сначала открывают Append files, затем Create Commit. См. [dialogs/commit.md](../dialogs/commit.md).
+GUI: пункт **Append** в [Popover (File Preview Item)](../components/popovers/file-preview-item.md) — только `index.add`, диалог не открывать. **Create snapshot** и **Take snapshot** сначала открывают Append files, затем Create snapshot. См. [dialogs/commit.md](../dialogs/commit.md).
 
 ### `index.drop`
 
@@ -195,7 +195,7 @@ GUI: пункт **Undo append** в [Popover (File Preview Item)](../components/p
 | `commit_hash` | обязательно |
 | `mode` | только reset: `soft` \| `mixed` (default) \| `hard` |
 
-GUI «Reset branch to commit» вызывает `hard`: рабочая папка совпадает со снимком. `soft` и `mixed` файлы на диске не меняют.
+GUI «Reset branch to snapshot» вызывает `hard`: рабочая папка совпадает со снимком. `soft` и `mixed` файлы на диске не меняют.
 
 ### `commit.delete_file`
 

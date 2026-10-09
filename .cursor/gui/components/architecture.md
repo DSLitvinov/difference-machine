@@ -126,7 +126,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 | Atom / Cards / Commit Project | `4279:11417` | [atoms/card-commit-project.md](./atoms/card-commit-project.md) | `CommitProjectCard` |
 | Atom / Cards / Commit File | `4306:3082` | [atoms/card-commit-file.md](./atoms/card-commit-file.md) | `CommitFileCard` |
 | Atom / Cards / Stage | `4402:9877` | [atoms/card-stage.md](./atoms/card-stage.md) | `StageCard` |
-| Atom / Cards / Create Commit | снят | [dialogs/commit.md](../dialogs/commit.md) | `CreateCommitDialog` / `AppendFilesDialog` |
+| Atom / Cards / Create snapshot | снят | [dialogs/commit.md](../dialogs/commit.md) | `CreateCommitDialog` / `AppendFilesDialog` |
 | Atom / Cards / Directory | `4309:9126` | [atoms/card-directory.md](./atoms/card-directory.md) | `UncommittedFilesCard` |
 | Atom / Cards / Back to file | снят | [atoms/card-back-to-file.md](./atoms/card-back-to-file.md) | нет: карточка файла в File view |
 | Atom / Cards / No History File | `4279:11870` | [atoms/card-no-history-file.md](./atoms/card-no-history-file.md) | `NoHistoryFile` |
@@ -148,7 +148,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 | Item / List View / File | `4334:15450` | [items/list-file.md](./items/list-file.md) |
 | Item / List View / Folder | `4334:15300` | [items/list-folder.md](./items/list-folder.md) |
 | Item / Card | `4191:5809` | [items/sidebar-card.md](./items/sidebar-card.md) |
-| Item / Card Directory | `6004:10960` | [items/sidebar-card-directory.md](./items/sidebar-card-directory.md) — Uncommitted files в Project view, не путать с Card |
+| Item / Card Directory | `6004:10960` | [items/sidebar-card-directory.md](./items/sidebar-card-directory.md) — Unsnapshotted files в Project view, не путать с Card |
 | Item / Preview / File Info | `4191:6615` | [items/preview-file-info.md](./items/preview-file-info.md) |
 | Item / Preview / File Info - More Files | `4402:10360` | [items/preview-file-info-more.md](./items/preview-file-info-more.md) |
 | Item / Folder Action | `4234:9656` | [items/folder-action.md](./items/folder-action.md) |

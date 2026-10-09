@@ -74,7 +74,7 @@ macOS дополнительно получает стандартные **App**
 Группы через separator:
 
 1. Create repository, Add repository
-2. Verify repository, Recover commit
+2. Verify repository, Recover snapshot
 3. Clean repository
 4. radio-список известных репозиториев (переключение сессии)
 
@@ -83,7 +83,7 @@ macOS дополнительно получает стандартные **App**
 | Create repository | OS folder picker → `repo.init` (`CallStateless`) → запись cfg → `Open` сессии. Как Create на First Start |
 | Add repository | OS folder picker → `Open` существующего корня с `.DFM/` → запись в список cfg. Как Open Folder, из раздела Repository |
 | Verify repository | `repo.rebuild`: счётчики object store. Результат в диалоге. Disabled без сессии. Та же команда с кнопки на [DFM Damaged](../../views/project-browse.md) |
-| Recover commit | `reflog.get` → список; `reflog.restore` на выбранный hash (снимает `delete` и `commit.reset` mixed). Disabled без сессии |
+| Recover snapshot | `reflog.get` → список; `reflog.restore` на выбранный hash (снимает `delete` и `commit.reset` mixed). Disabled без сессии |
 | Clean repository | **удалить каталог `.DFM/`** на диске в корне текущего репо. Не JSON API. Сначала `jsonapi.Close`. Файлы проекта **не** трогать. Path в cfg можно оставить — состояние **Not a repository** (Create repository в History). Disabled без сессии. Destructive confirm |
 
 После Add — separator, затем Verify и Recover. После Recover — separator, затем Clean. Перед radio-списком — ещё separator, если список не пуст.

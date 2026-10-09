@@ -87,9 +87,9 @@ First Start — другое окно: [first-start.md](./first-start.md) (833×
 | View / Project view / File More Info | `4408:12671` | обзор |
 | View / Project view / Stages | `4385:12759` | обзор |
 | View / Project view / Stashes Null | `6035:12553` | обзор |
-| View / Project view / Create Commit | снят | диалоги [Append / Create Commit](../dialogs/commit.md), не экран |
-| View / Project view / Create Commit single file | снят | то же |
-| View / Project view / Create Commit all file | снят | то же |
+| View / Project view / Create snapshot | снят | диалоги [Append / Create snapshot](../dialogs/commit.md), не экран |
+| View / Project view / Create snapshot single file | снят | то же |
+| View / Project view / Create snapshot all file | снят | то же |
 | View / Project view / File View - IMG | `4246:6471` | файл |
 | View / Project view / File View - IMG ( Collapse ) | `4276:7423` | файл |
 | View / Project view / File View - Text | `4290:23880` | файл |
@@ -130,7 +130,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (833×
 | `stashEmpty` | да \| нет | Stages vs [Stashes Null](./project-browse.md) при вкладке Stash |
 | `fileHasHistory` | да \| нет | File view vs File view History Null |
 
-Коммит не измерение экрана. Take snapshot и Create commit открывают [диалоги](../dialogs/commit.md) поверх текущего `View /`.
+Коммит не измерение экрана. Take snapshot и Create snapshot открывают [диалоги](../dialogs/commit.md) поверх текущего `View /`.
 
 Не путать `sidebarTab` с исчезнувшим «режимом окна Project | History». В макете один app shell; контекст файла — замена left на [Panel / File view](../panels/file-view.md), не вторая страница.
 
@@ -150,8 +150,8 @@ File View --Back `<`--> обзор папки
 File View --select commit--> History of File
 History of File --Current preview--> File View
 Project History --select commit--> View Commit
-Worked directory --Take snapshot--> Dialog Append files --> Dialog Create Commit (все dirty path)
-меню Create commit --> Dialog Append files --> Dialog Create Commit (только выбранные пути)
+Worked directory --Take snapshot--> Dialog Append files --> Dialog Create snapshot (все dirty path)
+меню Create snapshot --> Dialog Append files --> Dialog Create snapshot (только выбранные пути)
 вкладка Stash --> Stash | Stashes Null (пусто)
 ```
 

@@ -7,7 +7,7 @@ Figma: [Popover (File Preview Item)](https://www.figma.com/design/qlwKiMPZblz96V
 
 Открывается с тайла в сетке, из [Header File Action](../items/header-file-action.md), из [File Info](../../panels/file-info.md) More и из [Select More Files](../../panels/select-more-files.md) More.
 
-Нет заголовков секций (`Commit`, `Action `).
+Нет заголовков секций (`Snapshot`, `Action `).
 
 ---
 
@@ -15,7 +15,7 @@ Figma: [Popover (File Preview Item)](https://www.figma.com/design/qlwKiMPZblz96V
 
 | Иконка | Copy | API (панель) |
 |--------|------|----------------|
-| plus | `Create commit` | [Append files](../../dialogs/commit.md) этих path, затем Create Commit. Не путать с Append |
+| plus | `Create snapshot` | [Append files](../../dialogs/commit.md) этих path, затем Create snapshot. Не путать с Append |
 
 Separator.
 

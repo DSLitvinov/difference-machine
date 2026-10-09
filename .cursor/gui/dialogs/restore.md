@@ -7,8 +7,8 @@
 | Действие | Title / confirm | API | Откуда |
 |----------|-----------------|-----|--------|
 | Restore this version | copy пункта меню | `restore.version` | [Commit Card](../components/popovers/commit-card.md) |
-| Revert commit | copy пункта | `commit.revert` | тот же popover |
-| Reset branch to commit | copy пункта | `commit.reset` `mode: hard` — HEAD, индекс и рабочая папка совпадают со снимком | тот же popover |
+| Revert snapshot | copy пункта | `commit.revert` | тот же popover |
+| Reset branch to snapshot | copy пункта | `commit.reset` `mode: hard` — HEAD, индекс и рабочая папка совпадают со снимком | тот же popover |
 | Revert **файла** | `Revert` | `restore.file` `paths: [path]` | шапка [commit-diff-*](../components/items/commit-diff-text.md) |
 | Delete stash | copy Delete | `stash.drop` | [Stash Card](../components/atoms/card-stage.md) |
 
@@ -16,4 +16,4 @@
 
 `compare.extract` (Compare / Clean temporary folder) — без confirm. Ошибка → toast.
 
-Не путать `restore.file` / `restore.version` с [Recover commit](./maintenance.md) (`reflog.restore`).
+Не путать `restore.file` / `restore.version` с [Recover snapshot](./maintenance.md) (`reflog.restore`).

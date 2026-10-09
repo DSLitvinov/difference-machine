@@ -70,7 +70,7 @@ func nativeMenuCopyFor(locale string) nativeMenuCopy {
 		addRepository:    "Add repository",
 		cleanRepository:  "Clean repository",
 		verifyRepository: "Verify repository",
-		recoverCommit:    "Recover commit",
+		recoverCommit:    "Recover snapshot",
 		branches:         "Branches",
 		createBranch:     "Create new",
 		renameBranch:     "Rename",

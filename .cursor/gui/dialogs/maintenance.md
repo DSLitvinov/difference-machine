@@ -16,7 +16,7 @@
 
 ---
 
-## Recover commit
+## Recover snapshot
 
 Код: `RecoverCommitDialog`. `reflog.get` (`limit` 100) → список; `exists: false` disabled. `reflog.restore` на выбранный `commit_hash` (снимает `delete`, затем `commit.reset` mixed).
 

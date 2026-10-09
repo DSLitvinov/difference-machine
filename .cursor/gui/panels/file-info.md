@@ -27,7 +27,7 @@ Figma: [Panel / File Info](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 
 Не добавлять строки (path, hash, permissions), которых нет. Источник: `workdir.metadata`, `lock.list`.
 
-4. Футера кнопок нет. Edit и Take snapshot — на карточке файла в [File view](./file-view.md). Create commit — пункт меню, диалоги [Append / Create Commit](../dialogs/commit.md). Не вставлять форму коммита в эту колонку.
+4. Футера кнопок нет. Edit и Take snapshot — на карточке файла в [File view](./file-view.md). Create snapshot — пункт меню, диалоги [Append / Create snapshot](../dialogs/commit.md). Не вставлять форму коммита в эту колонку.
 
 ---
 
@@ -54,5 +54,5 @@ Figma: [Panel / File Info](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 | File Info | `4309:9390` |
 | File Info - Null | `4382:8024` — [not-select-file](../components/placeholders/not-select-file.md); футер нет |
 | File Info - Missing | [`6066:13319`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6066-13319) — [missing-file](../components/placeholders/missing-file.md); превью, metadata и футер нет |
-| File Info - single file create commit | снят — коммит в [диалогах](../dialogs/commit.md), футера кнопок нет |
+| File Info - single file create snapshot | снят — коммит в [диалогах](../dialogs/commit.md), футера кнопок нет |
 | Select More Files | `4383:9620` — отдельная спека |

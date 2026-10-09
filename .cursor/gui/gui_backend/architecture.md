@@ -79,7 +79,7 @@ Frontend не должен знать про `Handle`. Handle живёт тол�
 | Open Folder / Create repository | picker + `Open` / `repo.init` — [Header Window](../components/items/header-window.md) |
 | Заголовок окна | `WindowSetTitle`: `Difference Machine` без репо, `Difference Machine ({name})` при открытой сессии (`{name}` = basename корня) |
 | Verify repository | `repo.rebuild` |
-| Recover commit | `reflog.get` / `reflog.restore` |
+| Recover snapshot | `reflog.get` / `reflog.restore` |
 | Clean repository | Close + удалить каталог `.DFM/` на диске, не JSON API |
 | Открыть файл в редакторе | `workdir.open` (`path` + опционально `editor`) |
 | Удалить файл | `workdir.delete` (корзина ОС, не `os.Remove` из GUI) |

@@ -21,9 +21,9 @@ Figma: [Atom / Cards / Directory](https://www.figma.com/design/qlwKiMPZblz96VSM2
 | Changed | `#09090b` | счётчики | `Take snapshot`, primary `#18181b` / `#fafafa` |
 | Load | muted | `Please wait` 12/16 `#71717a` | `Take snapshot` disabled, spinner (Lucide `Loader2`) |
 
-**Load** показывается пока идёт `index.add` перед диалогом Create Commit. Карточка остаётся на месте. Форма коммита — [диалоги](../../dialogs/commit.md), не замена этого атома.
+**Load** показывается пока идёт `index.add` перед диалогом Create snapshot. Карточка остаётся на месте. Форма коммита — [диалоги](../../dialogs/commit.md), не замена этого атома.
 
-Take snapshot на этой карточке открывает Append, затем Create Commit, на все dirty path. Скрывать кнопку, когда изменённых файлов нет, в том числе на Stashes Null.
+Take snapshot на этой карточке открывает Append, затем Create snapshot, на все dirty path. Скрывать кнопку, когда изменённых файлов нет, в том числе на Stashes Null.
 
 ---
 
@@ -42,7 +42,7 @@ Gap 4 px, Inter Regular 12/16, одна строка:
 
 Фильтры **Only changed** и **View ignored** живут в [Popover Filters](../popovers/filters.md), не на карточке. Only changed **вкл.**: в Content View показать все изменённые и незакоммиченные файлы **всего проекта** (пересечение `status.get` со всеми path, не только текущая папка). Выкл.: обычная сетка `workdir.entries` текущей папки. Не мутация Forester.
 
-Кнопка `Take snapshot`: primary `#18181b`, текст `#fafafa`, radius 8, height 40, full width. Открывает [Append files](../../dialogs/commit.md), затем Create Commit, на все dirty path (`status.get`, не только видимые в сетке и не только текущая папка). Скрыта, когда dirty path нет.
+Кнопка `Take snapshot`: primary `#18181b`, текст `#fafafa`, radius 8, height 40, full width. Открывает [Append files](../../dialogs/commit.md), затем Create snapshot, на все dirty path (`status.get`, не только видимые в сетке и не только текущая папка). Скрыта, когда dirty path нет.
 
 ---
 
@@ -51,4 +51,4 @@ Gap 4 px, Inter Regular 12/16, одна строка:
 - Четвёртый цвет «renamed».
 - Enabled кнопка при Un Changed.
 - Switch «Changed» на карточке.
-- Свой copy «Commit all». Кнопка называется Take snapshot.
+- Свой copy «Snapshot all». Кнопка называется Take snapshot.

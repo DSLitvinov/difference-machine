@@ -87,7 +87,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | `contentContext = file-revision` | [file-history](../views/file-history.md) |
 | `contentContext = commit` | [commit](../views/commit.md) |
 
-Take snapshot и Create commit не порождают отдельный `View /`. См. [dialogs/commit.md](../dialogs/commit.md).
+Take snapshot и Create snapshot не порождают отдельный `View /`. См. [dialogs/commit.md](../dialogs/commit.md).
 
 Полные слоты колонок — в спеках семейств, не дублировать здесь.
 
@@ -121,7 +121,7 @@ Watcher workdir: тот же путь, с дебаунсом; не плодит�
 
 | Действие | Недоступно когда |
 |----------|------------------|
-| Commit | нет изменений для add/index (по макету) или пустое сообщение |
+| Snapshot | нет изменений для add/index (по макету) или пустое сообщение |
 | Switch без диалога | dirty и нет auto_stash |
 | Delete branch | текущая ветка (`is_current`); нет других веток |
 | Merge start | merge already in progress; target = current |

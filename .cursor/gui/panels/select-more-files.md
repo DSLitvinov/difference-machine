@@ -12,9 +12,9 @@ Info при мультивыборе. Превью 308×308 — файл илл�
 1. [Header Right Side](../components/items/header-right-side.md) — свернуть info.
 2. Превью 308×308.
 3. Metadata: `Sum Sizes`, `Type` (как в node: `PNG, BLEND`).
-4. Футер: справа outline More 40×40 (`ellipsis`) — [Popover (File Preview Item)](../components/popovers/file-preview-item.md) (`4272:6726`) для **всех** path в selection. Primary Create commit в футере нет.
+4. Футер: справа outline More 40×40 (`ellipsis`) — [Popover (File Preview Item)](../components/popovers/file-preview-item.md) (`4272:6726`) для **всех** path в selection. Primary Create snapshot в футере нет.
 
-Create commit в меню открывает [Append files](../dialogs/commit.md) только для выбранных путей, затем Create Commit. Колонку форма не заменяет.
+Create snapshot в меню открывает [Append files](../dialogs/commit.md) только для выбранных путей, затем Create snapshot. Колонку форма не заменяет.
 
 More: те же действия, что у файла. Rename disabled при `paths.length > 1`. Unstage disabled, если ни один path не в `staged_*`. Delete in history — disabled, как в popover. Ignored / Don't ignore — один пункт: `workdir.ignore` для всех path; если все выбранные уже ignored — copy `Don't ignore` / `Не игнорировать` → `workdir.unignore`.
 

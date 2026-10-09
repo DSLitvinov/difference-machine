@@ -49,8 +49,8 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 4. **Один файл в сетке** — File Info, сетка остаётся. Открытие превью файла — переход в [file-preview.md](./file-preview.md), не замена только info. Папка в selection File Info не открывает.
 5. **Несколько файлов** — Select More Files, не стек File Info.
 6. **Collapse** — `infoCollapsed`: right нет, center 1120, хедер Folder Action `Collapse=yes`. То же правило для file-preview collapse.
-7. **Take snapshot** и **Create commit** не меняют колонки. Формы — [Dialog / Append files и Create Commit](../dialogs/commit.md). Кадры `4385:10858`, `6036:14491`, `6076:15959` не собирать. Take snapshot скрыт, когда нет изменённых файлов.
-8. **Create commit** и **Take snapshot** сначала открывают Append, затем Create Commit. Меню — только выбранные пути. Take snapshot на Worked directory — все dirty path. Take snapshot открытого файла — только этот файл.
+7. **Take snapshot** и **Create snapshot** не меняют колонки. Формы — [Dialog / Append files и Create snapshot](../dialogs/commit.md). Кадры `4385:10858`, `6036:14491`, `6076:15959` не собирать. Take snapshot скрыт, когда нет изменённых файлов.
+8. **Create snapshot** и **Take snapshot** сначала открывают Append, затем Create snapshot. Меню — только выбранные пути. Take snapshot на Worked directory — все dirty path. Take snapshot открытого файла — только этот файл.
 9. **Stash** — вкладка того же Project view (Figma: Stages). Forester stash, не git `staged_*`. Каталог: `stash.list`. Непустой список: кадр **Stages**, сетка папки как обычно. Пустой список: кадр **Stashes Null** (`6035:12553`) — [NoStagesProject](../components/atoms/card-no-stages-project.md) слева и Folder Empty в центре (`No files yet`, без `Create stash`). Не оставлять сетку рабочей папки и не уходить на Root Folder / Empty Project. Virtualizer как у коммитов ([revision-cache.md](../gui_frontend/revision-cache.md)).
 10. **Only changed** вкл. — сетка = dirty файлы всего проекта, не текущая папка.
 11. **View ignored** вкл. — в сетке видны пути из `.dfmignore` с иконкой ignored; выкл. (default) — скрыты. Не меняет кадр `View /`.
@@ -69,6 +69,6 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 | Open / двойной клик файла | [file-preview](./file-preview.md) по kind |
 | Клик коммита в History | [commit](./commit.md) |
 | Вкладка Stash | Stash, если есть записи; иначе [Stashes Null](./project-browse.md) |
-| Take snapshot (Worked directory) | [Append files](../dialogs/commit.md), затем Create Commit, на все dirty path |
-| Create commit (меню файла / ⋯) | [Append files](../dialogs/commit.md), затем Create Commit, только выбранные пути |
+| Take snapshot (Worked directory) | [Append files](../dialogs/commit.md), затем Create snapshot, на все dirty path |
+| Create snapshot (меню файла / ⋯) | [Append files](../dialogs/commit.md), затем Create snapshot, только выбранные пути |
 | Collapse info | Root Folder Collapse (или collapse текущего folder-экрана) |

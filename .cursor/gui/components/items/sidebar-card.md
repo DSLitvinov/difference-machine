@@ -19,7 +19,7 @@ Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for
 | Список истории файла | [CommitFileCard](../atoms/card-commit-file.md) |
 | Stash | [StageCard](../atoms/card-stage.md) |
 | Empty stash | [NoStagesProject](../atoms/card-no-stages-project.md) |
-| Форма коммита | не этот item: [Dialog / Append и Create Commit](../../dialogs/commit.md) |
+| Форма коммита | не этот item: [Dialog / Append и Create snapshot](../../dialogs/commit.md) |
 | Empty истории | [NoHistoryProject](../atoms/card-no-history-project.md) / [NoHistoryFile](../atoms/card-no-history-file.md) |
 | File view, верх | карточка файла: basename, см. [file-view](../../panels/file-view.md). `BackToFileRow` снят |
 

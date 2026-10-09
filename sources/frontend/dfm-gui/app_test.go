@@ -73,7 +73,7 @@ func TestWatchIgnored(t *testing.T) {
 
 func TestNativeMenuCopy(t *testing.T) {
 	en := nativeMenuCopyFor("en")
-	if en.file != "File" || en.openFolder != "Open Folder" || en.addRepository != "Add repository" || en.cleanRepository != "Clean repository" || en.verifyRepository != "Verify repository" || en.recoverCommit != "Recover commit" || en.branches != "Branches" || en.merge != "Merge branches" || en.createBranch != "Create new" || en.deleteBranch != "Delete branch" {
+	if en.file != "File" || en.openFolder != "Open Folder" || en.addRepository != "Add repository" || en.cleanRepository != "Clean repository" || en.verifyRepository != "Verify repository" || en.recoverCommit != "Recover snapshot" || en.branches != "Branches" || en.merge != "Merge branches" || en.createBranch != "Create new" || en.deleteBranch != "Delete branch" {
 		t.Fatalf("english menu = %+v", en)
 	}
 	ru := nativeMenuCopyFor("ru")

@@ -31,7 +31,7 @@
 4. Ошибка API: остаться открытым, показать текст; не закрывать «наполовину».
 5. Destructive (delete branch, restore --hard, restore.version, merge abort, **Clean repository**, **Delete in history**, revert/reset) — отдельное подтверждение из макета, не `window.confirm`.
 6. Не дублировать в диалоге данные, которые уже видны в панели, если макет этого не делает.
-7. Валидация имени ветки / пустого commit message / пустого rename — до `Call`.
+7. Валидация имени ветки / пустого snapshot message / пустого rename — до `Call`.
 
 ---
 
@@ -51,16 +51,16 @@
 | Delete in project | `FileDeleteDialog` | [files.md](./files.md) | `workdir.delete` | toast |
 | Delete in history | `FileDeleteDialog` | [files.md](./files.md) | `commit.delete_file` | toast |
 | Restore file | `RestoreFileDialog` | [restore.md](./restore.md) | `restore.file` | toast |
-| Restore version / Revert commit / Reset | `RestoreFileDialog` | [restore.md](./restore.md) | `restore.version`, `commit.revert`, `commit.reset` | toast |
+| Restore version / Revert snapshot / Reset | `RestoreFileDialog` | [restore.md](./restore.md) | `restore.version`, `commit.revert`, `commit.reset` | toast |
 | Delete stash | `RestoreFileDialog` | [restore.md](./restore.md) | `stash.drop` | toast |
 | Worktree ↔ stash conflicts | `WorktreeStashConflictDialog` | [stash-conflicts.md](./stash-conflicts.md) | backend gap; не подключён | `AlertBanner` в диалоге |
 | Stash ↔ stash conflicts | `StashStashConflictDialog` | [stash-conflicts.md](./stash-conflicts.md) | backend gap; не подключён | `AlertBanner` в диалоге |
 | Verify repository | `VerifyRepositoryDialog` | [maintenance.md](./maintenance.md) | `repo.rebuild` | в диалоге |
-| Recover commit | `RecoverCommitDialog` | [maintenance.md](./maintenance.md) | `reflog.get` / `reflog.restore` | в диалоге |
+| Recover snapshot | `RecoverCommitDialog` | [maintenance.md](./maintenance.md) | `reflog.get` / `reflog.restore` | в диалоге |
 | Clean repository | `FileDeleteDialog` | [maintenance.md](./maintenance.md) | не JSON API: Close + удалить `.DFM/` | toast (`SessionInfo.error`) |
 | Init repository | OS picker, не модалка | ниже | `repo.init`; меню Create; First Start Create | toast |
 | Append files | `AppendFilesDialog` | [commit.md](./commit.md) | `workdir.entries` `path:"*"` `include_ignored`; отмеченные ignored → `workdir.unignore`, затем `index.add` | toast |
-| Create commit | `CreateCommitDialog` | [commit.md](./commit.md) | `index.add` → `commit.create` | toast |
+| Create snapshot | `CreateCommitDialog` | [commit.md](./commit.md) | `index.add` → `commit.create` | toast |
 | Remove repo from list | вкладка Settings | [settings.md](./settings.md) | `repos.cfg`; не удаляет `.DFM/` | toast |
 
 Нет JSON-метода — нет пункта «сделать как в git CLI». Исключение: **Clean repository**.
@@ -101,11 +101,11 @@ Help в [Header Settings](../components/items/header-settings.md) снят. Ди
 
 ---
 
-## Commit
+## Snapshot
 
-- Кнопка недоступна, если index пуст **и** нет сценария «add then commit» в макете.
-- Коммит — [Append files и Create Commit](./commit.md), не карточка в колонке и не модалка Settings.
-- Take snapshot и Create commit из меню сначала открывают Append. Отмеченные ignored: `workdir.unignore`, затем `index.add`, затем Create Commit и `commit.create`.
+- Кнопка недоступна, если index пуст **и** нет сценария «add then snapshot» в макете.
+- Коммит — [Append files и Create snapshot](./commit.md), не карточка в колонке и не модалка Settings.
+- Take snapshot и Create snapshot из меню сначала открывают Append. Отмеченные ignored: `workdir.unignore`, затем `index.add`, затем Create snapshot и `commit.create`.
 - `amend` только когда это действие есть в UI и HEAD не пустой.
 - Ошибка → toast.
 

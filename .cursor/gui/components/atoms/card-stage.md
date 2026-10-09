@@ -29,5 +29,5 @@ Figma: [Atom / Cards / Stage](https://www.figma.com/design/qlwKiMPZblz96VSM2F3Dl
 ## Запрещено
 
 - Badge Head на stash-карточке.
-- Путать с Create Commit формой.
+- Путать с Create snapshot формой.
 - Писать **Stage** в UI — только **Stash**.
