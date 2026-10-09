@@ -3,7 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { asset } from "@/assets/themed";
 import { ThemeImg } from "@/components/chrome/ThemeImg";
 import { DFM_MOVE_TYPE } from "@/components/items/FileGridTile";
-import { typeLabel } from "@/lib/file-kind";
+import { fileKind, typeLabel } from "@/lib/file-kind";
 import { formatDateTime, formatSize } from "@/lib/format";
 import { t, type Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,23 @@ type FolderEntryListProps = {
   onFolderMenu?: (path: string, event: MouseEvent) => void;
   onMoveFiles?: (paths: string[], dest: string) => void;
 };
+
+function entryIcon(entry: DirEntry): string {
+  if (entry.missing) {
+    return "file-types/missing.svg";
+  }
+  if (entry.is_dir) {
+    return "file-types/list-folder.svg";
+  }
+  const kind = fileKind(entry.name);
+  if (kind === "image") {
+    return "file-types/image.svg";
+  }
+  if (kind === "text") {
+    return "file-types/text.svg";
+  }
+  return "file-types/binary.svg";
+}
 
 function dragPathsFor(path: string, entries: DirEntry[], selection: string[]): string[] {
   const selectedFiles = selection.filter((item) =>
@@ -106,12 +123,7 @@ function EntryRow({
       )}
     >
       <span className="flex min-w-0 items-center gap-2 font-medium text-foreground">
-        <ThemeImg
-          src={asset(entry.is_dir ? "file-types/list-folder.svg" : "file-types/list-file.svg", theme)}
-          alt=""
-          width={entry.is_dir ? 24 : 20}
-          height={entry.is_dir ? 24 : 20}
-        />
+        <ThemeImg src={asset(entryIcon(entry), theme)} alt="" width={24} height={24} />
         <span className="truncate">{entry.name}</span>
       </span>
       <span className="truncate text-foreground-muted">{entry.is_dir || entry.size == null ? "—" : formatSize(entry.size)}</span>

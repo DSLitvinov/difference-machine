@@ -90,7 +90,7 @@ Header Folder Action содержит segmented control `grid / list`. Grid ос
 List view показывается только при просмотре файлов проекта и использует тот же каталог, selection,
 double-click, context menu, drag-and-drop и пагинацию, что Grid view. Строка высотой 40 px:
 
-1. `file` 20×20 или `Folder` 24×24 из List View item + имя;
+1. иллюстрация типа файла 24×24 (`image` / `text` / `binary` / `missing`) или `Folder` 24×24 + имя;
 2. размер (для папки `—`);
 3. тип файла / `Folder`;
 4. дата создания (если ОС её не отдала — `—`).
