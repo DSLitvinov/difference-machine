@@ -166,6 +166,56 @@ func TestThumbCacheRoundTrip(t *testing.T) {
 	}
 }
 
+func TestOpenPlainFolderEntersApp(t *testing.T) {
+	cfgPath, err := reposCfgPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	orig, readErr := os.ReadFile(cfgPath)
+	t.Cleanup(func() {
+		if readErr != nil {
+			_ = os.Remove(cfgPath)
+			return
+		}
+		_ = os.WriteFile(cfgPath, orig, 0o644)
+	})
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "scene.txt"), []byte("keep"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	app := &App{}
+	info := app.OpenRepository(dir)
+	if info.Error != "" || info.Shell != "app" || info.IsRepository || info.RepoPath != dir {
+		t.Fatalf("session = %+v", info)
+	}
+	if app.hasSession {
+		t.Fatal("plain folder must not open a Forester session")
+	}
+	var listed struct {
+		OK     bool `json:"ok"`
+		Result struct {
+			Entries []struct {
+				Name string `json:"name"`
+			} `json:"entries"`
+		} `json:"result"`
+	}
+	if err := json.Unmarshal([]byte(app.ForesterCall("workdir.entries", `{"path":""}`)), &listed); err != nil {
+		t.Fatal(err)
+	}
+	if !listed.OK {
+		t.Fatal("workdir.entries failed for a plain folder")
+	}
+	found := false
+	for _, entry := range listed.Result.Entries {
+		if entry.Name == "scene.txt" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("entries = %+v, want scene.txt", listed.Result.Entries)
+	}
+}
+
 func TestCleanRepositoryRemovesDfm(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.Mkdir(filepath.Join(dir, ".DFM"), 0o755); err != nil {

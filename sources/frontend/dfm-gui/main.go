@@ -19,7 +19,7 @@ func main() {
 
 	width, height := firstStartWidth, firstStartHeight
 	minW, minH := firstStartWidth, firstStartHeight
-	if repos, err := loadRepoState(); err == nil && repos.Current != "" && isForesterRepo(repos.Current) {
+	if repos, err := loadRepoState(); err == nil && repos.Current != "" && isOpenableFolder(repos.Current) {
 		width, height = loadAppWindowSize()
 		minW, minH = appMinWidth, appMinHeight
 	}

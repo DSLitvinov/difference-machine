@@ -186,37 +186,42 @@ export function ProjectViewPanel({
             />
           </SidebarCardDirectory>
         </div>
-        <div className="flex w-full shrink-0 items-center">
-          <Tabs value={sidebarTab} onValueChange={(v) => onSidebarTab(v as SidebarTab)} className="w-full">
-            <TabsList size="sm" className="w-full">
-              <TabsTrigger value="history" className="flex-1">
-                {copy.history}
-              </TabsTrigger>
-              <TabsTrigger value="stages" className="flex-1">
-                {copy.stages}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        <div className="flex min-h-0 w-full flex-1 flex-col">
-          {sidebarTab === "history" ? (
-            <CommitList
-              locale={locale}
-              hasCommits={hasCommits}
-              isRepository={isRepository}
-              status={status}
-              commits={commits}
-              busy={busy}
-              repoPath={repoPath}
-              selectedCommit={selectedCommit}
-              onCreateRepository={onCreateRepository}
-              onSelectCommit={onSelectCommit}
-              onCommitAction={onCommitAction}
-            />
-          ) : (
-            <StageList locale={locale} userName={userName} stashes={stashes} onStashAction={onStashAction} />
-          )}
-        </div>
+        {isRepository ? (
+          <>
+            <div className="flex w-full shrink-0 items-center">
+              <Tabs value={sidebarTab} onValueChange={(v) => onSidebarTab(v as SidebarTab)} className="w-full">
+                <TabsList size="sm" className="w-full">
+                  <TabsTrigger value="history" className="flex-1">
+                    {copy.history}
+                  </TabsTrigger>
+                  <TabsTrigger value="stages" className="flex-1">
+                    {copy.stages}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="flex min-h-0 w-full flex-1 flex-col">
+              {sidebarTab === "history" ? (
+                <CommitList
+                  locale={locale}
+                  hasCommits={hasCommits}
+                  status={status}
+                  commits={commits}
+                  repoPath={repoPath}
+                  selectedCommit={selectedCommit}
+                  onSelectCommit={onSelectCommit}
+                  onCommitAction={onCommitAction}
+                />
+              ) : (
+                <StageList locale={locale} userName={userName} stashes={stashes} onStashAction={onStashAction} />
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="flex min-h-0 w-full flex-1 flex-col items-center">
+            <NullRepositoryPlaceholder locale={locale} busy={busy} onCreate={onCreateRepository} />
+          </div>
+        )}
       </div>
       <HeaderSettings locale={locale} userName={userName} onSettings={onSettings} />
     </aside>
@@ -247,25 +252,19 @@ function VirtualCommitCard({
 function CommitList({
   locale,
   hasCommits,
-  isRepository,
   status,
   commits,
-  busy,
   repoPath,
   selectedCommit,
-  onCreateRepository,
   onSelectCommit,
   onCommitAction,
 }: {
   locale: Locale;
   hasCommits: boolean;
-  isRepository: boolean;
   status: StatusSnapshot | null;
   commits: CommitSummary[];
-  busy?: boolean;
   repoPath: string;
   selectedCommit?: string | null;
-  onCreateRepository: () => void;
   onSelectCommit: (hash: string) => void;
   onCommitAction: (action: CommitCardAction, commit: CommitSummary) => void;
 }) {
@@ -287,14 +286,6 @@ function CommitList({
     requestVisibleStats(repoPath, visibleHashes.split("\0").filter(Boolean));
   }, [repoPath, visibleHashes]);
 
-  // Create repository tip when the open folder has no .DFM (Clean / Empty DFM Folder).
-  if (!isRepository) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
-        <NullRepositoryPlaceholder locale={locale} busy={busy} onCreate={onCreateRepository} />
-      </div>
-    );
-  }
   if (!hasCommits || commits.length === 0) {
     return (
       <SidebarCard state="disabled">

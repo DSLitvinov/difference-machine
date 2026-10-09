@@ -39,7 +39,7 @@ Copy — только из этого node (`get_design_context` на `4382:9252
 | Контрол | Поведение |
 |---------|-----------|
 | Create | OS folder picker → `repo.init` (`CallStateless` / сессия на путь) → запись cfg → app shell |
-| Open | OS folder picker → `Open` сессии, если это репозиторий; иначе сценарий not-a-repository из [states](../states/architecture.md) |
+| Open | OS folder picker → app shell. Есть `.DFM/` — сессия репозитория. Нет `.DFM/` — [Empty DFM Folder](./project-browse.md), файлы папки в сетке |
 | Language | локаль UI; persist в cfg/local, если так сделают настройки. Не трогает Forester |
 | Close | системная кнопка закрытия окна ОС |
 

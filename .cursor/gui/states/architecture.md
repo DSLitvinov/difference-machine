@@ -15,7 +15,7 @@ Frontend хранит **снимок** этих ответов плюс UI-state
 | Состояние | Как узнать | UI |
 |-----------|------------|-----|
 | **No repo** | Нет `[current repo]` / список пуст | [First Start](../views/first-start.md); не вызывать workdir API |
-| **Not a repository** | `Call` → `not a Forester repository` | First Start или toast + Open; не app shell с сеткой |
+| **Not a repository** | открытая папка без `.DFM/` | [Empty DFM Folder](../views/project-browse.md): сетка файлов и сайдбар Folder DFM Null. Не First Start и не toast |
 | **Ready / clean** | `status.get` без staged/unstaged/untracked/renamed | обзор папки / файл / коммит по UI-измерениям |
 | **Dirty** | Любой из списков status непустой | бейджи на сетке; Take snapshot; ограничения switch |
 | **Detached HEAD** | `is_detached: true` | баннер поверх текущего View, кнопка закрыть; switch на ветку возвращает attached |

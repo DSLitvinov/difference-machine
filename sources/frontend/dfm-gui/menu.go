@@ -185,12 +185,9 @@ func (a *App) appendRepoSwitchMenu(repo *menu.Menu) {
 	repo.AddSeparator()
 	for _, entry := range repoMenuEntries(repos, current) {
 		path := entry.Path
-		item := repo.AddRadio(entry.Label, entry.Checked, nil, func(_ *menu.CallbackData) {
+		repo.AddRadio(entry.Label, entry.Checked, nil, func(_ *menu.CallbackData) {
 			a.menuSwitchRepository(path)
 		})
-		if !isForesterRepo(path) {
-			item.Disabled = true
-		}
 	}
 }
 

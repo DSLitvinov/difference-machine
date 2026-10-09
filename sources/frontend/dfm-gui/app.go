@@ -120,13 +120,18 @@ func (a *App) GetSession() SessionInfo {
 		info.RepoPath = repos.Current
 	}
 	a.mu.Lock()
-	if a.hasSession && a.workPath != "" {
+	if a.workPath != "" {
 		info.RepoPath = a.workPath
-		info.IsRepository = true
+		info.IsRepository = a.hasSession && isForesterRepo(a.workPath)
 		info.Shell = "app"
-	} else if info.RepoPath != "" && isForesterRepo(info.RepoPath) {
-		a.openLocked(info.RepoPath)
-		info.IsRepository = true
+	} else if info.RepoPath != "" && isOpenableFolder(info.RepoPath) {
+		if isForesterRepo(info.RepoPath) {
+			a.openLocked(info.RepoPath)
+			info.IsRepository = true
+		} else {
+			a.workPath = info.RepoPath
+			info.IsRepository = false
+		}
 		info.Shell = "app"
 	}
 	a.mu.Unlock()
@@ -178,13 +183,14 @@ func (a *App) InitRepository(absPath string) SessionInfo {
 	return a.GetSession()
 }
 
-// OpenRepository binds a session to an existing Forester root.
+// OpenRepository opens a folder. A Forester root gets a session.
+// A plain folder stays in the app shell so its files stay visible.
 func (a *App) OpenRepository(absPath string) SessionInfo {
 	absPath, err := cleanAbs(absPath)
 	if err != nil {
 		return sessionError(err.Error())
 	}
-	if !isForesterRepo(absPath) {
+	if !isOpenableFolder(absPath) {
 		return sessionError("not a Forester repository")
 	}
 	if err := rememberRepo(absPath); err != nil {
@@ -192,7 +198,13 @@ func (a *App) OpenRepository(absPath string) SessionInfo {
 	}
 	a.mu.Lock()
 	a.closeLocked()
-	a.openLocked(absPath)
+	if isForesterRepo(absPath) {
+		a.openLocked(absPath)
+	} else {
+		a.workPath = absPath
+		a.hasSession = false
+		a.handle = 0
+	}
 	a.mu.Unlock()
 	applyAppWindowSize(a.ctx)
 	a.applyMenuLocale()
@@ -523,13 +535,16 @@ func (a *App) closeLocked() {
 	a.stopWatchLocked()
 	if a.hasSession {
 		jsonapi.Close(a.handle)
-		a.hasSession = false
-		a.handle = 0
-		a.workPath = ""
 	}
+	a.hasSession = false
+	a.handle = 0
+	a.workPath = ""
 }
 
 func applyAppWindowSize(ctx context.Context) {
+	if ctx == nil {
+		return
+	}
 	curW, curH := runtime.WindowGetSize(ctx)
 	runtime.WindowSetMinSize(ctx, appMinWidth, appMinHeight)
 	if curW >= appMinWidth && curH >= appMinHeight {
@@ -600,6 +615,11 @@ func cleanAbs(path string) (string, error) {
 
 func isForesterRepo(absPath string) bool {
 	info, err := os.Stat(filepath.Join(absPath, ".DFM"))
+	return err == nil && info.IsDir()
+}
+
+func isOpenableFolder(absPath string) bool {
+	info, err := os.Stat(absPath)
 	return err == nil && info.IsDir()
 }
 

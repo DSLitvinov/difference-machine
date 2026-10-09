@@ -52,10 +52,10 @@ export function deriveView(input: ViewInput): DerivedView {
   if (input.contentContext === "commit") {
     return "view-commit";
   }
-  if (input.sidebarTab === "stages") {
+  if (input.isRepository && input.sidebarTab === "stages") {
     return input.stashEmpty ? "stashes-null" : "stages";
   }
-  // Workdir open without .DFM — Create repository in History (Empty DFM Folder).
+  // Workdir open without .DFM — folder grid stays, sidebar is Folder DFM Null.
   if (!input.isRepository && !input.folderEmpty) {
     return "empty-dfm-folder";
   }
