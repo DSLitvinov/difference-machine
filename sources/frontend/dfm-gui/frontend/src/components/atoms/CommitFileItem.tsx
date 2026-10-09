@@ -1,7 +1,5 @@
 import type { MouseEvent } from "react";
-import { ChevronRight } from "lucide-react";
 import { FileStatusBadge } from "@/components/atoms/FileStatusBadge";
-import { Icon } from "@/components/chrome/Icon";
 import { cn } from "@/lib/utils";
 import type { LetterStatus } from "@/lib/status";
 
@@ -26,7 +24,6 @@ export function CommitFileItem({ path, letter, selected, onSelect, onMenu }: Com
     <>
       {letter ? <FileStatusBadge type={letter} iconOnly /> : null}
       <p className="min-w-0 flex-1 truncate text-[14px] font-medium leading-5 text-[#18181b]">{displayCommitPath(path)}</p>
-      <Icon icon={ChevronRight} size={16} />
     </>
   );
   if (onSelect) {

@@ -11,7 +11,6 @@ Figma: [Atom / Commit / File Item](https://www.figma.com/design/qlwKiMPZblz96VSM
 
 1. [FileStatusBadge](../badge-file-status.md) слева, если `status` — **icon only** (20×20, `p-1`, иконка 12).
 2. Rel path: `/folder/folder/file_name`, Medium 14/20, `#18181b`, одна строка.
-3. Справа `chevron-right` 16 px.
 
 Высота 36 px, ширина — hug колонки (342). Padding: горизонталь 10 px, вертикаль 8 px. Gap 8 px. Радиус 10 px. Gap между строками в [Content / File list](../items/content-file-list.md) 2 px.
 
@@ -42,5 +41,6 @@ Disabled в наборе нет.
 ## Запрещено
 
 - Иконка файла.
+- `chevron-right` справа от path.
 - Basename вместо rel path, если макет показывает path.
 - Второй бейдж lock.
