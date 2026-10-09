@@ -53,7 +53,7 @@ export function Dialog({ title, titleId, closeLabel, busy, onClose, className, c
             <Icon icon={X} size={16} />
           </button>
         </div>
-        <div className="flex w-full flex-col gap-4 p-4">{children}</div>
+        <div className="flex w-full min-w-0 flex-col gap-4 p-4">{children}</div>
         {footer ? (
           <div className="flex w-full shrink-0 items-center justify-end gap-2 border-t border-[#e4e4e7] bg-[linear-gradient(90deg,rgba(255,255,255,0.5),rgba(255,255,255,0.5)),linear-gradient(90deg,#e4e4e7,#e4e4e7)] p-3 dark:border-border dark:bg-background-muted">
             {footer}

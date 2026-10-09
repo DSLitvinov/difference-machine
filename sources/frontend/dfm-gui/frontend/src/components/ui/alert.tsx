@@ -6,7 +6,7 @@ import { Icon } from "@/components/chrome/Icon";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative flex w-full items-center gap-4 overflow-clip rounded-[10px] border border-[#e4e4e7] bg-white px-3 py-2 dark:border-border dark:bg-background",
+  "relative flex w-full min-w-0 max-w-full items-start gap-4 overflow-hidden rounded-[10px] border border-[#e4e4e7] bg-white px-3 py-2 dark:border-border dark:bg-background",
   {
     variants: {
       variant: {
@@ -43,14 +43,14 @@ Alert.displayName = "Alert";
 
 export const AlertTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h5 ref={ref} className={cn("min-w-0 flex-1 text-sm font-medium leading-5", className)} {...props} />
+    <h5 ref={ref} className={cn("w-full min-w-0 flex-1 whitespace-pre-wrap break-words text-sm font-medium leading-5 [overflow-wrap:anywhere]", className)} {...props} />
   ),
 );
 AlertTitle.displayName = "AlertTitle";
 
 export const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("min-w-0 flex-1 text-sm font-normal leading-5", className)} {...props} />
+    <p ref={ref} className={cn("w-full min-w-0 flex-1 whitespace-pre-wrap break-words text-sm font-normal leading-5 [overflow-wrap:anywhere]", className)} {...props} />
   ),
 );
 AlertDescription.displayName = "AlertDescription";
@@ -88,7 +88,7 @@ export function AlertBanner({ variant, title, description, className, onClick, o
       {onClose ? (
         <button
           type="button"
-          className="flex size-4 shrink-0 items-center justify-center text-inherit"
+          className="mt-0.5 flex size-4 shrink-0 items-center justify-center text-inherit"
           aria-label={closeLabel}
           onClick={(event) => {
             event.stopPropagation();
@@ -109,7 +109,7 @@ export function AlertStack({ children }: { children: React.ReactNode }) {
   }
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-[200] flex justify-center px-4">
-      <div className="pointer-events-auto flex w-full max-w-lg flex-col gap-2">
+      <div className="pointer-events-auto flex w-full min-w-0 max-w-lg flex-col gap-2">
         {items}
       </div>
     </div>
