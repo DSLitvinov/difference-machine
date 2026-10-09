@@ -55,7 +55,7 @@ export function FileInCommitMenu({ locale, path, status, onOpen, onRevert, onDel
         className="gap-2 text-[#ef4444] focus:text-[#ef4444]"
         onSelect={() => window.setTimeout(onDeleteInHistory, 0)}
       >
-        <Icon icon={Trash2} size={16} />
+        <Icon icon={Trash2} size={16} className="text-current" />
         {copy.deleteInHistory}
       </DropdownMenuItem>
     </DropdownMenuContent>

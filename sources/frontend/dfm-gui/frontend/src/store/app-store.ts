@@ -37,6 +37,8 @@ export type DirEntry = {
   ignored?: boolean;
 };
 
+export type FolderViewMode = "grid" | "list";
+
 export type CommitSummary = {
   hash: string;
   message?: string;
@@ -99,6 +101,7 @@ type AppState = {
   fileRevision: CommitSummary | null;
   infoCollapsed: boolean;
   gridTrack: number;
+  folderView: FolderViewMode;
   changedOnly: boolean;
   viewIgnored: boolean;
   sidebarTab: SidebarTab;
@@ -127,6 +130,7 @@ type AppState = {
   setSelection: (paths: string[]) => void;
   setInfoCollapsed: (value: boolean) => void;
   setGridTrack: (value: number) => void;
+  setFolderView: (value: FolderViewMode) => void;
   setContentContext: (context: ContentContext) => void;
   openFile: (path: string) => void;
   openCommit: (hash: string) => void;
@@ -166,6 +170,7 @@ export const useAppStore = create<AppState>((set) => ({
   fileRevision: null,
   infoCollapsed: false,
   gridTrack: GRID_TRACK_DEFAULT,
+  folderView: "grid",
   changedOnly: false,
   viewIgnored: false,
   sidebarTab: "history",
@@ -241,6 +246,7 @@ export const useAppStore = create<AppState>((set) => ({
   setSelection: (paths) => set({ selection: paths }),
   setInfoCollapsed: (value) => set({ infoCollapsed: value }),
   setGridTrack: (value) => set({ gridTrack: clampGridTrack(value) }),
+  setFolderView: (value) => set({ folderView: value }),
   setContentContext: (context) =>
     set({
       contentContext: context,

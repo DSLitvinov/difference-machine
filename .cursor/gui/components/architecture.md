@@ -85,7 +85,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 
 Канон: страница [↳ Button](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=139-288) (`139:288`), набор `210:4202`. Иконка 16×16 в слоте, `size=icon` 40×40 (`Icon Style=True`). Код: `components/ui/button.tsx` + `Icon`.
 
-Глиф наследует `color` кнопки. Не красить Lucide вручную и не `filter: invert(1)`.
+Хромовые глифы — `Content/content-secondary` `#71717a` (`text-foreground-muted`). `text-current` только когда цвет родителя и есть цвет макета: primary/destructive, статусный бейдж, красный пункт меню. Не красить Lucide вручную и не `filter: invert(1)`.
 
 | Variant | Фон | Иконка / текст |
 |---------|-----|----------------|

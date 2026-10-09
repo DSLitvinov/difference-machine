@@ -23,7 +23,7 @@ export function SortMenu({ locale, value, onChange }: SortMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="ghost" size="icon" aria-label={copy.sort}>
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.sort} className="text-[#71717a] dark:text-foreground-muted">
           <Icon icon={ArrowUpAZ} size={16} />
         </Button>
       </DropdownMenuTrigger>

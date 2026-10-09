@@ -119,7 +119,7 @@ Selection живёт на frontend (клик, range, marquee — если в м�
 
 ## Токены и a11y
 
-Токены — дизайн-система Figma: светлая в `:root`, тёмная в `html.dark`. Тема из `[ui] theme` (`light` \| `dark`). Вкладки Appearance в Settings нет. Immutable illustrations: `assets/{light,dark}/{brand,placeholders,file-types,previews}/` через `asset()`. Chrome-иконки — Lucide (`currentColor` с родителя). Цвет на кнопках — таблица UI kit Button в [components/architecture.md](../components/architecture.md): primary и destructive — светлый глиф (`#fafafa` на destructive всегда); outline / ghost / secondary — `Foreground/default`. Не `text-foreground` на `Icon` и не `filter: invert(1)`.
+Токены — дизайн-система Figma: светлая в `:root`, тёмная в `html.dark`. Тема из `[ui] theme` (`light` \| `dark`). Вкладки Appearance в Settings нет. Immutable illustrations: `assets/{light,dark}/{brand,placeholders,file-types,previews}/` через `asset()`. Chrome-иконки — Lucide. Цвет по умолчанию — `Content/content-secondary` `#71717a` (`text-foreground-muted`). Primary, destructive, статусные бейджи и красные пункты меню сохраняют цвет родителя через `text-current`. Не `filter: invert(1)`.
 
 Для скрытого текста только `sr-only` / `aria-*`, не видимые «подсказки для агента».
 

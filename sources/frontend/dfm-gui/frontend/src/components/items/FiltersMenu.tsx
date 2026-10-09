@@ -55,7 +55,7 @@ export function FiltersMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="ghost" size="icon" aria-label={copy.filter}>
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.filter} className="text-[#71717a] dark:text-foreground-muted">
           <Icon icon={Filter} size={16} />
         </Button>
       </DropdownMenuTrigger>
@@ -104,7 +104,7 @@ export function FiltersMenu({
             onViewIgnored(false);
           }}
         >
-          <Icon icon={Trash2} size={16} />
+          <Icon icon={Trash2} size={16} className="text-current" />
           {copy.cleanFilters}
         </DropdownMenuItem>
       </DropdownMenuContent>

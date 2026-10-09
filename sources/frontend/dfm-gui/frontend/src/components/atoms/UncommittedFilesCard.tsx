@@ -46,7 +46,7 @@ export function UncommittedFilesCard({ locale, dirty, counts, loading, onTakeSna
               }
             }}
           >
-            {loading ? <Icon icon={Loader2} size={16} className="animate-spin" /> : null}
+            {loading ? <Icon icon={Loader2} size={16} className="animate-spin text-current" /> : null}
             {copy.takeSnapshot}
           </Button>
         </div>

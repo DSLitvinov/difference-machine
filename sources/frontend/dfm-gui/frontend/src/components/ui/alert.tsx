@@ -95,7 +95,7 @@ export function AlertBanner({ variant, title, description, className, onClick, o
             onClose();
           }}
         >
-          <Icon icon={X} size={16} />
+          <Icon icon={X} size={16} className="text-current" />
         </button>
       ) : null}
     </Alert>

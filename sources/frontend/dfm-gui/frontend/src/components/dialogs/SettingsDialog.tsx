@@ -434,7 +434,7 @@ function ProfileFields({
               <option value="en">English</option>
               <option value="ru">Русский</option>
             </select>
-            <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#18181b] dark:text-foreground" />
+            <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2" />
           </div>
           <p className="text-sm font-normal leading-5 text-[#71717a]">{copy.languageHintSettings}</p>
         </div>
@@ -904,7 +904,7 @@ function PathRow({
           {copy.select}
         </Button>
         <Button type="button" variant="outline" size="icon" className="text-[#dc2626] dark:text-[#dc2626]" disabled={busy} aria-label={copy.remove} onClick={onRemove}>
-          <Icon icon={Trash2} size={16} />
+          <Icon icon={Trash2} size={16} className="text-current" />
         </Button>
       </div>
     </div>

@@ -58,7 +58,7 @@ export function FolderActionBar({
     <div className="flex items-center gap-1">
       {searchOpen ? (
         <div className="relative w-[300px]">
-          <Icon icon={Search} size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#71717a]" />
+          <Icon icon={Search} size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#71717a] dark:text-foreground-muted" />
           <Input
             ref={inputRef}
             value={query}
@@ -74,7 +74,7 @@ export function FolderActionBar({
           />
         </div>
       ) : (
-        <Button type="button" variant="ghost" size="icon" aria-label={copy.search} onClick={onSearchOpen}>
+        <Button type="button" variant="ghost" size="icon" aria-label={copy.search} className="text-[#71717a] dark:text-foreground-muted" onClick={onSearchOpen}>
           <Icon icon={Search} size={16} />
         </Button>
       )}

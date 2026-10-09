@@ -117,7 +117,7 @@ export function FilePreviewItemMenu({
         className="gap-2 text-[#ef4444] focus:text-[#ef4444]"
         onSelect={() => window.setTimeout(onDeleteInProject, 0)}
       >
-        <Icon icon={Trash2} size={16} />
+        <Icon icon={Trash2} size={16} className="text-current" />
         {copy.deleteInProject}
       </DropdownMenuItem>
     </DropdownMenuContent>

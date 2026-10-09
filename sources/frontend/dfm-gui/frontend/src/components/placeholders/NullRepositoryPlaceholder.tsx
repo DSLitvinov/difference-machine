@@ -18,7 +18,7 @@ export function NullRepositoryPlaceholder({ locale, busy, onCreate }: NullReposi
         <p className="w-full text-[14px] leading-5">{copy.createRepoHistoryHint}</p>
       </div>
       <Button type="button" disabled={busy} onClick={onCreate}>
-        <Icon icon={Plus} size={16} />
+        <Icon icon={Plus} size={16} className="text-current" />
         {copy.createRepository}
       </Button>
     </div>

@@ -45,7 +45,7 @@ export function FileStatusBadge({ type, iconOnly, className }: FileStatusBadgePr
           className,
         )}
       >
-        <Icon icon={Lock} size={12} />
+        <Icon icon={Lock} size={12} className="text-current" />
         {iconOnly ? null : labels.lock}
       </span>
     );
@@ -61,7 +61,7 @@ export function FileStatusBadge({ type, iconOnly, className }: FileStatusBadgePr
         className,
       )}
     >
-      <Icon icon={item.icon} size={12} />
+      <Icon icon={item.icon} size={12} className="text-current" />
       {iconOnly ? null : labels[type]}
     </span>
   );

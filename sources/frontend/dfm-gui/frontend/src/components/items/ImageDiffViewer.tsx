@@ -141,7 +141,7 @@ function SwipeCompare({ afterSrc, beforeSrc }: { afterSrc?: string; beforeSrc?: 
         </div>
         <div className="pointer-events-none absolute inset-y-0 h-full w-0.5 -translate-x-1/2 bg-[#4f46e5]" style={{ left: `${split * 100}%` }} />
         <div className="pointer-events-none absolute top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-[#4f46e5]" style={{ left: `${split * 100}%` }}>
-          <Icon icon={GripVertical} size={32} />
+          <Icon icon={GripVertical} size={32} className="text-current" />
         </div>
       </div>
     </div>
@@ -191,7 +191,7 @@ export function ImageDiffViewer({ locale, afterSrc, beforeSrc, noCommits, busy, 
                 />
                 <div className="pointer-events-none absolute left-0 top-0 h-full rounded-md bg-background-primary" style={{ width: `${overlay * 100}%` }} />
                 <div className="pointer-events-none absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-background-primary" style={{ left: `${overlay * 100}%` }}>
-                  <Icon icon={Circle} size={20} className="fill-background-primary" />
+                  <Icon icon={Circle} size={20} className="fill-background-primary text-current" />
                 </div>
               </div>
               <Badge label={copy.before} />

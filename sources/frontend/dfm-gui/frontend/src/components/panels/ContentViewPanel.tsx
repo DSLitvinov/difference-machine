@@ -3,6 +3,7 @@ import { HeaderFolderAction } from "@/components/items/HeaderFolderAction";
 import { FilePreviewItemMenu, type FileWorkdirAction } from "@/components/items/FilePreviewItemMenu";
 import { FolderPreviewItemMenu } from "@/components/items/FolderPreviewItemMenu";
 import { FolderEntryGrid } from "@/components/panels/FolderEntryGrid";
+import { FolderEntryList } from "@/components/panels/FolderEntryList";
 import { FolderNullPlaceholder } from "@/components/placeholders/FolderNullPlaceholder";
 import { DamagedPlaceholder } from "@/components/placeholders/DamagedPlaceholder";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -10,7 +11,7 @@ import { foresterCall } from "@/lib/bridge";
 import { applyFolderQuery, fileSelection, folderExtensions, inCurrentFolder, type GridFilter, type GridSort } from "@/lib/folder-query";
 import type { Locale } from "@/lib/i18n";
 import { isDirty, isStagedPath } from "@/lib/status";
-import type { DirEntry, FileLock, StatusSnapshot } from "@/store/app-store";
+import { useAppStore, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
 
 type EntryMenu = {
   path: string;
@@ -85,6 +86,8 @@ export function ContentViewPanel({
   const [filter, setFilter] = useState<GridFilter>([]);
   const [searchEntries, setSearchEntries] = useState<DirEntry[] | null>(null);
   const [menu, setMenu] = useState<EntryMenu | null>(null);
+  const viewMode = useAppStore((state) => state.folderView);
+  const setViewMode = useAppStore((state) => state.setFolderView);
 
   useEffect(() => {
     setAnchor(null);
@@ -209,6 +212,7 @@ export function ContentViewPanel({
         changedOnly={Boolean(changedOnly)}
         viewIgnored={Boolean(viewIgnored)}
         dirty={isDirty(status)}
+        viewMode={viewMode}
         onNavigate={onNavigate}
         onExpandInfo={onExpandInfo}
         onSearchOpen={() => setSearchOpen(true)}
@@ -224,6 +228,7 @@ export function ContentViewPanel({
         onFilter={setFilter}
         onChangedOnly={(value) => onChangedOnly?.(value)}
         onViewIgnored={(value) => onViewIgnored?.(value)}
+        onViewMode={setViewMode}
       />
       <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border border-border bg-background shadow-sm">
         {damaged ? (
@@ -237,22 +242,39 @@ export function ContentViewPanel({
         ) : items.length === 0 ? (
           <div className="min-h-0 flex-1" />
         ) : (
-          <FolderEntryGrid
-            key={`${folderPath}:${changedOnly ? "changed" : "folder"}:${viewIgnored ? "ignored" : "tracked"}:${searching ? "search" : "list"}`}
-            repoPath={repoPath}
-            entries={items}
-            selection={selection}
-            status={status}
-            locks={locks}
-            hasMore={paginate}
-            onSelect={selectEntry}
-            onOpenFolder={onNavigate}
-            onOpenFile={onOpenFile}
-            onNeedMore={onNeedMore}
-            onFileMenu={onFileMenu}
-            onFolderMenu={onFolderMenu}
-            onMoveFiles={onMoveFiles}
-          />
+          viewMode === "grid" ? (
+            <FolderEntryGrid
+              key={`${folderPath}:${changedOnly ? "changed" : "folder"}:${viewIgnored ? "ignored" : "tracked"}:${searching ? "search" : "list"}`}
+              repoPath={repoPath}
+              entries={items}
+              selection={selection}
+              status={status}
+              locks={locks}
+              hasMore={paginate}
+              onSelect={selectEntry}
+              onOpenFolder={onNavigate}
+              onOpenFile={onOpenFile}
+              onNeedMore={onNeedMore}
+              onFileMenu={onFileMenu}
+              onFolderMenu={onFolderMenu}
+              onMoveFiles={onMoveFiles}
+            />
+          ) : (
+            <FolderEntryList
+              key={`${folderPath}:${changedOnly ? "changed" : "folder"}:${viewIgnored ? "ignored" : "tracked"}:${searching ? "search" : "list"}`}
+              locale={locale}
+              entries={items}
+              selection={selection}
+              hasMore={paginate}
+              onSelect={selectEntry}
+              onOpenFolder={onNavigate}
+              onOpenFile={onOpenFile}
+              onNeedMore={onNeedMore}
+              onFileMenu={onFileMenu}
+              onFolderMenu={onFolderMenu}
+              onMoveFiles={onMoveFiles}
+            />
+          )
         )}
       </div>
       {menu ? (

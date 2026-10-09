@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 function CheckIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="size-4">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="size-4 text-foreground-muted">
       <path
         fillRule="evenodd"
         clipRule="evenodd"

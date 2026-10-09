@@ -8,13 +8,13 @@ type IconProps = {
   strokeWidth?: number;
 };
 
-/** Chrome icons from lucide-react. Color is currentColor from the parent (UI kit Button). Not for themed SVG art. */
+/** Chrome icons from lucide-react. Default fill is Content/content-secondary. Pass `text-current` when the parent color is the mockup color. Not for themed SVG art. */
 export function Icon({ icon: Comp, size = 16, className, strokeWidth = 2 }: IconProps) {
   return (
     <Comp
       size={size}
       strokeWidth={strokeWidth}
-      className={cn("shrink-0", className)}
+      className={cn("shrink-0 text-foreground-muted", className)}
       aria-hidden
     />
   );

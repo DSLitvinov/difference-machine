@@ -1,9 +1,11 @@
-import { ChevronRight, PanelRightOpen } from "lucide-react";
+import { ChevronRight, LayoutGrid, LayoutList, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/chrome/Icon";
 import { FolderActionBar } from "@/components/items/FolderActionBar";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { t, type Locale } from "@/lib/i18n";
 import type { GridFilter, GridSort } from "@/lib/folder-query";
+import type { FolderViewMode } from "@/store/app-store";
 
 type HeaderFolderActionProps = {
   locale: Locale;
@@ -17,6 +19,7 @@ type HeaderFolderActionProps = {
   changedOnly: boolean;
   viewIgnored: boolean;
   dirty: boolean;
+  viewMode: FolderViewMode;
   onNavigate: (path: string) => void;
   onExpandInfo?: () => void;
   onSearchOpen: () => void;
@@ -26,6 +29,7 @@ type HeaderFolderActionProps = {
   onFilter: (value: GridFilter) => void;
   onChangedOnly: (value: boolean) => void;
   onViewIgnored: (value: boolean) => void;
+  onViewMode: (value: FolderViewMode) => void;
 };
 
 export function HeaderFolderAction({
@@ -40,6 +44,7 @@ export function HeaderFolderAction({
   changedOnly,
   viewIgnored,
   dirty,
+  viewMode,
   onNavigate,
   onExpandInfo,
   onSearchOpen,
@@ -49,6 +54,7 @@ export function HeaderFolderAction({
   onFilter,
   onChangedOnly,
   onViewIgnored,
+  onViewMode,
 }: HeaderFolderActionProps) {
   const copy = t(locale);
   const parts = folderPath.split("/").filter(Boolean);
@@ -62,7 +68,7 @@ export function HeaderFolderAction({
             {copy.home}
           </button>
         )}
-        <Icon icon={ChevronRight} size={24} />
+        <Icon icon={ChevronRight} size={14} className="text-[#d4d4d8]" />
         {parts.map((part, index) => {
           const path = parts.slice(0, index + 1).join("/");
           const last = index === parts.length - 1;
@@ -75,7 +81,7 @@ export function HeaderFolderAction({
                   {part}
                 </button>
               )}
-              {last ? null : <Icon icon={ChevronRight} size={24} />}
+              {last ? null : <Icon icon={ChevronRight} size={14} className="text-[#d4d4d8]" />}
             </div>
           );
         })}
@@ -99,10 +105,20 @@ export function HeaderFolderAction({
           onChangedOnly={onChangedOnly}
           onViewIgnored={onViewIgnored}
         />
+        <Tabs value={viewMode} onValueChange={(value) => onViewMode(value as FolderViewMode)}>
+          <TabsList>
+            <TabsTrigger value="grid" aria-label={copy.gridView} className="text-[#71717a] dark:text-foreground-muted">
+              <Icon icon={LayoutGrid} size={20} />
+            </TabsTrigger>
+            <TabsTrigger value="list" aria-label={copy.listView} className="text-[#71717a] dark:text-foreground-muted">
+              <Icon icon={LayoutList} size={20} />
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         {collapsed ? (
           <>
             <div className="h-5 w-px bg-border" />
-            <Button type="button" variant="ghost" size="icon" aria-label={copy.expand} onClick={onExpandInfo}>
+            <Button type="button" variant="ghost" size="icon" aria-label={copy.expand} className="text-[#71717a] dark:text-foreground-muted" onClick={onExpandInfo}>
               <Icon icon={PanelRightOpen} size={16} />
             </Button>
           </>

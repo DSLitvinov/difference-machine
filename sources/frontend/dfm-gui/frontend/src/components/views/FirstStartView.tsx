@@ -65,7 +65,7 @@ export function FirstStartView({ locale, busy, onCreate, onOpen, onLocale }: Fir
                 <option value="en">English</option>
                 <option value="ru">Русский</option>
               </select>
-              <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#18181b] dark:text-foreground" />
+              <Icon icon={ChevronsUpDown} size={16} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" />
             </div>
             <p className="text-sm font-normal leading-5 text-[#71717a]">{copy.languageHint}</p>
           </div>

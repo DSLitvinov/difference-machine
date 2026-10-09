@@ -83,4 +83,17 @@ nCols = max(1, floor((innerWidth + gap) / (minTrack + gap)))
 | File Missing | `6066:12789` + [Content / View / Missing file](../components/items/content-view.md) | файл нет на диске; хедер тот же, More disabled |
 | History of File | `4318:4176`, `4322:4561` | [Header File Commit Action](../components/items/header-file-commit-action.md) + diff items (Compare / Revert в шапке item) |
 
-List-view тайлы — **нет** в 0.8.1 (будут позже). Не добавлять тумблер вида.
+## Grid / List view
+
+Header Folder Action содержит segmented control `grid / list`. Grid остаётся режимом по умолчанию.
+
+List view показывается только при просмотре файлов проекта и использует тот же каталог, selection,
+double-click, context menu, drag-and-drop и пагинацию, что Grid view. Строка высотой 40 px:
+
+1. `file` 20×20 или `Folder` 24×24 из List View item + имя;
+2. размер (для папки `—`);
+3. тип файла / `Folder`;
+4. дата создания (если ОС её не отдала — `—`).
+
+Длинный список виртуализируется; превью и thumbnails в List view не запрашиваются. Дополнительные
+счётчики, подсказки и подписи пагинации не отображаются.

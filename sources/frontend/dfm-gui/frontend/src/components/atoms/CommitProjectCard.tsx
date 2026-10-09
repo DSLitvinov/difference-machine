@@ -22,7 +22,7 @@ type CommitProjectCardProps = {
 export function IconBadge({ icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <span className="flex shrink-0 items-center justify-center rounded-full bg-[#27272a] p-1 text-white" aria-label={label} title={label}>
-      <Icon icon={icon} size={12} />
+      <Icon icon={icon} size={12} className="text-current" />
     </span>
   );
 }
