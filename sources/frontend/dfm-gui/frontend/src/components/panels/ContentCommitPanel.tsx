@@ -246,6 +246,7 @@ export function ContentCommitPanel({ locale, repoPath, commit, head, busy, onRef
         <FileDeleteDialog
           locale={locale}
           title={copy.deleteInHistory}
+          paths={[deletePath]}
           confirmLabel={copy.deleteInHistory}
           busy={busy}
           onCancel={() => setDeletePath(null)}

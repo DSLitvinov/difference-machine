@@ -20,7 +20,7 @@
 
 Код: `FileDeleteDialog` (title/confirm по умолчанию `Delete in project`). API: `workdir.delete` (корзина ОС, не `os.Remove`).
 
-Источник: тот же popover / header. Destructive. Body в кадре нет.
+Источник: тот же popover / header. Destructive. В теле — basename каждого path (14/20 Medium). Несколько файлов — каждое имя своей строкой.
 
 Не путать с [Delete in history](#delete-in-history) и [Clean repository](./maintenance.md).
 
@@ -28,6 +28,6 @@
 
 ## Delete in history
 
-Тот же `FileDeleteDialog`, title/confirm = `Delete in history`. API: `commit.delete_file`. Workdir не трогает.
+Тот же `FileDeleteDialog`, title/confirm = `Delete in history`, в теле basename path. API: `commit.delete_file`. Workdir не трогает.
 
 Источник: [File in Commit](../components/popovers/file-in-commit.md) на [View Commit](../views/commit.md). Disabled, если статус строки `D`.

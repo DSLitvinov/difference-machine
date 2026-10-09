@@ -1224,6 +1224,7 @@ export default function App() {
       {fileDialog?.kind === "delete" ? (
         <FileDeleteDialog
           locale={locale}
+          paths={fileDialog.paths}
           busy={busy}
           onCancel={() => setFileDialog(null)}
           onDelete={() => void onDeleteFile()}

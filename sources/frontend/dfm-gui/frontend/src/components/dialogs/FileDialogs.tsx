@@ -56,16 +56,18 @@ type FileDeleteDialogProps = {
   locale: Locale;
   title?: string;
   body?: string;
+  paths?: string[];
   confirmLabel?: string;
   busy?: boolean;
   onCancel: () => void;
   onDelete: () => void;
 };
 
-export function FileDeleteDialog({ locale, title, body, confirmLabel, busy, onCancel, onDelete }: FileDeleteDialogProps) {
+export function FileDeleteDialog({ locale, title, body, paths, confirmLabel, busy, onCancel, onDelete }: FileDeleteDialogProps) {
   const copy = t(locale);
   const heading = title ?? copy.deleteInProject;
   const confirm = confirmLabel ?? copy.deleteInProject;
+  const names = (paths ?? []).map((path) => basenameRel(path)).filter(Boolean);
   return (
     <Dialog
       className="w-[430px]"
@@ -85,6 +87,15 @@ export function FileDeleteDialog({ locale, title, body, confirmLabel, busy, onCa
         </>
       }
     >
+      {names.length > 0 ? (
+        <div className="flex w-full min-w-0 flex-col gap-1">
+          {names.map((name, index) => (
+            <p key={`${name}:${index}`} className="w-full min-w-0 break-words text-[14px] font-medium leading-5 text-[#18181b] dark:text-foreground">
+              {name}
+            </p>
+          ))}
+        </div>
+      ) : null}
       {body ? <p className="text-[13px] leading-normal text-[#18181b] dark:text-foreground">{body}</p> : null}
     </Dialog>
   );
