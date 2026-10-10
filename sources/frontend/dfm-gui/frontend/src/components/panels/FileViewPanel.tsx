@@ -205,7 +205,7 @@ export function FileViewPanel({
                     key={commit.hash}
                     data-index={row.index}
                     ref={virtualizer.measureElement}
-                    className="absolute left-0 right-0"
+                    className="absolute left-0 right-0 px-0.5 py-0.5"
                     style={{ transform: `translateY(${row.start}px)` }}
                   >
                     <FileCommitCard

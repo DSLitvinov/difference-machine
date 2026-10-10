@@ -14,7 +14,7 @@ export function HeaderSettings({ locale, userName, onSettings }: HeaderSettingsP
   const copy = t(locale);
   const initials = authorInitials(userName);
   return (
-    <div className="flex w-full shrink-0 items-center justify-between px-3 pb-3 pt-2">
+    <div className="relative z-10 flex w-full shrink-0 items-center justify-between bg-background-light px-3 pb-3 pt-2">
       <div className="flex items-center p-2">
         <div className="flex size-6 items-center justify-center overflow-hidden rounded-full border border-[#e4e4e7] bg-[#e4e4e7] text-[9px] font-normal leading-4 text-[#71717a] dark:border-border dark:bg-background-muted dark:text-foreground-muted">
           {initials ? initials : <Icon icon={User} size={12} />}

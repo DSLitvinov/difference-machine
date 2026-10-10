@@ -5,6 +5,8 @@ Figma: [Item / Panel / Header / Settings](https://www.figma.com/design/qlwKiMPZb
 
 База: shadcn `Button` (ghost, icon) + `Avatar`. Не отдельная панель настроек.
 
+Фон футера — `layer-1-alt` `#fafafa` (`bg-background-light`), непрозрачный, поверх списка. Обводка hover/focus карточки может заходить на границу списка: футер её перекрывает своим фоном, а не обрезает.
+
 ---
 
 ## Слоты слева направо

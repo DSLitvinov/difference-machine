@@ -186,7 +186,6 @@ class DF_PT_compare_panel(Panel):
             )
             if not selected_is_current:
                 row.operator("df.switch_branch", text="Switch Branch", icon='FORWARD')
-            row.operator("df.load_branch_commits", text="Load Commits", icon='FILE_REFRESH')
 
         # Section: Commits (shared list for both tabs)
         layout.separator()

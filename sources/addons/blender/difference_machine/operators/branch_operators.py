@@ -36,10 +36,10 @@ def _is_dirty_worktree(status_data: dict) -> bool:
 
 
 class DF_OT_refresh_branches(Operator):
-    """Refresh branch list."""
+    """Refresh branch list and commits for the selected branch."""
     bl_idname = "df.refresh_branches"
     bl_label = "Refresh Branches"
-    bl_description = "Refresh the list of branches"
+    bl_description = "Refresh branches and load commits for the selected branch"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -55,8 +55,12 @@ class DF_OT_refresh_branches(Operator):
             self.report({'ERROR'}, f"Failed to list branches: {error_msg}")
             return {'CANCELLED'}
         
-        # Update branch list
+        # Keep the row the user had selected so Refresh also reloads its commits.
         scene = context.scene
+        selected_name = ""
+        if 0 <= scene.df_branch_list_index < len(scene.df_branches):
+            selected_name = scene.df_branches[scene.df_branch_list_index].name
+
         scene.df_branches.clear()
         
         # Create branch items
@@ -65,21 +69,30 @@ class DF_OT_refresh_branches(Operator):
             branch.name = branch_data["name"]
             branch.is_current = branch_data.get("is_current", False)
             branch.commit_count = 0
-            # Commit count is filled by load_branch_commits / refresh_history.
+            # Commit count is filled below via load_branch_commits for one branch.
             # Do not call log.get per branch here — that freezes the UI on large repos.
             
             # Parent branch not needed for compare panel
             branch.parent_branch = ""
         
-        # Select checked-out branch in the list
+        # Keep the previous selection when that branch still exists; otherwise the checked-out branch.
         current_index = 0
+        selected_index = None
         for i, branch_data in enumerate(branches):
             if branch_data.get("is_current", False):
                 current_index = i
-                break
-        scene.df_branch_list_index = current_index
+            if selected_name and branch_data.get("name") == selected_name:
+                selected_index = i
+        scene.df_branch_list_index = current_index if selected_index is None else selected_index
         
         self.report({'INFO'}, f"Refreshed {len(branches)} branches")
+
+        if branches:
+            try:
+                bpy.ops.df.load_branch_commits()
+            except RuntimeError as e:
+                self.report({'WARNING'}, f"Commit list refresh failed: {e}")
+
         return {'FINISHED'}
 
 
@@ -287,11 +300,6 @@ class DF_OT_switch_branch(Operator):
             bpy.ops.df.refresh_branches()
         except RuntimeError as e:
             self.report({'WARNING'}, f"Branch list refresh failed: {e}")
-
-        try:
-            bpy.ops.df.load_branch_commits(branch_name=branch_name)
-        except RuntimeError as e:
-            self.report({'WARNING'}, f"Commit list refresh failed: {e}")
 
         if was_dirty and self.auto_stash:
             message = f"Switched to branch '{branch_name}' (changes stashed)"

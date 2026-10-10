@@ -32,11 +32,13 @@ Figma: [Item / Card](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for
 | `state` | Фон | Border | Тень |
 |---------|-----|--------|------|
 | Default | `Background/card` white | `#e4e4e7` solid | shadow-sm |
-| Hover | white | `#60a5fa` accent solid | shadow-sm |
+| Hover / Focus | white | `#60a5fa` 1px и снаружи `#a0c9fc` 2px, без зазора. Одно состояние | shadow-sm |
 | Selected | `#eff6ff` | `#60a5fa` solid | нет в кадре |
 | Disable | `Background/muted` `#f4f4f5` | `#e4e4e7` solid | нет |
 
 Disable в наборе — не кликабелен. Не снижать opacity контента сверх макета.
+
+Hover и Focus — кадр `hover&focus` карточки (`8101:12210`): системную outline со смещением не рисовать.
 
 Hover сетки (`#eff6ff` без обязательного border на Hover) — другой item.
 

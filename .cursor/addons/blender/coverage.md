@@ -51,7 +51,7 @@
 | Create branch | ✅ dialog | ❌ |
 | Rename branch | ✅ dialog | ❌ |
 | Delete branch | — | 🔶 wrapper only |
-| Load branch commits | — | ✅ `df.load_branch_commits` (кнопка Load Commits) |
+| Load branch commits | — | ✅ `df.refresh_branches` loads commits for the selected branch |
 
 ---
 

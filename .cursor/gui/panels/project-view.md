@@ -44,4 +44,6 @@ Empty истории и empty репозитория **не** заменяют C
 
 Commit List при длинной ветке — virtualizer + догрузка `log.get` по `capped`, без текста пагинации. `diff.stat` — только видимые карточки. [virtual-scroll.md](../gui_frontend/virtual-scroll.md), [revision-cache.md](../gui_frontend/revision-cache.md).
 
+Строка списка держит 2px вокруг карточки, чтобы обводка hover/focus (`#a0c9fc` 2px) не клипалась контейнером. Низ колонки закрывает [Header Settings](../components/items/header-settings.md) со своим фоном.
+
 Вкладка **Stash** (Figma Stages) — тот же virtualizer; список из `stash.list`, не из `status.get.staged_*`. Пустой список — один **Item / Card** Disable + [NoStagesProject](../components/atoms/card-no-stages-project.md). Сборка окна тогда [Stashes Null](../views/project-browse.md) (`6035:12553`): центр — Folder Empty, не сетка рабочей папки.

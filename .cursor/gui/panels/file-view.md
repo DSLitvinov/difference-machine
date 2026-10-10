@@ -37,7 +37,7 @@ Selected — сплошная синяя обводка. Карточка фай
 ## Поведение
 
 - `log.get` с `path`. Не дерево workdir.
-- Список виртуализировать; `diff.stat` карточки — visible + overscan ([revision-cache.md](../gui_frontend/revision-cache.md)).
+- Список виртуализировать; `diff.stat` карточки — visible + overscan ([revision-cache.md](../gui_frontend/revision-cache.md)). Строка списка — 2px вокруг карточки, чтобы обводка hover/focus не клипалась. Футер — [Header Settings](../components/items/header-settings.md) со своим фоном.
 - Клик Current preview → [file-preview](../views/file-preview.md) текущего файла (`leaveFileRevision`). Не сетка папки. Возврат к списку файлов — Back `<` в [Header File Action](../components/items/header-file-action.md). Карточка всегда кликабельна, никогда Disable.
 - Клик коммита → [file-history](../views/file-history.md). Пока `contentContext = file`, Current preview остаётся Selected.
 - Клик коммита → [file-history](../views/file-history.md). Пока `contentContext = file`, Current preview остаётся Selected.

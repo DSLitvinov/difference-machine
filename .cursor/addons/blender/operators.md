@@ -53,8 +53,8 @@
 
 | ID | Label | Module | Properties |
 |----|-------|--------|------------|
-| `df.refresh_branches` | Refresh Branches | branch_operators | fills `df_branches` |
-| `df.load_branch_commits` | Load Branch Commits | branch_operators | `branch_name` |
+| `df.refresh_branches` | Refresh Branches | branch_operators | fills `df_branches`, then loads commits for the selected branch |
+| `df.load_branch_commits` | Load Branch Commits | branch_operators | `branch_name`; no Compare button, called from `df.refresh_branches` |
 | `df.switch_branch` | Switch Branch | branch_operators | `branch_name`, `auto_stash` |
 
 ---

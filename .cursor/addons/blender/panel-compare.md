@@ -19,7 +19,7 @@ Branch
   { UIList df_branches }       ← DF_UL_branch_list, 4 rows (* = checked out)
   — OR —
   No branches / [ Refresh Branches ]  ← df.refresh_branches (auto on empty)
-  [ Refresh ] [ Switch Branch ] [ Load Commits ]
+  [ Refresh ] [ Switch Branch ]
                 ↑ hidden when selected row is current (*)
 
 Commits
@@ -57,15 +57,14 @@ Commits
 | `* {name}` + commit count | `is_current` (checked-out branch) |
 | `{name}` + commit count | otherwise |
 
-**Auto-refresh:** если `len(df_branches)==0` и file saved → одноразовый `bpy.app.timers` вызывает `df.refresh_branches` (не из `draw()`). После refresh выбирается строка с `is_current`. Пустой список не ретраится каждый кадр.
+**Auto-refresh:** если `len(df_branches)==0` и file saved → одноразовый `bpy.app.timers` вызывает `df.refresh_branches` (не из `draw()`). Refresh сохраняет выбранную ветку, если она ещё есть, иначе выделяет `is_current`, и сразу грузит её коммиты. Пустой список не ретраится каждый кадр.
 
 | Control | Operator |
 |---------|----------|
-| Refresh Branches | `df.refresh_branches` — заполняет `df_branches`, выделяет текущую ветку |
+| Refresh / Refresh Branches | `df.refresh_branches` — заполняет `df_branches` и вызывает `df.load_branch_commits` для выбранной строки |
 | Switch Branch | `df.switch_branch` — `repo.switch` на выбранную строку; reload `.blend`; скрыта для `is_current` |
-| Load Commits | `df.load_branch_commits` — log для **выбранной** строки (`df_branch_list_index`); browse-only |
 
-**Switch Branch:** при незакоммиченных изменениях — диалог с `auto_stash` (default on). После switch: refresh branches, load commits, `wm.open_mainfile`.
+**Switch Branch:** при незакоммиченных изменениях — диалог с `auto_stash` (default on). После switch: `df.refresh_branches` (ветки и коммиты), `wm.open_mainfile`.
 
 ---
 
