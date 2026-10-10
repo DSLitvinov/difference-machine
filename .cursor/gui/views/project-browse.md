@@ -66,6 +66,7 @@ Empty Project: copy центра `No files yet` / `Create or move your files to 
 | Breadcrumb Home | Root Folder |
 | Клик по файлу (выбор) | File Info (корень) или кадр SubFolder (вложенный path) |
 | Range / multi-select | File More Info, если в selection есть файл |
+| Рамка по пустому месту сетки или списка | selection тайлов внутри прямоугольника; Shift / Ctrl / Cmd добавляет |
 | Open / двойной клик файла | [file-preview](./file-preview.md) по kind. `infoCollapsed` папки не менять; колонка просмотра — по `fileInfoCollapsed` |
 | Клик коммита в History | [commit](./commit.md) |
 | Вкладка Stash | Stash, если есть записи; иначе [Stashes Null](./project-browse.md) |

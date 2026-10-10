@@ -3,6 +3,8 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { FolderGridTile } from "@/components/items/FolderGridTile";
 import { FileGridTile } from "@/components/items/FileGridTile";
 import { columnCount, gridPreviewSize, tileRowHeight, wheelZoomDelta, GRID_GAP, GRID_PAD, GRID_TRACK_DEFAULT } from "@/lib/grid";
+import { gridTileRect, pathsInRects } from "@/lib/marquee";
+import { useMarquee } from "@/lib/use-marquee";
 import { letterStatus } from "@/lib/status";
 import { peekThumb, scheduleVisibleThumbs, setThumbLruLimit, useThumbEpoch, type ThumbRequest } from "@/lib/thumb-cache";
 import { useAppStore, type DirEntry, type FileLock, type StatusSnapshot } from "@/store/app-store";
@@ -16,6 +18,7 @@ type FolderEntryGridProps = {
   locks: FileLock[];
   hasMore?: boolean;
   onSelect: (path: string, event: MouseEvent) => void;
+  onMarquee: (paths: string[]) => void;
   onOpenFolder: (path: string) => void;
   onOpenFile?: (path: string) => void;
   onNeedMore?: () => void;
@@ -49,6 +52,7 @@ export function FolderEntryGrid({
   locks,
   hasMore,
   onSelect,
+  onMarquee,
   onOpenFolder,
   onOpenFile,
   onNeedMore,
@@ -131,6 +135,25 @@ export function FolderEntryGrid({
 
   const onNeedMoreRef = useRef(onNeedMore);
   onNeedMoreRef.current = onNeedMore;
+  const geomRef = useRef({ entries, nCols, innerWidth, rowH });
+  geomRef.current = { entries, nCols, innerWidth, rowH };
+  const marquee = useMarquee({
+    scrollRef,
+    padX: GRID_PAD,
+    selection,
+    onSelect: onMarquee,
+    hitTest: (rect) => {
+      const geom = geomRef.current;
+      if (geom.innerWidth <= 0 || geom.nCols < 1) {
+        return [];
+      }
+      return pathsInRects(
+        geom.entries.map((entry) => entry.path),
+        rect,
+        (index) => gridTileRect(index, geom.nCols, geom.innerWidth, geom.rowH),
+      );
+    },
+  });
 
   useEffect(() => {
     if (hasMore && rowCount > 0 && endRow >= rowCount - 2) {
@@ -139,7 +162,7 @@ export function FolderEntryGrid({
   }, [hasMore, endRow, rowCount, entries.length]);
 
   return (
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-4">
+    <div ref={scrollRef} className={`min-h-0 flex-1 overflow-y-auto px-4${marquee ? " select-none" : ""}`}>
       <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {virtualRows.map((row) => {
           const slice = entries.slice(row.index * nCols, row.index * nCols + nCols);
@@ -193,6 +216,12 @@ export function FolderEntryGrid({
             </div>
           );
         })}
+        {marquee ? (
+          <div
+            className="pointer-events-none absolute z-20 border border-border-accent bg-foreground-accent/70"
+            style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }}
+          />
+        ) : null}
       </div>
     </div>
   );

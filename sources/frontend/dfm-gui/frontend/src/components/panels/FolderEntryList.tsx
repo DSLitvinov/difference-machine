@@ -6,6 +6,9 @@ import { DFM_MOVE_TYPE } from "@/components/items/FileGridTile";
 import { fileKind, typeLabel } from "@/lib/file-kind";
 import { formatDateTime, formatSize } from "@/lib/format";
 import { t, type Locale } from "@/lib/i18n";
+import { GRID_PAD } from "@/lib/grid";
+import { listRowRect, pathsInRects } from "@/lib/marquee";
+import { useMarquee } from "@/lib/use-marquee";
 import { cn } from "@/lib/utils";
 import { useAppStore, type DirEntry } from "@/store/app-store";
 
@@ -15,6 +18,7 @@ type FolderEntryListProps = {
   selection: string[];
   hasMore?: boolean;
   onSelect: (path: string, event: MouseEvent) => void;
+  onMarquee: (paths: string[]) => void;
   onOpenFolder: (path: string) => void;
   onOpenFile?: (path: string) => void;
   onNeedMore?: () => void;
@@ -138,8 +142,24 @@ function EntryRow({
 }
 
 export function FolderEntryList(props: FolderEntryListProps) {
-  const { entries, hasMore, onNeedMore } = props;
+  const { entries, hasMore, onNeedMore, selection, onMarquee } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
+  const entriesRef = useRef(entries);
+  entriesRef.current = entries;
+  const marquee = useMarquee({
+    scrollRef,
+    padX: GRID_PAD,
+    selection,
+    onSelect: onMarquee,
+    hitTest: (rect) => {
+      const width = Math.max(0, (scrollRef.current?.scrollWidth ?? 0) - GRID_PAD * 2);
+      return pathsInRects(
+        entriesRef.current.map((entry) => entry.path),
+        rect,
+        (index) => listRowRect(index, width),
+      );
+    },
+  });
   const onNeedMoreRef = useRef(onNeedMore);
   onNeedMoreRef.current = onNeedMore;
   const virtualizer = useVirtualizer({
@@ -161,7 +181,7 @@ export function FolderEntryList(props: FolderEntryListProps) {
   }, [endRow, entries.length, hasMore]);
 
   return (
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto px-4">
+    <div ref={scrollRef} className={`min-h-0 flex-1 overflow-auto px-4${marquee ? " select-none" : ""}`}>
       <div className="relative min-w-[540px] w-full" style={{ height: virtualizer.getTotalSize() }}>
         {rows.map((row) => {
           const entry = entries[row.index];
@@ -177,6 +197,12 @@ export function FolderEntryList(props: FolderEntryListProps) {
             </div>
           );
         })}
+        {marquee ? (
+          <div
+            className="pointer-events-none absolute z-20 border border-border-accent bg-foreground-accent/70"
+            style={{ left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h }}
+          />
+        ) : null}
       </div>
     </div>
   );

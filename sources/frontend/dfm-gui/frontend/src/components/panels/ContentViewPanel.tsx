@@ -172,6 +172,11 @@ export function ContentViewPanel({
     setAnchor(path);
   }
 
+  function selectMarquee(paths: string[]) {
+    onSelect(paths);
+    setAnchor(paths[paths.length - 1] ?? null);
+  }
+
   function onFileMenu(path: string, event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
@@ -252,6 +257,7 @@ export function ContentViewPanel({
               locks={locks}
               hasMore={paginate}
               onSelect={selectEntry}
+              onMarquee={selectMarquee}
               onOpenFolder={onNavigate}
               onOpenFile={onOpenFile}
               onNeedMore={onNeedMore}
@@ -267,6 +273,7 @@ export function ContentViewPanel({
               selection={selection}
               hasMore={paginate}
               onSelect={selectEntry}
+              onMarquee={selectMarquee}
               onOpenFolder={onNavigate}
               onOpenFile={onOpenFile}
               onNeedMore={onNeedMore}

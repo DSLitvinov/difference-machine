@@ -15,6 +15,8 @@ Figma-канон: [Folder - Expanded](https://www.figma.com/design/qlwKiMPZblz96
 
 Порядок: сначала [FolderGridTile](../components/items/grid-folder.md), затем [FileGridTile](../components/items/grid-file.md) рядами. Клик по файлу или папке — selection. Двойной клик по файлу — [File View](../views/file-preview.md); по папке — зайти (`folderPath`). Правый клик по файлу — [File Preview Item](../components/popovers/file-preview-item.md); по папке — [Folder Preview Item](../components/popovers/folder-preview-item.md). Файл (или выделенные файлы) можно перетащить на тайл папки — `workdir.move`.
 
+Рамка: зажать кнопку на пустом месте сетки или списка и протянуть прямоугольник. В selection попадают тайлы и строки, чьи ячейки пересекают рамку — по индексам загруженного каталога, не по DOM. Shift / Ctrl / Cmd добавляют к уже выбранному. Клик по пустому месту без протяжки снимает selection. Жест по тайлу рамку не начинает.
+
 Сетка **виртуализируется**: в DOM — viewport + 1–2 ряда overscan. `workdir.entries` догружается по `has_more`; `workdir.thumbnail` — только для видимых тайлов. Канон: [virtual-scroll.md](../gui_frontend/virtual-scroll.md), [thumbnails.md](../gui_backend/thumbnails.md).
 
 ---
@@ -88,7 +90,7 @@ nCols = max(1, floor((innerWidth + gap) / (minTrack + gap)))
 Header Folder Action содержит segmented control `grid / list`. Grid остаётся режимом по умолчанию.
 
 List view показывается только при просмотре файлов проекта и использует тот же каталог, selection,
-double-click, context menu, drag-and-drop и пагинацию, что Grid view. Строка высотой 40 px:
+рамку, double-click, context menu, drag-and-drop и пагинацию, что Grid view. Строка высотой 40 px:
 
 1. иллюстрация типа файла 24×24 (`image` / `text` / `binary` / `missing`) или `Folder` 24×24 + имя;
 2. размер (для папки `—`);
