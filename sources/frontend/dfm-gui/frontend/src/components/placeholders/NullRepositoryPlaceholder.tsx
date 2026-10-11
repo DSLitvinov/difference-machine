@@ -13,7 +13,7 @@ export function NullRepositoryPlaceholder({ locale, busy, onCreate }: NullReposi
   const copy = t(locale);
   return (
     <div className="flex w-[269px] flex-col items-center justify-center gap-2">
-      <div className="flex w-full flex-col items-center gap-2 text-center">
+      <div className="flex w-full flex-col items-center gap-0 text-center">
         <p className="w-full text-[20px] font-semibold leading-7 tracking-[-0.1px] text-[#18181b] dark:text-foreground">{copy.createRepo}</p>
         <p className="w-full text-[14px] leading-5 text-[#71717a] dark:text-foreground-muted">{copy.createRepoHistoryHint}</p>
       </div>
