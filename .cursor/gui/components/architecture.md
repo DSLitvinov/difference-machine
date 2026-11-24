@@ -135,7 +135,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 
 Иконка папки в сетке — [items/grid-folder.md](./items/grid-folder.md) (`Atom / Icons / 48 / Folder`, `4234:9143`). Default **48×48**; Ctrl/Cmd+wheel растит её вместе с превью файла. Отдельного атома других размеров в наборе нет. Продуктовое правило: [../architecture.md](../architecture.md#сетка-рабочей-копии).
 
-Стаб пропавшего файла в сетке — [grid-file](./items/grid-file.md), `Icons / 256 / File / Missing` (`6066:12434`), `file-types/missing.svg`.
+Стаб пропавшего файла в сетке — [grid-file](./items/grid-file.md), `Icons / 256 / Missing` (`8135:12923`), `file-types/missing.svg`.
 
 ---
 
@@ -187,7 +187,7 @@ Chrome-иконки через Lucide (`currentColor` с родителя). `Ico
 | Content / Placeholder / Folder Null | `4382:8709` | [placeholders/folder-null.md](./placeholders/folder-null.md) |
 | Content / Placeholder / Not Select A File | `4382:8020` | [placeholders/not-select-file.md](./placeholders/not-select-file.md) |
 | Content / Placeholder / Missing file | `6067:13517` | [placeholders/missing-file.md](./placeholders/missing-file.md) |
-| Content / Placeholder / Damaged | в `6078:16278` | [placeholders/damaged.md](./placeholders/damaged.md) |
+| Content / Placeholder / Damaged | `6077:16001` | [placeholders/damaged.md](./placeholders/damaged.md) |
 | Content / Placeholder / Diff / Binary | `4226:17300` | [placeholders/diff-binary.md](./placeholders/diff-binary.md) |
 | Content / Placeholder / Diff / File List | `4309:5577` | [placeholders/diff-file-list.md](./placeholders/diff-file-list.md) |
 

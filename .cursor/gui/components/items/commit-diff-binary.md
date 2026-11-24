@@ -2,7 +2,7 @@
 
 Заглушка бинарного diff.
 
-Figma: [Item / Commit / Diff / Binary Diff](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6067-13828) (`6067:13828`, `type=1) default`). Внутри — stub `4322:4753`.  
+Figma: [Content / Commit / Diff / Binary Diff](https://www.figma.com/design/UdzVpYkngLCGzVXFWwq8TJ/Difference-MAchine?node-id=6067-13828) (`6067:13828`, `type=1) default`). Тело — [placeholders/diff-binary](../placeholders/diff-binary.md), отступ сверху 20.  
 Код: `BinaryDiffStub`. Property: `type`.
 
 | type | Шапка | Тело |

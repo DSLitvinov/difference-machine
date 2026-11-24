@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { HeaderRightSide } from "@/components/items/HeaderRightSide";
 import { FileInfoPreview } from "@/components/items/FileInfoPreview";
+import { ThemeImg } from "@/components/chrome/ThemeImg";
 import { NoFileSelectedPlaceholder } from "@/components/placeholders/NoFileSelectedPlaceholder";
-import { MissingFilePlaceholder } from "@/components/placeholders/MissingFilePlaceholder";
+import { asset } from "@/assets/themed";
 import { t, type Locale } from "@/lib/i18n";
 import { formatDateTime, formatSize } from "@/lib/format";
 import { letterStatus, isMissingPath } from "@/lib/status";
@@ -46,6 +47,7 @@ function MetaRow({ label, value }: { label: string; value: string }) {
 export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileInfoPanelProps) {
   const copy = t(locale);
   const repoPath = useAppStore((s) => s.repoPath);
+  const theme = useAppStore((s) => s.theme);
   const ignored = useAppStore((s) => Boolean(path && s.entries.some((entry) => entry.path === path && entry.ignored)));
   const [meta, setMeta] = useState<FileMetadata | null>(null);
   const [failedPath, setFailedPath] = useState<string | null>(null);
@@ -93,7 +95,7 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
     return (
       <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
         <HeaderRightSide locale={locale} onCollapse={onCollapse} />
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-3">
+        <div className="flex min-h-0 flex-1 flex-col items-center p-3">
           <NoFileSelectedPlaceholder locale={locale} />
         </div>
       </aside>
@@ -104,8 +106,24 @@ export function FileInfoPanel({ locale, path, status, locks, onCollapse }: FileI
     return (
       <aside className="flex h-full w-[332px] shrink-0 flex-col overflow-hidden">
         <HeaderRightSide locale={locale} onCollapse={onCollapse} />
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-3">
-          <MissingFilePlaceholder locale={locale} />
+        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-3">
+          <div className="flex size-[308px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
+            <ThemeImg src={asset("file-types/missing.svg", theme)} alt="" width={204} height={204} className="size-[204px]" />
+          </div>
+          <div className="flex min-h-0 flex-col gap-3">
+            <p className="text-[14px] font-semibold leading-5 text-foreground">{copy.metadata}</p>
+            <div className="flex flex-col gap-1">
+              <MetaRow label={copy.name} value="-" />
+              <MetaRow label={copy.dimensions} value="-" />
+              <MetaRow label={copy.size} value="-" />
+              <MetaRow label={copy.type} value="-" />
+              <MetaRow label={copy.locked} value="-" />
+              <MetaRow label={copy.editor} value="-" />
+              <MetaRow label={copy.creator} value="-" />
+              <MetaRow label={copy.created} value="-" />
+              <MetaRow label={copy.modifiedAt} value="-" />
+            </div>
+          </div>
         </div>
       </aside>
     );

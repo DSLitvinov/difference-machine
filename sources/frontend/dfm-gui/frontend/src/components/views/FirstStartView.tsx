@@ -20,7 +20,7 @@ export function FirstStartView({ locale, busy, onCreate, onOpen, onLocale }: Fir
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-white dark:bg-background">
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 p-6">
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-0.5">
           <ThemeImg
             src={asset("brand/app-icon.svg", theme)}
             alt=""
@@ -33,7 +33,7 @@ export function FirstStartView({ locale, busy, onCreate, onOpen, onLocale }: Fir
             <p className="text-center text-sm font-normal leading-5 text-[#71717a]">{copy.prototype}</p>
           </div>
         </div>
-        <div className="flex w-full max-w-[680px] flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
+        <div className="flex w-full max-w-[585px] flex-col gap-5 overflow-hidden rounded-lg border border-[#e4e4e7] bg-[#fafafa] py-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-border dark:bg-background-light">
           <div className="flex items-center gap-4 px-5">
             <div className="flex min-w-0 flex-1 flex-col">
               <p className="text-[18px] font-normal leading-7 text-[#18181b] dark:text-foreground">{copy.createRepo}</p>

@@ -2,7 +2,7 @@
 
 Окно первого запуска. Не трёхколоночный app shell.
 
-Figma: [View / First Start](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=4382-9252) (`4382:9252`).  
+Figma: [View / First Start](https://www.figma.com/design/UdzVpYkngLCGzVXFWwq8TJ/Difference-MAchine?node-id=6124-17676) (`6124:17676`).  
 **833×768**. Крестик на кадре — системная кнопка окна, не элемент страницы.
 
 Обзор экранов: [architecture.md](./architecture.md).
@@ -30,7 +30,7 @@ Title bar: `Difference Machine` без скобок — репозиторий �
 | Open repository | заголовок `Open repository`, пояснение `Select the folder containing the repository`, кнопка `Open` |
 | Language | `Language`, выпадающий список `English` / `Русский`, не сегменты. Тот же список — Settings → Profile |
 
-Copy — только из этого node (`get_design_context` на `4382:9252`). Не подменять «Init Forester» и т.п.
+Copy — только из этого node (`get_design_context` на `6124:17676`). Не подменять «Init Forester» и т.п. Карточка Create / Open / Language — **585** шириной. Между иконкой 128 и названием gap **2**.
 
 ---
 

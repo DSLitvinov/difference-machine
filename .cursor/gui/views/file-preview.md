@@ -40,7 +40,7 @@ Kind центральной области — по типу файла, не п
 
 1. Collapse просмотра файла — своё измерение `fileInfoCollapsed`. Свёрнутость рабочей папки (`infoCollapsed`) на него не влияет: папка может быть свёрнута, а File Info в просмотре — развёрнут. Back не меняет ни одно из двух.
 2. No History — `fileHasHistory = false` (`log.get` с `path` пуст). Превью файла всё равно показывается. Не подменять центр плейсхолдером истории.
-3. File Missing — path нет на диске (`status.get` deleted / rename `old_path`, или `workdir.metadata` not found). Центр — «?», справа [Missing file](../components/placeholders/missing-file.md). История слева **не** сбрасывается: кадр Figma с History Null — пример, как у No History / Img. Kind не вычислять.
+3. File Missing — path нет на диске (`status.get` deleted / rename `old_path`, или `workdir.metadata` not found). Центр — [missing-file](../components/placeholders/missing-file.md). Справа [File Info - Missing](../panels/file-info.md): превью `Icons / 256 / Missing` и Metadata с `-`. История слева **не** сбрасывается: кадр Figma с History Null — пример, как у No History / Img. Kind не вычислять.
 4. Кадр No History использует Img-превью как пример; kind в продукте остаётся у открытого файла.
 5. Данные left: `log.get` + `path`. Не `workdir.tree`.
 6. Img в центре: полный файл через `workdir.file`, не `workdir.thumbnail`. Превью остаётся только в File Info. Ctrl/Cmd+wheel меняет масштаб картинки, без подписи zoom. Канон: [content-view](../components/items/content-view.md).

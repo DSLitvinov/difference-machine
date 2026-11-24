@@ -8,7 +8,7 @@ type ContentViewBinaryProps = {
 
 export function ContentViewBinary({ locale, onOpen }: ContentViewBinaryProps) {
   return (
-    <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+    <div className="flex min-h-0 w-full flex-1 justify-center">
       <DiffBinaryPlaceholder locale={locale} onOpen={onOpen} />
     </div>
   );

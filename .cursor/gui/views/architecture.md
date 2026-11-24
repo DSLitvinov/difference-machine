@@ -76,7 +76,7 @@ First Start — другое окно: [first-start.md](./first-start.md) (833×
 
 | Figma | Node | Семейство |
 |-------|------|-----------|
-| View / First Start | `4382:9252` | старт |
+| View / First Start | `6124:17676` | старт |
 | View / Project view / Empty DFM Project | `4382:8827` | обзор |
 | View / Project view / DFM Damaged | `6078:16278` | обзор |
 | View / Project view / Empty DFM Folder | `4385:8956` | обзор |

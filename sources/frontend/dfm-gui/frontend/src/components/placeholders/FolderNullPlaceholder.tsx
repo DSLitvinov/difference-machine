@@ -8,11 +8,11 @@ export function FolderNullPlaceholder({ locale, body }: { locale: Locale; body?:
   const theme = useAppStore((s) => s.theme);
   const subtitle = body === null ? null : (body ?? copy.noFilesYetBody);
   return (
-    <div className="flex w-full flex-1 flex-col items-center justify-center gap-2 p-3">
-      <ThemeImg src={asset("placeholders/folder-null.svg", theme)} alt="" width={128} height={128} className="size-32 object-contain" />
-      <div className="flex w-full flex-col items-center gap-0 text-center text-foreground-secondary">
-        <p className="text-[20px] font-semibold leading-7 tracking-[-0.1px]">{copy.noFilesYet}</p>
-        {subtitle ? <p className="text-[14px] leading-5">{subtitle}</p> : null}
+    <div className="flex w-full flex-1 flex-col items-center justify-center gap-0 p-3">
+      <ThemeImg src={asset("placeholders/folder-null.svg", theme)} alt="" width={256} height={256} className="size-64" />
+      <div className="flex w-full flex-col items-center gap-0 text-center">
+        <p className="text-[20px] font-semibold leading-7 tracking-[-0.1px] text-[#18181b] dark:text-foreground">{copy.noFilesYet}</p>
+        {subtitle ? <p className="text-[14px] leading-5 text-foreground-muted">{subtitle}</p> : null}
       </div>
     </div>
   );

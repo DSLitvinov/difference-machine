@@ -28,7 +28,7 @@ export function BinaryDiffStub({ locale, onOpen, busy, onCompare, onRevert }: Bi
           </div>
         </div>
       ) : null}
-      <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+      <div className="flex min-h-0 w-full flex-1 justify-center pt-5">
         <DiffBinaryPlaceholder locale={locale} onOpen={onOpen} />
       </div>
     </div>

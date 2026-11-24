@@ -52,7 +52,7 @@ Figma: [Panel / File Info](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/D
 | Figma | Node |
 |-------|------|
 | File Info | `4309:9390` |
-| File Info - Null | `4382:8024` — [not-select-file](../components/placeholders/not-select-file.md); футер нет |
-| File Info - Missing | [`6066:13319`](https://www.figma.com/design/qlwKiMPZblz96VSM2F3DlS/DFM-for-Cursor?node-id=6066-13319) — [missing-file](../components/placeholders/missing-file.md); превью, metadata и футер нет |
+| File Info - Null | `4382:8024` — [not-select-file](../components/placeholders/not-select-file.md) сверху, padding 12; футер нет |
+| File Info - Missing | [`6066:13319`](https://www.figma.com/design/UdzVpYkngLCGzVXFWwq8TJ/Difference-MAchine?node-id=6066-13319) — превью 308: `Icons / 256 / Missing` (`8135:12923`) на 204×204, `file-types/missing.svg`. Та же секция Metadata, все value `-`. Футера нет |
 | File Info - single file create snapshot | снят — коммит в [диалогах](../dialogs/commit.md), футера кнопок нет |
 | Select More Files | `4383:9620` — отдельная спека |
